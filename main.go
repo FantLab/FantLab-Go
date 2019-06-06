@@ -1,13 +1,15 @@
 package main
 
 import (
-	"fmt"
 	"log"
-	"time"
+	"net/http"
 
+	"github.com/gin-gonic/gin"
 	"github.com/jinzhu/gorm"
 	_ "github.com/jinzhu/gorm/dialects/mysql"
 )
+
+var fdb *FDB
 
 func main() {
 	db, err := gorm.Open("mysql", "root:root@/fantlab?charset=utf8&parseTime=True&loc=Local")
@@ -17,25 +19,18 @@ func main() {
 	defer db.Close()
 
 	db.LogMode(true)
+	fdb = &FDB{db}
 
-	fdb := &FDB{db}
-	userId := 541
+	router := gin.Default()
 
-	showSubscriptions(fdb, userId)
+	router.GET("/forums", forumsEndpoint)
+
+	router.Run()
 }
 
-func showSubscriptions(fdb *FDB, userId int) {
-	fmt.Println("blogs =", fdb.getSubscribedBlogs(userId))
-	fmt.Println("blogTopics =", fdb.getSubscribedBlogTopicIds(userId))
-
-	forumTopics := fdb.getSubscribedForumTopics(userId)
-	fmt.Println("forumTopics =", forumTopics)
-
-	forumTopicIds := make([]int, len(forumTopics))
-	for index, topic := range forumTopics {
-		forumTopicIds[index] = topic.TopicId
-	}
-
-	topicMessages := fdb.getSubscribedForumMessages(forumTopicIds, time.Unix(1135987200, 0), 100)
-	fmt.Println("messages =", topicMessages)
+func forumsEndpoint(c *gin.Context) {
+	forums := fdb.getForums()
+	moderators := fdb.getModerators()
+	forumBlocks := getForumBlocks(forums, moderators)
+	c.JSON(http.StatusOK, forumBlocks)
 }
