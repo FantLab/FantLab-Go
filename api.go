@@ -13,21 +13,31 @@ type ForumBlock struct {
 
 // Форум
 type Forum struct {
-	Id              uint16     `json:"id"`
-	Name            string     `json:"name"`
-	Description     string     `json:"description"`
-	Moderators      []UserLink `json:"moderators"`
-	TopicCount      uint32     `json:"topic_count"`
-	MessageCount    uint32     `json:"message_count"`
-	LastTopic       TopicLink  `json:"last_topic"`
-	LastMessageUser UserLink   `json:"last_message_user"`
-	LastMessageDate time.Time  `json:"last_message_date"`
+	Id          uint16           `json:"id"`
+	Name        string           `json:"name"`
+	Description string           `json:"description"`
+	Moderators  []UserLink       `json:"moderators"`
+	Stats       ForumStats       `json:"stats"`
+	LastMessage LastForumMessage `json:"last_message"`
+}
+
+// Статистика форума
+type ForumStats struct {
+	TopicCount   uint32 `json:"topic_count"`
+	MessageCount uint32 `json:"message_count"`
+}
+
+// Последнее сообщение в форуме
+type LastForumMessage struct {
+	Topic TopicLink `json:"topic"`
+	User  UserLink  `json:"user"`
+	Date  time.Time `json:"date"`
 }
 
 // Ссылка на тему форума
 type TopicLink struct {
-	Id   uint32 `json:"id"`
-	Name string `json:"name"`
+	Id    uint32 `json:"id"`
+	Title string `json:"title"`
 }
 
 // Ссылка на пользователя
@@ -42,11 +52,12 @@ func getForumBlocks(dbForums []DbForum, dbModerators []DbModerator) []ForumBlock
 	currentForumBlockId := uint16(0)
 	for _, dbForum := range dbForums {
 		if dbForum.ForumBlockId != currentForumBlockId {
-			forumBlocks = append(forumBlocks, ForumBlock{
+			forumBlock := ForumBlock{
 				Id:     dbForum.ForumBlockId,
 				Name:   dbForum.ForumBlockName,
 				Forums: []Forum{},
-			})
+			}
+			forumBlocks = append(forumBlocks, forumBlock)
 			currentForumBlockId = dbForum.ForumBlockId
 		}
 	}
@@ -56,29 +67,35 @@ func getForumBlocks(dbForums []DbForum, dbModerators []DbModerator) []ForumBlock
 				var moderators []UserLink
 				for _, dbModerator := range dbModerators {
 					if dbModerator.ForumId == dbForum.ForumId {
-						moderators = append(moderators, UserLink{
+						userLink := UserLink{
 							Id:    dbModerator.UserId,
 							Login: dbModerator.Login,
-						})
+						}
+						moderators = append(moderators, userLink)
 					}
 				}
-				forumBlocks[index].Forums = append(forumBlocks[index].Forums, Forum{
-					Id:           dbForum.ForumId,
-					Name:         dbForum.Name,
-					Description:  dbForum.Description,
-					Moderators:   moderators,
-					TopicCount:   dbForum.TopicCount,
-					MessageCount: dbForum.MessageCount,
-					LastTopic: TopicLink{
-						Id:   dbForum.LastTopicId,
-						Name: dbForum.LastTopicName,
+				forum := Forum{
+					Id:          dbForum.ForumId,
+					Name:        dbForum.Name,
+					Description: dbForum.Description,
+					Moderators:  moderators,
+					Stats: ForumStats{
+						TopicCount:   dbForum.TopicCount,
+						MessageCount: dbForum.MessageCount,
 					},
-					LastMessageUser: UserLink{
-						Id:    dbForum.LastUserId,
-						Login: dbForum.LastUserName,
+					LastMessage: LastForumMessage{
+						Topic: TopicLink{
+							Id:    dbForum.LastTopicId,
+							Title: dbForum.LastTopicName,
+						},
+						User: UserLink{
+							Id:    dbForum.LastUserId,
+							Login: dbForum.LastUserName,
+						},
+						Date: dbForum.LastMessageDate,
 					},
-					LastMessageDate: dbForum.LastMessageDate,
-				})
+				}
+				forumBlocks[index].Forums = append(forumBlocks[index].Forums, forum)
 				break
 			}
 		}
