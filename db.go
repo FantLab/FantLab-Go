@@ -21,9 +21,28 @@ type DbForum struct {
 	LastTopicName   string
 	LastUserId      uint32
 	LastUserName    string
+	LastMessageId   uint32
 	LastMessageDate time.Time
 	ForumBlockId    uint16
 	ForumBlockName  string
+}
+
+// Тема
+type DbTopic struct {
+	TopicId         uint32
+	Name            string
+	DateOfAdd       time.Time
+	Views           uint32
+	UserId          uint32
+	Login           string
+	TopicTypeId     uint16
+	IsClosed        bool
+	IsPinned        bool
+	MessageCount    uint32
+	LastMessageId   uint32
+	LastUserId      uint32
+	LastUserName    string
+	LastMessageDate time.Time
 }
 
 // Модератор
@@ -47,6 +66,7 @@ func (db *FDB) getForums() []DbForum {
 			"f.last_topic_name, " +
 			"f.last_user_id, " +
 			"f.last_user_name, " +
+			"f.last_message_id, " +
 			"f.last_message_date, " +
 			"fb.forum_block_id, " +
 			"fb.name AS forum_block_name").
@@ -55,6 +75,36 @@ func (db *FDB) getForums() []DbForum {
 		Scan(&forums)
 
 	return forums
+}
+
+func (db *FDB) getTopics(forumId uint16, limit uint16, offset uint16) []DbTopic {
+	var topics []DbTopic
+
+	// todo https://github.com/parserpro/fantlab/blob/master/pm/Forum.pm#L1011
+	// todo https://github.com/parserpro/fantlab/blob/master/pm/Forum.pm#L1105
+	db.Table("f_topics t").
+		Select("t.topic_id, "+
+			"t.name, "+
+			"t.date_of_add, "+
+			"t.views, "+
+			"u.user_id, "+
+			"u.login, "+
+			"t.topic_type_id, "+
+			"t.is_closed, "+
+			"t.is_pinned, "+
+			"t.message_count, "+
+			"t.last_message_id, "+
+			"t.last_user_id, "+
+			"t.last_user_name, "+
+			"t.last_message_date").
+		Joins("JOIN users u ON (u.user_id = t.user_id)").
+		Where("t.forum_id = ?", forumId).
+		Order("t.is_pinned DESC, t.last_message_date DESC").
+		Limit(limit).
+		Offset(offset).
+		Scan(&topics)
+
+	return topics
 }
 
 func (db *FDB) getModerators() []DbModerator {

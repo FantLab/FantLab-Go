@@ -3,6 +3,7 @@ package main
 import (
 	"log"
 	"net/http"
+	"strconv"
 
 	"github.com/gin-gonic/gin"
 	"github.com/jinzhu/gorm"
@@ -24,13 +25,36 @@ func main() {
 	router := gin.Default()
 
 	router.GET("/forums", forumsEndpoint)
+	router.GET("/forums/:id", forumTopicsEndpoint)
 
 	router.Run()
 }
 
 func forumsEndpoint(c *gin.Context) {
-	forums := fdb.getForums()
-	moderators := fdb.getModerators()
-	forumBlocks := getForumBlocks(forums, moderators)
-	c.IndentedJSON(http.StatusOK, forumBlocks)
+	dbForums := fdb.getForums()
+	dbModerators := fdb.getModerators()
+	forumBlocks := getForumBlocks(dbForums, dbModerators)
+	c.JSON(http.StatusOK, forumBlocks)
+}
+
+func forumTopicsEndpoint(c *gin.Context) {
+	forumId, err := strconv.Atoi(c.Param("id"))
+	if err != nil {
+		c.AbortWithStatus(http.StatusBadRequest)
+		return
+	}
+	page, err := strconv.Atoi(c.DefaultQuery("page", "1"))
+	if err != nil {
+		c.AbortWithStatus(http.StatusBadRequest)
+		return
+	}
+	limit, err := strconv.Atoi(c.DefaultQuery("limit", "20")) // todo get from config
+	if err != nil {
+		c.AbortWithStatus(http.StatusBadRequest)
+		return
+	}
+	offset := limit * (page - 1)
+	dbTopics := fdb.getTopics(uint16(forumId), uint16(limit), uint16(offset))
+	topics := getTopics(dbTopics)
+	c.JSON(http.StatusOK, topics)
 }

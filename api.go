@@ -3,54 +3,84 @@ package main
 // Блок форумов
 type ForumBlock struct {
 	Id     uint16  `json:"-"`
-	Name   string  `json:"block_name"`
+	Title  string  `json:"block_title"`
 	Forums []Forum `json:"forums"`
 }
 
 // Форум
 type Forum struct {
 	Id          uint16           `json:"id"`
-	Name        string           `json:"name"`
+	Title       string           `json:"title"`
 	Description string           `json:"description"`
-	Moderators  []UserLink       `json:"moderators"`
-	Stats       ForumStats       `json:"stats"`
-	LastMessage LastForumMessage `json:"last_message"`
+	Moderators  []userLink       `json:"moderators"`
+	Stats       forumStats       `json:"stats"`
+	LastMessage lastForumMessage `json:"last_message"`
+}
+
+// Тема
+type Topic struct {
+	Id          uint32           `json:"id"`
+	Title       string           `json:"title"`
+	Type        uint16           `json:"type"`
+	Creation    topicCreation    `json:"creation"`
+	IsClosed    bool             `json:"is_closed"`
+	IsPinned    bool             `json:"is_pinned"`
+	Stats       topicStats       `json:"stats"`
+	LastMessage lastTopicMessage `json:"last_message"`
 }
 
 // Статистика форума
-type ForumStats struct {
+type forumStats struct {
 	TopicCount   uint32 `json:"topic_count"`
 	MessageCount uint32 `json:"message_count"`
 }
 
 // Последнее сообщение в форуме
-type LastForumMessage struct {
-	Topic TopicLink `json:"topic"`
-	User  UserLink  `json:"user"`
+type lastForumMessage struct {
+	Id    uint32    `json:"id"`
+	Topic topicLink `json:"topic"`
+	User  userLink  `json:"user"`
 	Date  int64     `json:"date"`
 }
 
 // Ссылка на тему форума
-type TopicLink struct {
+type topicLink struct {
 	Id    uint32 `json:"id"`
 	Title string `json:"title"`
 }
 
 // Ссылка на пользователя
-type UserLink struct {
+type userLink struct {
 	Id    uint32 `json:"id"`
 	Login string `json:"login"`
 }
 
+type topicCreation struct {
+	User userLink `json:"user"`
+	Date int64    `json:"date"`
+}
+
+type topicStats struct {
+	MessageCount uint32 `json:"message_count"`
+	ViewsCount   uint32 `json:"views_count"`
+}
+
+// Последнее сообщение в теме
+type lastTopicMessage struct {
+	Id   uint32   `json:"id"`
+	User userLink `json:"user"`
+	Date int64    `json:"date"`
+}
+
 func getForumBlocks(dbForums []DbForum, dbModerators []DbModerator) []ForumBlock {
-	// todo better algorithm
 	var forumBlocks []ForumBlock
-	currentForumBlockId := uint16(0)
+
+	currentForumBlockId := uint16(0) // f_forum_block.id начинаются с 1
 	for _, dbForum := range dbForums {
 		if dbForum.ForumBlockId != currentForumBlockId {
 			forumBlock := ForumBlock{
 				Id:     dbForum.ForumBlockId,
-				Name:   dbForum.ForumBlockName,
+				Title:  dbForum.ForumBlockName,
 				Forums: []Forum{},
 			}
 			forumBlocks = append(forumBlocks, forumBlock)
@@ -60,10 +90,10 @@ func getForumBlocks(dbForums []DbForum, dbModerators []DbModerator) []ForumBlock
 	for _, dbForum := range dbForums {
 		for index := range forumBlocks {
 			if dbForum.ForumBlockId == forumBlocks[index].Id {
-				var moderators []UserLink
+				var moderators []userLink
 				for _, dbModerator := range dbModerators {
 					if dbModerator.ForumId == dbForum.ForumId {
-						userLink := UserLink{
+						userLink := userLink{
 							Id:    dbModerator.UserId,
 							Login: dbModerator.Login,
 						}
@@ -72,19 +102,20 @@ func getForumBlocks(dbForums []DbForum, dbModerators []DbModerator) []ForumBlock
 				}
 				forum := Forum{
 					Id:          dbForum.ForumId,
-					Name:        dbForum.Name,
+					Title:       dbForum.Name,
 					Description: dbForum.Description,
 					Moderators:  moderators,
-					Stats: ForumStats{
+					Stats: forumStats{
 						TopicCount:   dbForum.TopicCount,
 						MessageCount: dbForum.MessageCount,
 					},
-					LastMessage: LastForumMessage{
-						Topic: TopicLink{
+					LastMessage: lastForumMessage{
+						Id: dbForum.LastMessageId,
+						Topic: topicLink{
 							Id:    dbForum.LastTopicId,
 							Title: dbForum.LastTopicName,
 						},
-						User: UserLink{
+						User: userLink{
 							Id:    dbForum.LastUserId,
 							Login: dbForum.LastUserName,
 						},
@@ -96,5 +127,41 @@ func getForumBlocks(dbForums []DbForum, dbModerators []DbModerator) []ForumBlock
 			}
 		}
 	}
+
 	return forumBlocks
+}
+
+func getTopics(dbTopics []DbTopic) []Topic {
+	var topics []Topic
+
+	for _, dbTopic := range dbTopics {
+		topics = append(topics, Topic{
+			Id:    dbTopic.TopicId,
+			Title: dbTopic.Name,
+			Type:  dbTopic.TopicTypeId,
+			Creation: topicCreation{
+				User: userLink{
+					Id:    dbTopic.UserId,
+					Login: dbTopic.Login,
+				},
+				Date: dbTopic.DateOfAdd.Unix(),
+			},
+			IsClosed: dbTopic.IsClosed,
+			IsPinned: dbTopic.IsPinned,
+			Stats: topicStats{
+				MessageCount: dbTopic.MessageCount,
+				ViewsCount:   dbTopic.Views,
+			},
+			LastMessage: lastTopicMessage{
+				Id: dbTopic.LastMessageId,
+				User: userLink{
+					Id:    dbTopic.LastUserId,
+					Login: dbTopic.LastUserName,
+				},
+				Date: dbTopic.LastMessageDate.Unix(),
+			},
+		})
+	}
+
+	return topics
 }
