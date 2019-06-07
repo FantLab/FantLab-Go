@@ -1,9 +1,5 @@
 package main
 
-import (
-	"time"
-)
-
 // Блок форумов
 type ForumBlock struct {
 	Id     uint16  `json:"-"`
@@ -31,7 +27,7 @@ type ForumStats struct {
 type LastForumMessage struct {
 	Topic TopicLink `json:"topic"`
 	User  UserLink  `json:"user"`
-	Date  time.Time `json:"date"`
+	Date  int64     `json:"date"`
 }
 
 // Ссылка на тему форума
@@ -92,7 +88,7 @@ func getForumBlocks(dbForums []DbForum, dbModerators []DbModerator) []ForumBlock
 							Id:    dbForum.LastUserId,
 							Login: dbForum.LastUserName,
 						},
-						Date: dbForum.LastMessageDate,
+						Date: dbForum.LastMessageDate.Unix(),
 					},
 				}
 				forumBlocks[index].Forums = append(forumBlocks[index].Forums, forum)

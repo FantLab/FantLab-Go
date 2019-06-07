@@ -12,7 +12,7 @@ import (
 var fdb *FDB
 
 func main() {
-	db, err := gorm.Open("mysql", "root:root@/fantlab?charset=utf8&parseTime=True&loc=Local")
+	db, err := gorm.Open("mysql", "root:root@/fantlab?charset=utf8&parseTime=True&loc=Europe%2FMoscow")
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -32,5 +32,5 @@ func forumsEndpoint(c *gin.Context) {
 	forums := fdb.getForums()
 	moderators := fdb.getModerators()
 	forumBlocks := getForumBlocks(forums, moderators)
-	c.JSON(http.StatusOK, forumBlocks)
+	c.IndentedJSON(http.StatusOK, forumBlocks)
 }
