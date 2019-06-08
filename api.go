@@ -55,11 +55,13 @@ type userLink struct {
 	Login string `json:"login"`
 }
 
+// Данные о создании темы
 type topicCreation struct {
 	User userLink `json:"user"`
 	Date int64    `json:"date"`
 }
 
+// Статистика темы
 type topicStats struct {
 	MessageCount uint32 `json:"message_count"`
 	ViewsCount   uint32 `json:"views_count"`
@@ -132,7 +134,8 @@ func getForumBlocks(dbForums []DbForum, dbModerators []DbModerator) []ForumBlock
 }
 
 func getTopics(dbTopics []DbTopic) []Topic {
-	var topics []Topic
+	//noinspection GoPreferNilSlice
+	topics := []Topic{} // возвращаем в случае отсутствия результатов пустой массив
 
 	for _, dbTopic := range dbTopics {
 		topics = append(topics, Topic{

@@ -17,17 +17,25 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	defer db.Close()
+	defer func() {
+		err := db.Close()
+		if err != nil {
+			log.Println(err)
+		}
+	}()
 
 	db.LogMode(true)
 	fdb = &FDB{db}
 
-	router := gin.Default()
+	router := gin.New()
+	router.Use(gin.Logger(), gin.Recovery())
 
 	router.GET("/forums", forumsEndpoint)
 	router.GET("/forums/:id", forumTopicsEndpoint)
 
-	router.Run()
+	if err := router.Run(":4242"); err != nil {
+		log.Fatal(err)
+	}
 }
 
 func forumsEndpoint(c *gin.Context) {
@@ -38,23 +46,31 @@ func forumsEndpoint(c *gin.Context) {
 }
 
 func forumTopicsEndpoint(c *gin.Context) {
-	forumId, err := strconv.Atoi(c.Param("id"))
+	forumId, err := strconv.ParseUint(c.Param("id"), 10, 16)
 	if err != nil {
-		c.AbortWithStatus(http.StatusBadRequest)
-		return
+		//noinspection GoUnhandledErrorResult
+		c.Error(err)
 	}
-	page, err := strconv.Atoi(c.DefaultQuery("page", "1"))
+	page, err := strconv.ParseUint(c.DefaultQuery("page", "1"), 10, 32)
 	if err != nil {
-		c.AbortWithStatus(http.StatusBadRequest)
-		return
+		//noinspection GoUnhandledErrorResult
+		c.Error(err)
 	}
-	limit, err := strconv.Atoi(c.DefaultQuery("limit", "20")) // todo get from config
+	limit, err := strconv.ParseUint(c.DefaultQuery("limit", "20"), 10, 32) // todo get from config
 	if err != nil {
-		c.AbortWithStatus(http.StatusBadRequest)
+		//noinspection GoUnhandledErrorResult
+		c.Error(err)
+	}
+	if len(c.Errors) != 0 {
+		if gin.IsDebugging() {
+			c.AbortWithStatusJSON(http.StatusBadRequest, c.Errors.JSON())
+		} else {
+			c.AbortWithStatus(http.StatusBadRequest)
+		}
 		return
 	}
 	offset := limit * (page - 1)
-	dbTopics := fdb.getTopics(uint16(forumId), uint16(limit), uint16(offset))
+	dbTopics := fdb.getTopics(uint16(forumId), uint32(limit), uint32(offset))
 	topics := getTopics(dbTopics)
 	c.JSON(http.StatusOK, topics)
 }
