@@ -77,7 +77,7 @@ func (db *FDB) getForums() []DbForum {
 	return forums
 }
 
-func (db *FDB) getTopics(forumId uint16, limit uint32, offset uint32) []DbTopic {
+func (db *FDB) getTopics(forumId uint16, limit, offset uint32) []DbTopic {
 	var topics []DbTopic
 
 	// todo https://github.com/parserpro/fantlab/blob/master/pm/Forum.pm#L1011
