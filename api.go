@@ -65,7 +65,7 @@ type userLink struct {
 	Gender uint8  `json:"gender,omitempty"`
 	// Порядковый номер фото (https://data.fantlab.ru/images/users/{UserId}_{PhotoNumber}). Если 0 - его нет.
 	PhotoNumber uint16 `json:"photo_number,omitempty"`
-	Class       uint8  `json:"class, omitempty"`
+	Class       uint8  `json:"class,omitempty"`
 	Sign        string `json:"sign,omitempty"`
 }
 
@@ -87,7 +87,7 @@ type messageStats struct {
 	MinusCount uint16 `json:"minus_count"`
 }
 
-func getForumBlocks(dbForums []DbForum, dbModerators []DbModerator) []ForumBlock {
+func getForumBlocks(dbForums []DbForum, dbModerators map[uint16][]DbModerator) []ForumBlock {
 	var forumBlocks []ForumBlock
 
 	currentForumBlockId := uint16(0) // f_forum_block.id начинаются с 1
@@ -106,14 +106,12 @@ func getForumBlocks(dbForums []DbForum, dbModerators []DbModerator) []ForumBlock
 		for index := range forumBlocks {
 			if dbForum.ForumBlockId == forumBlocks[index].Id {
 				var moderators []userLink
-				for _, dbModerator := range dbModerators {
-					if dbModerator.ForumId == dbForum.ForumId {
-						userLink := userLink{
-							Id:    dbModerator.UserId,
-							Login: dbModerator.Login,
-						}
-						moderators = append(moderators, userLink)
+				for _, dbModerator := range dbModerators[dbForum.ForumId] {
+					userLink := userLink{
+						Id:    dbModerator.UserId,
+						Login: dbModerator.Login,
 					}
+					moderators = append(moderators, userLink)
 				}
 				forum := Forum{
 					Id:          dbForum.ForumId,

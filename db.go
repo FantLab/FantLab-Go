@@ -137,10 +137,8 @@ func (db *FDB) getTopicMessages(topicId, limit, offset uint32) []DbForumMessage 
 			"u.sign, "+
 			"m.message_text, "+
 			"f.is_censored, "+
-			"f.is_red, "+
 			"f.vote_plus, "+
-			"f.vote_minus, "+
-			"f.attachment").
+			"f.vote_minus").
 		Joins("JOIN users u ON u.user_id = f.user_id").
 		Joins("JOIN f_messages_text m ON m.message_id = f.message_id").
 		Where("f.topic_id = ?", topicId).
@@ -152,17 +150,23 @@ func (db *FDB) getTopicMessages(topicId, limit, offset uint32) []DbForumMessage 
 	return messages
 }
 
-func (db *FDB) getModerators() []DbModerator {
+func (db *FDB) getModerators() map[uint16][]DbModerator {
+	moderatorsMap := map[uint16][]DbModerator{}
+
 	var moderators []DbModerator
 
 	db.Table("f_moderators md").
 		Select("u.user_id, " +
 			"u.login, " +
 			"md.forum_id, " +
-			"u.user_class * 1000000 + u.level AS sort").
+			"u.user_class * 1000000 + u.level AS sort"). // модераторы сортируются по формуле UserClass * 10^6 + Level
 		Joins("JOIN users u ON (u.user_id = md.user_id)").
 		Order("md.forum_id, sort DESC").
 		Scan(&moderators)
 
-	return moderators
+	for _, moderator := range moderators {
+		moderatorsMap[moderator.ForumId] = append(moderatorsMap[moderator.ForumId], moderator)
+	}
+
+	return moderatorsMap
 }

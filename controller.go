@@ -41,11 +41,7 @@ func (c *Controller) ShowForumTopics(ctx *gin.Context) {
 		ctx.Error(err)
 	}
 	if len(ctx.Errors) != 0 {
-		if gin.IsDebugging() {
-			ctx.AbortWithStatusJSON(http.StatusBadRequest, ctx.Errors.JSON())
-		} else {
-			ctx.AbortWithStatus(http.StatusBadRequest)
-		}
+		ShowErrors(ctx)
 		return
 	}
 	offset := limit * (page - 1)
@@ -71,11 +67,7 @@ func (c *Controller) ShowTopicMessages(ctx *gin.Context) {
 		ctx.Error(err)
 	}
 	if len(ctx.Errors) != 0 {
-		if gin.IsDebugging() {
-			ctx.AbortWithStatusJSON(http.StatusBadRequest, ctx.Errors.JSON())
-		} else {
-			ctx.AbortWithStatus(http.StatusBadRequest)
-		}
+		ShowErrors(ctx)
 		return
 	}
 	offset := limit * (page - 1)
