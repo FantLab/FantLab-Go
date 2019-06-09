@@ -31,13 +31,11 @@ type ForumTopic struct {
 
 // Сообщение в форуме
 type TopicMessage struct {
-	Id            uint32       `json:"id"`
-	Creation      creation     `json:"creation"`
-	Text          string       `json:"text"`
-	IsCensored    bool         `json:"is_censored"`
-	IsRed         bool         `json:"is_red"`
-	Stats         messageStats `json:"stats"`
-	HasAttachment bool         `json:"has_attachment"`
+	Id         uint32       `json:"id"`
+	Creation   creation     `json:"creation"`
+	Text       string       `json:"text"`
+	IsCensored bool         `json:"is_censored"`
+	Stats      messageStats `json:"stats"`
 }
 
 // Статистика форума
@@ -205,12 +203,10 @@ func getTopicMessages(dbMessages []DbForumMessage) []TopicMessage {
 			},
 			Text:       dbMessage.MessageText,
 			IsCensored: dbMessage.IsCensored,
-			IsRed:      dbMessage.IsRed,
 			Stats: messageStats{
 				PlusCount:  dbMessage.VotePlus,
 				MinusCount: dbMessage.VoteMinus,
 			},
-			HasAttachment: dbMessage.Attachment,
 		}
 		messages = append(messages, message)
 	}

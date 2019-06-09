@@ -57,10 +57,8 @@ type DbForumMessage struct {
 	Sign        string
 	MessageText string
 	IsCensored  bool
-	IsRed       bool
 	VotePlus    uint16
 	VoteMinus   uint16
-	Attachment  bool
 }
 
 // Модератор
