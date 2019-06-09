@@ -28,7 +28,7 @@ type DbForum struct {
 }
 
 // Тема
-type DbTopic struct {
+type DbForumTopic struct {
 	TopicId         uint32
 	Name            string
 	DateOfAdd       time.Time
@@ -43,6 +43,24 @@ type DbTopic struct {
 	LastUserId      uint32
 	LastUserName    string
 	LastMessageDate time.Time
+}
+
+// Сообщение
+type DbForumMessage struct {
+	MessageId   uint32
+	DateOfAdd   time.Time
+	UserId      uint32
+	Login       string
+	Sex         uint8
+	PhotoNumber uint16
+	UserClass   uint8
+	Sign        string
+	MessageText string
+	IsCensored  bool
+	IsRed       bool
+	VotePlus    uint16
+	VoteMinus   uint16
+	Attachment  bool
 }
 
 // Модератор
@@ -77,11 +95,9 @@ func (db *FDB) getForums() []DbForum {
 	return forums
 }
 
-func (db *FDB) getTopics(forumId uint16, limit, offset uint32) []DbTopic {
-	var topics []DbTopic
+func (db *FDB) getForumTopics(forumId uint16, limit, offset uint32) []DbForumTopic {
+	var topics []DbForumTopic
 
-	// todo https://github.com/parserpro/fantlab/blob/master/pm/Forum.pm#L1011
-	// todo https://github.com/parserpro/fantlab/blob/master/pm/Forum.pm#L1105
 	db.Table("f_topics t").
 		Select("t.topic_id, "+
 			"t.name, "+
@@ -105,6 +121,37 @@ func (db *FDB) getTopics(forumId uint16, limit, offset uint32) []DbTopic {
 		Scan(&topics)
 
 	return topics
+}
+
+func (db *FDB) getTopicMessages(topicId, limit, offset uint32) []DbForumMessage {
+	var messages []DbForumMessage
+
+	// todo https://github.com/parserpro/fantlab/blob/master/pm/Forum.pm#L1011
+	// todo https://github.com/parserpro/fantlab/blob/master/pm/Forum.pm#L1105
+	db.Table("f_messages f").
+		Select("f.message_id, "+
+			"f.date_of_add, "+
+			"f.user_id, "+
+			"u.login, "+
+			"u.sex, "+
+			"u.photo_number, "+
+			"u.user_class, "+
+			"u.sign, "+
+			"m.message_text, "+
+			"f.is_censored, "+
+			"f.is_red, "+
+			"f.vote_plus, "+
+			"f.vote_minus, "+
+			"f.attachment").
+		Joins("JOIN users u ON u.user_id = f.user_id").
+		Joins("JOIN f_messages_text m ON m.message_id = f.message_id").
+		Where("f.topic_id = ?", topicId).
+		Order("f.date_of_add").
+		Limit(limit).
+		Offset(offset).
+		Scan(&messages)
+
+	return messages
 }
 
 func (db *FDB) getModerators() []DbModerator {

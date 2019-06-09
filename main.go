@@ -30,6 +30,7 @@ func main() {
 
 	router.GET("/forums", controller.ShowForums)
 	router.GET("/forums/:id", controller.showForumTopics)
+	router.GET("/topics/:id", controller.showTopicMessages)
 
 	if err := router.Run(":4242"); err != nil {
 		log.Fatal(err)

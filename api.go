@@ -9,24 +9,35 @@ type ForumBlock struct {
 
 // Форум
 type Forum struct {
-	Id          uint16           `json:"id"`
-	Title       string           `json:"title"`
-	Description string           `json:"description"`
-	Moderators  []userLink       `json:"moderators"`
-	Stats       forumStats       `json:"stats"`
-	LastMessage lastForumMessage `json:"last_message"`
+	Id          uint16      `json:"id"`
+	Title       string      `json:"title"`
+	Description string      `json:"description"`
+	Moderators  []userLink  `json:"moderators"`
+	Stats       forumStats  `json:"stats"`
+	LastMessage lastMessage `json:"last_message"`
 }
 
 // Тема
-type Topic struct {
-	Id          uint32           `json:"id"`
-	Title       string           `json:"title"`
-	Type        uint16           `json:"type"`
-	Creation    topicCreation    `json:"creation"`
-	IsClosed    bool             `json:"is_closed"`
-	IsPinned    bool             `json:"is_pinned"`
-	Stats       topicStats       `json:"stats"`
-	LastMessage lastTopicMessage `json:"last_message"`
+type ForumTopic struct {
+	Id          uint32      `json:"id"`
+	Title       string      `json:"title"`
+	Type        uint16      `json:"type"`
+	Creation    creation    `json:"creation"`
+	IsClosed    bool        `json:"is_closed"`
+	IsPinned    bool        `json:"is_pinned"`
+	Stats       topicStats  `json:"stats"`
+	LastMessage lastMessage `json:"last_message"`
+}
+
+// Сообщение в форуме
+type TopicMessage struct {
+	Id            uint32       `json:"id"`
+	Creation      creation     `json:"creation"`
+	Text          string       `json:"text"`
+	IsCensored    bool         `json:"is_censored"`
+	IsRed         bool         `json:"is_red"`
+	Stats         messageStats `json:"stats"`
+	HasAttachment bool         `json:"has_attachment"`
 }
 
 // Статистика форума
@@ -36,9 +47,9 @@ type forumStats struct {
 }
 
 // Последнее сообщение в форуме
-type lastForumMessage struct {
+type lastMessage struct {
 	Id    uint32    `json:"id"`
-	Topic topicLink `json:"topic"`
+	Topic topicLink `json:"topic,omitempty"`
 	User  userLink  `json:"user"`
 	Date  int64     `json:"date"`
 }
@@ -51,12 +62,17 @@ type topicLink struct {
 
 // Ссылка на пользователя
 type userLink struct {
-	Id    uint32 `json:"id"`
-	Login string `json:"login"`
+	Id     uint32 `json:"id"`
+	Login  string `json:"login"`
+	Gender uint8  `json:"gender,omitempty"`
+	// Порядковый номер фото (https://data.fantlab.ru/images/users/{UserId}_{PhotoNumber}). Если 0 - его нет.
+	PhotoNumber uint16 `json:"photo_number,omitempty"`
+	Class       uint8  `json:"class, omitempty"`
+	Sign        string `json:"sign,omitempty"`
 }
 
-// Данные о создании темы
-type topicCreation struct {
+// Данные о создании
+type creation struct {
 	User userLink `json:"user"`
 	Date int64    `json:"date"`
 }
@@ -67,11 +83,10 @@ type topicStats struct {
 	ViewsCount   uint32 `json:"views_count"`
 }
 
-// Последнее сообщение в теме
-type lastTopicMessage struct {
-	Id   uint32   `json:"id"`
-	User userLink `json:"user"`
-	Date int64    `json:"date"`
+// Статистика сообщения
+type messageStats struct {
+	PlusCount  uint16 `json:"plus_count"`
+	MinusCount uint16 `json:"minus_count"`
 }
 
 func getForumBlocks(dbForums []DbForum, dbModerators []DbModerator) []ForumBlock {
@@ -111,7 +126,7 @@ func getForumBlocks(dbForums []DbForum, dbModerators []DbModerator) []ForumBlock
 						TopicCount:   dbForum.TopicCount,
 						MessageCount: dbForum.MessageCount,
 					},
-					LastMessage: lastForumMessage{
+					LastMessage: lastMessage{
 						Id: dbForum.LastMessageId,
 						Topic: topicLink{
 							Id:    dbForum.LastTopicId,
@@ -133,16 +148,16 @@ func getForumBlocks(dbForums []DbForum, dbModerators []DbModerator) []ForumBlock
 	return forumBlocks
 }
 
-func getTopics(dbTopics []DbTopic) []Topic {
+func getForumTopics(dbTopics []DbForumTopic) []ForumTopic {
 	//noinspection GoPreferNilSlice
-	topics := []Topic{} // возвращаем в случае отсутствия результатов пустой массив
+	topics := []ForumTopic{} // возвращаем в случае отсутствия результатов пустой массив
 
 	for _, dbTopic := range dbTopics {
-		topics = append(topics, Topic{
+		topic := ForumTopic{
 			Id:    dbTopic.TopicId,
 			Title: dbTopic.Name,
 			Type:  dbTopic.TopicTypeId,
-			Creation: topicCreation{
+			Creation: creation{
 				User: userLink{
 					Id:    dbTopic.UserId,
 					Login: dbTopic.Login,
@@ -155,7 +170,7 @@ func getTopics(dbTopics []DbTopic) []Topic {
 				MessageCount: dbTopic.MessageCount,
 				ViewsCount:   dbTopic.Views,
 			},
-			LastMessage: lastTopicMessage{
+			LastMessage: lastMessage{
 				Id: dbTopic.LastMessageId,
 				User: userLink{
 					Id:    dbTopic.LastUserId,
@@ -163,8 +178,42 @@ func getTopics(dbTopics []DbTopic) []Topic {
 				},
 				Date: dbTopic.LastMessageDate.Unix(),
 			},
-		})
+		}
+		topics = append(topics, topic)
 	}
 
 	return topics
+}
+
+func getTopicMessages(dbMessages []DbForumMessage) []TopicMessage {
+	//noinspection GoPreferNilSlice
+	messages := []TopicMessage{} // возвращаем в случае отсутствия результатов пустой массив
+
+	for _, dbMessage := range dbMessages {
+		message := TopicMessage{
+			Id: dbMessage.MessageId,
+			Creation: creation{
+				User: userLink{
+					Id:          dbMessage.UserId,
+					Login:       dbMessage.Login,
+					Gender:      dbMessage.Sex,
+					PhotoNumber: dbMessage.PhotoNumber,
+					Class:       dbMessage.UserClass,
+					Sign:        dbMessage.Sign,
+				},
+				Date: dbMessage.DateOfAdd.Unix(),
+			},
+			Text:       dbMessage.MessageText,
+			IsCensored: dbMessage.IsCensored,
+			IsRed:      dbMessage.IsRed,
+			Stats: messageStats{
+				PlusCount:  dbMessage.VotePlus,
+				MinusCount: dbMessage.VoteMinus,
+			},
+			HasAttachment: dbMessage.Attachment,
+		}
+		messages = append(messages, message)
+	}
+
+	return messages
 }
