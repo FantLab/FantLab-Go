@@ -29,8 +29,8 @@ func main() {
 	controller := NewController(fdb)
 
 	router.GET("/forums", controller.ShowForums)
-	router.GET("/forums/:id", controller.showForumTopics)
-	router.GET("/topics/:id", controller.showTopicMessages)
+	router.GET("/forums/:id", controller.ShowForumTopics)
+	router.GET("/topics/:id", controller.ShowTopicMessages)
 
 	if err := router.Run(":4242"); err != nil {
 		log.Fatal(err)

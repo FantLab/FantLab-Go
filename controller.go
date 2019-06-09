@@ -24,7 +24,7 @@ func (c *Controller) ShowForums(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, forumBlocks)
 }
 
-func (c *Controller) showForumTopics(ctx *gin.Context) {
+func (c *Controller) ShowForumTopics(ctx *gin.Context) {
 	forumId, err := strconv.ParseUint(ctx.Param("id"), 10, 16)
 	if err != nil {
 		//noinspection GoUnhandledErrorResult
@@ -54,7 +54,7 @@ func (c *Controller) showForumTopics(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, forumTopics)
 }
 
-func (c *Controller) showTopicMessages(ctx *gin.Context) {
+func (c *Controller) ShowTopicMessages(ctx *gin.Context) {
 	topicId, err := strconv.ParseUint(ctx.Param("id"), 10, 32)
 	if err != nil {
 		//noinspection GoUnhandledErrorResult
