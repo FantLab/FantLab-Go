@@ -57,6 +57,7 @@ type DbForumMessage struct {
 	Sign        string
 	MessageText string
 	IsCensored  bool
+	IsRed       bool
 	VotePlus    uint16
 	VoteMinus   uint16
 }
@@ -137,6 +138,7 @@ func (db *FDB) getTopicMessages(topicId, limit, offset uint32) []DbForumMessage 
 			"u.sign, "+
 			"m.message_text, "+
 			"f.is_censored, "+
+			"f.is_red, "+
 			"f.vote_plus, "+
 			"f.vote_minus").
 		Joins("JOIN users u ON u.user_id = f.user_id").

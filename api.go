@@ -30,12 +30,15 @@ type ForumTopic struct {
 }
 
 // Сообщение в форуме
+// IsCensored - сообщение изъято модератором
+// IsModerTagWorks - рендерить ли в сообщении содержимое тега [moder] (true, только если тег добавлен модератором)
 type TopicMessage struct {
-	Id         uint32       `json:"id"`
-	Creation   creation     `json:"creation"`
-	Text       string       `json:"text"`
-	IsCensored bool         `json:"is_censored"`
-	Stats      messageStats `json:"stats"`
+	Id              uint32       `json:"id"`
+	Creation        creation     `json:"creation"`
+	Text            string       `json:"text"`
+	IsCensored      bool         `json:"is_censored"`
+	IsModerTagWorks bool         `json:"is_moder_tag_works"`
+	Stats           messageStats `json:"stats"`
 }
 
 // Статистика форума
@@ -59,11 +62,11 @@ type topicLink struct {
 }
 
 // Ссылка на пользователя
+// PhotoNumber - порядковый номер фото (https://data.fantlab.ru/images/users/{UserId}_{PhotoNumber}). Если 0 - его нет.
 type userLink struct {
-	Id     uint32 `json:"id"`
-	Login  string `json:"login"`
-	Gender uint8  `json:"gender,omitempty"`
-	// Порядковый номер фото (https://data.fantlab.ru/images/users/{UserId}_{PhotoNumber}). Если 0 - его нет.
+	Id          uint32 `json:"id"`
+	Login       string `json:"login"`
+	Gender      uint8  `json:"gender,omitempty"`
 	PhotoNumber uint16 `json:"photo_number,omitempty"`
 	Class       uint8  `json:"class,omitempty"`
 	Sign        string `json:"sign,omitempty"`
@@ -186,6 +189,10 @@ func getTopicMessages(dbMessages []DbForumMessage) []TopicMessage {
 	messages := []TopicMessage{} // возвращаем в случае отсутствия результатов пустой массив
 
 	for _, dbMessage := range dbMessages {
+		text := dbMessage.MessageText
+		if dbMessage.IsCensored {
+			text = ""
+		}
 		message := TopicMessage{
 			Id: dbMessage.MessageId,
 			Creation: creation{
@@ -199,8 +206,9 @@ func getTopicMessages(dbMessages []DbForumMessage) []TopicMessage {
 				},
 				Date: dbMessage.DateOfAdd.Unix(),
 			},
-			Text:       dbMessage.MessageText,
-			IsCensored: dbMessage.IsCensored,
+			Text:            text,
+			IsCensored:      dbMessage.IsCensored,
+			IsModerTagWorks: dbMessage.IsRed,
 			Stats: messageStats{
 				PlusCount:  dbMessage.VotePlus,
 				MinusCount: dbMessage.VoteMinus,
