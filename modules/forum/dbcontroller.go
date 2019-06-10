@@ -1,77 +1,11 @@
-package main
+package forumapi
 
 import (
-	"time"
-
-	"github.com/jinzhu/gorm"
+	"fantlab/config"
 )
 
-type FDB struct {
-	*gorm.DB
-}
-
-// Форум
-type DbForum struct {
-	ForumId         uint16
-	Name            string
-	Description     string
-	TopicCount      uint32
-	MessageCount    uint32
-	LastTopicId     uint32
-	LastTopicName   string
-	LastUserId      uint32
-	LastUserName    string
-	LastMessageId   uint32
-	LastMessageDate time.Time
-	ForumBlockId    uint16
-	ForumBlockName  string
-}
-
-// Тема
-type DbForumTopic struct {
-	TopicId         uint32
-	Name            string
-	DateOfAdd       time.Time
-	Views           uint32
-	UserId          uint32
-	Login           string
-	TopicTypeId     uint16
-	IsClosed        bool
-	IsPinned        bool
-	MessageCount    uint32
-	LastMessageId   uint32
-	LastUserId      uint32
-	LastUserName    string
-	LastMessageDate time.Time
-}
-
-// Сообщение
-type DbForumMessage struct {
-	MessageId   uint32
-	DateOfAdd   time.Time
-	UserId      uint32
-	Login       string
-	Sex         uint8
-	PhotoNumber uint16
-	UserClass   uint8
-	Sign        string
-	MessageText string
-	IsCensored  bool
-	IsRed       bool
-	VotePlus    uint16
-	VoteMinus   uint16
-}
-
-// Модератор
-type DbModerator struct {
-	UserId  uint32
-	Login   string
-	ForumId uint16
-	Sort    float32
-}
-
-func (db *FDB) getForums() []DbForum {
-	var forums []DbForum
+func fetchForums(db *config.FLDB) []dbForum {
+	var forums []dbForum
 
 	db.Table("f_forums f").
 		Select("f.forum_id, " +
@@ -94,8 +28,8 @@ func (db *FDB) getForums() []DbForum {
 	return forums
 }
 
-func (db *FDB) getForumTopics(forumId uint16, limit, offset uint32) []DbForumTopic {
-	var topics []DbForumTopic
+func fetchForumTopics(db *config.FLDB, forumID uint16, limit, offset uint32) []dbForumTopic {
+	var topics []dbForumTopic
 
 	db.Table("f_topics t").
 		Select("t.topic_id, "+
@@ -113,7 +47,7 @@ func (db *FDB) getForumTopics(forumId uint16, limit, offset uint32) []DbForumTop
 			"t.last_user_name, "+
 			"t.last_message_date").
 		Joins("JOIN users u ON (u.user_id = t.user_id)").
-		Where("t.forum_id = ?", forumId).
+		Where("t.forum_id = ?", forumID).
 		Order("t.is_pinned DESC, t.last_message_date DESC").
 		Limit(limit).
 		Offset(offset).
@@ -122,8 +56,8 @@ func (db *FDB) getForumTopics(forumId uint16, limit, offset uint32) []DbForumTop
 	return topics
 }
 
-func (db *FDB) getTopicMessages(topicId, limit, offset uint32) []DbForumMessage {
-	var messages []DbForumMessage
+func fetchTopicMessages(db *config.FLDB, topicID, limit, offset uint32) []dbForumMessage {
+	var messages []dbForumMessage
 
 	// todo https://github.com/parserpro/fantlab/blob/master/pm/Forum.pm#L1011
 	// todo https://github.com/parserpro/fantlab/blob/master/pm/Forum.pm#L1105
@@ -143,7 +77,7 @@ func (db *FDB) getTopicMessages(topicId, limit, offset uint32) []DbForumMessage 
 			"f.vote_minus").
 		Joins("JOIN users u ON u.user_id = f.user_id").
 		Joins("JOIN f_messages_text m ON m.message_id = f.message_id").
-		Where("f.topic_id = ?", topicId).
+		Where("f.topic_id = ?", topicID).
 		Order("f.date_of_add").
 		Limit(limit).
 		Offset(offset).
@@ -152,10 +86,10 @@ func (db *FDB) getTopicMessages(topicId, limit, offset uint32) []DbForumMessage 
 	return messages
 }
 
-func (db *FDB) getModerators() map[uint16][]DbModerator {
-	moderatorsMap := map[uint16][]DbModerator{}
+func fetchModerators(db *config.FLDB) map[uint16][]dbModerator {
+	moderatorsMap := map[uint16][]dbModerator{}
 
-	var moderators []DbModerator
+	var moderators []dbModerator
 
 	db.Table("f_moderators md").
 		Select("u.user_id, " +
@@ -167,7 +101,7 @@ func (db *FDB) getModerators() map[uint16][]DbModerator {
 		Scan(&moderators)
 
 	for _, moderator := range moderators {
-		moderatorsMap[moderator.ForumId] = append(moderatorsMap[moderator.ForumId], moderator)
+		moderatorsMap[moderator.ForumID] = append(moderatorsMap[moderator.ForumID], moderator)
 	}
 
 	return moderatorsMap

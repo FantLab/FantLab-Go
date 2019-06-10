@@ -1,6 +1,8 @@
-package main
+package forumapi
 
 import (
+	"fantlab/config"
+	"fantlab/utils"
 	"net/http"
 	"strconv"
 
@@ -8,24 +10,24 @@ import (
 )
 
 type Controller struct {
-	db *FDB
+	db *config.FLDB
 }
 
-func NewController(db *FDB) *Controller {
+func NewController(db *config.FLDB) *Controller {
 	return &Controller{
 		db: db,
 	}
 }
 
 func (c *Controller) ShowForums(ctx *gin.Context) {
-	dbForums := c.db.getForums()
-	dbModerators := c.db.getModerators()
+	dbForums := fetchForums(c.db)
+	dbModerators := fetchModerators(c.db)
 	forumBlocks := getForumBlocks(dbForums, dbModerators)
 	ctx.JSON(http.StatusOK, forumBlocks)
 }
 
 func (c *Controller) ShowForumTopics(ctx *gin.Context) {
-	forumId, err := strconv.ParseUint(ctx.Param("id"), 10, 16)
+	forumID, err := strconv.ParseUint(ctx.Param("id"), 10, 16)
 	if err != nil {
 		//noinspection GoUnhandledErrorResult
 		ctx.Error(err)
@@ -41,17 +43,17 @@ func (c *Controller) ShowForumTopics(ctx *gin.Context) {
 		ctx.Error(err)
 	}
 	if len(ctx.Errors) != 0 {
-		ShowErrors(ctx)
+		utils.ShowErrors(ctx)
 		return
 	}
 	offset := limit * (page - 1)
-	dbForumTopics := c.db.getForumTopics(uint16(forumId), uint32(limit), uint32(offset))
+	dbForumTopics := fetchForumTopics(c.db, uint16(forumID), uint32(limit), uint32(offset))
 	forumTopics := getForumTopics(dbForumTopics)
 	ctx.JSON(http.StatusOK, forumTopics)
 }
 
 func (c *Controller) ShowTopicMessages(ctx *gin.Context) {
-	topicId, err := strconv.ParseUint(ctx.Param("id"), 10, 32)
+	topicID, err := strconv.ParseUint(ctx.Param("id"), 10, 32)
 	if err != nil {
 		//noinspection GoUnhandledErrorResult
 		ctx.Error(err)
@@ -67,11 +69,11 @@ func (c *Controller) ShowTopicMessages(ctx *gin.Context) {
 		ctx.Error(err)
 	}
 	if len(ctx.Errors) != 0 {
-		ShowErrors(ctx)
+		utils.ShowErrors(ctx)
 		return
 	}
 	offset := limit * (page - 1)
-	dbTopicMessages := c.db.getTopicMessages(uint32(topicId), uint32(limit), uint32(offset))
+	dbTopicMessages := fetchTopicMessages(c.db, uint32(topicID), uint32(limit), uint32(offset))
 	topicMessages := getTopicMessages(dbTopicMessages)
 	ctx.JSON(http.StatusOK, topicMessages)
 }
