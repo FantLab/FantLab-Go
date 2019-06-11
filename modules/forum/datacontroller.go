@@ -1,6 +1,6 @@
 package forumapi
 
-func getForumBlocks(dbForums []dbForum, dbModerators map[uint16][]dbModerator) []forumBlock {
+func getForumBlocks(dbForums []dbForum, dbModerators map[uint16][]dbModerator) forumBlocksWrapper {
 	var forumBlocks []forumBlock
 
 	currentForumBlockID := uint16(0) // f_forum_block.id начинаются с 1
@@ -60,10 +60,10 @@ func getForumBlocks(dbForums []dbForum, dbModerators map[uint16][]dbModerator) [
 		}
 	}
 
-	return forumBlocks
+	return forumBlocksWrapper{forumBlocks}
 }
 
-func getForumTopics(dbTopics []dbForumTopic) []forumTopic {
+func getForumTopics(dbTopics []dbForumTopic) forumTopicsWrapper {
 	//noinspection GoPreferNilSlice
 	topics := []forumTopic{} // возвращаем в случае отсутствия результатов пустой массив
 
@@ -98,10 +98,10 @@ func getForumTopics(dbTopics []dbForumTopic) []forumTopic {
 		topics = append(topics, topic)
 	}
 
-	return topics
+	return forumTopicsWrapper{topics}
 }
 
-func getTopicMessages(dbMessages []dbForumMessage) []topicMessage {
+func getTopicMessages(dbMessages []dbForumMessage) topicMessagesWrapper {
 	//noinspection GoPreferNilSlice
 	messages := []topicMessage{} // возвращаем в случае отсутствия результатов пустой массив
 
@@ -137,5 +137,5 @@ func getTopicMessages(dbMessages []dbForumMessage) []topicMessage {
 		messages = append(messages, message)
 	}
 
-	return messages
+	return topicMessagesWrapper{messages}
 }

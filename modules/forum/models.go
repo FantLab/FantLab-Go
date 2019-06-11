@@ -1,5 +1,10 @@
 package forumapi
 
+// Wrapper для списка форумов
+type forumBlocksWrapper struct {
+	ForumBlocks []forumBlock `json:"forum_blocks"`
+}
+
 // Блок форумов
 type forumBlock struct {
 	ID     uint16  `json:"-"`
@@ -17,6 +22,11 @@ type forum struct {
 	LastMessage lastMessage `json:"last_message"`
 }
 
+// Wrapper для списке тем
+type forumTopicsWrapper struct {
+	Topics []forumTopic `json:"topics"`
+}
+
 // Тема
 type forumTopic struct {
 	ID          uint32      `json:"id"`
@@ -27,6 +37,11 @@ type forumTopic struct {
 	IsPinned    bool        `json:"is_pinned"`
 	Stats       topicStats  `json:"stats"`
 	LastMessage lastMessage `json:"last_message"`
+}
+
+// Wrapper для списка сообщений
+type topicMessagesWrapper struct {
+	Messages []topicMessage `json:"messages"`
 }
 
 // Сообщение в форуме
