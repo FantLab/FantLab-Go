@@ -1,10 +1,10 @@
 package forumapi
 
 import (
-	"fantlab/config"
+	"github.com/jinzhu/gorm"
 )
 
-func fetchForums(db *config.FLDB) []dbForum {
+func fetchForums(db *gorm.DB) []dbForum {
 	var forums []dbForum
 
 	db.Table("f_forums f").
@@ -28,7 +28,7 @@ func fetchForums(db *config.FLDB) []dbForum {
 	return forums
 }
 
-func fetchForumTopics(db *config.FLDB, forumID uint16, limit, offset uint32) []dbForumTopic {
+func fetchForumTopics(db *gorm.DB, forumID uint16, limit, offset uint32) []dbForumTopic {
 	var topics []dbForumTopic
 
 	db.Table("f_topics t").
@@ -56,7 +56,7 @@ func fetchForumTopics(db *config.FLDB, forumID uint16, limit, offset uint32) []d
 	return topics
 }
 
-func fetchTopicMessages(db *config.FLDB, topicID, limit, offset uint32) []dbForumMessage {
+func fetchTopicMessages(db *gorm.DB, topicID, limit, offset uint32) []dbForumMessage {
 	var messages []dbForumMessage
 
 	// todo https://github.com/parserpro/fantlab/blob/master/pm/Forum.pm#L1011
@@ -86,7 +86,7 @@ func fetchTopicMessages(db *config.FLDB, topicID, limit, offset uint32) []dbForu
 	return messages
 }
 
-func fetchModerators(db *config.FLDB) map[uint16][]dbModerator {
+func fetchModerators(db *gorm.DB) map[uint16][]dbModerator {
 	moderatorsMap := map[uint16][]dbModerator{}
 
 	var moderators []dbModerator

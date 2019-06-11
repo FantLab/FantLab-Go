@@ -1,7 +1,7 @@
 package forumapi
 
 import (
-	"fantlab/config"
+	"fantlab/shared"
 	"fantlab/utils"
 	"net/http"
 	"strconv"
@@ -10,18 +10,18 @@ import (
 )
 
 type Controller struct {
-	db *config.FLDB
+	services *shared.Services
 }
 
-func NewController(db *config.FLDB) *Controller {
+func NewController(services *shared.Services) *Controller {
 	return &Controller{
-		db: db,
+		services: services,
 	}
 }
 
 func (c *Controller) ShowForums(ctx *gin.Context) {
-	dbForums := fetchForums(c.db)
-	dbModerators := fetchModerators(c.db)
+	dbForums := fetchForums(c.services.DB)
+	dbModerators := fetchModerators(c.services.DB)
 	forumBlocks := getForumBlocks(dbForums, dbModerators)
 	ctx.JSON(http.StatusOK, forumBlocks)
 }
@@ -47,7 +47,7 @@ func (c *Controller) ShowForumTopics(ctx *gin.Context) {
 		return
 	}
 	offset := limit * (page - 1)
-	dbForumTopics := fetchForumTopics(c.db, uint16(forumID), uint32(limit), uint32(offset))
+	dbForumTopics := fetchForumTopics(c.services.DB, uint16(forumID), uint32(limit), uint32(offset))
 	forumTopics := getForumTopics(dbForumTopics)
 	ctx.JSON(http.StatusOK, forumTopics)
 }
@@ -73,7 +73,7 @@ func (c *Controller) ShowTopicMessages(ctx *gin.Context) {
 		return
 	}
 	offset := limit * (page - 1)
-	dbTopicMessages := fetchTopicMessages(c.db, uint32(topicID), uint32(limit), uint32(offset))
+	dbTopicMessages := fetchTopicMessages(c.services.DB, uint32(topicID), uint32(limit), uint32(offset))
 	topicMessages := getTopicMessages(dbTopicMessages)
 	ctx.JSON(http.StatusOK, topicMessages)
 }
