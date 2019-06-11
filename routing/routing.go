@@ -1,13 +1,13 @@
 package routing
 
 import (
-	"fantlab/config"
 	forumapi "fantlab/modules/forum"
+	"fantlab/shared"
 
 	"github.com/gin-gonic/gin"
 )
 
-func SetupWith(db *config.FLDB) *gin.Engine {
+func SetupWith(services *shared.Services) *gin.Engine {
 	router := gin.New()
 	router.Use(gin.Logger(), gin.Recovery())
 
@@ -16,7 +16,7 @@ func SetupWith(db *config.FLDB) *gin.Engine {
 
 		// форум
 		{
-			controller := forumapi.NewController(db)
+			controller := forumapi.NewController(services)
 
 			v1.GET("/forums", controller.ShowForums)
 			v1.GET("/forums/:id", controller.ShowForumTopics)
