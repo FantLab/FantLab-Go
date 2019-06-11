@@ -1,8 +1,8 @@
 package main
 
 import (
-	"fantlab/config"
 	"fantlab/routing"
+	"fantlab/shared"
 	"log"
 
 	"github.com/jinzhu/gorm"
@@ -23,9 +23,10 @@ func main() {
 	}()
 
 	db.LogMode(true)
-	fldb := &config.FLDB{db}
 
-	router := routing.SetupWith(fldb)
+	services := &shared.Services{DB: db}
+
+	router := routing.SetupWith(services)
 
 	if err := router.Run(":4242"); err != nil {
 		log.Fatal(err)
