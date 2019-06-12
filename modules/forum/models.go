@@ -31,7 +31,7 @@ type forumTopicsWrapper struct {
 type forumTopic struct {
 	ID          uint32      `json:"id"`
 	Title       string      `json:"title"`
-	ForumType   uint16      `json:"type"`
+	TopicType   uint16      `json:"topic_type"`
 	Creation    creation    `json:"creation"`
 	IsClosed    bool        `json:"is_closed"`
 	IsPinned    bool        `json:"is_pinned"`
@@ -64,10 +64,10 @@ type forumStats struct {
 
 // Последнее сообщение в форуме
 type lastMessage struct {
-	ID    uint32    `json:"id"`
-	Topic topicLink `json:"topic,omitempty"`
-	User  userLink  `json:"user"`
-	Date  int64     `json:"date"`
+	ID    uint32     `json:"id"`
+	Topic *topicLink `json:"topic,omitempty"`
+	User  userLink   `json:"user"`
+	Date  int64      `json:"date"`
 }
 
 // Ссылка на тему форума

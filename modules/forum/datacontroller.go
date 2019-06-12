@@ -41,7 +41,7 @@ func getForumBlocks(dbForums []dbForum, dbModerators map[uint16][]dbModerator) f
 					},
 					LastMessage: lastMessage{
 						ID: dbForum.LastMessageID,
-						Topic: topicLink{
+						Topic: &topicLink{
 							ID:    dbForum.LastTopicID,
 							Title: dbForum.LastTopicName,
 						},
@@ -71,7 +71,7 @@ func getForumTopics(dbTopics []dbForumTopic) forumTopicsWrapper {
 		topic := forumTopic{
 			ID:        dbTopic.TopicID,
 			Title:     dbTopic.Name,
-			ForumType: dbTopic.TopicTypeID,
+			TopicType: dbTopic.TopicTypeID,
 			Creation: creation{
 				User: userLink{
 					ID:    dbTopic.UserID,
