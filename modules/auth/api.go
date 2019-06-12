@@ -30,8 +30,8 @@ func (c *Controller) Login(ctx *gin.Context) {
 		return
 	}
 
-	userName := ctx.DefaultPostForm("login", "")
-	password := ctx.DefaultPostForm("pass", "")
+	userName := ctx.PostForm("login")
+	password := ctx.PostForm("pass")
 
 	userData := fetchUserPasswordHash(c.services.DB, userName)
 
