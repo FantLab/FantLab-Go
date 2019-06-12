@@ -10,8 +10,7 @@ import (
 )
 
 func main() {
-	// db, err := gorm.Open("mysql", "root:root@/fantlab?charset=utf8&parseTime=True&loc=Europe%2FMoscow")
-	db, err := gorm.Open("mysql", "root@/fl?charset=utf8&parseTime=True&loc=Local")
+	db, err := gorm.Open("mysql", "root:root@/fantlab?charset=utf8&parseTime=True&loc=Europe%2FMoscow")
 	if err != nil {
 		log.Fatal(err)
 	}
