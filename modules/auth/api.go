@@ -2,6 +2,7 @@ package auth
 
 import (
 	"fantlab/shared"
+	"fantlab/utils"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -23,9 +24,7 @@ func (c *Controller) Login(ctx *gin.Context) {
 	uid := ctx.Keys[gin.AuthUserKey].(int)
 
 	if uid > 0 {
-		ctx.JSON(http.StatusMethodNotAllowed, gin.H{
-			"error": "log out first",
-		})
+		ctx.AbortWithStatusJSON(http.StatusMethodNotAllowed, utils.ErrorJSON("log out first"))
 
 		return
 	}
@@ -36,9 +35,7 @@ func (c *Controller) Login(ctx *gin.Context) {
 	userData := fetchUserPasswordHash(c.services.DB, userName)
 
 	if userData == nil {
-		ctx.JSON(http.StatusNotFound, gin.H{
-			"error": "user not found",
-		})
+		ctx.AbortWithStatusJSON(http.StatusNotFound, utils.ErrorJSON("user not found"))
 
 		return
 	}
@@ -50,9 +47,7 @@ func (c *Controller) Login(ctx *gin.Context) {
 	}
 
 	if err != nil {
-		ctx.JSON(http.StatusUnauthorized, gin.H{
-			"error": "incorrect password",
-		})
+		ctx.AbortWithStatusJSON(http.StatusUnauthorized, utils.ErrorJSON("incorrect password"))
 
 		return
 	}
@@ -60,9 +55,7 @@ func (c *Controller) Login(ctx *gin.Context) {
 	sid := ksuid.New().String()
 
 	if !insertNewSession(c.services.DB, sid, userData.UserID, ctx.ClientIP(), ctx.Request.UserAgent()) {
-		ctx.JSON(http.StatusInternalServerError, gin.H{
-			"error": "failed to create session",
-		})
+		ctx.AbortWithStatusJSON(http.StatusInternalServerError, utils.ErrorJSON("failed to create session"))
 
 		return
 	}
