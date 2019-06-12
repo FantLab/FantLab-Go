@@ -1,17 +1,18 @@
 package main
 
 import (
+	"log"
+
+	"fantlab/logger"
 	"fantlab/routing"
 	"fantlab/shared"
-	"log"
 
 	"github.com/jinzhu/gorm"
 	_ "github.com/jinzhu/gorm/dialects/mysql"
 )
 
 func main() {
-	// db, err := gorm.Open("mysql", "root:root@/fantlab?charset=utf8&parseTime=True&loc=Europe%2FMoscow")
-	db, err := gorm.Open("mysql", "root@/fl?charset=utf8&parseTime=True&loc=Local")
+	db, err := gorm.Open("mysql", "root:root@/fantlab?charset=utf8&parseTime=True&loc=Europe%2FMoscow")
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -22,6 +23,7 @@ func main() {
 		}
 	}()
 
+	db.SetLogger(logger.GormLogger)
 	db.LogMode(true)
 
 	services := &shared.Services{DB: db}

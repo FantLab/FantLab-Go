@@ -1,6 +1,7 @@
 package routing
 
 import (
+	"fantlab/logger"
 	forumapi "fantlab/modules/forum"
 	"fantlab/shared"
 
@@ -9,7 +10,7 @@ import (
 
 func SetupWith(services *shared.Services) *gin.Engine {
 	router := gin.New()
-	router.Use(gin.Logger(), gin.Recovery())
+	router.Use(logger.GinLogger, gin.Recovery())
 
 	{
 		v1 := router.Group("v1")
