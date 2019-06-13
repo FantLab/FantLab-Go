@@ -13,3 +13,9 @@ func ShowErrors(ctx *gin.Context) {
 		ctx.AbortWithStatus(http.StatusBadRequest)
 	}
 }
+
+func ErrorJSON(text string) gin.H {
+	return gin.H{
+		"error": text,
+	}
+}
