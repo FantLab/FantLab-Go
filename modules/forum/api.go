@@ -1,10 +1,11 @@
 package forumapi
 
 import (
-	"fantlab/shared"
-	"fantlab/utils"
 	"net/http"
 	"strconv"
+
+	"fantlab/shared"
+	"fantlab/utils"
 
 	"github.com/gin-gonic/gin"
 )

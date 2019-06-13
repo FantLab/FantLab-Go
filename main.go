@@ -1,9 +1,11 @@
 package main
 
 import (
+	"log"
+
+	"fantlab/logger"
 	"fantlab/routing"
 	"fantlab/shared"
-	"log"
 
 	"github.com/jinzhu/gorm"
 	_ "github.com/jinzhu/gorm/dialects/mysql"
@@ -21,6 +23,7 @@ func main() {
 		}
 	}()
 
+	db.SetLogger(logger.GormLogger)
 	db.LogMode(true)
 
 	services := &shared.Services{DB: db}
