@@ -1,7 +1,9 @@
 package main
 
 import (
+	"fmt"
 	"log"
+	"os"
 
 	"fantlab/logger"
 	"fantlab/routing"
@@ -12,7 +14,7 @@ import (
 )
 
 func main() {
-	db, err := gorm.Open("mysql", "root:root@/fantlab?charset=utf8&parseTime=True&loc=Europe%2FMoscow")
+	db, err := gorm.Open("mysql", os.Getenv("MYSQL_CS"))
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -30,7 +32,7 @@ func main() {
 
 	router := routing.SetupWith(services)
 
-	if err := router.Run(":4242"); err != nil {
+	if err := router.Run(fmt.Sprintf(":%s", os.Getenv("PORT"))); err != nil {
 		log.Fatal(err)
 	}
 }
