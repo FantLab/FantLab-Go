@@ -17,7 +17,11 @@ func Session(services *shared.Services) gin.HandlerFunc {
 
 			var uid userID
 
-			services.DB.Table("sessions2").Where("code = ?", sid).First(&uid)
+			services.DB.
+				Table("sessions2").
+				Select("user_id").
+				Where("code = ?", sid).
+				First(&uid)
 
 			ctx.Set(gin.AuthUserKey, uid.Value)
 		} else {

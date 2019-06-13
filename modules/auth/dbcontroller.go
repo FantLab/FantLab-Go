@@ -8,7 +8,10 @@ import (
 
 func fetchUserPasswordHash(db *gorm.DB, login string) *dbUserPasswordHash {
 	var data dbUserPasswordHash
-	db.Table("users2").Where("login = ?", login).First(&data)
+	db.Table("users2").
+		Select("user_id, password_hash, new_password_hash").
+		Where("login = ?", login).
+		First(&data)
 	return &data
 }
 
@@ -20,9 +23,9 @@ func insertNewSession(db *gorm.DB, code string, userID int, userIP string, userA
 		UserID:           userID,
 		UserIP:           userIP,
 		UserAgent:        userAgent,
-		Hits:             0,
 		DateOfCreate:     now,
 		DateOfLastAction: now,
+		Hits:             0,
 	}
 
 	db.Table("sessions2").Create(&session)

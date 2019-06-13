@@ -25,18 +25,16 @@ func (c *Controller) Login(ctx *gin.Context) {
 
 	if uid > 0 {
 		ctx.AbortWithStatusJSON(http.StatusMethodNotAllowed, utils.ErrorJSON("log out first"))
-
 		return
 	}
 
 	userName := ctx.PostForm("login")
-	password := ctx.PostForm("pass")
+	password := ctx.PostForm("password")
 
 	userData := fetchUserPasswordHash(c.services.DB, userName)
 
 	if userData == nil {
 		ctx.AbortWithStatusJSON(http.StatusNotFound, utils.ErrorJSON("user not found"))
-
 		return
 	}
 
@@ -48,7 +46,6 @@ func (c *Controller) Login(ctx *gin.Context) {
 
 	if err != nil {
 		ctx.AbortWithStatusJSON(http.StatusUnauthorized, utils.ErrorJSON("incorrect password"))
-
 		return
 	}
 
@@ -56,7 +53,6 @@ func (c *Controller) Login(ctx *gin.Context) {
 
 	if !insertNewSession(c.services.DB, sid, userData.UserID, ctx.ClientIP(), ctx.Request.UserAgent()) {
 		ctx.AbortWithStatusJSON(http.StatusInternalServerError, utils.ErrorJSON("failed to create session"))
-
 		return
 	}
 
