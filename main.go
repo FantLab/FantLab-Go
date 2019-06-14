@@ -32,7 +32,7 @@ func main() {
 
 	router := routing.SetupWith(services)
 
-	if err := router.Run(fmt.Sprintf(":%s", os.Getenv("PORT"))); err != nil {
+	if err := router.Run(":" + os.Getenv("PORT")); err != nil {
 		log.Fatal(err)
 	}
 }
