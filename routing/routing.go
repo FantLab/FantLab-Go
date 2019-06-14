@@ -4,6 +4,7 @@ import (
 	"fantlab/logger"
 	"fantlab/middlewares"
 	"fantlab/modules/auth"
+	blogsapi "fantlab/modules/blogs"
 	forumapi "fantlab/modules/forum"
 	"fantlab/shared"
 
@@ -17,7 +18,7 @@ func SetupWith(services *shared.Services) *gin.Engine {
 	{
 		v1 := router.Group("v1")
 
-		// форум
+		// Форум
 		{
 			controller := forumapi.NewController(services)
 
@@ -26,7 +27,14 @@ func SetupWith(services *shared.Services) *gin.Engine {
 			v1.GET("/topics/:id", controller.ShowTopicMessages)
 		}
 
-		// юзер
+		// Блоги
+		{
+			controller := blogsapi.NewController(services)
+
+			v1.GET("/communities", controller.ShowCommunities)
+		}
+
+		// Пользователь
 		{
 			controller := auth.NewController(services)
 
