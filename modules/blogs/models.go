@@ -8,29 +8,44 @@ type communitiesWrapper struct {
 
 // Рубрика
 type community struct {
-	Id          uint32               `json:"id"`
-	Title       string               `json:"title"`
-	Description string               `json:"description"`
-	Stats       blogStats            `json:"stats"`
-	LastArticle lastCommunityArticle `json:"last_article"`
+	Id          uint32      `json:"id"`
+	Title       string      `json:"title"`
+	Description string      `json:"description"`
+	Stats       stats       `json:"stats"`
+	LastArticle lastArticle `json:"last_article"`
 }
 
-// Статистика блога
-type blogStats struct {
+// Wrapper для списка авторских колонок
+type blogsWrapper struct {
+	Blogs []blog `json:"blogs"`
+}
+
+// Авторская колонка
+type blog struct {
+	Id          uint32      `json:"id"`
+	Owner       userLink    `json:"owner"`
+	IsClosed    bool        `json:"is_closed"`
+	Stats       stats       `json:"stats"`
+	LastArticle lastArticle `json:"last_article"`
+}
+
+// Статистика
+type stats struct {
 	ArticleCount    uint32 `json:"article_count"`
 	SubscriberCount uint32 `json:"subscriber_count"`
 }
 
-// Последняя статья в рубрике
-type lastCommunityArticle struct {
-	Id    uint32   `json:"id"`
-	Title string   `json:"title"`
-	User  userLink `json:"user"`
-	Date  int64    `json:"date"`
+// Последняя статья
+type lastArticle struct {
+	Id    uint32    `json:"id"`
+	Title string    `json:"title"`
+	User  *userLink `json:"user,omitempty"`
+	Date  int64     `json:"date"`
 }
 
 // Ссылка на пользователя
 type userLink struct {
 	Id    uint32 `json:"id"`
 	Login string `json:"login"`
+	Name  string `json:"name,omitempty"`
 }

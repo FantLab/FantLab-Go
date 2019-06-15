@@ -9,18 +9,18 @@ func getCommunities(dbCommunities []dbCommunity) communitiesWrapper {
 			Id:          dbCommunity.BlogId,
 			Title:       dbCommunity.Name,
 			Description: dbCommunity.Description,
-			Stats: blogStats{
+			Stats: stats{
 				ArticleCount:    dbCommunity.TopicsCount,
 				SubscriberCount: dbCommunity.SubscriberCount,
 			},
-			LastArticle: lastCommunityArticle{
+			LastArticle: lastArticle{
 				Id:    dbCommunity.LastTopicId,
 				Title: dbCommunity.LastTopicHead,
-				User: userLink{
+				User: &userLink{
 					Id:    dbCommunity.LastUserId,
 					Login: dbCommunity.LastUserName,
 				},
-				Date: dbCommunity.DateOfAdd.Unix(),
+				Date: dbCommunity.LastTopicDate.Unix(),
 			},
 		}
 		if dbCommunity.IsPublic {
@@ -34,4 +34,33 @@ func getCommunities(dbCommunities []dbCommunity) communitiesWrapper {
 		Main:       mainCommunities,
 		Additional: additionalCommunities,
 	}
+}
+
+func getBlogs(dbBlogs []dbBlog) blogsWrapper {
+	//noinspection GoPreferNilSlice
+	var blogs = []blog{} // возвращаем в случае отсутствия результатов пустой массив
+
+	for _, dbBlog := range dbBlogs {
+		blog := blog{
+			Id: dbBlog.BlogId,
+			Owner: userLink{
+				Id:    dbBlog.UserId,
+				Login: dbBlog.Login,
+				Name:  dbBlog.Fio,
+			},
+			IsClosed: dbBlog.IsClose,
+			Stats: stats{
+				ArticleCount:    dbBlog.TopicsCount,
+				SubscriberCount: dbBlog.SubscriberCount,
+			},
+			LastArticle: lastArticle{
+				Id:    dbBlog.LastTopicId,
+				Title: dbBlog.LastTopicHead,
+				Date:  dbBlog.LastTopicDate.Unix(),
+			},
+		}
+		blogs = append(blogs, blog)
+	}
+
+	return blogsWrapper{blogs}
 }
