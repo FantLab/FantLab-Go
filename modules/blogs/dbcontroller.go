@@ -11,7 +11,6 @@ func fetchCommunities(db *gorm.DB) []dbCommunity {
 			"description, " +
 			"topics_count, " +
 			"is_public, " +
-			"date_of_add, " +
 			"last_topic_date, " +
 			"last_topic_head, " +
 			"last_topic_id, " +
@@ -23,4 +22,38 @@ func fetchCommunities(db *gorm.DB) []dbCommunity {
 		Scan(&communities)
 
 	return communities
+}
+
+func fetchBlogs(db *gorm.DB, limit, offset uint32, sort string) []dbBlog {
+	var blogs []dbBlog
+
+	var sortOption string
+	switch sort {
+	case "article":
+		sortOption = "b.topics_count"
+	case "subscriber":
+		sortOption = "b.subscriber_count"
+	default: // "update"
+		sortOption = "b.last_topic_date"
+	}
+
+	db.Table("b_blogs b").
+		Select("b.blog_id, " +
+			"b.user_id, " +
+			"u.login, " +
+			"u.fio, " +
+			"b.topics_count, " +
+			"b.subscriber_count, " +
+			"b.is_close, " +
+			"b.last_topic_date, " +
+			"b.last_topic_head, " +
+			"b.last_topic_id").
+		Joins("INNER JOIN users u ON u.user_id = b.user_id").
+		Where("b.is_community = 0 AND b.topics_count > 0").
+		Order("b.is_close, " + sortOption + " DESC").
+		Limit(limit).
+		Offset(offset).
+		Scan(&blogs)
+
+	return blogs
 }
