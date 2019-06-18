@@ -1,8 +1,6 @@
 package forumapi
 
-import (
-	"github.com/jinzhu/gorm"
-)
+import "github.com/jinzhu/gorm"
 
 func fetchForums(db *gorm.DB) []dbForum {
 	var forums []dbForum

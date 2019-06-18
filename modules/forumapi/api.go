@@ -1,11 +1,10 @@
 package forumapi
 
 import (
-	"net/http"
-	"strconv"
-
 	"fantlab/shared"
 	"fantlab/utils"
+	"net/http"
+	"strconv"
 
 	"github.com/gin-gonic/gin"
 )
@@ -15,9 +14,7 @@ type Controller struct {
 }
 
 func NewController(services *shared.Services) *Controller {
-	return &Controller{
-		services: services,
-	}
+	return &Controller{services: services}
 }
 
 func (c *Controller) ShowForums(ctx *gin.Context) {
