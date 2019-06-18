@@ -1,4 +1,4 @@
-package auth
+package authapi
 
 import (
 	"fantlab/shared"
@@ -15,9 +15,7 @@ type Controller struct {
 }
 
 func NewController(services *shared.Services) *Controller {
-	return &Controller{
-		services: services,
-	}
+	return &Controller{services: services}
 }
 
 func (c *Controller) Login(ctx *gin.Context) {

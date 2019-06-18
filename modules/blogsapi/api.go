@@ -3,9 +3,10 @@ package blogsapi
 import (
 	"fantlab/shared"
 	"fantlab/utils"
-	"github.com/gin-gonic/gin"
 	"net/http"
 	"strconv"
+
+	"github.com/gin-gonic/gin"
 )
 
 type Controller struct {
@@ -13,9 +14,7 @@ type Controller struct {
 }
 
 func NewController(services *shared.Services) *Controller {
-	return &Controller{
-		services: services,
-	}
+	return &Controller{services: services}
 }
 
 func (c *Controller) ShowCommunities(ctx *gin.Context) {

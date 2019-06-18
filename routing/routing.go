@@ -3,9 +3,9 @@ package routing
 import (
 	"fantlab/logger"
 	"fantlab/middlewares"
-	"fantlab/modules/auth"
-	blogsapi "fantlab/modules/blogs"
-	forumapi "fantlab/modules/forum"
+	"fantlab/modules/authapi"
+	"fantlab/modules/blogsapi"
+	"fantlab/modules/forumapi"
 	"fantlab/shared"
 
 	"github.com/gin-gonic/gin"
@@ -37,7 +37,7 @@ func SetupWith(services *shared.Services) *gin.Engine {
 
 		// Пользователь
 		{
-			controller := auth.NewController(services)
+			controller := authapi.NewController(services)
 
 			v1.POST("/login", controller.Login)
 		}
