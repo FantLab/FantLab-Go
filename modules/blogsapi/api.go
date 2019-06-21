@@ -29,7 +29,8 @@ func (c *Controller) ShowBlogs(ctx *gin.Context) {
 		//noinspection GoUnhandledErrorResult
 		ctx.Error(err)
 	}
-	limit, err := strconv.ParseUint(ctx.DefaultQuery("limit", "50"), 10, 32) // todo get from config
+	defaultLimit := strconv.Itoa(int(c.services.Config.BlogsInPage))
+	limit, err := strconv.ParseUint(ctx.DefaultQuery("limit", defaultLimit), 10, 32)
 	if err != nil {
 		//noinspection GoUnhandledErrorResult
 		ctx.Error(err)

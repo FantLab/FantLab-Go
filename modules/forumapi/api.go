@@ -18,7 +18,7 @@ func NewController(services *shared.Services) *Controller {
 }
 
 func (c *Controller) ShowForums(ctx *gin.Context) {
-	dbForums := fetchForums(c.services.DB)
+	dbForums := fetchForums(c.services.DB, c.services.Config.DefaultAccessToForums)
 	dbModerators := fetchModerators(c.services.DB)
 	forumBlocks := getForumBlocks(dbForums, dbModerators)
 	ctx.JSON(http.StatusOK, forumBlocks)
@@ -35,7 +35,8 @@ func (c *Controller) ShowForumTopics(ctx *gin.Context) {
 		//noinspection GoUnhandledErrorResult
 		ctx.Error(err)
 	}
-	limit, err := strconv.ParseUint(ctx.DefaultQuery("limit", "20"), 10, 32) // todo get from config
+	defaultLimit := strconv.Itoa(int(c.services.Config.ForumTopicsInPage))
+	limit, err := strconv.ParseUint(ctx.DefaultQuery("limit", defaultLimit), 10, 32)
 	if err != nil {
 		//noinspection GoUnhandledErrorResult
 		ctx.Error(err)
@@ -45,7 +46,12 @@ func (c *Controller) ShowForumTopics(ctx *gin.Context) {
 		return
 	}
 	offset := limit * (page - 1)
-	dbForumTopics := fetchForumTopics(c.services.DB, uint16(forumID), uint32(limit), uint32(offset))
+	dbForumTopics := fetchForumTopics(
+		c.services.DB,
+		c.services.Config.DefaultAccessToForums,
+		uint16(forumID),
+		uint32(limit),
+		uint32(offset))
 	forumTopics := getForumTopics(dbForumTopics)
 	ctx.JSON(http.StatusOK, forumTopics)
 }
@@ -61,7 +67,8 @@ func (c *Controller) ShowTopicMessages(ctx *gin.Context) {
 		//noinspection GoUnhandledErrorResult
 		ctx.Error(err)
 	}
-	limit, err := strconv.ParseUint(ctx.DefaultQuery("limit", "20"), 10, 32) // todo get from config
+	defaultLimit := strconv.Itoa(int(c.services.Config.ForumMessagesInPage))
+	limit, err := strconv.ParseUint(ctx.DefaultQuery("limit", defaultLimit), 10, 32)
 	if err != nil {
 		//noinspection GoUnhandledErrorResult
 		ctx.Error(err)
@@ -71,7 +78,12 @@ func (c *Controller) ShowTopicMessages(ctx *gin.Context) {
 		return
 	}
 	offset := limit * (page - 1)
-	dbTopicMessages := fetchTopicMessages(c.services.DB, uint32(topicID), uint32(limit), uint32(offset))
+	dbTopicMessages := fetchTopicMessages(
+		c.services.DB,
+		c.services.Config.DefaultAccessToForums,
+		uint32(topicID),
+		uint32(limit),
+		uint32(offset))
 	topicMessages := getTopicMessages(dbTopicMessages)
 	ctx.JSON(http.StatusOK, topicMessages)
 }
