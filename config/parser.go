@@ -1,0 +1,41 @@
+package config
+
+import (
+	"encoding/json"
+	"io/ioutil"
+	"log"
+	"os"
+)
+
+type Config struct {
+	DefaultAccessToForums []uint16 `json:"default_access_to_forums"`
+	ForumTopicsInPage     uint32   `json:"forum_topics_in_page"`
+	ForumMessagesInPage   uint32   `json:"forum_messages_in_page"`
+	BlogsInPage           uint16   `json:"blogs_in_page"`
+}
+
+func ParseConfig() Config {
+	file, err := os.Open("config/config.json")
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer func() {
+		err := file.Close()
+		if err != nil {
+			log.Println(err)
+		}
+	}()
+
+	bytes, err := ioutil.ReadAll(file)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	var config Config
+
+	if err := json.Unmarshal(bytes, &config); err != nil {
+		log.Fatal(err)
+	}
+
+	return config
+}

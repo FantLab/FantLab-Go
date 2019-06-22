@@ -2,33 +2,36 @@ package forumapi
 
 import "github.com/jinzhu/gorm"
 
-func fetchForums(db *gorm.DB) []dbForum {
+func fetchForums(db *gorm.DB, availableForums []uint16) []dbForum {
 	var forums []dbForum
 
 	db.Table("f_forums f").
-		Select("f.forum_id, " +
-			"f.name, " +
-			"f.description, " +
-			"f.topic_count, " +
-			"f.message_count, " +
-			"f.last_topic_id, " +
-			"f.last_topic_name, " +
-			"f.last_user_id, " +
-			"f.last_user_name, " +
-			"f.last_message_id, " +
-			"f.last_message_date, " +
-			"fb.forum_block_id, " +
+		Select("f.forum_id, "+
+			"f.name, "+
+			"f.description, "+
+			"f.topic_count, "+
+			"f.message_count, "+
+			"f.last_topic_id, "+
+			"f.last_topic_name, "+
+			"f.last_user_id, "+
+			"f.last_user_name, "+
+			"f.last_message_id, "+
+			"f.last_message_date, "+
+			"fb.forum_block_id, "+
 			"fb.name AS forum_block_name").
 		Joins("JOIN f_forum_blocks fb ON (fb.forum_block_id = f.forum_block_id)").
+		Where("f.forum_id IN (?)", availableForums).
 		Order("fb.level, f.level").
 		Scan(&forums)
 
 	return forums
 }
 
-func fetchForumTopics(db *gorm.DB, forumID uint16, limit, offset uint32) []dbForumTopic {
+func fetchForumTopics(db *gorm.DB, availableForums []uint16, forumID uint16, limit, offset uint32) []dbForumTopic {
 	var topics []dbForumTopic
 
+	// Возможен рассинхрон между message_count и реальным количеством сообщений в том случае, если модертор перенес
+	// сообщения из одной темы в другую и пересчет еще не произведен (need_update_numbers = 1)
 	db.Table("f_topics t").
 		Select("t.topic_id, "+
 			"t.name, "+
@@ -45,7 +48,7 @@ func fetchForumTopics(db *gorm.DB, forumID uint16, limit, offset uint32) []dbFor
 			"t.last_user_name, "+
 			"t.last_message_date").
 		Joins("JOIN users u ON (u.user_id = t.user_id)").
-		Where("t.forum_id = ?", forumID).
+		Where("t.forum_id = ? AND t.forum_id IN (?)", forumID, availableForums).
 		Order("t.is_pinned DESC, t.last_message_date DESC").
 		Limit(limit).
 		Offset(offset).
@@ -54,11 +57,24 @@ func fetchForumTopics(db *gorm.DB, forumID uint16, limit, offset uint32) []dbFor
 	return topics
 }
 
-func fetchTopicMessages(db *gorm.DB, topicID, limit, offset uint32) []dbForumMessage {
+func fetchTopicMessages(db *gorm.DB, availableForums []uint16, topicID, limit, offset uint32) []dbForumMessage {
+	type ForumId struct {
+		ForumId uint16
+	}
+
+	var forumId ForumId
+
+	db.Table("f_topics").
+		Select("forum_id").
+		Where("topic_id = ? AND forum_id IN (?)", topicID, availableForums).
+		Scan(&forumId)
+
+	if forumId.ForumId == 0 {
+		return []dbForumMessage{}
+	}
+
 	var messages []dbForumMessage
 
-	// todo https://github.com/parserpro/fantlab/blob/master/pm/Forum.pm#L1011
-	// todo https://github.com/parserpro/fantlab/blob/master/pm/Forum.pm#L1105
 	db.Table("f_messages f").
 		Select("f.message_id, "+
 			"f.date_of_add, "+

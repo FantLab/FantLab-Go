@@ -4,6 +4,7 @@ import (
 	"log"
 	"os"
 
+	"fantlab/config"
 	"fantlab/logger"
 	"fantlab/routing"
 	"fantlab/shared"
@@ -27,7 +28,10 @@ func main() {
 	db.SetLogger(logger.GormLogger)
 	db.LogMode(true)
 
-	services := &shared.Services{DB: db}
+	services := &shared.Services{
+		Config: config.ParseConfig(),
+		DB:     db,
+	}
 
 	router := routing.SetupWith(services)
 
