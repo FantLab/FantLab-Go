@@ -30,3 +30,17 @@ type dbBlog struct {
 	LastTopicHead   string
 	LastTopicId     uint32
 }
+
+// Статья в авторской колонке
+type dbBlogTopic struct {
+	TopicId       uint32
+	HeadTopic     string
+	DateOfAdd     time.Time
+	UserId        uint32
+	Login         string
+	MessageText   string
+	Tags          string
+	LikesCount    uint64
+	Views         uint32
+	CommentsCount uint32
+}

@@ -33,6 +33,7 @@ func SetupWith(services *shared.Services) *gin.Engine {
 
 			v1.GET("/communities", controller.ShowCommunities)
 			v1.GET("/blogs", controller.ShowBlogs)
+			v1.GET("/blogs/:id", controller.ShowBlogArticles)
 		}
 
 		// Пользователь

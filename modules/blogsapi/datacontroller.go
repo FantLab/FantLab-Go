@@ -64,3 +64,32 @@ func getBlogs(dbBlogs []dbBlog) blogsWrapper {
 
 	return blogsWrapper{blogs}
 }
+
+func getBlogArticles(dbBlogTopics []dbBlogTopic) blogArticlesWrapper {
+	//noinspection GoPreferNilSlice
+	var articles = []article{} // возвращаем в случае отсутствия результатов пустой массив
+
+	for _, dbBlogTopic := range dbBlogTopics {
+		article := article{
+			Id:    dbBlogTopic.TopicId,
+			Title: dbBlogTopic.HeadTopic,
+			Creation: creation{
+				User: userLink{
+					Id:    dbBlogTopic.UserId,
+					Login: dbBlogTopic.Login,
+				},
+				Date: dbBlogTopic.DateOfAdd.Unix(),
+			},
+			Text: dbBlogTopic.MessageText,
+			Tags: dbBlogTopic.Tags,
+			Stats: articleStats{
+				LikeCount:    dbBlogTopic.LikesCount,
+				ViewCount:    dbBlogTopic.Views,
+				CommentCount: dbBlogTopic.CommentsCount,
+			},
+		}
+		articles = append(articles, article)
+	}
+
+	return blogArticlesWrapper{articles}
+}

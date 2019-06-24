@@ -19,5 +19,6 @@
   ],
   "forum_topics_in_page": 20,
   "forum_messages_in_page": 20,
-  "blogs_in_page": 50
+  "blogs_in_page": 50,
+  "blog_topics_in_page": 5
 }

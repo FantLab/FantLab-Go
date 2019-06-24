@@ -57,3 +57,28 @@ func fetchBlogs(db *gorm.DB, limit, offset uint32, sort string) []dbBlog {
 
 	return blogs
 }
+
+func fetchBlogTopics(db *gorm.DB, blogID, limit, offset uint32) []dbBlogTopic {
+	var topics []dbBlogTopic
+
+	db.Table("b_topics b").
+		Select("b.topic_id, "+
+			"b.head_topic, "+
+			"b.date_of_add, "+
+			"b.user_id, "+
+			"u.login, "+
+			"t.message_text, "+
+			"b.tags, "+
+			"b.likes_count, "+
+			"b.views, "+
+			"b.comments_count").
+		Joins("JOIN b_topics_text t ON t.message_id = b.topic_id").
+		Joins("JOIN users u ON u.user_id = b.user_id").
+		Where("b.blog_id = ? AND b.is_opened = 1", blogID).
+		Order("b.date_of_add DESC").
+		Limit(limit).
+		Offset(offset).
+		Scan(&topics)
+
+	return topics
+}
