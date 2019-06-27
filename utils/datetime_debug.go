@@ -1,4 +1,4 @@
-// +build !debug
+// +build debug
 
 package utils
 
@@ -10,5 +10,10 @@ type DateTime struct {
 }
 
 func NewDateTime(ts time.Time) DateTime {
-	return DateTime{TS: ts.Unix()}
+	dateText := FormatDebugTime(ts)
+	dateTime := DateTime{
+		TS:   ts.Unix(),
+		Text: &dateText,
+	}
+	return dateTime
 }

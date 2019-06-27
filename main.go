@@ -9,7 +9,6 @@ import (
 	"fantlab/routing"
 	"fantlab/shared"
 
-	"github.com/gin-gonic/gin"
 	"github.com/jinzhu/gorm"
 	_ "github.com/jinzhu/gorm/dialects/mysql"
 )
@@ -28,11 +27,6 @@ func main() {
 
 	db.SetLogger(logger.GormLogger)
 	db.LogMode(true)
-
-	isDebug := os.Getenv("DEBUG") == "1"
-	if !isDebug {
-		gin.SetMode(gin.ReleaseMode)
-	}
 
 	services := &shared.Services{
 		Config: config.ParseConfig(),

@@ -1,4 +1,4 @@
-// +build !debug
+// +build debug
 
 package utils
 
@@ -10,7 +10,7 @@ type responseError struct {
 }
 
 func ShowJson(ctx *gin.Context, code int, obj interface{}) {
-	ctx.JSON(code, obj)
+	ctx.IndentedJSON(code, obj)
 }
 
 func ShowError(ctx *gin.Context, code int, text string) {

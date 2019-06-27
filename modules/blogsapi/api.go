@@ -75,7 +75,7 @@ func (c *Controller) ShowBlogArticles(ctx *gin.Context) {
 	dbBlogTopics, err := fetchBlogTopics(c.services.DB, uint32(blogID), uint32(limit), uint32(offset))
 
 	if err != nil {
-		utils.ShowError(ctx, http.StatusNotFound, "incorrect blog id")
+		utils.ShowError(ctx, http.StatusNotFound, err.Error())
 		return
 	}
 
