@@ -5,8 +5,8 @@ package utils
 import "github.com/gin-gonic/gin"
 
 type responseError struct {
-	Code  int    `json:"code"`
-	Error string `json:"responseError"`
+	Code    int    `json:"code"`
+	Message string `json:"message"`
 }
 
 func ShowJson(ctx *gin.Context, code int, obj interface{}) {
@@ -15,7 +15,7 @@ func ShowJson(ctx *gin.Context, code int, obj interface{}) {
 
 func ShowError(ctx *gin.Context, code int, text string) {
 	ctx.AbortWithStatusJSON(code, responseError{
-		Code:  code,
-		Error: text,
+		Code:    code,
+		Message: text,
 	})
 }
