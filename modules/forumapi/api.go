@@ -20,8 +20,8 @@ func NewController(services *shared.Services) *Controller {
 func (c *Controller) ShowForums(ctx *gin.Context) {
 	dbForums := fetchForums(c.services.DB, c.services.Config.DefaultAccessToForums)
 	dbModerators := fetchModerators(c.services.DB)
-	forumBlocks := getForumBlocks(dbForums, dbModerators)
-	ctx.JSON(http.StatusOK, forumBlocks)
+	forumBlocks := getForumBlocks(dbForums, dbModerators, c.services.Config.IsDebug)
+	utils.ShowJson(ctx, http.StatusOK, forumBlocks, c.services.Config.IsDebug)
 }
 
 func (c *Controller) ShowForumTopics(ctx *gin.Context) {
@@ -52,8 +52,8 @@ func (c *Controller) ShowForumTopics(ctx *gin.Context) {
 		uint16(forumID),
 		uint32(limit),
 		uint32(offset))
-	forumTopics := getForumTopics(dbForumTopics)
-	ctx.JSON(http.StatusOK, forumTopics)
+	forumTopics := getForumTopics(dbForumTopics, c.services.Config.IsDebug)
+	utils.ShowJson(ctx, http.StatusOK, forumTopics, c.services.Config.IsDebug)
 }
 
 func (c *Controller) ShowTopicMessages(ctx *gin.Context) {
@@ -84,6 +84,6 @@ func (c *Controller) ShowTopicMessages(ctx *gin.Context) {
 		uint32(topicID),
 		uint32(limit),
 		uint32(offset))
-	topicMessages := getTopicMessages(dbTopicMessages, c.services.Config)
-	ctx.JSON(http.StatusOK, topicMessages)
+	topicMessages := getTopicMessages(dbTopicMessages, c.services.Config.ImageUrl, c.services.Config.IsDebug)
+	utils.ShowJson(ctx, http.StatusOK, topicMessages, c.services.Config.IsDebug)
 }

@@ -1,12 +1,12 @@
 package blogsapi
 
 import (
-	"fantlab/config"
+	"fantlab/utils"
 
 	"strconv"
 )
 
-func getCommunities(dbCommunities []dbCommunity) communitiesWrapper {
+func getCommunities(dbCommunities []dbCommunity, isDebug bool) communitiesWrapper {
 	var mainCommunities []community
 	var additionalCommunities []community
 
@@ -29,6 +29,12 @@ func getCommunities(dbCommunities []dbCommunity) communitiesWrapper {
 				Date: dbCommunity.LastTopicDate.Unix(),
 			},
 		}
+
+		if isDebug {
+			lastArticleDebugDate := utils.FormatDebugTime(dbCommunity.LastTopicDate)
+			community.LastArticle.DebugDate = &lastArticleDebugDate
+		}
+
 		if dbCommunity.IsPublic {
 			mainCommunities = append(mainCommunities, community)
 		} else {
@@ -42,7 +48,7 @@ func getCommunities(dbCommunities []dbCommunity) communitiesWrapper {
 	}
 }
 
-func getBlogs(dbBlogs []dbBlog) blogsWrapper {
+func getBlogs(dbBlogs []dbBlog, isDebug bool) blogsWrapper {
 	//noinspection GoPreferNilSlice
 	var blogs = []blog{} // возвращаем в случае отсутствия результатов пустой массив
 
@@ -65,13 +71,19 @@ func getBlogs(dbBlogs []dbBlog) blogsWrapper {
 				Date:  dbBlog.LastTopicDate.Unix(),
 			},
 		}
+
+		if isDebug {
+			lastArticleDebugDate := utils.FormatDebugTime(dbBlog.LastTopicDate)
+			blog.LastArticle.DebugDate = &lastArticleDebugDate
+		}
+
 		blogs = append(blogs, blog)
 	}
 
 	return blogsWrapper{blogs}
 }
 
-func getBlogArticles(dbBlogTopics []dbBlogTopic, config config.Config) blogArticlesWrapper {
+func getBlogArticles(dbBlogTopics []dbBlogTopic, imageUrl string, isDebug bool) blogArticlesWrapper {
 	//noinspection GoPreferNilSlice
 	var articles = []article{} // возвращаем в случае отсутствия результатов пустой массив
 
@@ -87,7 +99,7 @@ func getBlogArticles(dbBlogTopics []dbBlogTopic, config config.Config) blogArtic
 		if dbBlogTopic.PhotoNumber != 0 {
 			userId := strconv.FormatUint(uint64(dbBlogTopic.UserId), 10)
 			photoNumber := strconv.FormatUint(uint64(dbBlogTopic.PhotoNumber), 10)
-			avatar = config.ImageUrl + "/users/" + userId + "_" + photoNumber
+			avatar = imageUrl + "/users/" + userId + "_" + photoNumber
 		}
 
 		article := article{
@@ -110,6 +122,12 @@ func getBlogArticles(dbBlogTopics []dbBlogTopic, config config.Config) blogArtic
 				CommentCount: dbBlogTopic.CommentsCount,
 			},
 		}
+
+		if isDebug {
+			creationDebugDate := utils.FormatDebugTime(dbBlogTopic.DateOfAdd)
+			article.Creation.DebugDate = &creationDebugDate
+		}
+
 		articles = append(articles, article)
 	}
 

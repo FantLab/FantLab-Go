@@ -64,10 +64,11 @@ type forumStats struct {
 
 // Последнее сообщение в форуме
 type lastMessage struct {
-	ID    uint32     `json:"id"`
-	Topic *topicLink `json:"topic,omitempty"`
-	User  userLink   `json:"user"`
-	Date  int64      `json:"date"`
+	ID        uint32     `json:"id"`
+	Topic     *topicLink `json:"topic,omitempty"`
+	User      userLink   `json:"user"`
+	Date      int64      `json:"date"`
+	DebugDate *string    `json:"debug_date,omitempty"`
 }
 
 // Ссылка на тему форума
@@ -88,8 +89,9 @@ type userLink struct {
 
 // Данные о создании
 type creation struct {
-	User userLink `json:"user"`
-	Date int64    `json:"date"`
+	User      userLink `json:"user"`
+	Date      int64    `json:"date"`
+	DebugDate *string  `json:"debug_date,omitempty"`
 }
 
 // Статистика темы

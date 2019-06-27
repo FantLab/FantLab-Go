@@ -1,12 +1,12 @@
 package forumapi
 
 import (
-	"fantlab/config"
+	"fantlab/utils"
 
 	"strconv"
 )
 
-func getForumBlocks(dbForums []dbForum, dbModerators map[uint16][]dbModerator) forumBlocksWrapper {
+func getForumBlocks(dbForums []dbForum, dbModerators map[uint16][]dbModerator, isDebug bool) forumBlocksWrapper {
 	var forumBlocks []forumBlock
 
 	currentForumBlockID := uint16(0) // f_forum_block.id начинаются с 1
@@ -59,6 +59,11 @@ func getForumBlocks(dbForums []dbForum, dbModerators map[uint16][]dbModerator) f
 					},
 				}
 
+				if isDebug {
+					lastMessageDebugDate := utils.FormatDebugTime(dbForum.LastMessageDate)
+					forum.LastMessage.DebugDate = &lastMessageDebugDate
+				}
+
 				forumBlocks[index].Forums = append(forumBlocks[index].Forums, forum)
 
 				break
@@ -69,7 +74,7 @@ func getForumBlocks(dbForums []dbForum, dbModerators map[uint16][]dbModerator) f
 	return forumBlocksWrapper{forumBlocks}
 }
 
-func getForumTopics(dbTopics []dbForumTopic) forumTopicsWrapper {
+func getForumTopics(dbTopics []dbForumTopic, isDebug bool) forumTopicsWrapper {
 	//noinspection GoPreferNilSlice
 	topics := []forumTopic{} // возвращаем в случае отсутствия результатов пустой массив
 
@@ -108,13 +113,20 @@ func getForumTopics(dbTopics []dbForumTopic) forumTopicsWrapper {
 			},
 		}
 
+		if isDebug {
+			creationDebugDate := utils.FormatDebugTime(dbTopic.DateOfAdd)
+			topic.Creation.DebugDate = &creationDebugDate
+			lastMessageDebugDate := utils.FormatDebugTime(dbTopic.LastMessageDate)
+			topic.LastMessage.DebugDate = &lastMessageDebugDate
+		}
+
 		topics = append(topics, topic)
 	}
 
 	return forumTopicsWrapper{topics}
 }
 
-func getTopicMessages(dbMessages []dbForumMessage, config config.Config) topicMessagesWrapper {
+func getTopicMessages(dbMessages []dbForumMessage, imageUrl string, isDebug bool) topicMessagesWrapper {
 	//noinspection GoPreferNilSlice
 	messages := []topicMessage{} // возвращаем в случае отсутствия результатов пустой массив
 
@@ -136,7 +148,7 @@ func getTopicMessages(dbMessages []dbForumMessage, config config.Config) topicMe
 		if dbMessage.PhotoNumber != 0 {
 			userId := strconv.FormatUint(uint64(dbMessage.UserID), 10)
 			photoNumber := strconv.FormatUint(uint64(dbMessage.PhotoNumber), 10)
-			avatar = config.ImageUrl + "/users/" + userId + "_" + photoNumber
+			avatar = imageUrl + "/users/" + userId + "_" + photoNumber
 		}
 
 		message := topicMessage{
@@ -159,6 +171,11 @@ func getTopicMessages(dbMessages []dbForumMessage, config config.Config) topicMe
 				PlusCount:  dbMessage.VotePlus,
 				MinusCount: dbMessage.VoteMinus,
 			},
+		}
+
+		if isDebug {
+			creationDebugDate := utils.FormatDebugTime(dbMessage.DateOfAdd)
+			message.Creation.DebugDate = &creationDebugDate
 		}
 
 		messages = append(messages, message)

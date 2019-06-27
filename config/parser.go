@@ -14,6 +14,7 @@ type Config struct {
 	ForumMessagesInPage   uint32   `json:"forum_messages_in_page"`
 	BlogsInPage           uint16   `json:"blogs_in_page"`
 	BlogTopicsInPage      uint16   `json:"blog_topics_in_page"`
+	IsDebug               bool
 }
 
 func ParseConfig() Config {

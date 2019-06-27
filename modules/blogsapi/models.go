@@ -40,7 +40,7 @@ type article struct {
 	Title    string       `json:"title"`
 	Creation creation     `json:"creation"`
 	Text     string       `json:"text"`
-	Tags     string       `json:"tags"`
+	Tags     string       `json:"tags,omitempty"`
 	Stats    articleStats `json:"stats"`
 }
 
@@ -52,10 +52,11 @@ type stats struct {
 
 // Последняя статья
 type lastArticle struct {
-	Id    uint32    `json:"id"`
-	Title string    `json:"title"`
-	User  *userLink `json:"user,omitempty"`
-	Date  int64     `json:"date"`
+	Id        uint32    `json:"id"`
+	Title     string    `json:"title"`
+	User      *userLink `json:"user,omitempty"`
+	Date      int64     `json:"date"`
+	DebugDate *string   `json:"debug_date,omitempty"`
 }
 
 // Ссылка на пользователя
@@ -69,8 +70,9 @@ type userLink struct {
 
 // Данные о создании
 type creation struct {
-	User userLink `json:"user"`
-	Date int64    `json:"date"`
+	User      userLink `json:"user"`
+	Date      int64    `json:"date"`
+	DebugDate *string  `json:"debug_date,omitempty"`
 }
 
 // Статистика статьи

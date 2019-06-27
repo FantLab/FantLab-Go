@@ -19,8 +19,8 @@ func NewController(services *shared.Services) *Controller {
 
 func (c *Controller) ShowCommunities(ctx *gin.Context) {
 	dbCommunities := fetchCommunities(c.services.DB)
-	communities := getCommunities(dbCommunities)
-	ctx.JSON(http.StatusOK, communities)
+	communities := getCommunities(dbCommunities, c.services.Config.IsDebug)
+	utils.ShowJson(ctx, http.StatusOK, communities, c.services.Config.IsDebug)
 }
 
 func (c *Controller) ShowBlogs(ctx *gin.Context) {
@@ -42,8 +42,8 @@ func (c *Controller) ShowBlogs(ctx *gin.Context) {
 	}
 	offset := limit * (page - 1)
 	dbBlogs := fetchBlogs(c.services.DB, uint32(limit), uint32(offset), sort)
-	blogs := getBlogs(dbBlogs)
-	ctx.JSON(http.StatusOK, blogs)
+	blogs := getBlogs(dbBlogs, c.services.Config.IsDebug)
+	utils.ShowJson(ctx, http.StatusOK, blogs, c.services.Config.IsDebug)
 }
 
 func (c *Controller) ShowBlogArticles(ctx *gin.Context) {
@@ -65,6 +65,6 @@ func (c *Controller) ShowBlogArticles(ctx *gin.Context) {
 	}
 	offset := limit * (page - 1)
 	dbBlogTopics := fetchBlogTopics(c.services.DB, uint32(blogID), uint32(limit), uint32(offset))
-	articles := getBlogArticles(dbBlogTopics, c.services.Config)
-	ctx.JSON(http.StatusOK, articles)
+	articles := getBlogArticles(dbBlogTopics, c.services.Config.ImageUrl, c.services.Config.IsDebug)
+	utils.ShowJson(ctx, http.StatusOK, articles, c.services.Config.IsDebug)
 }
