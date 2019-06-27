@@ -22,7 +22,7 @@ func (c *Controller) Login(ctx *gin.Context) {
 	uid := ctx.Keys[gin.AuthUserKey].(int)
 
 	if uid > 0 {
-		ctx.AbortWithStatusJSON(http.StatusMethodNotAllowed, utils.ErrorJSON("log out first"))
+		utils.ShowError(ctx, http.StatusMethodNotAllowed, "log out first")
 		return
 	}
 
@@ -32,7 +32,7 @@ func (c *Controller) Login(ctx *gin.Context) {
 	userData := fetchUserPasswordHash(c.services.DB, userName)
 
 	if userData == nil {
-		ctx.AbortWithStatusJSON(http.StatusNotFound, utils.ErrorJSON("user not found"))
+		utils.ShowError(ctx, http.StatusNotFound, "user not found")
 		return
 	}
 
@@ -43,19 +43,20 @@ func (c *Controller) Login(ctx *gin.Context) {
 	}
 
 	if err != nil {
-		ctx.AbortWithStatusJSON(http.StatusUnauthorized, utils.ErrorJSON("incorrect password"))
+		utils.ShowError(ctx, http.StatusUnauthorized, "incorrect password")
 		return
 	}
 
 	sid := ksuid.New().String()
 
 	if !insertNewSession(c.services.DB, sid, userData.UserID, ctx.ClientIP(), ctx.Request.UserAgent()) {
-		ctx.AbortWithStatusJSON(http.StatusInternalServerError, utils.ErrorJSON("failed to create session"))
+		utils.ShowError(ctx, http.StatusInternalServerError, "failed to create session")
 		return
 	}
 
-	ctx.JSON(http.StatusOK, gin.H{
-		"user_id": userData.UserID,
-		"session": sid,
-	})
+	session := session{
+		UserId:  userData.UserID,
+		Session: sid,
+	}
+	utils.ShowJson(ctx, http.StatusOK, session, c.services.Config.IsDebug)
 }

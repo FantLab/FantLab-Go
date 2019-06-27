@@ -1,6 +1,10 @@
 package forumapi
 
-import "github.com/jinzhu/gorm"
+import (
+	"errors"
+
+	"github.com/jinzhu/gorm"
+)
 
 func fetchForums(db *gorm.DB, availableForums []uint16) []dbForum {
 	var forums []dbForum
@@ -27,7 +31,13 @@ func fetchForums(db *gorm.DB, availableForums []uint16) []dbForum {
 	return forums
 }
 
-func fetchForumTopics(db *gorm.DB, availableForums []uint16, forumID uint16, limit, offset uint32) []dbForumTopic {
+func fetchForumTopics(db *gorm.DB, availableForums []uint16, forumID uint16, limit, offset uint32) ([]dbForumTopic, error) {
+	if db.Table("f_forums").
+		First(&dbForum{}, "forum_id = ? AND forum_id IN (?)", forumID, availableForums).
+		RecordNotFound() {
+		return nil, errors.New("incorrect forum id")
+	}
+
 	var topics []dbForumTopic
 
 	// Возможен рассинхрон между message_count и реальным количеством сообщений в том случае, если модертор перенес
@@ -48,29 +58,26 @@ func fetchForumTopics(db *gorm.DB, availableForums []uint16, forumID uint16, lim
 			"t.last_user_name, "+
 			"t.last_message_date").
 		Joins("JOIN users u ON (u.user_id = t.user_id)").
-		Where("t.forum_id = ? AND t.forum_id IN (?)", forumID, availableForums).
+		Where("t.forum_id = ?", forumID).
 		Order("t.is_pinned DESC, t.last_message_date DESC").
 		Limit(limit).
 		Offset(offset).
 		Scan(&topics)
 
-	return topics
+	return topics, nil
 }
 
-func fetchTopicMessages(db *gorm.DB, availableForums []uint16, topicID, limit, offset uint32) []dbForumMessage {
+func fetchTopicMessages(db *gorm.DB, availableForums []uint16, topicID, limit, offset uint32) ([]dbForumMessage, error) {
 	type ForumId struct {
 		ForumId uint16
 	}
 
 	var forumId ForumId
 
-	db.Table("f_topics").
-		Select("forum_id").
-		Where("topic_id = ? AND forum_id IN (?)", topicID, availableForums).
-		Scan(&forumId)
-
-	if forumId.ForumId == 0 {
-		return []dbForumMessage{}
+	if db.Table("f_topics").
+		First(&forumId, "topic_id = ? AND forum_id IN (?)", topicID, availableForums).
+		RecordNotFound() {
+		return nil, errors.New("incorrect topic id")
 	}
 
 	var messages []dbForumMessage
@@ -97,7 +104,7 @@ func fetchTopicMessages(db *gorm.DB, availableForums []uint16, topicID, limit, o
 		Offset(offset).
 		Scan(&messages)
 
-	return messages
+	return messages, nil
 }
 
 func fetchModerators(db *gorm.DB) map[uint16][]dbModerator {
