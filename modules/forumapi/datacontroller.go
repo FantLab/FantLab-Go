@@ -1,5 +1,11 @@
 package forumapi
 
+import (
+	"strconv"
+
+	"fantlab/utils"
+)
+
 func getForumBlocks(dbForums []dbForum, dbModerators map[uint16][]dbModerator) forumBlocksWrapper {
 	var forumBlocks []forumBlock
 
@@ -49,7 +55,7 @@ func getForumBlocks(dbForums []dbForum, dbModerators map[uint16][]dbModerator) f
 							ID:    dbForum.LastUserID,
 							Login: dbForum.LastUserName,
 						},
-						Date: dbForum.LastMessageDate.Unix(),
+						Date: utils.NewDateTime(dbForum.LastMessageDate),
 					},
 				}
 
@@ -68,16 +74,23 @@ func getForumTopics(dbTopics []dbForumTopic) forumTopicsWrapper {
 	topics := []forumTopic{} // возвращаем в случае отсутствия результатов пустой массив
 
 	for _, dbTopic := range dbTopics {
+		var topicType string
+		if dbTopic.TopicTypeID == 2 {
+			topicType = "poll"
+		} else {
+			topicType = "topic"
+		}
+
 		topic := forumTopic{
 			ID:        dbTopic.TopicID,
 			Title:     dbTopic.Name,
-			TopicType: dbTopic.TopicTypeID,
+			TopicType: topicType,
 			Creation: creation{
 				User: userLink{
 					ID:    dbTopic.UserID,
 					Login: dbTopic.Login,
 				},
-				Date: dbTopic.DateOfAdd.Unix(),
+				Date: utils.NewDateTime(dbTopic.DateOfAdd),
 			},
 			IsClosed: dbTopic.IsClosed,
 			IsPinned: dbTopic.IsPinned,
@@ -91,7 +104,7 @@ func getForumTopics(dbTopics []dbForumTopic) forumTopicsWrapper {
 					ID:    dbTopic.LastUserID,
 					Login: dbTopic.LastUserName,
 				},
-				Date: dbTopic.LastMessageDate.Unix(),
+				Date: utils.NewDateTime(dbTopic.LastMessageDate),
 			},
 		}
 
@@ -101,7 +114,7 @@ func getForumTopics(dbTopics []dbForumTopic) forumTopicsWrapper {
 	return forumTopicsWrapper{topics}
 }
 
-func getTopicMessages(dbMessages []dbForumMessage) topicMessagesWrapper {
+func getTopicMessages(dbMessages []dbForumMessage, imageUrl string) topicMessagesWrapper {
 	//noinspection GoPreferNilSlice
 	messages := []topicMessage{} // возвращаем в случае отсутствия результатов пустой массив
 
@@ -112,18 +125,32 @@ func getTopicMessages(dbMessages []dbForumMessage) topicMessagesWrapper {
 			text = ""
 		}
 
+		var gender string
+		if dbMessage.Sex == 0 {
+			gender = "f"
+		} else {
+			gender = "m"
+		}
+
+		var avatar string
+		if dbMessage.PhotoNumber != 0 {
+			userId := strconv.FormatUint(uint64(dbMessage.UserID), 10)
+			photoNumber := strconv.FormatUint(uint64(dbMessage.PhotoNumber), 10)
+			avatar = imageUrl + "/users/" + userId + "_" + photoNumber
+		}
+
 		message := topicMessage{
 			ID: dbMessage.MessageID,
 			Creation: creation{
 				User: userLink{
-					ID:          dbMessage.UserID,
-					Login:       dbMessage.Login,
-					Gender:      dbMessage.Sex,
-					PhotoNumber: dbMessage.PhotoNumber,
-					Class:       dbMessage.UserClass,
-					Sign:        dbMessage.Sign,
+					ID:     dbMessage.UserID,
+					Login:  dbMessage.Login,
+					Gender: gender,
+					Avatar: avatar,
+					Class:  dbMessage.UserClass,
+					Sign:   dbMessage.Sign,
 				},
-				Date: dbMessage.DateOfAdd.Unix(),
+				Date: utils.NewDateTime(dbMessage.DateOfAdd),
 			},
 			Text:            text,
 			IsCensored:      dbMessage.IsCensored,

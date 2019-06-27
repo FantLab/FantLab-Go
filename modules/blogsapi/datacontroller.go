@@ -1,5 +1,11 @@
 package blogsapi
 
+import (
+	"strconv"
+
+	"fantlab/utils"
+)
+
 func getCommunities(dbCommunities []dbCommunity) communitiesWrapper {
 	var mainCommunities []community
 	var additionalCommunities []community
@@ -20,9 +26,10 @@ func getCommunities(dbCommunities []dbCommunity) communitiesWrapper {
 					Id:    dbCommunity.LastUserId,
 					Login: dbCommunity.LastUserName,
 				},
-				Date: dbCommunity.LastTopicDate.Unix(),
+				Date: utils.NewDateTime(dbCommunity.LastTopicDate),
 			},
 		}
+
 		if dbCommunity.IsPublic {
 			mainCommunities = append(mainCommunities, community)
 		} else {
@@ -43,7 +50,7 @@ func getBlogs(dbBlogs []dbBlog) blogsWrapper {
 	for _, dbBlog := range dbBlogs {
 		blog := blog{
 			Id: dbBlog.BlogId,
-			Owner: userLink{
+			User: userLink{
 				Id:    dbBlog.UserId,
 				Login: dbBlog.Login,
 				Name:  dbBlog.Fio,
@@ -56,29 +63,46 @@ func getBlogs(dbBlogs []dbBlog) blogsWrapper {
 			LastArticle: lastArticle{
 				Id:    dbBlog.LastTopicId,
 				Title: dbBlog.LastTopicHead,
-				Date:  dbBlog.LastTopicDate.Unix(),
+				Date:  utils.NewDateTime(dbBlog.LastTopicDate),
 			},
 		}
+
 		blogs = append(blogs, blog)
 	}
 
 	return blogsWrapper{blogs}
 }
 
-func getBlogArticles(dbBlogTopics []dbBlogTopic) blogArticlesWrapper {
+func getBlogArticles(dbBlogTopics []dbBlogTopic, imageUrl string) blogArticlesWrapper {
 	//noinspection GoPreferNilSlice
 	var articles = []article{} // возвращаем в случае отсутствия результатов пустой массив
 
 	for _, dbBlogTopic := range dbBlogTopics {
+		var gender string
+		if dbBlogTopic.Sex == 0 {
+			gender = "f"
+		} else {
+			gender = "m"
+		}
+
+		var avatar string
+		if dbBlogTopic.PhotoNumber != 0 {
+			userId := strconv.FormatUint(uint64(dbBlogTopic.UserId), 10)
+			photoNumber := strconv.FormatUint(uint64(dbBlogTopic.PhotoNumber), 10)
+			avatar = imageUrl + "/users/" + userId + "_" + photoNumber
+		}
+
 		article := article{
 			Id:    dbBlogTopic.TopicId,
 			Title: dbBlogTopic.HeadTopic,
 			Creation: creation{
 				User: userLink{
-					Id:    dbBlogTopic.UserId,
-					Login: dbBlogTopic.Login,
+					Id:     dbBlogTopic.UserId,
+					Login:  dbBlogTopic.Login,
+					Gender: gender,
+					Avatar: avatar,
 				},
-				Date: dbBlogTopic.DateOfAdd.Unix(),
+				Date: utils.NewDateTime(dbBlogTopic.DateOfAdd),
 			},
 			Text: dbBlogTopic.MessageText,
 			Tags: dbBlogTopic.Tags,
@@ -88,6 +112,7 @@ func getBlogArticles(dbBlogTopics []dbBlogTopic) blogArticlesWrapper {
 				CommentCount: dbBlogTopic.CommentsCount,
 			},
 		}
+
 		articles = append(articles, article)
 	}
 

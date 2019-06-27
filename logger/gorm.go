@@ -26,14 +26,14 @@ var gormFormatter = func(values ...interface{}) (messages []interface{}) {
 			sql             string
 			formattedValues []string
 			level           = values[0]
-			currentTime     = utils.FormatTime(time.Now())
+			currentTime     = utils.FormatLogTime(time.Now())
 		)
 
 		messages = []interface{}{currentTime}
 
 		if level == "sql" {
 			// duration
-			messages = append(messages, " "+utils.FormatDuration(values[2].(time.Duration)))
+			messages = append(messages, " "+utils.FormatLogDuration(values[2].(time.Duration)))
 
 			// sql
 			for _, value := range values[4].([]interface{}) {
@@ -85,7 +85,7 @@ var gormFormatter = func(values ...interface{}) (messages []interface{}) {
 			}
 
 			// affected rows
-			messages = append(messages, " "+utils.FormatRowsCount(values[5].(int64))+" ")
+			messages = append(messages, " "+utils.FormatLogRowsCount(values[5].(int64))+" ")
 			messages = append(messages, sql)
 		} else {
 			messages = append(messages, "\033[31;1m")

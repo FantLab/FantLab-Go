@@ -1,6 +1,10 @@
 package blogsapi
 
-import "github.com/jinzhu/gorm"
+import (
+	"errors"
+
+	"github.com/jinzhu/gorm"
+)
 
 func fetchCommunities(db *gorm.DB) []dbCommunity {
 	var communities []dbCommunity
@@ -58,7 +62,13 @@ func fetchBlogs(db *gorm.DB, limit, offset uint32, sort string) []dbBlog {
 	return blogs
 }
 
-func fetchBlogTopics(db *gorm.DB, blogID, limit, offset uint32) []dbBlogTopic {
+func fetchBlogTopics(db *gorm.DB, blogID, limit, offset uint32) ([]dbBlogTopic, error) {
+	if db.Table("b_blogs").
+		First(&dbBlog{}, "blog_id = ?", blogID).
+		RecordNotFound() {
+		return nil, errors.New("incorrect blog id")
+	}
+
 	var topics []dbBlogTopic
 
 	db.Table("b_topics b").
@@ -67,6 +77,8 @@ func fetchBlogTopics(db *gorm.DB, blogID, limit, offset uint32) []dbBlogTopic {
 			"b.date_of_add, "+
 			"b.user_id, "+
 			"u.login, "+
+			"u.sex, "+
+			"u.photo_number, "+
 			"t.message_text, "+
 			"b.tags, "+
 			"b.likes_count, "+
@@ -80,5 +92,5 @@ func fetchBlogTopics(db *gorm.DB, blogID, limit, offset uint32) []dbBlogTopic {
 		Offset(offset).
 		Scan(&topics)
 
-	return topics
+	return topics, nil
 }

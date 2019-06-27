@@ -1,5 +1,7 @@
 package forumapi
 
+import "fantlab/utils"
+
 // Wrapper для списка форумов
 type forumBlocksWrapper struct {
 	ForumBlocks []forumBlock `json:"forum_blocks"`
@@ -16,7 +18,7 @@ type forumBlock struct {
 type forum struct {
 	ID          uint16      `json:"id"`
 	Title       string      `json:"title"`
-	Description string      `json:"description"`
+	Description string      `json:"description,omitempty"`
 	Moderators  []userLink  `json:"moderators"`
 	Stats       forumStats  `json:"stats"`
 	LastMessage lastMessage `json:"last_message"`
@@ -31,7 +33,7 @@ type forumTopicsWrapper struct {
 type forumTopic struct {
 	ID          uint32      `json:"id"`
 	Title       string      `json:"title"`
-	TopicType   uint16      `json:"topic_type"`
+	TopicType   string      `json:"topic_type"`
 	Creation    creation    `json:"creation"`
 	IsClosed    bool        `json:"is_closed"`
 	IsPinned    bool        `json:"is_pinned"`
@@ -64,10 +66,10 @@ type forumStats struct {
 
 // Последнее сообщение в форуме
 type lastMessage struct {
-	ID    uint32     `json:"id"`
-	Topic *topicLink `json:"topic,omitempty"`
-	User  userLink   `json:"user"`
-	Date  int64      `json:"date"`
+	ID    uint32         `json:"id"`
+	Topic *topicLink     `json:"topic,omitempty"`
+	User  userLink       `json:"user"`
+	Date  utils.DateTime `json:"date"`
 }
 
 // Ссылка на тему форума
@@ -77,20 +79,19 @@ type topicLink struct {
 }
 
 // Ссылка на пользователя
-// PhotoNumber - порядковый номер фото (https://data.fantlab.ru/images/users/{UserId}_{PhotoNumber}). Если 0 - его нет.
 type userLink struct {
-	ID          uint32 `json:"id"`
-	Login       string `json:"login"`
-	Gender      uint8  `json:"gender,omitempty"`
-	PhotoNumber uint16 `json:"photo_number,omitempty"`
-	Class       uint8  `json:"class,omitempty"`
-	Sign        string `json:"sign,omitempty"`
+	ID     uint32 `json:"id"`
+	Login  string `json:"login"`
+	Gender string `json:"gender,omitempty"`
+	Avatar string `json:"avatar,omitempty"`
+	Class  uint8  `json:"class,omitempty"`
+	Sign   string `json:"sign,omitempty"`
 }
 
 // Данные о создании
 type creation struct {
-	User userLink `json:"user"`
-	Date int64    `json:"date"`
+	User userLink       `json:"user"`
+	Date utils.DateTime `json:"date"`
 }
 
 // Статистика темы

@@ -1,5 +1,7 @@
 package blogsapi
 
+import "fantlab/utils"
+
 // Wrapper для списка рубрик
 type communitiesWrapper struct {
 	Main       []community `json:"main"`
@@ -10,7 +12,7 @@ type communitiesWrapper struct {
 type community struct {
 	Id          uint32      `json:"id"`
 	Title       string      `json:"title"`
-	Description string      `json:"description"`
+	Description string      `json:"description,omitempty"`
 	Stats       stats       `json:"stats"`
 	LastArticle lastArticle `json:"last_article"`
 }
@@ -23,7 +25,7 @@ type blogsWrapper struct {
 // Авторская колонка
 type blog struct {
 	Id          uint32      `json:"id"`
-	Owner       userLink    `json:"owner"`
+	User        userLink    `json:"user"`
 	IsClosed    bool        `json:"is_closed"`
 	Stats       stats       `json:"stats"`
 	LastArticle lastArticle `json:"last_article"`
@@ -40,7 +42,7 @@ type article struct {
 	Title    string       `json:"title"`
 	Creation creation     `json:"creation"`
 	Text     string       `json:"text"`
-	Tags     string       `json:"tags"`
+	Tags     string       `json:"tags,omitempty"`
 	Stats    articleStats `json:"stats"`
 }
 
@@ -52,23 +54,25 @@ type stats struct {
 
 // Последняя статья
 type lastArticle struct {
-	Id    uint32    `json:"id"`
-	Title string    `json:"title"`
-	User  *userLink `json:"user,omitempty"`
-	Date  int64     `json:"date"`
+	Id    uint32         `json:"id"`
+	Title string         `json:"title"`
+	User  *userLink      `json:"user,omitempty"`
+	Date  utils.DateTime `json:"date"`
 }
 
 // Ссылка на пользователя
 type userLink struct {
-	Id    uint32 `json:"id"`
-	Login string `json:"login"`
-	Name  string `json:"name,omitempty"`
+	Id     uint32 `json:"id"`
+	Login  string `json:"login"`
+	Name   string `json:"name,omitempty"`
+	Gender string `json:"gender,omitempty"`
+	Avatar string `json:"avatar,omitempty"`
 }
 
 // Данные о создании
 type creation struct {
-	User userLink `json:"user"`
-	Date int64    `json:"date"`
+	User userLink       `json:"user"`
+	Date utils.DateTime `json:"date"`
 }
 
 // Статистика статьи

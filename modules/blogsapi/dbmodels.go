@@ -38,6 +38,8 @@ type dbBlogTopic struct {
 	DateOfAdd     time.Time
 	UserId        uint32
 	Login         string
+	Sex           uint8
+	PhotoNumber   uint16
 	MessageText   string
 	Tags          string
 	LikesCount    uint64
