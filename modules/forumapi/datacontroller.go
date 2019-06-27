@@ -4,8 +4,6 @@ import (
 	"strconv"
 
 	"fantlab/utils"
-
-	"github.com/gin-gonic/gin"
 )
 
 func getForumBlocks(dbForums []dbForum, dbModerators map[uint16][]dbModerator) forumBlocksWrapper {
@@ -57,13 +55,8 @@ func getForumBlocks(dbForums []dbForum, dbModerators map[uint16][]dbModerator) f
 							ID:    dbForum.LastUserID,
 							Login: dbForum.LastUserName,
 						},
-						Date: dbForum.LastMessageDate.Unix(),
+						Date: utils.NewDateTime(dbForum.LastMessageDate),
 					},
-				}
-
-				if gin.IsDebugging() {
-					lastMessageDebugDate := utils.FormatDebugTime(dbForum.LastMessageDate)
-					forum.LastMessage.DebugDate = &lastMessageDebugDate
 				}
 
 				forumBlocks[index].Forums = append(forumBlocks[index].Forums, forum)
@@ -97,7 +90,7 @@ func getForumTopics(dbTopics []dbForumTopic) forumTopicsWrapper {
 					ID:    dbTopic.UserID,
 					Login: dbTopic.Login,
 				},
-				Date: dbTopic.DateOfAdd.Unix(),
+				Date: utils.NewDateTime(dbTopic.DateOfAdd),
 			},
 			IsClosed: dbTopic.IsClosed,
 			IsPinned: dbTopic.IsPinned,
@@ -111,15 +104,8 @@ func getForumTopics(dbTopics []dbForumTopic) forumTopicsWrapper {
 					ID:    dbTopic.LastUserID,
 					Login: dbTopic.LastUserName,
 				},
-				Date: dbTopic.LastMessageDate.Unix(),
+				Date: utils.NewDateTime(dbTopic.LastMessageDate),
 			},
-		}
-
-		if gin.IsDebugging() {
-			creationDebugDate := utils.FormatDebugTime(dbTopic.DateOfAdd)
-			topic.Creation.DebugDate = &creationDebugDate
-			lastMessageDebugDate := utils.FormatDebugTime(dbTopic.LastMessageDate)
-			topic.LastMessage.DebugDate = &lastMessageDebugDate
 		}
 
 		topics = append(topics, topic)
@@ -164,7 +150,7 @@ func getTopicMessages(dbMessages []dbForumMessage, imageUrl string) topicMessage
 					Class:  dbMessage.UserClass,
 					Sign:   dbMessage.Sign,
 				},
-				Date: dbMessage.DateOfAdd.Unix(),
+				Date: utils.NewDateTime(dbMessage.DateOfAdd),
 			},
 			Text:            text,
 			IsCensored:      dbMessage.IsCensored,
@@ -173,11 +159,6 @@ func getTopicMessages(dbMessages []dbForumMessage, imageUrl string) topicMessage
 				PlusCount:  dbMessage.VotePlus,
 				MinusCount: dbMessage.VoteMinus,
 			},
-		}
-
-		if gin.IsDebugging() {
-			creationDebugDate := utils.FormatDebugTime(dbMessage.DateOfAdd)
-			message.Creation.DebugDate = &creationDebugDate
 		}
 
 		messages = append(messages, message)

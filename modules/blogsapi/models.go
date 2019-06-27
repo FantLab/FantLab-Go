@@ -1,5 +1,7 @@
 package blogsapi
 
+import "fantlab/utils"
+
 // Wrapper для списка рубрик
 type communitiesWrapper struct {
 	Main       []community `json:"main"`
@@ -52,11 +54,10 @@ type stats struct {
 
 // Последняя статья
 type lastArticle struct {
-	Id        uint32    `json:"id"`
-	Title     string    `json:"title"`
-	User      *userLink `json:"user,omitempty"`
-	Date      int64     `json:"date"`
-	DebugDate *string   `json:"debug_date,omitempty"`
+	Id    uint32         `json:"id"`
+	Title string         `json:"title"`
+	User  *userLink      `json:"user,omitempty"`
+	Date  utils.DateTime `json:"date"`
 }
 
 // Ссылка на пользователя
@@ -70,9 +71,8 @@ type userLink struct {
 
 // Данные о создании
 type creation struct {
-	User      userLink `json:"user"`
-	Date      int64    `json:"date"`
-	DebugDate *string  `json:"debug_date,omitempty"`
+	User userLink       `json:"user"`
+	Date utils.DateTime `json:"date"`
 }
 
 // Статистика статьи

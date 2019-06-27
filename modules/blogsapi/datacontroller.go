@@ -4,8 +4,6 @@ import (
 	"strconv"
 
 	"fantlab/utils"
-
-	"github.com/gin-gonic/gin"
 )
 
 func getCommunities(dbCommunities []dbCommunity) communitiesWrapper {
@@ -28,13 +26,8 @@ func getCommunities(dbCommunities []dbCommunity) communitiesWrapper {
 					Id:    dbCommunity.LastUserId,
 					Login: dbCommunity.LastUserName,
 				},
-				Date: dbCommunity.LastTopicDate.Unix(),
+				Date: utils.NewDateTime(dbCommunity.LastTopicDate),
 			},
-		}
-
-		if gin.IsDebugging() {
-			lastArticleDebugDate := utils.FormatDebugTime(dbCommunity.LastTopicDate)
-			community.LastArticle.DebugDate = &lastArticleDebugDate
 		}
 
 		if dbCommunity.IsPublic {
@@ -70,13 +63,8 @@ func getBlogs(dbBlogs []dbBlog) blogsWrapper {
 			LastArticle: lastArticle{
 				Id:    dbBlog.LastTopicId,
 				Title: dbBlog.LastTopicHead,
-				Date:  dbBlog.LastTopicDate.Unix(),
+				Date:  utils.NewDateTime(dbBlog.LastTopicDate),
 			},
-		}
-
-		if gin.IsDebugging() {
-			lastArticleDebugDate := utils.FormatDebugTime(dbBlog.LastTopicDate)
-			blog.LastArticle.DebugDate = &lastArticleDebugDate
 		}
 
 		blogs = append(blogs, blog)
@@ -114,7 +102,7 @@ func getBlogArticles(dbBlogTopics []dbBlogTopic, imageUrl string) blogArticlesWr
 					Gender: gender,
 					Avatar: avatar,
 				},
-				Date: dbBlogTopic.DateOfAdd.Unix(),
+				Date: utils.NewDateTime(dbBlogTopic.DateOfAdd),
 			},
 			Text: dbBlogTopic.MessageText,
 			Tags: dbBlogTopic.Tags,
@@ -123,11 +111,6 @@ func getBlogArticles(dbBlogTopics []dbBlogTopic, imageUrl string) blogArticlesWr
 				ViewCount:    dbBlogTopic.Views,
 				CommentCount: dbBlogTopic.CommentsCount,
 			},
-		}
-
-		if gin.IsDebugging() {
-			creationDebugDate := utils.FormatDebugTime(dbBlogTopic.DateOfAdd)
-			article.Creation.DebugDate = &creationDebugDate
 		}
 
 		articles = append(articles, article)

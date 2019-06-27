@@ -1,5 +1,7 @@
 package forumapi
 
+import "fantlab/utils"
+
 // Wrapper для списка форумов
 type forumBlocksWrapper struct {
 	ForumBlocks []forumBlock `json:"forum_blocks"`
@@ -64,11 +66,10 @@ type forumStats struct {
 
 // Последнее сообщение в форуме
 type lastMessage struct {
-	ID        uint32     `json:"id"`
-	Topic     *topicLink `json:"topic,omitempty"`
-	User      userLink   `json:"user"`
-	Date      int64      `json:"date"`
-	DebugDate *string    `json:"debug_date,omitempty"`
+	ID    uint32         `json:"id"`
+	Topic *topicLink     `json:"topic,omitempty"`
+	User  userLink       `json:"user"`
+	Date  utils.DateTime `json:"date"`
 }
 
 // Ссылка на тему форума
@@ -89,9 +90,8 @@ type userLink struct {
 
 // Данные о создании
 type creation struct {
-	User      userLink `json:"user"`
-	Date      int64    `json:"date"`
-	DebugDate *string  `json:"debug_date,omitempty"`
+	User userLink       `json:"user"`
+	Date utils.DateTime `json:"date"`
 }
 
 // Статистика темы

@@ -58,5 +58,5 @@ func (c *Controller) Login(ctx *gin.Context) {
 		UserId:  userData.UserID,
 		Session: sid,
 	}
-	utils.ShowJson(ctx, http.StatusOK, session, c.services.Config.IsDebug)
+	utils.ShowJson(ctx, http.StatusOK, session)
 }
