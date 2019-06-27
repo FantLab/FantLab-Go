@@ -67,6 +67,8 @@ func fetchBlogTopics(db *gorm.DB, blogID, limit, offset uint32) []dbBlogTopic {
 			"b.date_of_add, "+
 			"b.user_id, "+
 			"u.login, "+
+			"u.sex, "+
+			"u.photo_number, "+
 			"t.message_text, "+
 			"b.tags, "+
 			"b.likes_count, "+

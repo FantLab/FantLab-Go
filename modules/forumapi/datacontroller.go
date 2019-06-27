@@ -1,5 +1,11 @@
 package forumapi
 
+import (
+	"fantlab/config"
+
+	"strconv"
+)
+
 func getForumBlocks(dbForums []dbForum, dbModerators map[uint16][]dbModerator) forumBlocksWrapper {
 	var forumBlocks []forumBlock
 
@@ -68,10 +74,17 @@ func getForumTopics(dbTopics []dbForumTopic) forumTopicsWrapper {
 	topics := []forumTopic{} // возвращаем в случае отсутствия результатов пустой массив
 
 	for _, dbTopic := range dbTopics {
+		var topicType string
+		if dbTopic.TopicTypeID == 1 {
+			topicType = "topic"
+		} else if dbTopic.TopicTypeID == 2 {
+			topicType = "poll"
+		}
+
 		topic := forumTopic{
 			ID:        dbTopic.TopicID,
 			Title:     dbTopic.Name,
-			TopicType: dbTopic.TopicTypeID,
+			TopicType: topicType,
 			Creation: creation{
 				User: userLink{
 					ID:    dbTopic.UserID,
@@ -101,7 +114,7 @@ func getForumTopics(dbTopics []dbForumTopic) forumTopicsWrapper {
 	return forumTopicsWrapper{topics}
 }
 
-func getTopicMessages(dbMessages []dbForumMessage) topicMessagesWrapper {
+func getTopicMessages(dbMessages []dbForumMessage, config config.Config) topicMessagesWrapper {
 	//noinspection GoPreferNilSlice
 	messages := []topicMessage{} // возвращаем в случае отсутствия результатов пустой массив
 
@@ -112,16 +125,30 @@ func getTopicMessages(dbMessages []dbForumMessage) topicMessagesWrapper {
 			text = ""
 		}
 
+		var gender string
+		if dbMessage.Sex == 0 {
+			gender = "f"
+		} else {
+			gender = "m"
+		}
+
+		var avatar string
+		if dbMessage.PhotoNumber != 0 {
+			userId := strconv.FormatUint(uint64(dbMessage.UserID), 10)
+			photoNumber := strconv.FormatUint(uint64(dbMessage.PhotoNumber), 10)
+			avatar = config.ImageUrl + "/users/" + userId + "_" + photoNumber
+		}
+
 		message := topicMessage{
 			ID: dbMessage.MessageID,
 			Creation: creation{
 				User: userLink{
-					ID:          dbMessage.UserID,
-					Login:       dbMessage.Login,
-					Gender:      dbMessage.Sex,
-					PhotoNumber: dbMessage.PhotoNumber,
-					Class:       dbMessage.UserClass,
-					Sign:        dbMessage.Sign,
+					ID:     dbMessage.UserID,
+					Login:  dbMessage.Login,
+					Gender: gender,
+					Avatar: avatar,
+					Class:  dbMessage.UserClass,
+					Sign:   dbMessage.Sign,
 				},
 				Date: dbMessage.DateOfAdd.Unix(),
 			},

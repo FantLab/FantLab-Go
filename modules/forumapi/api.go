@@ -84,6 +84,6 @@ func (c *Controller) ShowTopicMessages(ctx *gin.Context) {
 		uint32(topicID),
 		uint32(limit),
 		uint32(offset))
-	topicMessages := getTopicMessages(dbTopicMessages)
+	topicMessages := getTopicMessages(dbTopicMessages, c.services.Config)
 	ctx.JSON(http.StatusOK, topicMessages)
 }

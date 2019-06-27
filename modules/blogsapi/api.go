@@ -65,6 +65,6 @@ func (c *Controller) ShowBlogArticles(ctx *gin.Context) {
 	}
 	offset := limit * (page - 1)
 	dbBlogTopics := fetchBlogTopics(c.services.DB, uint32(blogID), uint32(limit), uint32(offset))
-	articles := getBlogArticles(dbBlogTopics)
+	articles := getBlogArticles(dbBlogTopics, c.services.Config)
 	ctx.JSON(http.StatusOK, articles)
 }

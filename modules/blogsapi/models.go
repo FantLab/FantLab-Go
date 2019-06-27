@@ -10,7 +10,7 @@ type communitiesWrapper struct {
 type community struct {
 	Id          uint32      `json:"id"`
 	Title       string      `json:"title"`
-	Description string      `json:"description"`
+	Description string      `json:"description,omitempty"`
 	Stats       stats       `json:"stats"`
 	LastArticle lastArticle `json:"last_article"`
 }
@@ -23,7 +23,7 @@ type blogsWrapper struct {
 // Авторская колонка
 type blog struct {
 	Id          uint32      `json:"id"`
-	Owner       userLink    `json:"owner"`
+	User        userLink    `json:"user"`
 	IsClosed    bool        `json:"is_closed"`
 	Stats       stats       `json:"stats"`
 	LastArticle lastArticle `json:"last_article"`
@@ -60,9 +60,11 @@ type lastArticle struct {
 
 // Ссылка на пользователя
 type userLink struct {
-	Id    uint32 `json:"id"`
-	Login string `json:"login"`
-	Name  string `json:"name,omitempty"`
+	Id     uint32 `json:"id"`
+	Login  string `json:"login"`
+	Name   string `json:"name,omitempty"`
+	Gender string `json:"gender,omitempty"`
+	Avatar string `json:"avatar,omitempty"`
 }
 
 // Данные о создании
