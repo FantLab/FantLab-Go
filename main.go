@@ -34,10 +34,8 @@ func main() {
 		gin.SetMode(gin.ReleaseMode)
 	}
 
-	configuration := config.ParseConfig()
-	configuration.IsDebug = isDebug
 	services := &shared.Services{
-		Config: configuration,
+		Config: config.ParseConfig(),
 		DB:     db,
 	}
 

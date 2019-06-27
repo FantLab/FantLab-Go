@@ -1,12 +1,14 @@
 package forumapi
 
 import (
+	"strconv"
+
 	"fantlab/utils"
 
-	"strconv"
+	"github.com/gin-gonic/gin"
 )
 
-func getForumBlocks(dbForums []dbForum, dbModerators map[uint16][]dbModerator, isDebug bool) forumBlocksWrapper {
+func getForumBlocks(dbForums []dbForum, dbModerators map[uint16][]dbModerator) forumBlocksWrapper {
 	var forumBlocks []forumBlock
 
 	currentForumBlockID := uint16(0) // f_forum_block.id начинаются с 1
@@ -59,7 +61,7 @@ func getForumBlocks(dbForums []dbForum, dbModerators map[uint16][]dbModerator, i
 					},
 				}
 
-				if isDebug {
+				if gin.IsDebugging() {
 					lastMessageDebugDate := utils.FormatDebugTime(dbForum.LastMessageDate)
 					forum.LastMessage.DebugDate = &lastMessageDebugDate
 				}
@@ -74,16 +76,16 @@ func getForumBlocks(dbForums []dbForum, dbModerators map[uint16][]dbModerator, i
 	return forumBlocksWrapper{forumBlocks}
 }
 
-func getForumTopics(dbTopics []dbForumTopic, isDebug bool) forumTopicsWrapper {
+func getForumTopics(dbTopics []dbForumTopic) forumTopicsWrapper {
 	//noinspection GoPreferNilSlice
 	topics := []forumTopic{} // возвращаем в случае отсутствия результатов пустой массив
 
 	for _, dbTopic := range dbTopics {
 		var topicType string
-		if dbTopic.TopicTypeID == 1 {
-			topicType = "topic"
-		} else if dbTopic.TopicTypeID == 2 {
+		if dbTopic.TopicTypeID == 2 {
 			topicType = "poll"
+		} else {
+			topicType = "topic"
 		}
 
 		topic := forumTopic{
@@ -113,7 +115,7 @@ func getForumTopics(dbTopics []dbForumTopic, isDebug bool) forumTopicsWrapper {
 			},
 		}
 
-		if isDebug {
+		if gin.IsDebugging() {
 			creationDebugDate := utils.FormatDebugTime(dbTopic.DateOfAdd)
 			topic.Creation.DebugDate = &creationDebugDate
 			lastMessageDebugDate := utils.FormatDebugTime(dbTopic.LastMessageDate)
@@ -126,7 +128,7 @@ func getForumTopics(dbTopics []dbForumTopic, isDebug bool) forumTopicsWrapper {
 	return forumTopicsWrapper{topics}
 }
 
-func getTopicMessages(dbMessages []dbForumMessage, imageUrl string, isDebug bool) topicMessagesWrapper {
+func getTopicMessages(dbMessages []dbForumMessage, imageUrl string) topicMessagesWrapper {
 	//noinspection GoPreferNilSlice
 	messages := []topicMessage{} // возвращаем в случае отсутствия результатов пустой массив
 
@@ -173,7 +175,7 @@ func getTopicMessages(dbMessages []dbForumMessage, imageUrl string, isDebug bool
 			},
 		}
 
-		if isDebug {
+		if gin.IsDebugging() {
 			creationDebugDate := utils.FormatDebugTime(dbMessage.DateOfAdd)
 			message.Creation.DebugDate = &creationDebugDate
 		}

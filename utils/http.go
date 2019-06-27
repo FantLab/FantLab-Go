@@ -2,14 +2,13 @@ package utils
 
 import "github.com/gin-gonic/gin"
 
-//noinspection GoReservedWordUsedAsName
-type error struct {
+type responseError struct {
 	Code  int    `json:"code"`
-	Error string `json:"error"`
+	Error string `json:"responseError"`
 }
 
-func ShowJson(ctx *gin.Context, code int, obj interface{}, isDebug bool) {
-	if isDebug {
+func ShowJson(ctx *gin.Context, code int, obj interface{}) {
+	if gin.IsDebugging() {
 		ctx.IndentedJSON(code, obj)
 	} else {
 		ctx.JSON(code, obj)
@@ -17,10 +16,8 @@ func ShowJson(ctx *gin.Context, code int, obj interface{}, isDebug bool) {
 }
 
 func ShowError(ctx *gin.Context, code int, text string) {
-	//noinspection GoReservedWordUsedAsName
-	error := error{
+	ctx.AbortWithStatusJSON(code, responseError{
 		Code:  code,
 		Error: text,
-	}
-	ctx.AbortWithStatusJSON(code, error)
+	})
 }

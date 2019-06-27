@@ -1,12 +1,14 @@
 package blogsapi
 
 import (
+	"strconv"
+
 	"fantlab/utils"
 
-	"strconv"
+	"github.com/gin-gonic/gin"
 )
 
-func getCommunities(dbCommunities []dbCommunity, isDebug bool) communitiesWrapper {
+func getCommunities(dbCommunities []dbCommunity) communitiesWrapper {
 	var mainCommunities []community
 	var additionalCommunities []community
 
@@ -30,7 +32,7 @@ func getCommunities(dbCommunities []dbCommunity, isDebug bool) communitiesWrappe
 			},
 		}
 
-		if isDebug {
+		if gin.IsDebugging() {
 			lastArticleDebugDate := utils.FormatDebugTime(dbCommunity.LastTopicDate)
 			community.LastArticle.DebugDate = &lastArticleDebugDate
 		}
@@ -48,7 +50,7 @@ func getCommunities(dbCommunities []dbCommunity, isDebug bool) communitiesWrappe
 	}
 }
 
-func getBlogs(dbBlogs []dbBlog, isDebug bool) blogsWrapper {
+func getBlogs(dbBlogs []dbBlog) blogsWrapper {
 	//noinspection GoPreferNilSlice
 	var blogs = []blog{} // возвращаем в случае отсутствия результатов пустой массив
 
@@ -72,7 +74,7 @@ func getBlogs(dbBlogs []dbBlog, isDebug bool) blogsWrapper {
 			},
 		}
 
-		if isDebug {
+		if gin.IsDebugging() {
 			lastArticleDebugDate := utils.FormatDebugTime(dbBlog.LastTopicDate)
 			blog.LastArticle.DebugDate = &lastArticleDebugDate
 		}
@@ -83,7 +85,7 @@ func getBlogs(dbBlogs []dbBlog, isDebug bool) blogsWrapper {
 	return blogsWrapper{blogs}
 }
 
-func getBlogArticles(dbBlogTopics []dbBlogTopic, imageUrl string, isDebug bool) blogArticlesWrapper {
+func getBlogArticles(dbBlogTopics []dbBlogTopic, imageUrl string) blogArticlesWrapper {
 	//noinspection GoPreferNilSlice
 	var articles = []article{} // возвращаем в случае отсутствия результатов пустой массив
 
@@ -123,7 +125,7 @@ func getBlogArticles(dbBlogTopics []dbBlogTopic, imageUrl string, isDebug bool) 
 			},
 		}
 
-		if isDebug {
+		if gin.IsDebugging() {
 			creationDebugDate := utils.FormatDebugTime(dbBlogTopic.DateOfAdd)
 			article.Creation.DebugDate = &creationDebugDate
 		}
