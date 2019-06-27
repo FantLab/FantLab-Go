@@ -1,10 +1,12 @@
 package forumapi
 
 import (
-	"fantlab/shared"
-	"fantlab/utils"
+	"fmt"
 	"net/http"
 	"strconv"
+
+	"fantlab/shared"
+	"fantlab/utils"
 
 	"github.com/gin-gonic/gin"
 )
@@ -28,14 +30,14 @@ func (c *Controller) ShowForumTopics(ctx *gin.Context) {
 	forumID, err := strconv.ParseUint(ctx.Param("id"), 10, 16)
 
 	if err != nil {
-		utils.ShowError(ctx, http.StatusBadRequest, "incorrect forum id")
+		utils.ShowError(ctx, http.StatusBadRequest, fmt.Sprintf("incorrect forum id: %s", ctx.Param("id")))
 		return
 	}
 
 	page, err := strconv.ParseUint(ctx.Query("page"), 10, 32)
 
 	if err != nil {
-		utils.ShowError(ctx, http.StatusBadRequest, "incorrect page")
+		utils.ShowError(ctx, http.StatusBadRequest, fmt.Sprintf("incorrect page: %s", ctx.Query("page")))
 		return
 	}
 
@@ -43,7 +45,7 @@ func (c *Controller) ShowForumTopics(ctx *gin.Context) {
 	limit, err := strconv.ParseUint(ctx.DefaultQuery("limit", defaultLimit), 10, 32)
 
 	if err != nil {
-		utils.ShowError(ctx, http.StatusBadRequest, "incorrect limit")
+		utils.ShowError(ctx, http.StatusBadRequest, fmt.Sprintf("incorrect limit: %s", ctx.Query("limit")))
 		return
 	}
 
@@ -69,14 +71,14 @@ func (c *Controller) ShowTopicMessages(ctx *gin.Context) {
 	topicID, err := strconv.ParseUint(ctx.Param("id"), 10, 32)
 
 	if err != nil {
-		utils.ShowError(ctx, http.StatusBadRequest, "incorrect topic id")
+		utils.ShowError(ctx, http.StatusBadRequest, fmt.Sprintf("incorrect topic id: %s", ctx.Param("id")))
 		return
 	}
 
 	page, err := strconv.ParseUint(ctx.Query("page"), 10, 32)
 
 	if err != nil {
-		utils.ShowError(ctx, http.StatusBadRequest, "incorrect page")
+		utils.ShowError(ctx, http.StatusBadRequest, fmt.Sprintf("incorrect page: %s", ctx.Query("page")))
 		return
 	}
 
@@ -84,7 +86,7 @@ func (c *Controller) ShowTopicMessages(ctx *gin.Context) {
 	limit, err := strconv.ParseUint(ctx.DefaultQuery("limit", defaultLimit), 10, 32)
 
 	if err != nil {
-		utils.ShowError(ctx, http.StatusBadRequest, "incorrect limit")
+		utils.ShowError(ctx, http.StatusBadRequest, fmt.Sprintf("incorrect limit: %s", ctx.Query("limit")))
 		return
 	}
 
@@ -102,6 +104,6 @@ func (c *Controller) ShowTopicMessages(ctx *gin.Context) {
 		return
 	}
 
-	topicMessages := getTopicMessages(dbTopicMessages, c.services.Config.ImageUrl)
+	topicMessages := getTopicMessages(dbTopicMessages, c.services.UrlFormatter)
 	utils.ShowJson(ctx, http.StatusOK, topicMessages)
 }

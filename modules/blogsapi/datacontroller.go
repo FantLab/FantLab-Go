@@ -1,10 +1,6 @@
 package blogsapi
 
-import (
-	"strconv"
-
-	"fantlab/utils"
-)
+import "fantlab/utils"
 
 func getCommunities(dbCommunities []dbCommunity) communitiesWrapper {
 	var mainCommunities []community
@@ -45,7 +41,7 @@ func getCommunities(dbCommunities []dbCommunity) communitiesWrapper {
 
 func getBlogs(dbBlogs []dbBlog) blogsWrapper {
 	//noinspection GoPreferNilSlice
-	var blogs = []blog{} // возвращаем в случае отсутствия результатов пустой массив
+	var blogs = []blog{}
 
 	for _, dbBlog := range dbBlogs {
 		blog := blog{
@@ -73,9 +69,9 @@ func getBlogs(dbBlogs []dbBlog) blogsWrapper {
 	return blogsWrapper{blogs}
 }
 
-func getBlogArticles(dbBlogTopics []dbBlogTopic, imageUrl string) blogArticlesWrapper {
+func getBlogArticles(dbBlogTopics []dbBlogTopic, urlFormatter utils.UrlFormatter) blogArticlesWrapper {
 	//noinspection GoPreferNilSlice
-	var articles = []article{} // возвращаем в случае отсутствия результатов пустой массив
+	var articles = []article{}
 
 	for _, dbBlogTopic := range dbBlogTopics {
 		var gender string
@@ -85,12 +81,7 @@ func getBlogArticles(dbBlogTopics []dbBlogTopic, imageUrl string) blogArticlesWr
 			gender = "m"
 		}
 
-		var avatar string
-		if dbBlogTopic.PhotoNumber != 0 {
-			userId := strconv.FormatUint(uint64(dbBlogTopic.UserId), 10)
-			photoNumber := strconv.FormatUint(uint64(dbBlogTopic.PhotoNumber), 10)
-			avatar = imageUrl + "/users/" + userId + "_" + photoNumber
-		}
+		avatar := urlFormatter.GetAvatarUrl(dbBlogTopic.UserId, dbBlogTopic.PhotoNumber)
 
 		article := article{
 			Id:    dbBlogTopic.TopicId,

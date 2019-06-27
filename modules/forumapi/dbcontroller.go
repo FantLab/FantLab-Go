@@ -1,7 +1,7 @@
 package forumapi
 
 import (
-	"errors"
+	"fmt"
 
 	"github.com/jinzhu/gorm"
 )
@@ -35,7 +35,7 @@ func fetchForumTopics(db *gorm.DB, availableForums []uint16, forumID uint16, lim
 	if db.Table("f_forums").
 		First(&dbForum{}, "forum_id = ? AND forum_id IN (?)", forumID, availableForums).
 		RecordNotFound() {
-		return nil, errors.New("incorrect forum id")
+		return nil, fmt.Errorf("incorrect forum id: %d", forumID)
 	}
 
 	var topics []dbForumTopic
@@ -68,16 +68,10 @@ func fetchForumTopics(db *gorm.DB, availableForums []uint16, forumID uint16, lim
 }
 
 func fetchTopicMessages(db *gorm.DB, availableForums []uint16, topicID, limit, offset uint32) ([]dbForumMessage, error) {
-	type ForumId struct {
-		ForumId uint16
-	}
-
-	var forumId ForumId
-
 	if db.Table("f_topics").
-		First(&forumId, "topic_id = ? AND forum_id IN (?)", topicID, availableForums).
+		First(&dbForumTopic{}, "topic_id = ? AND forum_id IN (?)", topicID, availableForums).
 		RecordNotFound() {
-		return nil, errors.New("incorrect topic id")
+		return nil, fmt.Errorf("incorrect topic id: %d", topicID)
 	}
 
 	var messages []dbForumMessage
