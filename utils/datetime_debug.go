@@ -5,15 +5,13 @@ package utils
 import "time"
 
 type DateTime struct {
-	TS   int64   `json:"ts"`
-	Text *string `json:"date_text,omitempty"`
+	TS   int64  `json:"ts"`
+	Text string `json:"date_text"`
 }
 
 func NewDateTime(ts time.Time) DateTime {
-	dateText := FormatDebugTime(ts)
-	dateTime := DateTime{
+	return DateTime{
 		TS:   ts.Unix(),
-		Text: &dateText,
+		Text: FormatDebugTime(ts),
 	}
-	return dateTime
 }
