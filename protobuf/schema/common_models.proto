@@ -1,6 +1,8 @@
 syntax = "proto3";
-option go_package = "fantlab/pb";
+
 package fantlab;
+
+option go_package = "fantlab/pb";
 
 enum Gender {
     UNKNOWN = 0;

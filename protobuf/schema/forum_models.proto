@@ -1,8 +1,11 @@
 syntax = "proto3";
+
+package fantlab.forum;
+
 option go_package = "fantlab/pb";
+
 import "schema/common_models.proto";
 import "google/protobuf/timestamp.proto";
-package fantlab.forum;
 
 message Forum {
     message UserLink {

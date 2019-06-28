@@ -10,7 +10,7 @@
             "env": {
                 "MYSQL_CS": "root@/fl?charset=utf8&parseTime=True&loc=Local",
                 "PORT": 4242,
-                "DEBUG": 1,
+                "GIN_MODE": "debug"
             },
             "args": [],
             "buildFlags": "-tags debug"
@@ -23,7 +23,8 @@
             "program": "${workspaceRoot}/main.go",
             "env": {
                 "MYSQL_CS": "root@/fl?charset=utf8&parseTime=True&loc=Local",
-                "PORT": 4242
+                "PORT": 4242,
+                "GIN_MODE": "release"
             },
             "args": []
         }

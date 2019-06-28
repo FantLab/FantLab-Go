@@ -24,22 +24,15 @@ func ShowProto(ctx *gin.Context, code int, pb proto.Message) {
 
 	ctx.Header("Content-Type", "application/json; charset=utf-8")
 
-	var marshaler jsonpb.Marshaler
-
-	if gin.IsDebugging() {
-		marshaler = jsonpb.Marshaler{
-			Indent:   "  ",
-			OrigName: true,
-		}
-	} else {
-		marshaler = jsonpb.Marshaler{
-			OrigName: true,
-		}
+	marshaller := jsonpb.Marshaler{
+		OrigName: true,
 	}
 
-	err := marshaler.Marshal(ctx.Writer, pb)
+	if gin.IsDebugging() {
+		marshaller.Indent = "  "
+	}
 
-	if err != nil {
-		ctx.AbortWithError(http.StatusInternalServerError, err)
+	if err := marshaller.Marshal(ctx.Writer, pb); err != nil {
+		ShowError(ctx, http.StatusInternalServerError, err.Error())
 	}
 }
