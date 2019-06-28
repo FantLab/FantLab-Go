@@ -50,9 +50,9 @@ message Forum {
     
     message Topic {
         enum Type {
-            UNKNOWN = 0;
-            TOPIC = 1;
-            POLL = 2;
+            unknown = 0;
+            topic = 1;
+            poll = 2;
         }
     
         message Stats {
@@ -78,14 +78,15 @@ message Forum {
     
         uint32 id = 1;
         string title = 2;
-        string forum_description = 3;
+        string description = 3;
         repeated UserLink moderators = 4;
         Stats stats = 5;
         LastMessage last_message = 6;
     }
     
     message ForumBlock {
-        uint32 id = 1;
+        // hack to omit field (https://github.com/gogo/protobuf/blob/dadb625850898f31a8e40e83492f4a7132e520a2/jsonpb/jsonpb.go#L286)
+        uint32 XXX__id = 1;
         string title = 2;
         repeated Forum forums = 3;
     }

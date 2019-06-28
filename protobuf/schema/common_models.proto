@@ -5,17 +5,12 @@ package fantlab;
 option go_package = "fantlab/pb";
 
 enum Gender {
-    UNKNOWN = 0;
-    MALE = 1;
-    FEMALE = 2;
+    unknown = 0;
+    male = 1;
+    female = 2;
 }
 
 message ErrorResponse {
     int32 error_code = 1;
     string message = 2;
-}
-
-message UserSessionResponse {
-    uint32 user_id = 1;
-    string session_token = 2;
 }

@@ -1,0 +1,10 @@
+syntax = "proto3";
+
+package fantlab;
+
+option go_package = "fantlab/pb";
+
+message UserSessionResponse {
+    uint32 user_id = 1;
+    string session_token = 2;
+}

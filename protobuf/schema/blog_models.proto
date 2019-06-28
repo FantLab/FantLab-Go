@@ -30,13 +30,13 @@ message Blog {
 
     message Community {
         message Stats {
-            uint32 articles_count = 1;
-            uint32 subscribers_count = 2;
+            uint32 article_count = 1;
+            uint32 subscriber_count = 2;
         }
 
         uint32 id = 1;
         string title = 2;
-        string community_description = 3;
+        string description = 3;
         Stats stats = 4;
         LastArticle last_article = 5;
     }
@@ -58,8 +58,8 @@ message Blog {
 
     message Blog {
         message Stats {
-            uint32 articles_count = 1;
-            uint32 subscribers_count = 2;
+            uint32 article_count = 1;
+            uint32 subscriber_count = 2;
         }
 
         uint32 id = 1;
