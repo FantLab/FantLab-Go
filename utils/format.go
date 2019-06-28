@@ -6,10 +6,6 @@ import (
 	"time"
 )
 
-func FormatDebugTime(debugTime time.Time) string {
-	return debugTime.Format(time.RFC822)
-}
-
 func FormatLogTime(time time.Time) string {
 	return "\033[33m[" + time.Format("2006-01-02 15:04:05") + "]\033[0m"
 }

@@ -12,7 +12,7 @@ func Session(services *shared.Services) gin.HandlerFunc {
 
 		if len(sid) > 0 {
 			type userID struct {
-				Value int `gorm:"Column:user_id"`
+				Value uint32 `gorm:"Column:user_id"`
 			}
 
 			var uid userID

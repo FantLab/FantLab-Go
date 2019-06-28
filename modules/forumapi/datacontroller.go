@@ -1,118 +1,125 @@
 package forumapi
 
-import "fantlab/utils"
+import (
+	"fantlab/protobuf/generated/fantlab/pb"
+	"fantlab/utils"
+)
 
-func getForumBlocks(dbForums []dbForum, dbModerators map[uint16][]dbModerator) forumBlocksWrapper {
-	var forumBlocks []forumBlock
+func getForumBlocks(dbForums []dbForum, dbModerators map[uint32][]dbModerator) *pb.Forum_ForumBlocksResponse {
+	var forumBlocks []*pb.Forum_ForumBlock
 
-	currentForumBlockID := uint16(0) // f_forum_block.id начинаются с 1
+	currentForumBlockID := uint32(0) // f_forum_block.id начинаются с 1
 
 	for _, dbForum := range dbForums {
 		if dbForum.ForumBlockID != currentForumBlockID {
-			forumBlock := forumBlock{
-				ID:     dbForum.ForumBlockID,
+			forumBlock := pb.Forum_ForumBlock{
+				Id:     dbForum.ForumBlockID,
 				Title:  dbForum.ForumBlockName,
-				Forums: []forum{},
+				Forums: []*pb.Forum_Forum{},
 			}
-			forumBlocks = append(forumBlocks, forumBlock)
+			forumBlocks = append(forumBlocks, &forumBlock)
 			currentForumBlockID = dbForum.ForumBlockID
 		}
 	}
 
 	for _, dbForum := range dbForums {
 		for index := range forumBlocks {
-			if dbForum.ForumBlockID == forumBlocks[index].ID {
-				var moderators []userLink
+			if dbForum.ForumBlockID == forumBlocks[index].GetId() {
+				var moderators []*pb.Forum_UserLink
 
 				for _, dbModerator := range dbModerators[dbForum.ForumID] {
-					userLink := userLink{
-						ID:    dbModerator.UserID,
+					userLink := &pb.Forum_UserLink{
+						Id:    dbModerator.UserID,
 						Login: dbModerator.Login,
 					}
 					moderators = append(moderators, userLink)
 				}
 
-				forum := forum{
-					ID:          dbForum.ForumID,
-					Title:       dbForum.Name,
-					Description: dbForum.Description,
-					Moderators:  moderators,
-					Stats: forumStats{
+				forum := pb.Forum_Forum{
+					Id:               dbForum.ForumID,
+					Title:            dbForum.Name,
+					ForumDescription: dbForum.Description,
+					Moderators:       moderators,
+					Stats: &pb.Forum_Forum_Stats{
 						TopicCount:   dbForum.TopicCount,
 						MessageCount: dbForum.MessageCount,
 					},
-					LastMessage: lastMessage{
-						ID: dbForum.LastMessageID,
-						Topic: &topicLink{
-							ID:    dbForum.LastTopicID,
+					LastMessage: &pb.Forum_LastMessage{
+						Id: dbForum.LastMessageID,
+						Topic: &pb.Forum_TopicLink{
+							Id:    dbForum.LastTopicID,
 							Title: dbForum.LastTopicName,
 						},
-						User: userLink{
-							ID:    dbForum.LastUserID,
+						User: &pb.Forum_UserLink{
+							Id:    dbForum.LastUserID,
 							Login: dbForum.LastUserName,
 						},
-						Date: utils.NewDateTime(dbForum.LastMessageDate),
+						Date: utils.ProtoTS(dbForum.LastMessageDate),
 					},
 				}
 
-				forumBlocks[index].Forums = append(forumBlocks[index].Forums, forum)
+				forumBlocks[index].Forums = append(forumBlocks[index].Forums, &forum)
 
 				break
 			}
 		}
 	}
 
-	return forumBlocksWrapper{forumBlocks}
+	return &pb.Forum_ForumBlocksResponse{
+		ForumBlocks: forumBlocks,
+	}
 }
 
-func getForumTopics(dbTopics []dbForumTopic) forumTopicsWrapper {
+func getForumTopics(dbTopics []dbForumTopic) *pb.Forum_ForumTopicsResponse {
 	//noinspection GoPreferNilSlice
-	topics := []forumTopic{}
+	topics := []*pb.Forum_Topic{}
 
 	for _, dbTopic := range dbTopics {
-		var topicType string
+		var topicType pb.Forum_Topic_Type
 		if dbTopic.TopicTypeID == 2 {
-			topicType = "poll"
+			topicType = pb.Forum_Topic_POLL
 		} else {
-			topicType = "topic"
+			topicType = pb.Forum_Topic_TOPIC
 		}
 
-		topic := forumTopic{
-			ID:        dbTopic.TopicID,
+		topic := &pb.Forum_Topic{
+			Id:        dbTopic.TopicID,
 			Title:     dbTopic.Name,
 			TopicType: topicType,
-			Creation: creation{
-				User: userLink{
-					ID:    dbTopic.UserID,
+			Creation: &pb.Forum_Creation{
+				User: &pb.Forum_UserLink{
+					Id:    dbTopic.UserID,
 					Login: dbTopic.Login,
 				},
-				Date: utils.NewDateTime(dbTopic.DateOfAdd),
+				Date: utils.ProtoTS(dbTopic.DateOfAdd),
 			},
 			IsClosed: dbTopic.IsClosed,
 			IsPinned: dbTopic.IsPinned,
-			Stats: topicStats{
+			Stats: &pb.Forum_Topic_Stats{
 				MessageCount: dbTopic.MessageCount,
 				ViewsCount:   dbTopic.Views,
 			},
-			LastMessage: lastMessage{
-				ID: dbTopic.LastMessageID,
-				User: userLink{
-					ID:    dbTopic.LastUserID,
+			LastMessage: &pb.Forum_LastMessage{
+				Id: dbTopic.LastMessageID,
+				User: &pb.Forum_UserLink{
+					Id:    dbTopic.LastUserID,
 					Login: dbTopic.LastUserName,
 				},
-				Date: utils.NewDateTime(dbTopic.LastMessageDate),
+				Date: utils.ProtoTS(dbTopic.LastMessageDate),
 			},
 		}
 
 		topics = append(topics, topic)
 	}
 
-	return forumTopicsWrapper{topics}
+	return &pb.Forum_ForumTopicsResponse{
+		Topics: topics,
+	}
 }
 
-func getTopicMessages(dbMessages []dbForumMessage, urlFormatter utils.UrlFormatter) topicMessagesWrapper {
+func getTopicMessages(dbMessages []dbForumMessage, urlFormatter utils.UrlFormatter) *pb.Forum_TopicMessagesResponse {
 	//noinspection GoPreferNilSlice
-	messages := []topicMessage{}
+	messages := []*pb.Forum_TopicMessage{}
 
 	for _, dbMessage := range dbMessages {
 		text := dbMessage.MessageText
@@ -121,32 +128,32 @@ func getTopicMessages(dbMessages []dbForumMessage, urlFormatter utils.UrlFormatt
 			text = ""
 		}
 
-		var gender string
+		var gender pb.Gender
 		if dbMessage.Sex == 0 {
-			gender = "f"
+			gender = pb.Gender_FEMALE
 		} else {
-			gender = "m"
+			gender = pb.Gender_MALE
 		}
 
 		avatar := urlFormatter.GetAvatarUrl(dbMessage.UserID, dbMessage.PhotoNumber)
 
-		message := topicMessage{
-			ID: dbMessage.MessageID,
-			Creation: creation{
-				User: userLink{
-					ID:     dbMessage.UserID,
+		message := &pb.Forum_TopicMessage{
+			Id: dbMessage.MessageID,
+			Creation: &pb.Forum_Creation{
+				User: &pb.Forum_UserLink{
+					Id:     dbMessage.UserID,
 					Login:  dbMessage.Login,
 					Gender: gender,
 					Avatar: avatar,
-					Class:  dbMessage.UserClass,
+					Class:  uint32(dbMessage.UserClass),
 					Sign:   dbMessage.Sign,
 				},
-				Date: utils.NewDateTime(dbMessage.DateOfAdd),
+				Date: utils.ProtoTS(dbMessage.DateOfAdd),
 			},
 			Text:            text,
 			IsCensored:      dbMessage.IsCensored,
 			IsModerTagWorks: dbMessage.IsRed,
-			Stats: messageStats{
+			Stats: &pb.Forum_TopicMessage_Stats{
 				PlusCount:  dbMessage.VotePlus,
 				MinusCount: dbMessage.VoteMinus,
 			},
@@ -155,5 +162,7 @@ func getTopicMessages(dbMessages []dbForumMessage, urlFormatter utils.UrlFormatt
 		messages = append(messages, message)
 	}
 
-	return topicMessagesWrapper{messages}
+	return &pb.Forum_TopicMessagesResponse{
+		Messages: messages,
+	}
 }

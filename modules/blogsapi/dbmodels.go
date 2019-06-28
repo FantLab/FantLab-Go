@@ -42,7 +42,7 @@ type dbBlogTopic struct {
 	PhotoNumber   uint16
 	MessageText   string
 	Tags          string
-	LikesCount    uint64
+	LikesCount    uint32
 	Views         uint32
 	CommentsCount uint32
 }

@@ -1,6 +1,7 @@
 package authapi
 
 import (
+	"fantlab/protobuf/generated/fantlab/pb"
 	"fantlab/shared"
 	"fantlab/utils"
 	"net/http"
@@ -54,9 +55,10 @@ func (c *Controller) Login(ctx *gin.Context) {
 		return
 	}
 
-	session := session{
-		UserId:  userData.UserID,
-		Session: sid,
+	session := &pb.UserSessionResponse{
+		UserId:       userData.UserID,
+		SessionToken: sid,
 	}
-	utils.ShowJson(ctx, http.StatusOK, session)
+
+	utils.ShowProto(ctx, http.StatusOK, session)
 }

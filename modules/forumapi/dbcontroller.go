@@ -101,8 +101,8 @@ func fetchTopicMessages(db *gorm.DB, availableForums []uint16, topicID, limit, o
 	return messages, nil
 }
 
-func fetchModerators(db *gorm.DB) map[uint16][]dbModerator {
-	moderatorsMap := map[uint16][]dbModerator{}
+func fetchModerators(db *gorm.DB) map[uint32][]dbModerator {
+	moderatorsMap := map[uint32][]dbModerator{}
 
 	var moderators []dbModerator
 

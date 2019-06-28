@@ -1,0 +1,84 @@
+syntax = "proto3";
+
+package fantlab.blog;
+
+option go_package = "fantlab/pb";
+
+import "schema/common_models.proto";
+import "google/protobuf/timestamp.proto";
+
+message Blog {
+    message UserLink {
+        uint32 id = 1;
+        string login = 2;
+        string name = 3;
+        Gender gender = 4;
+        string avatar = 5;
+    }
+
+    message Creation {
+        UserLink user = 1;
+        google.protobuf.Timestamp date = 2;
+    }
+
+    message LastArticle {
+        uint32 id = 1;
+        string title = 2;
+        UserLink user = 3;
+        google.protobuf.Timestamp date = 4;
+    }
+
+    message Community {
+        message Stats {
+            uint32 articles_count = 1;
+            uint32 subscribers_count = 2;
+        }
+
+        uint32 id = 1;
+        string title = 2;
+        string community_description = 3;
+        Stats stats = 4;
+        LastArticle last_article = 5;
+    }
+
+    message Article {
+        message Stats {
+            uint32 like_count = 1;
+            uint32 view_count = 2;
+            uint32 comment_count = 3;
+        }
+
+        uint32 id = 1;
+        string title = 2;
+        Creation creation = 3;
+        string text = 4;
+        string tags = 5;
+        Stats stats = 6;
+    }
+
+    message Blog {
+        message Stats {
+            uint32 articles_count = 1;
+            uint32 subscribers_count = 2;
+        }
+
+        uint32 id = 1;
+        UserLink user = 2;
+        bool is_closed = 3;
+        Stats stats = 4;
+        LastArticle last_article = 5;
+    }
+
+    message CommunitiesResponse {
+        repeated Community main = 1;
+        repeated Community additional = 2;
+    }
+
+    message BlogsResponse {
+        repeated Blog blogs = 1;
+    }
+
+    message ArticlesResponse {
+        repeated Article articles = 1;
+    }
+}
