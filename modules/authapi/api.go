@@ -1,7 +1,7 @@
 package authapi
 
 import (
-	"fantlab/protobuf/generated/fantlab/apimodels"
+	"fantlab/protobuf/generated/fantlab/pb"
 	"fantlab/shared"
 	"fantlab/utils"
 	"net/http"
@@ -55,7 +55,7 @@ func (c *Controller) Login(ctx *gin.Context) {
 		return
 	}
 
-	session := &apimodels.UserSession{
+	session := &pb.UserSessionResponse{
 		UserId:       userData.UserID,
 		SessionToken: sid,
 	}

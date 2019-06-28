@@ -1,11 +1,6 @@
 syntax = "proto3";
-option go_package = "fantlab/apimodels";
+option go_package = "fantlab/pb";
 package fantlab;
-
-message ResponseError {
-    int32 code = 1;
-    string message = 2;
-}
 
 enum Gender {
     UNKNOWN = 0;
@@ -13,7 +8,12 @@ enum Gender {
     FEMALE = 2;
 }
 
-message UserSession {
+message ErrorResponse {
+    int32 error_code = 1;
+    string message = 2;
+}
+
+message UserSessionResponse {
     uint32 user_id = 1;
     string session_token = 2;
 }

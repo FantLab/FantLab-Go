@@ -1,5 +1,5 @@
 syntax = "proto3";
-option go_package = "fantlab/apimodels";
+option go_package = "fantlab/pb";
 import "schema/common_models.proto";
 import "google/protobuf/timestamp.proto";
 package fantlab.forum;
