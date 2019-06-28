@@ -11,7 +11,10 @@
 - ...
 - PROFIT
 
-# Protobuf:
+# Protobuf
 
+```
 cd protobuf
+
 protoc --go_out=generated schema/*.proto
+```
