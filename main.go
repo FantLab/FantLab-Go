@@ -29,6 +29,8 @@ func main() {
 	db.SetLogger(logger.GormLogger)
 	db.LogMode(true)
 
+	utils.SetupGinMode()
+
 	configuration := config.ParseConfig()
 	services := &shared.Services{
 		Config:       configuration,

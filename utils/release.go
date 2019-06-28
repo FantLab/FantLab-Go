@@ -8,8 +8,8 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-type DateTime struct {
-	TS int64 `json:"ts"`
+func SetupGinMode() {
+	gin.SetMode(gin.ReleaseMode)
 }
 
 func ShowJson(ctx *gin.Context, code int, obj interface{}) {

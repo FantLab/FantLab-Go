@@ -8,9 +8,8 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-type DateTime struct {
-	TS   int64  `json:"ts"`
-	Text string `json:"date_text"`
+func SetupGinMode() {
+	gin.SetMode(gin.DebugMode)
 }
 
 func ShowJson(ctx *gin.Context, code int, obj interface{}) {
@@ -18,8 +17,10 @@ func ShowJson(ctx *gin.Context, code int, obj interface{}) {
 }
 
 func NewDateTime(ts time.Time) DateTime {
+	dateText := FormatDebugTime(ts)
+
 	return DateTime{
 		TS:   ts.Unix(),
-		Text: FormatDebugTime(ts),
+		Text: &dateText,
 	}
 }
