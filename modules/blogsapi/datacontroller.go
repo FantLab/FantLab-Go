@@ -1,28 +1,31 @@
 package blogsapi
 
-import "fantlab/utils"
+import (
+	"fantlab/protobuf/generated/fantlab/apimodels"
+	"fantlab/utils"
+)
 
-func getCommunities(dbCommunities []dbCommunity) communitiesWrapper {
-	var mainCommunities []community
-	var additionalCommunities []community
+func getCommunities(dbCommunities []dbCommunity) *apimodels.Blog_CommunitiesResponse {
+	var mainCommunities []*apimodels.Blog_Community
+	var additionalCommunities []*apimodels.Blog_Community
 
 	for _, dbCommunity := range dbCommunities {
-		community := community{
-			Id:          dbCommunity.BlogId,
-			Title:       dbCommunity.Name,
-			Description: dbCommunity.Description,
-			Stats: stats{
-				ArticleCount:    dbCommunity.TopicsCount,
-				SubscriberCount: dbCommunity.SubscriberCount,
+		community := &apimodels.Blog_Community{
+			Id:                   dbCommunity.BlogId,
+			Title:                dbCommunity.Name,
+			CommunityDescription: dbCommunity.Description,
+			Stats: &apimodels.Blog_Community_Stats{
+				ArticlesCount:    dbCommunity.TopicsCount,
+				SubscribersCount: dbCommunity.SubscriberCount,
 			},
-			LastArticle: lastArticle{
+			LastArticle: &apimodels.Blog_LastArticle{
 				Id:    dbCommunity.LastTopicId,
 				Title: dbCommunity.LastTopicHead,
-				User: &userLink{
+				User: &apimodels.Blog_UserLink{
 					Id:    dbCommunity.LastUserId,
 					Login: dbCommunity.LastUserName,
 				},
-				Date: utils.NewDateTime(dbCommunity.LastTopicDate),
+				Date: utils.ProtoTS(dbCommunity.LastTopicDate),
 			},
 		}
 
@@ -33,71 +36,73 @@ func getCommunities(dbCommunities []dbCommunity) communitiesWrapper {
 		}
 	}
 
-	return communitiesWrapper{
+	return &apimodels.Blog_CommunitiesResponse{
 		Main:       mainCommunities,
 		Additional: additionalCommunities,
 	}
 }
 
-func getBlogs(dbBlogs []dbBlog) blogsWrapper {
+func getBlogs(dbBlogs []dbBlog) *apimodels.Blog_BlogsResponse {
 	//noinspection GoPreferNilSlice
-	var blogs = []blog{}
+	var blogs = []*apimodels.Blog_Blog{}
 
 	for _, dbBlog := range dbBlogs {
-		blog := blog{
+		blog := &apimodels.Blog_Blog{
 			Id: dbBlog.BlogId,
-			User: userLink{
+			User: &apimodels.Blog_UserLink{
 				Id:    dbBlog.UserId,
 				Login: dbBlog.Login,
 				Name:  dbBlog.Fio,
 			},
 			IsClosed: dbBlog.IsClose,
-			Stats: stats{
-				ArticleCount:    dbBlog.TopicsCount,
-				SubscriberCount: dbBlog.SubscriberCount,
+			Stats: &apimodels.Blog_Blog_Stats{
+				ArticlesCount:    dbBlog.TopicsCount,
+				SubscribersCount: dbBlog.SubscriberCount,
 			},
-			LastArticle: lastArticle{
+			LastArticle: &apimodels.Blog_LastArticle{
 				Id:    dbBlog.LastTopicId,
 				Title: dbBlog.LastTopicHead,
-				Date:  utils.NewDateTime(dbBlog.LastTopicDate),
+				Date:  utils.ProtoTS(dbBlog.LastTopicDate),
 			},
 		}
 
 		blogs = append(blogs, blog)
 	}
 
-	return blogsWrapper{blogs}
+	return &apimodels.Blog_BlogsResponse{
+		Blogs: blogs,
+	}
 }
 
-func getBlogArticles(dbBlogTopics []dbBlogTopic, urlFormatter utils.UrlFormatter) blogArticlesWrapper {
+func getBlogArticles(dbBlogTopics []dbBlogTopic, urlFormatter utils.UrlFormatter) *apimodels.Blog_ArticlesResponse {
 	//noinspection GoPreferNilSlice
-	var articles = []article{}
+	var articles = []*apimodels.Blog_Article{}
 
 	for _, dbBlogTopic := range dbBlogTopics {
-		var gender string
+		var gender apimodels.Gender
 		if dbBlogTopic.Sex == 0 {
-			gender = "f"
+			gender = apimodels.Gender_FEMALE
 		} else {
-			gender = "m"
+			gender = apimodels.Gender_MALE
 		}
 
-		avatar := urlFormatter.GetAvatarUrl(dbBlogTopic.UserId, dbBlogTopic.PhotoNumber)
+		avatar := urlFormatter.GetAvatarUrl(dbBlogTopic.UserId, uint32(dbBlogTopic.PhotoNumber))
 
-		article := article{
+		article := &apimodels.Blog_Article{
 			Id:    dbBlogTopic.TopicId,
 			Title: dbBlogTopic.HeadTopic,
-			Creation: creation{
-				User: userLink{
+			Creation: &apimodels.Blog_Creation{
+				User: &apimodels.Blog_UserLink{
 					Id:     dbBlogTopic.UserId,
 					Login:  dbBlogTopic.Login,
 					Gender: gender,
 					Avatar: avatar,
 				},
-				Date: utils.NewDateTime(dbBlogTopic.DateOfAdd),
+				Date: utils.ProtoTS(dbBlogTopic.DateOfAdd),
 			},
 			Text: dbBlogTopic.MessageText,
 			Tags: dbBlogTopic.Tags,
-			Stats: articleStats{
+			Stats: &apimodels.Blog_Article_Stats{
 				LikeCount:    dbBlogTopic.LikesCount,
 				ViewCount:    dbBlogTopic.Views,
 				CommentCount: dbBlogTopic.CommentsCount,
@@ -107,5 +112,7 @@ func getBlogArticles(dbBlogTopics []dbBlogTopic, urlFormatter utils.UrlFormatter
 		articles = append(articles, article)
 	}
 
-	return blogArticlesWrapper{articles}
+	return &apimodels.Blog_ArticlesResponse{
+		Articles: articles,
+	}
 }

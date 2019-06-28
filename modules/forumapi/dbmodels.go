@@ -4,7 +4,7 @@ import "time"
 
 // Форум
 type dbForum struct {
-	ForumID         uint16
+	ForumID         uint32
 	Name            string
 	Description     string
 	TopicCount      uint32
@@ -15,7 +15,7 @@ type dbForum struct {
 	LastUserName    string
 	LastMessageID   uint32
 	LastMessageDate time.Time
-	ForumBlockID    uint16
+	ForumBlockID    uint32
 	ForumBlockName  string
 }
 
@@ -27,7 +27,7 @@ type dbForumTopic struct {
 	Views           uint32
 	UserID          uint32
 	Login           string
-	TopicTypeID     uint16
+	TopicTypeID     uint32
 	IsClosed        bool
 	IsPinned        bool
 	MessageCount    uint32
@@ -44,20 +44,20 @@ type dbForumMessage struct {
 	UserID      uint32
 	Login       string
 	Sex         uint8
-	PhotoNumber uint16
+	PhotoNumber uint32
 	UserClass   uint8
 	Sign        string
 	MessageText string
 	IsCensored  bool
 	IsRed       bool
-	VotePlus    uint16
-	VoteMinus   uint16
+	VotePlus    uint32
+	VoteMinus   uint32
 }
 
 // Модератор
 type dbModerator struct {
 	UserID  uint32
 	Login   string
-	ForumID uint16
+	ForumID uint32
 	Sort    float32
 }

@@ -10,7 +10,7 @@ type UrlFormatter struct {
 	Config *config.Config
 }
 
-func (f *UrlFormatter) GetAvatarUrl(userId uint32, photoNumber uint16) string {
+func (f *UrlFormatter) GetAvatarUrl(userId uint32, photoNumber uint32) string {
 	var avatar string
 
 	if photoNumber != 0 {

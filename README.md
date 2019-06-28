@@ -10,3 +10,8 @@
 - Назначить reviewer-а
 - ...
 - PROFIT
+
+# Protobuf:
+
+cd protobuf
+protoc --go_out=generated schema/*.proto

@@ -9,7 +9,7 @@ fi
 
 cd modules
 mkdir -p $PACKAGE && cd $PACKAGE
-for FILE in datacontroller dbcontroller dbmodels models; do
+for FILE in datacontroller dbcontroller dbmodels; do
     if [ ! -f "$FILE.go" ]; then
         echo "package $PACKAGE" > "$FILE.go"
     fi

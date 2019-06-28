@@ -23,7 +23,7 @@ func (c *Controller) ShowForums(ctx *gin.Context) {
 	dbForums := fetchForums(c.services.DB, c.services.Config.DefaultAccessToForums)
 	dbModerators := fetchModerators(c.services.DB)
 	forumBlocks := getForumBlocks(dbForums, dbModerators)
-	utils.ShowJson(ctx, http.StatusOK, forumBlocks)
+	utils.ShowProto(ctx, http.StatusOK, forumBlocks)
 }
 
 func (c *Controller) ShowForumTopics(ctx *gin.Context) {
@@ -64,7 +64,7 @@ func (c *Controller) ShowForumTopics(ctx *gin.Context) {
 	}
 
 	forumTopics := getForumTopics(dbForumTopics)
-	utils.ShowJson(ctx, http.StatusOK, forumTopics)
+	utils.ShowProto(ctx, http.StatusOK, forumTopics)
 }
 
 func (c *Controller) ShowTopicMessages(ctx *gin.Context) {
@@ -105,5 +105,5 @@ func (c *Controller) ShowTopicMessages(ctx *gin.Context) {
 	}
 
 	topicMessages := getTopicMessages(dbTopicMessages, c.services.UrlFormatter)
-	utils.ShowJson(ctx, http.StatusOK, topicMessages)
+	utils.ShowProto(ctx, http.StatusOK, topicMessages)
 }

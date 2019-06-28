@@ -1,0 +1,101 @@
+syntax = "proto3";
+option go_package = "fantlab/apimodels";
+import "schema/common_models.proto";
+import "google/protobuf/timestamp.proto";
+package fantlab.forum;
+
+message Forum {
+    message UserLink {
+        uint32 id = 1;
+        string login = 2;
+        Gender gender = 3;
+        string avatar = 4;
+        uint32 class = 5;
+        string sign = 6;
+    }
+
+    message Creation {
+        UserLink user = 1;
+        google.protobuf.Timestamp date = 2;
+    }
+    
+    message TopicLink {
+        uint32 id = 1;
+        string title = 2;
+    }
+    
+    message LastMessage {
+        uint32 id = 1;
+        TopicLink topic = 2;
+        UserLink user = 3;
+        google.protobuf.Timestamp date = 4;
+    }
+    
+    message TopicMessage {
+        message Stats {
+            uint32 plus_count = 1;
+            uint32 minus_count = 2;
+        }
+    
+        uint32 id = 1;
+        Creation creation = 2;
+        string text = 3;
+        bool is_censored = 4;
+        bool is_moder_tag_works = 5;
+        Stats stats = 6;
+    }
+    
+    message Topic {
+        enum Type {
+            UNKNOWN = 0;
+            TOPIC = 1;
+            POLL = 2;
+        }
+    
+        message Stats {
+            uint32 message_count = 1;
+            uint32 views_count = 2;
+        }
+    
+        uint32 id = 1;
+        string title = 2;
+        Type topic_type = 3;
+        Creation creation = 4;
+        bool is_closed = 5;
+        bool is_pinned = 6;
+        Stats stats = 7;
+        LastMessage last_message = 8;
+    }
+    
+    message Forum {
+        message Stats {
+            uint32 topic_count = 1;
+            uint32 message_count = 2;
+        }
+    
+        uint32 id = 1;
+        string title = 2;
+        string forum_description = 3;
+        repeated UserLink users = 4;
+        Stats stats = 5;
+        LastMessage last_message = 6;
+    }
+    
+    message ForumBlock {
+        uint32 id = 1;
+        string title = 2;
+        repeated Forum forums = 3;
+    }
+    
+    message ForumBlocksResponse {
+        repeated ForumBlock forum_blocks = 1;
+    }
+    
+    message ForumTopicsResponse {
+        repeated Topic topics = 1;
+    }
+    
+    message TopicMessagesResponse {
+        repeated TopicMessage messages = 1;
+    }
+}
