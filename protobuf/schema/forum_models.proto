@@ -76,7 +76,7 @@ message Forum {
         uint32 id = 1;
         string title = 2;
         string forum_description = 3;
-        repeated UserLink users = 4;
+        repeated UserLink moderators = 4;
         Stats stats = 5;
         LastMessage last_message = 6;
     }

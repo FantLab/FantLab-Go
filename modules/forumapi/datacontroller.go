@@ -39,7 +39,7 @@ func getForumBlocks(dbForums []dbForum, dbModerators map[uint32][]dbModerator) *
 					Id:               dbForum.ForumID,
 					Title:            dbForum.Name,
 					ForumDescription: dbForum.Description,
-					Users:            moderators,
+					Moderators:       moderators,
 					Stats: &pb.Forum_Forum_Stats{
 						TopicCount:   dbForum.TopicCount,
 						MessageCount: dbForum.MessageCount,

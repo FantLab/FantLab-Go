@@ -4,6 +4,8 @@ import (
 	"log"
 	"os"
 
+	"github.com/gin-gonic/gin"
+
 	"fantlab/config"
 	"fantlab/logger"
 	"fantlab/routing"
@@ -29,7 +31,11 @@ func main() {
 	db.SetLogger(logger.GormLogger)
 	db.LogMode(true)
 
-	utils.SetupGinMode()
+	if os.Getenv("DEBUG") == "1" {
+		gin.SetMode(gin.DebugMode)
+	} else {
+		gin.SetMode(gin.ReleaseMode)
+	}
 
 	configuration := config.ParseConfig()
 	services := &shared.Services{

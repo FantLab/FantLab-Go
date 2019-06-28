@@ -2,6 +2,7 @@ package utils
 
 import (
 	"fantlab/protobuf/generated/fantlab/pb"
+	"net/http"
 
 	"github.com/gin-gonic/gin"
 	"github.com/golang/protobuf/jsonpb"
@@ -16,15 +17,29 @@ func ShowError(ctx *gin.Context, code int, message string) {
 }
 
 func ShowProto(ctx *gin.Context, code int, pb proto.Message) {
-	accept := ctx.GetHeader("Accept")
+	if ctx.GetHeader("Accept") == "application/x-protobuf" {
+		ctx.ProtoBuf(code, pb)
+		return
+	}
 
-	if accept == "application/json" {
-		ctx.Header("Content-Type", "application/json; charset=utf-8")
-		marshaler := jsonpb.Marshaler{
+	ctx.Header("Content-Type", "application/json; charset=utf-8")
+
+	var marshaler jsonpb.Marshaler
+
+	if gin.IsDebugging() {
+		marshaler = jsonpb.Marshaler{
+			Indent:   "  ",
 			OrigName: true,
 		}
-		marshaler.Marshal(ctx.Writer, pb)
 	} else {
-		ctx.ProtoBuf(code, pb)
+		marshaler = jsonpb.Marshaler{
+			OrigName: true,
+		}
+	}
+
+	err := marshaler.Marshal(ctx.Writer, pb)
+
+	if err != nil {
+		ctx.AbortWithError(http.StatusInternalServerError, err)
 	}
 }
