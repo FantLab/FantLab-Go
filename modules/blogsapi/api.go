@@ -1,10 +1,12 @@
 package blogsapi
 
 import (
-	"fantlab/shared"
-	"fantlab/utils"
+	"fmt"
 	"net/http"
 	"strconv"
+
+	"fantlab/shared"
+	"fantlab/utils"
 
 	"github.com/gin-gonic/gin"
 )
@@ -27,7 +29,7 @@ func (c *Controller) ShowBlogs(ctx *gin.Context) {
 	page, err := strconv.ParseUint(ctx.Query("page"), 10, 32)
 
 	if err != nil {
-		utils.ShowError(ctx, http.StatusBadRequest, "incorrect page")
+		utils.ShowError(ctx, http.StatusBadRequest, fmt.Sprintf("incorrect page: %s", ctx.Query("page")))
 		return
 	}
 
@@ -35,7 +37,7 @@ func (c *Controller) ShowBlogs(ctx *gin.Context) {
 	limit, err := strconv.ParseUint(ctx.DefaultQuery("limit", defaultLimit), 10, 32)
 
 	if err != nil {
-		utils.ShowError(ctx, http.StatusBadRequest, "incorrect limit")
+		utils.ShowError(ctx, http.StatusBadRequest, fmt.Sprintf("incorrect limit: %s", ctx.Query("limit")))
 		return
 	}
 
@@ -51,14 +53,14 @@ func (c *Controller) ShowBlogArticles(ctx *gin.Context) {
 	blogID, err := strconv.ParseUint(ctx.Param("id"), 10, 32)
 
 	if err != nil {
-		utils.ShowError(ctx, http.StatusBadRequest, "incorrect blog id")
+		utils.ShowError(ctx, http.StatusBadRequest, fmt.Sprintf("incorrect blog id: %s", ctx.Param("id")))
 		return
 	}
 
 	page, err := strconv.ParseUint(ctx.Query("page"), 10, 32)
 
 	if err != nil {
-		utils.ShowError(ctx, http.StatusBadRequest, "incorrect page")
+		utils.ShowError(ctx, http.StatusBadRequest, fmt.Sprintf("incorrect page: %s", ctx.Query("page")))
 		return
 	}
 
@@ -66,7 +68,7 @@ func (c *Controller) ShowBlogArticles(ctx *gin.Context) {
 	limit, err := strconv.ParseUint(ctx.DefaultQuery("limit", defaultLimit), 10, 32)
 
 	if err != nil {
-		utils.ShowError(ctx, http.StatusBadRequest, "incorrect limit")
+		utils.ShowError(ctx, http.StatusBadRequest, fmt.Sprintf("incorrect limit: %s", ctx.Query("limit")))
 		return
 	}
 
@@ -79,6 +81,6 @@ func (c *Controller) ShowBlogArticles(ctx *gin.Context) {
 		return
 	}
 
-	articles := getBlogArticles(dbBlogTopics, c.services.Config.ImageUrl)
+	articles := getBlogArticles(dbBlogTopics, c.services.UrlFormatter)
 	utils.ShowJson(ctx, http.StatusOK, articles)
 }

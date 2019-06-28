@@ -1,7 +1,7 @@
 package blogsapi
 
 import (
-	"errors"
+	"fmt"
 
 	"github.com/jinzhu/gorm"
 )
@@ -64,9 +64,9 @@ func fetchBlogs(db *gorm.DB, limit, offset uint32, sort string) []dbBlog {
 
 func fetchBlogTopics(db *gorm.DB, blogID, limit, offset uint32) ([]dbBlogTopic, error) {
 	if db.Table("b_blogs").
-		First(&dbBlog{}, "blog_id = ?", blogID).
+		First(&dbBlog{}, "blog_id = ? AND is_community = 0", blogID).
 		RecordNotFound() {
-		return nil, errors.New("incorrect blog id")
+		return nil, fmt.Errorf("incorrect blog id: %d", blogID)
 	}
 
 	var topics []dbBlogTopic

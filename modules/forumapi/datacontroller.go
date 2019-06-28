@@ -1,10 +1,6 @@
 package forumapi
 
-import (
-	"strconv"
-
-	"fantlab/utils"
-)
+import "fantlab/utils"
 
 func getForumBlocks(dbForums []dbForum, dbModerators map[uint16][]dbModerator) forumBlocksWrapper {
 	var forumBlocks []forumBlock
@@ -71,7 +67,7 @@ func getForumBlocks(dbForums []dbForum, dbModerators map[uint16][]dbModerator) f
 
 func getForumTopics(dbTopics []dbForumTopic) forumTopicsWrapper {
 	//noinspection GoPreferNilSlice
-	topics := []forumTopic{} // возвращаем в случае отсутствия результатов пустой массив
+	topics := []forumTopic{}
 
 	for _, dbTopic := range dbTopics {
 		var topicType string
@@ -114,9 +110,9 @@ func getForumTopics(dbTopics []dbForumTopic) forumTopicsWrapper {
 	return forumTopicsWrapper{topics}
 }
 
-func getTopicMessages(dbMessages []dbForumMessage, imageUrl string) topicMessagesWrapper {
+func getTopicMessages(dbMessages []dbForumMessage, urlFormatter utils.UrlFormatter) topicMessagesWrapper {
 	//noinspection GoPreferNilSlice
-	messages := []topicMessage{} // возвращаем в случае отсутствия результатов пустой массив
+	messages := []topicMessage{}
 
 	for _, dbMessage := range dbMessages {
 		text := dbMessage.MessageText
@@ -132,12 +128,7 @@ func getTopicMessages(dbMessages []dbForumMessage, imageUrl string) topicMessage
 			gender = "m"
 		}
 
-		var avatar string
-		if dbMessage.PhotoNumber != 0 {
-			userId := strconv.FormatUint(uint64(dbMessage.UserID), 10)
-			photoNumber := strconv.FormatUint(uint64(dbMessage.PhotoNumber), 10)
-			avatar = imageUrl + "/users/" + userId + "_" + photoNumber
-		}
+		avatar := urlFormatter.GetAvatarUrl(dbMessage.UserID, dbMessage.PhotoNumber)
 
 		message := topicMessage{
 			ID: dbMessage.MessageID,

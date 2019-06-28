@@ -15,7 +15,7 @@ func fetchUserPasswordHash(db *gorm.DB, login string) *dbUserPasswordHash {
 	return &data
 }
 
-func insertNewSession(db *gorm.DB, code string, userID int, userIP string, userAgent string) bool {
+func insertNewSession(db *gorm.DB, code string, userID uint32, userIP string, userAgent string) bool {
 	now := time.Now()
 
 	session := &dbUserSession{
