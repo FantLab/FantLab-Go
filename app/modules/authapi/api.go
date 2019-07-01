@@ -3,7 +3,7 @@ package authapi
 import (
 	"net/http"
 
-	"fantlab/protobuf/generated/fantlab/pb"
+	"fantlab/pb"
 	"fantlab/shared"
 	"fantlab/utils"
 

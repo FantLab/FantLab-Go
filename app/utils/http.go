@@ -1,7 +1,7 @@
 package utils
 
 import (
-	"fantlab/protobuf/generated/fantlab/pb"
+	"fantlab/pb"
 	"net/http"
 
 	"github.com/gin-gonic/gin"

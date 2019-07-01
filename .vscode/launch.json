@@ -6,7 +6,7 @@
             "type": "go",
             "request": "launch",
             "mode": "auto",
-            "program": "${workspaceRoot}/main.go",
+            "program": "${workspaceRoot}/app/main.go",
             "env": {
                 "MYSQL_CS": "root@/fl?charset=utf8&parseTime=True&loc=Local",
                 "PORT": 4242,
@@ -20,7 +20,7 @@
             "type": "go",
             "request": "launch",
             "mode": "auto",
-            "program": "${workspaceRoot}/main.go",
+            "program": "${workspaceRoot}/app/main.go",
             "env": {
                 "MYSQL_CS": "root@/fl?charset=utf8&parseTime=True&loc=Local",
                 "PORT": 4242,
