@@ -11,9 +11,9 @@ func getCommunities(dbCommunities []dbCommunity) *pb.Blog_CommunitiesResponse {
 
 	for _, dbCommunity := range dbCommunities {
 		community := &pb.Blog_Community{
-			Id:          dbCommunity.BlogId,
-			Title:       dbCommunity.Name,
-			Description: dbCommunity.Description,
+			Id:                   dbCommunity.BlogId,
+			Title:                dbCommunity.Name,
+			CommunityDescription: dbCommunity.Description,
 			Stats: &pb.Blog_Community_Stats{
 				ArticleCount:    dbCommunity.TopicsCount,
 				SubscriberCount: dbCommunity.SubscriberCount,
@@ -81,9 +81,9 @@ func getBlogArticles(dbBlogTopics []dbBlogTopic, urlFormatter utils.UrlFormatter
 	for _, dbBlogTopic := range dbBlogTopics {
 		var gender pb.Gender
 		if dbBlogTopic.Sex == 0 {
-			gender = pb.Gender_female
+			gender = pb.Gender_FEMALE
 		} else {
-			gender = pb.Gender_male
+			gender = pb.Gender_MALE
 		}
 
 		avatar := urlFormatter.GetAvatarUrl(dbBlogTopic.UserId, uint32(dbBlogTopic.PhotoNumber))

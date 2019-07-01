@@ -13,7 +13,7 @@ func getForumBlocks(dbForums []dbForum, dbModerators map[uint32][]dbModerator) *
 	for _, dbForum := range dbForums {
 		if dbForum.ForumBlockID != currentForumBlockID {
 			forumBlock := pb.Forum_ForumBlock{
-				XXX_Id: dbForum.ForumBlockID,
+				Id:     dbForum.ForumBlockID,
 				Title:  dbForum.ForumBlockName,
 				Forums: []*pb.Forum_Forum{},
 			}
@@ -24,7 +24,7 @@ func getForumBlocks(dbForums []dbForum, dbModerators map[uint32][]dbModerator) *
 
 	for _, dbForum := range dbForums {
 		for index := range forumBlocks {
-			if dbForum.ForumBlockID == forumBlocks[index].GetXXX_Id() {
+			if dbForum.ForumBlockID == forumBlocks[index].GetId() {
 				var moderators []*pb.Forum_UserLink
 
 				for _, dbModerator := range dbModerators[dbForum.ForumID] {
@@ -36,10 +36,10 @@ func getForumBlocks(dbForums []dbForum, dbModerators map[uint32][]dbModerator) *
 				}
 
 				forum := pb.Forum_Forum{
-					Id:          dbForum.ForumID,
-					Title:       dbForum.Name,
-					Description: dbForum.Description,
-					Moderators:  moderators,
+					Id:               dbForum.ForumID,
+					Title:            dbForum.Name,
+					ForumDescription: dbForum.Description,
+					Moderators:       moderators,
 					Stats: &pb.Forum_Forum_Stats{
 						TopicCount:   dbForum.TopicCount,
 						MessageCount: dbForum.MessageCount,
@@ -77,9 +77,9 @@ func getForumTopics(dbTopics []dbForumTopic) *pb.Forum_ForumTopicsResponse {
 	for _, dbTopic := range dbTopics {
 		var topicType pb.Forum_Topic_Type
 		if dbTopic.TopicTypeID == 2 {
-			topicType = pb.Forum_Topic_poll
+			topicType = pb.Forum_Topic_POLL
 		} else {
-			topicType = pb.Forum_Topic_topic
+			topicType = pb.Forum_Topic_TOPIC
 		}
 
 		topic := &pb.Forum_Topic{
@@ -130,9 +130,9 @@ func getTopicMessages(dbMessages []dbForumMessage, urlFormatter utils.UrlFormatt
 
 		var gender pb.Gender
 		if dbMessage.Sex == 0 {
-			gender = pb.Gender_female
+			gender = pb.Gender_FEMALE
 		} else {
-			gender = pb.Gender_male
+			gender = pb.Gender_MALE
 		}
 
 		avatar := urlFormatter.GetAvatarUrl(dbMessage.UserID, dbMessage.PhotoNumber)
