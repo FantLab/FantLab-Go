@@ -15,8 +15,8 @@ func getCommunities(dbCommunities []dbCommunity) *pb.Blog_CommunitiesResponse {
 			Title:                dbCommunity.Name,
 			CommunityDescription: dbCommunity.Description,
 			Stats: &pb.Blog_Community_Stats{
-				ArticlesCount:    dbCommunity.TopicsCount,
-				SubscribersCount: dbCommunity.SubscriberCount,
+				ArticleCount:    dbCommunity.TopicsCount,
+				SubscriberCount: dbCommunity.SubscriberCount,
 			},
 			LastArticle: &pb.Blog_LastArticle{
 				Id:    dbCommunity.LastTopicId,
@@ -56,8 +56,8 @@ func getBlogs(dbBlogs []dbBlog) *pb.Blog_BlogsResponse {
 			},
 			IsClosed: dbBlog.IsClose,
 			Stats: &pb.Blog_Blog_Stats{
-				ArticlesCount:    dbBlog.TopicsCount,
-				SubscribersCount: dbBlog.SubscriberCount,
+				ArticleCount:    dbBlog.TopicsCount,
+				SubscriberCount: dbBlog.SubscriberCount,
 			},
 			LastArticle: &pb.Blog_LastArticle{
 				Id:    dbBlog.LastTopicId,

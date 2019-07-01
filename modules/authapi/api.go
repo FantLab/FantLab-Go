@@ -1,10 +1,11 @@
 package authapi
 
 import (
+	"net/http"
+
 	"fantlab/protobuf/generated/fantlab/pb"
 	"fantlab/shared"
 	"fantlab/utils"
-	"net/http"
 
 	"github.com/gin-gonic/gin"
 	"github.com/segmentio/ksuid"

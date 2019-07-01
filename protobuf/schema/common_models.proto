@@ -14,8 +14,3 @@ message ErrorResponse {
     int32 error_code = 1;
     string message = 2;
 }
-
-message UserSessionResponse {
-    uint32 user_id = 1;
-    string session_token = 2;
-}

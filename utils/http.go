@@ -33,6 +33,6 @@ func ShowProto(ctx *gin.Context, code int, pb proto.Message) {
 	}
 
 	if err := marshaller.Marshal(ctx.Writer, pb); err != nil {
-		ShowError(ctx, http.StatusInternalServerError, err.Error())
+		ctx.AbortWithStatus(http.StatusInternalServerError)
 	}
 }
