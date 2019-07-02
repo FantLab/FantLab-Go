@@ -21,6 +21,6 @@ $ protoc --go_out=generated schema/*.proto
 ## Docker (local)
 
 ```console
-docker build -t flgo .
-docker run -p 4242:4242 flgo
+$ docker build -t flgo .
+$ docker run -p 4242:4242 flgo
 ```
