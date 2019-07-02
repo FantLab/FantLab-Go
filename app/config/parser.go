@@ -16,8 +16,8 @@ type Config struct {
 	BlogTopicsInPage      uint16   `json:"blog_topics_in_page"`
 }
 
-func ParseConfig() Config {
-	file, err := os.Open("config/config.json")
+func ParseConfig(pathToConfig string) Config {
+	file, err := os.Open(pathToConfig)
 	if err != nil {
 		log.Fatal(err)
 	}

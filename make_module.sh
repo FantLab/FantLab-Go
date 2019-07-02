@@ -7,6 +7,7 @@ if [ -z $PACKAGE ]; then
     exit 1
 fi
 
+cd app
 cd modules
 mkdir -p $PACKAGE && cd $PACKAGE
 for FILE in datacontroller dbcontroller dbmodels; do
