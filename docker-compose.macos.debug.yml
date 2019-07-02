@@ -1,0 +1,14 @@
+version: '3'
+
+services:
+  web:
+    image: flgo
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+        - 4242:4242
+    environment:
+      PORT: 4242
+      GIN_MODE: debug
+      MYSQL_URL: root@tcp(host.docker.internal:3306)/fl?charset=utf8&parseTime=True&loc=Europe%2FMoscow

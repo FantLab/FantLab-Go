@@ -15,7 +15,7 @@ import (
 )
 
 func main() {
-	db, err := gorm.Open("mysql", os.Getenv("MYSQL_CS"))
+	db, err := gorm.Open("mysql", os.Getenv("MYSQL_URL"))
 	if err != nil {
 		log.Fatal(err)
 	}

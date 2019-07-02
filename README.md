@@ -22,5 +22,5 @@ $ protoc --go_out=generated schema/*.proto
 
 ```console
 $ docker build -t flgo .
-$ docker run -p 4242:4242 flgo
+$ docker-compose -f docker-compose.macos.debug.yml up
 ```
