@@ -17,3 +17,10 @@
 $ cd protobuf/
 $ protoc --go_out=generated schema/*.proto
 ```
+
+## Docker (local)
+
+```console
+$ docker build -t flgo .
+$ docker-compose -f docker-compose.macos.debug.yml up
+```

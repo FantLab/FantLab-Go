@@ -1,7 +1,7 @@
 package forumapi
 
 import (
-	"fantlab/protobuf/generated/fantlab/pb"
+	"fantlab/pb"
 	"fantlab/utils"
 )
 

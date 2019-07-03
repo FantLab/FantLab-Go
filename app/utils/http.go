@@ -1,7 +1,7 @@
 package utils
 
 import (
-	"fantlab/protobuf/generated/fantlab/pb"
+	"fantlab/pb"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -17,7 +17,7 @@ func ShowError(ctx *gin.Context, code int, message string) {
 }
 
 func ShowProto(ctx *gin.Context, code int, pb proto.Message) {
-	if ctx.GetHeader("Accept") == "application/x-protobuf" {
+	if ctx.GetHeader("Accept") == "application/protobuf" {
 		ctx.ProtoBuf(code, pb)
 		return
 	}

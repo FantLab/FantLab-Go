@@ -6,10 +6,11 @@
             "type": "go",
             "request": "launch",
             "mode": "auto",
-            "program": "${workspaceRoot}/main.go",
+            "program": "${workspaceRoot}/app/main.go",
             "env": {
-                "MYSQL_CS": "root@/fl?charset=utf8&parseTime=True&loc=Local",
+                "MYSQL_URL": "root@/fl?charset=utf8&parseTime=True&loc=Europe%2FMoscow",
                 "PORT": 4242,
+                "CONFIG_FILE": "../config.json",
                 "GIN_MODE": "debug"
             },
             "args": [],
@@ -20,10 +21,11 @@
             "type": "go",
             "request": "launch",
             "mode": "auto",
-            "program": "${workspaceRoot}/main.go",
+            "program": "${workspaceRoot}/app/main.go",
             "env": {
-                "MYSQL_CS": "root@/fl?charset=utf8&parseTime=True&loc=Local",
+                "MYSQL_URL": "root@/fl?charset=utf8&parseTime=True&loc=Europe%2FMoscow",
                 "PORT": 4242,
+                "CONFIG_FILE": "../config.json",
                 "GIN_MODE": "release"
             },
             "args": []

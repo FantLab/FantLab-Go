@@ -15,7 +15,7 @@ import (
 )
 
 func main() {
-	db, err := gorm.Open("mysql", os.Getenv("MYSQL_CS"))
+	db, err := gorm.Open("mysql", os.Getenv("MYSQL_URL"))
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -29,7 +29,8 @@ func main() {
 	db.SetLogger(logger.GormLogger)
 	db.LogMode(true)
 
-	configuration := config.ParseConfig()
+	configuration := config.ParseConfig(os.Getenv("CONFIG_FILE"))
+
 	services := &shared.Services{
 		Config:       configuration,
 		DB:           db,

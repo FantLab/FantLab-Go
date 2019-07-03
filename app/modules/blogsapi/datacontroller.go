@@ -1,7 +1,7 @@
 package blogsapi
 
 import (
-	"fantlab/protobuf/generated/fantlab/pb"
+	"fantlab/pb"
 	"fantlab/utils"
 )
 
