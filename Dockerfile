@@ -19,5 +19,7 @@ WORKDIR /app
 COPY config.json .
 COPY --from=builder /app/fantlab .
 ENV CONFIG_FILE=config.json
-ENTRYPOINT [ "/app/fantlab" ]
+COPY docker-entrypoint.sh .
+RUN chmod +x ./docker-entrypoint.sh
+ENTRYPOINT [ "./docker-entrypoint.sh", "./fantlab" ]
 LABEL Name=flgo Version=0.0.1
