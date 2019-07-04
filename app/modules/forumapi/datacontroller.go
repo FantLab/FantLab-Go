@@ -5,7 +5,7 @@ import (
 	"fantlab/utils"
 )
 
-func getForumBlocks(dbForums []dbForum, dbModerators map[uint32][]dbModerator) *pb.Forum_ForumBlocksResponse {
+func getForumBlocks(dbForums []dbForum, dbModerators map[uint32][]dbModerator, urlFormatter utils.UrlFormatter) *pb.Forum_ForumBlocksResponse {
 	var forumBlocks []*pb.Forum_ForumBlock
 
 	currentForumBlockID := uint32(0) // f_forum_block.id начинаются с 1
@@ -25,15 +25,23 @@ func getForumBlocks(dbForums []dbForum, dbModerators map[uint32][]dbModerator) *
 	for _, dbForum := range dbForums {
 		for index := range forumBlocks {
 			if dbForum.ForumBlockID == forumBlocks[index].GetId() {
-				var moderators []*pb.Forum_UserLink
+				var moderators []*pb.Common_UserLink
 
 				for _, dbModerator := range dbModerators[dbForum.ForumID] {
-					userLink := &pb.Forum_UserLink{
-						Id:    dbModerator.UserID,
-						Login: dbModerator.Login,
+					gender := utils.GetGender(dbModerator.Sex)
+					avatar := urlFormatter.GetAvatarUrl(dbModerator.UserID, dbModerator.PhotoNumber)
+
+					userLink := &pb.Common_UserLink{
+						Id:     dbModerator.UserID,
+						Login:  dbModerator.Login,
+						Gender: gender,
+						Avatar: avatar,
 					}
 					moderators = append(moderators, userLink)
 				}
+
+				gender := utils.GetGender(dbForum.Sex)
+				avatar := urlFormatter.GetAvatarUrl(dbForum.UserID, dbForum.PhotoNumber)
 
 				forum := pb.Forum_Forum{
 					Id:               dbForum.ForumID,
@@ -50,10 +58,13 @@ func getForumBlocks(dbForums []dbForum, dbModerators map[uint32][]dbModerator) *
 							Id:    dbForum.LastTopicID,
 							Title: dbForum.LastTopicName,
 						},
-						User: &pb.Forum_UserLink{
-							Id:    dbForum.LastUserID,
-							Login: dbForum.LastUserName,
+						User: &pb.Common_UserLink{
+							Id:     dbForum.UserID,
+							Login:  dbForum.Login,
+							Gender: gender,
+							Avatar: avatar,
 						},
+						Text: dbForum.LastMessageText,
 						Date: utils.ProtoTS(dbForum.LastMessageDate),
 					},
 				}
@@ -70,7 +81,7 @@ func getForumBlocks(dbForums []dbForum, dbModerators map[uint32][]dbModerator) *
 	}
 }
 
-func getForumTopics(dbTopics []dbForumTopic) *pb.Forum_ForumTopicsResponse {
+func getForumTopics(dbTopics []dbForumTopic, urlFormatter utils.UrlFormatter) *pb.Forum_ForumTopicsResponse {
 	//noinspection GoPreferNilSlice
 	topics := []*pb.Forum_Topic{}
 
@@ -82,14 +93,22 @@ func getForumTopics(dbTopics []dbForumTopic) *pb.Forum_ForumTopicsResponse {
 			topicType = pb.Forum_Topic_TOPIC
 		}
 
+		creationUserGender := utils.GetGender(dbTopic.Sex)
+		creationUserAvatar := urlFormatter.GetAvatarUrl(dbTopic.UserID, dbTopic.PhotoNumber)
+
+		lastMessageUserGender := utils.GetGender(dbTopic.LastSex)
+		lastMessageUserAvatar := urlFormatter.GetAvatarUrl(dbTopic.LastUserID, dbTopic.LastPhotoNumber)
+
 		topic := &pb.Forum_Topic{
 			Id:        dbTopic.TopicID,
 			Title:     dbTopic.Name,
 			TopicType: topicType,
-			Creation: &pb.Forum_Creation{
-				User: &pb.Forum_UserLink{
-					Id:    dbTopic.UserID,
-					Login: dbTopic.Login,
+			Creation: &pb.Common_Creation{
+				User: &pb.Common_UserLink{
+					Id:     dbTopic.UserID,
+					Login:  dbTopic.Login,
+					Gender: creationUserGender,
+					Avatar: creationUserAvatar,
 				},
 				Date: utils.ProtoTS(dbTopic.DateOfAdd),
 			},
@@ -97,14 +116,17 @@ func getForumTopics(dbTopics []dbForumTopic) *pb.Forum_ForumTopicsResponse {
 			IsPinned: dbTopic.IsPinned,
 			Stats: &pb.Forum_Topic_Stats{
 				MessageCount: dbTopic.MessageCount,
-				ViewsCount:   dbTopic.Views,
+				ViewCount:    dbTopic.Views,
 			},
 			LastMessage: &pb.Forum_LastMessage{
 				Id: dbTopic.LastMessageID,
-				User: &pb.Forum_UserLink{
-					Id:    dbTopic.LastUserID,
-					Login: dbTopic.LastUserName,
+				User: &pb.Common_UserLink{
+					Id:     dbTopic.LastUserID,
+					Login:  dbTopic.LastLogin,
+					Gender: lastMessageUserGender,
+					Avatar: lastMessageUserAvatar,
 				},
+				Text: dbTopic.LastMessageText,
 				Date: utils.ProtoTS(dbTopic.LastMessageDate),
 			},
 		}
@@ -117,7 +139,17 @@ func getForumTopics(dbTopics []dbForumTopic) *pb.Forum_ForumTopicsResponse {
 	}
 }
 
-func getTopicMessages(dbMessages []dbForumMessage, urlFormatter utils.UrlFormatter) *pb.Forum_TopicMessagesResponse {
+func getTopic(shortTopic dbShortForumTopic, dbMessages []dbForumMessage, urlFormatter utils.UrlFormatter) *pb.Forum_TopicResponse {
+	topic := &pb.Forum_Topic{
+		Id:    shortTopic.TopicID,
+		Title: shortTopic.TopicName,
+	}
+
+	forum := &pb.Forum_Forum{
+		Id:    shortTopic.ForumID,
+		Title: shortTopic.ForumName,
+	}
+
 	//noinspection GoPreferNilSlice
 	messages := []*pb.Forum_TopicMessage{}
 
@@ -128,19 +160,13 @@ func getTopicMessages(dbMessages []dbForumMessage, urlFormatter utils.UrlFormatt
 			text = ""
 		}
 
-		var gender pb.Gender
-		if dbMessage.Sex == 0 {
-			gender = pb.Gender_FEMALE
-		} else {
-			gender = pb.Gender_MALE
-		}
-
+		gender := utils.GetGender(dbMessage.Sex)
 		avatar := urlFormatter.GetAvatarUrl(dbMessage.UserID, dbMessage.PhotoNumber)
 
 		message := &pb.Forum_TopicMessage{
 			Id: dbMessage.MessageID,
-			Creation: &pb.Forum_Creation{
-				User: &pb.Forum_UserLink{
+			Creation: &pb.Common_Creation{
+				User: &pb.Common_UserLink{
 					Id:     dbMessage.UserID,
 					Login:  dbMessage.Login,
 					Gender: gender,
@@ -154,15 +180,16 @@ func getTopicMessages(dbMessages []dbForumMessage, urlFormatter utils.UrlFormatt
 			IsCensored:      dbMessage.IsCensored,
 			IsModerTagWorks: dbMessage.IsRed,
 			Stats: &pb.Forum_TopicMessage_Stats{
-				PlusCount:  dbMessage.VotePlus,
-				MinusCount: dbMessage.VoteMinus,
+				Rating: int32(dbMessage.VotePlus - dbMessage.VoteMinus),
 			},
 		}
 
 		messages = append(messages, message)
 	}
 
-	return &pb.Forum_TopicMessagesResponse{
+	return &pb.Forum_TopicResponse{
+		Topic:    topic,
+		Forum:    forum,
 		Messages: messages,
 	}
 }

@@ -18,6 +18,13 @@ func SetupWith(services *shared.Services) *gin.Engine {
 	{
 		v1 := router.Group("v1")
 
+		// Пользователь
+		{
+			controller := authapi.NewController(services)
+
+			v1.POST("/login", controller.Login)
+		}
+
 		// Форум
 		{
 			controller := forumapi.NewController(services)
@@ -34,13 +41,6 @@ func SetupWith(services *shared.Services) *gin.Engine {
 			v1.GET("/communities", controller.ShowCommunities)
 			v1.GET("/blogs", controller.ShowBlogs)
 			v1.GET("/blogs/:id", controller.ShowBlogArticles)
-		}
-
-		// Пользователь
-		{
-			controller := authapi.NewController(services)
-
-			v1.POST("/login", controller.Login)
 		}
 	}
 

@@ -8,20 +8,6 @@ import "proto/common_models.proto";
 import "google/protobuf/timestamp.proto";
 
 message Forum {
-    message UserLink {
-        uint32 id = 1;
-        string login = 2;
-        Gender gender = 3;
-        string avatar = 4;
-        uint32 class = 5;
-        string sign = 6;
-    }
-
-    message Creation {
-        UserLink user = 1;
-        google.protobuf.Timestamp date = 2;
-    }
-
     message TopicLink {
         uint32 id = 1;
         string title = 2;
@@ -30,18 +16,18 @@ message Forum {
     message LastMessage {
         uint32 id = 1;
         TopicLink topic = 2;
-        UserLink user = 3;
-        google.protobuf.Timestamp date = 4;
+        Common.UserLink user = 3;
+        string text = 4;
+        google.protobuf.Timestamp date = 5;
     }
 
     message TopicMessage {
         message Stats {
-            uint32 plus_count = 1;
-            uint32 minus_count = 2;
+            int32 rating = 1;
         }
 
         uint32 id = 1;
-        Creation creation = 2;
+        Common.Creation creation = 2;
         string text = 3;
         bool is_censored = 4;
         bool is_moder_tag_works = 5;
@@ -57,13 +43,13 @@ message Forum {
 
         message Stats {
             uint32 message_count = 1;
-            uint32 views_count = 2;
+            uint32 view_count = 2;
         }
 
         uint32 id = 1;
         string title = 2;
         Type topic_type = 3;
-        Creation creation = 4;
+        Common.Creation creation = 4;
         bool is_closed = 5;
         bool is_pinned = 6;
         Stats stats = 7;
@@ -79,7 +65,7 @@ message Forum {
         uint32 id = 1;
         string title = 2;
         string forum_description = 3;
-        repeated UserLink moderators = 4;
+        repeated Common.UserLink moderators = 4;
         Stats stats = 5;
         LastMessage last_message = 6;
     }
@@ -98,7 +84,9 @@ message Forum {
         repeated Topic topics = 1;
     }
 
-    message TopicMessagesResponse {
-        repeated TopicMessage messages = 1;
+    message TopicResponse {
+        Topic topic = 1;
+        Forum forum = 2;
+        repeated TopicMessage messages = 3;
     }
 }
