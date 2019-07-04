@@ -33,7 +33,7 @@ func (c *Controller) Login(ctx *gin.Context) {
 
 	userData := fetchUserPasswordHash(c.services.DB, userName)
 
-	if userData == nil {
+	if userData.UserID == 0 {
 		utils.ShowError(ctx, http.StatusNotFound, "user not found")
 		return
 	}

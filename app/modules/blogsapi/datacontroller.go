@@ -5,11 +5,14 @@ import (
 	"fantlab/utils"
 )
 
-func getCommunities(dbCommunities []dbCommunity) *pb.Blog_CommunitiesResponse {
+func getCommunities(dbCommunities []dbCommunity, urlFormatter utils.UrlFormatter) *pb.Blog_CommunitiesResponse {
 	var mainCommunities []*pb.Blog_Community
 	var additionalCommunities []*pb.Blog_Community
 
 	for _, dbCommunity := range dbCommunities {
+		gender := utils.GetGender(dbCommunity.LastSex)
+		avatar := urlFormatter.GetAvatarUrl(dbCommunity.LastUserId, dbCommunity.LastPhotoNumber)
+
 		community := &pb.Blog_Community{
 			Id:                   dbCommunity.BlogId,
 			Title:                dbCommunity.Name,
@@ -21,10 +24,13 @@ func getCommunities(dbCommunities []dbCommunity) *pb.Blog_CommunitiesResponse {
 			LastArticle: &pb.Blog_LastArticle{
 				Id:    dbCommunity.LastTopicId,
 				Title: dbCommunity.LastTopicHead,
-				User: &pb.Blog_UserLink{
-					Id:    dbCommunity.LastUserId,
-					Login: dbCommunity.LastUserName,
+				User: &pb.Common_UserLink{
+					Id:     dbCommunity.LastUserId,
+					Login:  dbCommunity.LastLogin,
+					Gender: gender,
+					Avatar: avatar,
 				},
+				Text: dbCommunity.LastTopicText,
 				Date: utils.ProtoTS(dbCommunity.LastTopicDate),
 			},
 		}
@@ -42,17 +48,22 @@ func getCommunities(dbCommunities []dbCommunity) *pb.Blog_CommunitiesResponse {
 	}
 }
 
-func getBlogs(dbBlogs []dbBlog) *pb.Blog_BlogsResponse {
+func getBlogs(dbBlogs []dbBlog, urlFormatter utils.UrlFormatter) *pb.Blog_BlogsResponse {
 	//noinspection GoPreferNilSlice
 	var blogs = []*pb.Blog_Blog{}
 
 	for _, dbBlog := range dbBlogs {
+		gender := utils.GetGender(dbBlog.Sex)
+		avatar := urlFormatter.GetAvatarUrl(dbBlog.UserId, dbBlog.PhotoNumber)
+
 		blog := &pb.Blog_Blog{
 			Id: dbBlog.BlogId,
-			User: &pb.Blog_UserLink{
-				Id:    dbBlog.UserId,
-				Login: dbBlog.Login,
-				Name:  dbBlog.Fio,
+			User: &pb.Common_UserLink{
+				Id:     dbBlog.UserId,
+				Login:  dbBlog.Login,
+				Name:   dbBlog.Fio,
+				Gender: gender,
+				Avatar: avatar,
 			},
 			IsClosed: dbBlog.IsClose,
 			Stats: &pb.Blog_Blog_Stats{
@@ -62,6 +73,7 @@ func getBlogs(dbBlogs []dbBlog) *pb.Blog_BlogsResponse {
 			LastArticle: &pb.Blog_LastArticle{
 				Id:    dbBlog.LastTopicId,
 				Title: dbBlog.LastTopicHead,
+				Text:  dbBlog.LastTopicText,
 				Date:  utils.ProtoTS(dbBlog.LastTopicDate),
 			},
 		}
@@ -79,20 +91,14 @@ func getBlogArticles(dbBlogTopics []dbBlogTopic, urlFormatter utils.UrlFormatter
 	var articles = []*pb.Blog_Article{}
 
 	for _, dbBlogTopic := range dbBlogTopics {
-		var gender pb.Gender
-		if dbBlogTopic.Sex == 0 {
-			gender = pb.Gender_FEMALE
-		} else {
-			gender = pb.Gender_MALE
-		}
-
+		gender := utils.GetGender(dbBlogTopic.Sex)
 		avatar := urlFormatter.GetAvatarUrl(dbBlogTopic.UserId, uint32(dbBlogTopic.PhotoNumber))
 
 		article := &pb.Blog_Article{
 			Id:    dbBlogTopic.TopicId,
 			Title: dbBlogTopic.HeadTopic,
-			Creation: &pb.Blog_Creation{
-				User: &pb.Blog_UserLink{
+			Creation: &pb.Common_Creation{
+				User: &pb.Common_UserLink{
 					Id:     dbBlogTopic.UserId,
 					Login:  dbBlogTopic.Login,
 					Gender: gender,

@@ -22,7 +22,7 @@ func NewController(services *shared.Services) *Controller {
 func (c *Controller) ShowForums(ctx *gin.Context) {
 	dbForums := fetchForums(c.services.DB, c.services.Config.DefaultAccessToForums)
 	dbModerators := fetchModerators(c.services.DB)
-	forumBlocks := getForumBlocks(dbForums, dbModerators)
+	forumBlocks := getForumBlocks(dbForums, dbModerators, c.services.UrlFormatter)
 	utils.ShowProto(ctx, http.StatusOK, forumBlocks)
 }
 
@@ -34,7 +34,7 @@ func (c *Controller) ShowForumTopics(ctx *gin.Context) {
 		return
 	}
 
-	page, err := strconv.ParseUint(ctx.Query("page"), 10, 32)
+	page, err := strconv.ParseUint(ctx.DefaultQuery("page", "1"), 10, 32)
 
 	if err != nil {
 		utils.ShowError(ctx, http.StatusBadRequest, fmt.Sprintf("incorrect page: %s", ctx.Query("page")))
@@ -44,7 +44,7 @@ func (c *Controller) ShowForumTopics(ctx *gin.Context) {
 	defaultLimit := strconv.Itoa(int(c.services.Config.ForumTopicsInPage))
 	limit, err := strconv.ParseUint(ctx.DefaultQuery("limit", defaultLimit), 10, 32)
 
-	if err != nil {
+	if err != nil || !utils.IsValidLimit(limit) {
 		utils.ShowError(ctx, http.StatusBadRequest, fmt.Sprintf("incorrect limit: %s", ctx.Query("limit")))
 		return
 	}
@@ -63,7 +63,7 @@ func (c *Controller) ShowForumTopics(ctx *gin.Context) {
 		return
 	}
 
-	forumTopics := getForumTopics(dbForumTopics)
+	forumTopics := getForumTopics(dbForumTopics, c.services.UrlFormatter)
 	utils.ShowProto(ctx, http.StatusOK, forumTopics)
 }
 
@@ -75,7 +75,7 @@ func (c *Controller) ShowTopicMessages(ctx *gin.Context) {
 		return
 	}
 
-	page, err := strconv.ParseUint(ctx.Query("page"), 10, 32)
+	page, err := strconv.ParseUint(ctx.DefaultQuery("page", "1"), 10, 32)
 
 	if err != nil {
 		utils.ShowError(ctx, http.StatusBadRequest, fmt.Sprintf("incorrect page: %s", ctx.Query("page")))
@@ -85,14 +85,14 @@ func (c *Controller) ShowTopicMessages(ctx *gin.Context) {
 	defaultLimit := strconv.Itoa(int(c.services.Config.ForumMessagesInPage))
 	limit, err := strconv.ParseUint(ctx.DefaultQuery("limit", defaultLimit), 10, 32)
 
-	if err != nil {
+	if err != nil || !utils.IsValidLimit(limit) {
 		utils.ShowError(ctx, http.StatusBadRequest, fmt.Sprintf("incorrect limit: %s", ctx.Query("limit")))
 		return
 	}
 
 	offset := limit * (page - 1)
 
-	dbTopicMessages, err := fetchTopicMessages(
+	dbShortForumTopic, dbTopicMessages, err := fetchTopicMessages(
 		c.services.DB,
 		c.services.Config.DefaultAccessToForums,
 		uint32(topicID),
@@ -104,6 +104,6 @@ func (c *Controller) ShowTopicMessages(ctx *gin.Context) {
 		return
 	}
 
-	topicMessages := getTopicMessages(dbTopicMessages, c.services.UrlFormatter)
+	topicMessages := getTopic(dbShortForumTopic, dbTopicMessages, c.services.UrlFormatter)
 	utils.ShowProto(ctx, http.StatusOK, topicMessages)
 }

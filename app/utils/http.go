@@ -10,7 +10,7 @@ import (
 )
 
 func ShowError(ctx *gin.Context, code int, message string) {
-	ShowProto(ctx, code, &pb.ErrorResponse{
+	ShowProto(ctx, code, &pb.Common_ErrorResponse{
 		ErrorCode: int32(code),
 		Message:   message,
 	})

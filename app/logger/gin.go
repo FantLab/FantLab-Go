@@ -23,8 +23,8 @@ var ginFormatter = func(params gin.LogFormatterParams) string {
 	}
 
 	return fmt.Sprintf("%v  %v  [%s]  %s %3d %s %s %s %s %s\n%s",
-		utils.FormatLogTime(params.TimeStamp),
-		utils.FormatLogDuration(params.Latency),
+		utils.FormatTime(params.TimeStamp),
+		utils.FormatDuration(params.Latency),
 		params.ClientIP,
 		statusColor, params.StatusCode, resetColor,
 		methodColor, params.Method, resetColor,

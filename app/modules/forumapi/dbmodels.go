@@ -11,9 +11,12 @@ type dbForum struct {
 	MessageCount    uint32
 	LastTopicID     uint32
 	LastTopicName   string
-	LastUserID      uint32
-	LastUserName    string
+	UserID          uint32
+	Login           string
+	Sex             uint8
+	PhotoNumber     uint32
 	LastMessageID   uint32
+	LastMessageText string
 	LastMessageDate time.Time
 	ForumBlockID    uint32
 	ForumBlockName  string
@@ -27,14 +30,27 @@ type dbForumTopic struct {
 	Views           uint32
 	UserID          uint32
 	Login           string
+	Sex             uint8
+	PhotoNumber     uint32
 	TopicTypeID     uint32
 	IsClosed        bool
 	IsPinned        bool
 	MessageCount    uint32
 	LastMessageID   uint32
 	LastUserID      uint32
-	LastUserName    string
+	LastLogin       string
+	LastSex         uint8
+	LastPhotoNumber uint32
+	LastMessageText string
 	LastMessageDate time.Time
+}
+
+// Краткие данные о теме
+type dbShortForumTopic struct {
+	TopicID   uint32
+	TopicName string
+	ForumID   uint32
+	ForumName string
 }
 
 // Сообщение
@@ -56,8 +72,10 @@ type dbForumMessage struct {
 
 // Модератор
 type dbModerator struct {
-	UserID  uint32
-	Login   string
-	ForumID uint32
-	Sort    float32
+	UserID      uint32
+	Login       string
+	Sex         uint8
+	PhotoNumber uint32
+	ForumID     uint32
+	Sort        float32
 }

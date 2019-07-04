@@ -4,13 +4,32 @@ package fantlab;
 
 option go_package = "app/pb";
 
-enum Gender {
-    UNKNOWN = 0;
-    MALE = 1;
-    FEMALE = 2;
-}
+import "google/protobuf/timestamp.proto";
 
-message ErrorResponse {
-    int32 error_code = 1;
-    string message = 2;
+message Common {
+    enum Gender {
+        UNKNOWN = 0;
+        MALE = 1;
+        FEMALE = 2;
+    }
+
+    message UserLink {
+        uint32 id = 1;
+        string login = 2;
+        string name = 3;
+        Gender gender = 4;
+        string avatar = 5;
+        uint32 class = 6;
+        string sign = 7;
+    }
+
+    message Creation {
+        UserLink user = 1;
+        google.protobuf.Timestamp date = 2;
+    }
+
+    message ErrorResponse {
+        int32 error_code = 1;
+        string message = 2;
+    }
 }

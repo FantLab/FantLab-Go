@@ -21,12 +21,12 @@ func NewController(services *shared.Services) *Controller {
 
 func (c *Controller) ShowCommunities(ctx *gin.Context) {
 	dbCommunities := fetchCommunities(c.services.DB)
-	communities := getCommunities(dbCommunities)
+	communities := getCommunities(dbCommunities, c.services.UrlFormatter)
 	utils.ShowProto(ctx, http.StatusOK, communities)
 }
 
 func (c *Controller) ShowBlogs(ctx *gin.Context) {
-	page, err := strconv.ParseUint(ctx.Query("page"), 10, 32)
+	page, err := strconv.ParseUint(ctx.DefaultQuery("page", "1"), 10, 32)
 
 	if err != nil {
 		utils.ShowError(ctx, http.StatusBadRequest, fmt.Sprintf("incorrect page: %s", ctx.Query("page")))
@@ -36,7 +36,7 @@ func (c *Controller) ShowBlogs(ctx *gin.Context) {
 	defaultLimit := strconv.Itoa(int(c.services.Config.BlogsInPage))
 	limit, err := strconv.ParseUint(ctx.DefaultQuery("limit", defaultLimit), 10, 32)
 
-	if err != nil {
+	if err != nil || !utils.IsValidLimit(limit) {
 		utils.ShowError(ctx, http.StatusBadRequest, fmt.Sprintf("incorrect limit: %s", ctx.Query("limit")))
 		return
 	}
@@ -45,7 +45,7 @@ func (c *Controller) ShowBlogs(ctx *gin.Context) {
 	offset := limit * (page - 1)
 
 	dbBlogs := fetchBlogs(c.services.DB, uint32(limit), uint32(offset), sort)
-	blogs := getBlogs(dbBlogs)
+	blogs := getBlogs(dbBlogs, c.services.UrlFormatter)
 	utils.ShowProto(ctx, http.StatusOK, blogs)
 }
 
@@ -57,7 +57,7 @@ func (c *Controller) ShowBlogArticles(ctx *gin.Context) {
 		return
 	}
 
-	page, err := strconv.ParseUint(ctx.Query("page"), 10, 32)
+	page, err := strconv.ParseUint(ctx.DefaultQuery("page", "1"), 10, 32)
 
 	if err != nil {
 		utils.ShowError(ctx, http.StatusBadRequest, fmt.Sprintf("incorrect page: %s", ctx.Query("page")))
@@ -67,7 +67,7 @@ func (c *Controller) ShowBlogArticles(ctx *gin.Context) {
 	defaultLimit := strconv.Itoa(int(c.services.Config.BlogTopicsInPage))
 	limit, err := strconv.ParseUint(ctx.DefaultQuery("limit", defaultLimit), 10, 32)
 
-	if err != nil {
+	if err != nil || !utils.IsValidLimit(limit) {
 		utils.ShowError(ctx, http.StatusBadRequest, fmt.Sprintf("incorrect limit: %s", ctx.Query("limit")))
 		return
 	}

@@ -12,9 +12,12 @@ type dbCommunity struct {
 	LastTopicDate   time.Time
 	LastTopicHead   string
 	LastTopicId     uint32
+	LastTopicText   string
 	SubscriberCount uint32
 	LastUserId      uint32
-	LastUserName    string
+	LastLogin       string
+	LastSex         uint8
+	LastPhotoNumber uint32
 }
 
 // Авторская колонка
@@ -23,12 +26,15 @@ type dbBlog struct {
 	UserId          uint32
 	Login           string
 	Fio             string
+	Sex             uint8
+	PhotoNumber     uint32
 	TopicsCount     uint32
 	SubscriberCount uint32
 	IsClose         bool
 	LastTopicDate   time.Time
 	LastTopicHead   string
 	LastTopicId     uint32
+	LastTopicText   string
 }
 
 // Статья в авторской колонке

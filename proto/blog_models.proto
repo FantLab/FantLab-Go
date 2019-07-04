@@ -8,24 +8,12 @@ import "proto/common_models.proto";
 import "google/protobuf/timestamp.proto";
 
 message Blog {
-    message UserLink {
-        uint32 id = 1;
-        string login = 2;
-        string name = 3;
-        Gender gender = 4;
-        string avatar = 5;
-    }
-
-    message Creation {
-        UserLink user = 1;
-        google.protobuf.Timestamp date = 2;
-    }
-
     message LastArticle {
         uint32 id = 1;
         string title = 2;
-        UserLink user = 3;
-        google.protobuf.Timestamp date = 4;
+        Common.UserLink user = 3;
+        string text = 4;
+        google.protobuf.Timestamp date = 5;
     }
 
     message Community {
@@ -50,7 +38,7 @@ message Blog {
 
         uint32 id = 1;
         string title = 2;
-        Creation creation = 3;
+        Common.Creation creation = 3;
         string text = 4;
         string tags = 5;
         Stats stats = 6;
@@ -63,7 +51,7 @@ message Blog {
         }
 
         uint32 id = 1;
-        UserLink user = 2;
+        Common.UserLink user = 2;
         bool is_closed = 3;
         Stats stats = 4;
         LastArticle last_article = 5;
