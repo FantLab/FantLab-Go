@@ -7,4 +7,6 @@ if [ $? -ne 0 ]; then
     echo -e "$HOST_IP\t$HOST_DOMAIN" >> /etc/hosts
 fi
 
+./wait-for.sh $WAIT_FOR_DB
+
 exec "$@"
