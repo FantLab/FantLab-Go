@@ -19,7 +19,7 @@
 $ protoc --go_out=. proto/*.proto
 ```
 
-## Docker (local)
+## Docker
 
 ```console
 $ docker build -t flgo .

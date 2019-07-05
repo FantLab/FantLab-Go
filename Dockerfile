@@ -21,5 +21,7 @@ COPY --from=builder /app/fantlab .
 ENV CONFIG_FILE=config.json
 COPY docker-entrypoint.sh .
 RUN chmod +x ./docker-entrypoint.sh
+COPY wait-for.sh .
+RUN chmod +x ./wait-for.sh
 ENTRYPOINT [ "./docker-entrypoint.sh", "./fantlab" ]
-LABEL Name=flgo Version=0.0.1
+LABEL Name=flgo
