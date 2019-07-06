@@ -95,7 +95,8 @@ func getCommunity(dbCommunity dbCommunity,
 		authors = append(authors, author)
 	}
 
-	var articles []*pb.Blog_Article
+	//noinspection GoPreferNilSlice
+	articles := []*pb.Blog_Article{}
 
 	for _, dbTopic := range dbTopics {
 		gender := utils.GetGender(dbTopic.Sex)
