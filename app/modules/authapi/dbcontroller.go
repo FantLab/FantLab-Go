@@ -6,16 +6,25 @@ import (
 	"github.com/jinzhu/gorm"
 )
 
-func fetchUserPasswordHash(db *gorm.DB, login string) *dbUserPasswordHash {
+func fetchUserPasswordHash(db *gorm.DB, login string) (dbUserPasswordHash, error) {
 	var data dbUserPasswordHash
-	db.Table("users").
-		Select("user_id, password_hash, new_password_hash").
+
+	err := db.Table("users").
+		Select("user_id, "+
+			"password_hash, "+
+			"new_password_hash").
 		Where("login = ?", login).
-		First(&data)
-	return &data
+		First(&data).
+		Error
+
+	if err != nil {
+		return dbUserPasswordHash{}, err
+	}
+
+	return data, nil
 }
 
-func insertNewSession(db *gorm.DB, code string, userID uint32, userIP string, userAgent string) bool {
+func insertNewSession(db *gorm.DB, code string, userID uint32, userIP string, userAgent string) error {
 	now := time.Now()
 
 	session := &dbUserSession{
@@ -29,7 +38,9 @@ func insertNewSession(db *gorm.DB, code string, userID uint32, userIP string, us
 	}
 
 	// todo replace with `sessions` after https://github.com/parserpro/fantlab/issues/908
-	db.Table("sessions2").Create(&session)
+	err := db.Table("sessions2").
+		Create(&session).
+		Error
 
-	return session.SessionID > 0
+	return err
 }

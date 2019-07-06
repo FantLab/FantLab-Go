@@ -20,8 +20,20 @@ func NewController(services *shared.Services) *Controller {
 }
 
 func (c *Controller) ShowForums(ctx *gin.Context) {
-	dbForums := fetchForums(c.services.DB, c.services.Config.DefaultAccessToForums)
-	dbModerators := fetchModerators(c.services.DB)
+	dbForums, err := fetchForums(c.services.DB, c.services.Config.DefaultAccessToForums)
+
+	if err != nil {
+		utils.ShowError(ctx, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	dbModerators, err := fetchModerators(c.services.DB)
+
+	if err != nil {
+		utils.ShowError(ctx, http.StatusInternalServerError, err.Error())
+		return
+	}
+
 	forumBlocks := getForumBlocks(dbForums, dbModerators, c.services.UrlFormatter)
 	utils.ShowProto(ctx, http.StatusOK, forumBlocks)
 }
@@ -59,7 +71,11 @@ func (c *Controller) ShowForumTopics(ctx *gin.Context) {
 		uint32(offset))
 
 	if err != nil {
-		utils.ShowError(ctx, http.StatusNotFound, err.Error())
+		if utils.IsRecordNotFoundError(err) {
+			utils.ShowError(ctx, http.StatusNotFound, fmt.Sprintf("incorrect forum id: %d", forumID))
+		} else {
+			utils.ShowError(ctx, http.StatusInternalServerError, err.Error())
+		}
 		return
 	}
 
@@ -100,7 +116,11 @@ func (c *Controller) ShowTopicMessages(ctx *gin.Context) {
 		uint32(offset))
 
 	if err != nil {
-		utils.ShowError(ctx, http.StatusNotFound, err.Error())
+		if utils.IsRecordNotFoundError(err) {
+			utils.ShowError(ctx, http.StatusNotFound, fmt.Sprintf("incorrect topic id: %d", topicID))
+		} else {
+			utils.ShowError(ctx, http.StatusInternalServerError, err.Error())
+		}
 		return
 	}
 

@@ -20,7 +20,13 @@ func NewController(services *shared.Services) *Controller {
 }
 
 func (c *Controller) ShowCommunities(ctx *gin.Context) {
-	dbCommunities := fetchCommunities(c.services.DB)
+	dbCommunities, err := fetchCommunities(c.services.DB)
+
+	if err != nil {
+		utils.ShowError(ctx, http.StatusInternalServerError, err.Error())
+		return
+	}
+
 	communities := getCommunities(dbCommunities, c.services.UrlFormatter)
 	utils.ShowProto(ctx, http.StatusOK, communities)
 }
@@ -54,7 +60,11 @@ func (c *Controller) ShowCommunity(ctx *gin.Context) {
 		fetchCommunity(c.services.DB, uint32(communityId), uint32(limit), uint32(offset))
 
 	if err != nil {
-		utils.ShowError(ctx, http.StatusNotFound, err.Error())
+		if utils.IsRecordNotFoundError(err) {
+			utils.ShowError(ctx, http.StatusNotFound, fmt.Sprintf("incorrect community id: %d", communityId))
+		} else {
+			utils.ShowError(ctx, http.StatusInternalServerError, err.Error())
+		}
 		return
 	}
 
@@ -81,7 +91,13 @@ func (c *Controller) ShowBlogs(ctx *gin.Context) {
 	sort := ctx.DefaultQuery("sort", "update")
 	offset := limit * (page - 1)
 
-	dbBlogs := fetchBlogs(c.services.DB, uint32(limit), uint32(offset), sort)
+	dbBlogs, err := fetchBlogs(c.services.DB, uint32(limit), uint32(offset), sort)
+
+	if err != nil {
+		utils.ShowError(ctx, http.StatusInternalServerError, err.Error())
+		return
+	}
+
 	blogs := getBlogs(dbBlogs, c.services.UrlFormatter)
 	utils.ShowProto(ctx, http.StatusOK, blogs)
 }
@@ -114,7 +130,11 @@ func (c *Controller) ShowBlog(ctx *gin.Context) {
 	dbBlogTopics, err := fetchBlog(c.services.DB, uint32(blogID), uint32(limit), uint32(offset))
 
 	if err != nil {
-		utils.ShowError(ctx, http.StatusNotFound, err.Error())
+		if utils.IsRecordNotFoundError(err) {
+			utils.ShowError(ctx, http.StatusNotFound, fmt.Sprintf("incorrect blog id: %d", blogID))
+		} else {
+			utils.ShowError(ctx, http.StatusInternalServerError, err.Error())
+		}
 		return
 	}
 
