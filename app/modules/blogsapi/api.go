@@ -9,7 +9,6 @@ import (
 	"fantlab/utils"
 
 	"github.com/gin-gonic/gin"
-	"github.com/jinzhu/gorm"
 )
 
 type Controller struct {
@@ -61,7 +60,7 @@ func (c *Controller) ShowCommunity(ctx *gin.Context) {
 		fetchCommunity(c.services.DB, uint32(communityId), uint32(limit), uint32(offset))
 
 	if err != nil {
-		if gorm.IsRecordNotFoundError(err) {
+		if utils.IsRecordNotFoundError(err) {
 			utils.ShowError(ctx, http.StatusNotFound, fmt.Sprintf("incorrect community id: %d", communityId))
 		} else {
 			utils.ShowError(ctx, http.StatusInternalServerError, err.Error())
@@ -131,7 +130,7 @@ func (c *Controller) ShowBlog(ctx *gin.Context) {
 	dbBlogTopics, err := fetchBlog(c.services.DB, uint32(blogID), uint32(limit), uint32(offset))
 
 	if err != nil {
-		if gorm.IsRecordNotFoundError(err) {
+		if utils.IsRecordNotFoundError(err) {
 			utils.ShowError(ctx, http.StatusNotFound, fmt.Sprintf("incorrect blog id: %d", blogID))
 		} else {
 			utils.ShowError(ctx, http.StatusInternalServerError, err.Error())

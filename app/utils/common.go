@@ -1,6 +1,10 @@
 package utils
 
-import "fantlab/pb"
+import (
+	"fantlab/pb"
+
+	"github.com/jinzhu/gorm"
+)
 
 func IsValidLimit(limit uint64) bool {
 	return limit >= 5 && limit <= 50
@@ -12,4 +16,8 @@ func GetGender(userSex uint8) pb.Common_Gender {
 	} else {
 		return pb.Common_MALE
 	}
+}
+
+func IsRecordNotFoundError(err error) bool {
+	return gorm.IsRecordNotFoundError(err)
 }

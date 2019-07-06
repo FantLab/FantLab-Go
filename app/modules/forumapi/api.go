@@ -9,7 +9,6 @@ import (
 	"fantlab/utils"
 
 	"github.com/gin-gonic/gin"
-	"github.com/jinzhu/gorm"
 )
 
 type Controller struct {
@@ -72,7 +71,7 @@ func (c *Controller) ShowForumTopics(ctx *gin.Context) {
 		uint32(offset))
 
 	if err != nil {
-		if gorm.IsRecordNotFoundError(err) {
+		if utils.IsRecordNotFoundError(err) {
 			utils.ShowError(ctx, http.StatusNotFound, fmt.Sprintf("incorrect forum id: %d", forumID))
 		} else {
 			utils.ShowError(ctx, http.StatusInternalServerError, err.Error())
@@ -117,7 +116,7 @@ func (c *Controller) ShowTopicMessages(ctx *gin.Context) {
 		uint32(offset))
 
 	if err != nil {
-		if gorm.IsRecordNotFoundError(err) {
+		if utils.IsRecordNotFoundError(err) {
 			utils.ShowError(ctx, http.StatusNotFound, fmt.Sprintf("incorrect topic id: %d", topicID))
 		} else {
 			utils.ShowError(ctx, http.StatusInternalServerError, err.Error())

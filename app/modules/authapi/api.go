@@ -7,7 +7,6 @@ import (
 	"fantlab/utils"
 
 	"github.com/gin-gonic/gin"
-	"github.com/jinzhu/gorm"
 	"github.com/segmentio/ksuid"
 	"golang.org/x/crypto/bcrypt"
 )
@@ -34,7 +33,7 @@ func (c *Controller) Login(ctx *gin.Context) {
 	userData, err := fetchUserPasswordHash(c.services.DB, userName)
 
 	if err != nil {
-		if gorm.IsRecordNotFoundError(err) {
+		if utils.IsRecordNotFoundError(err) {
 			utils.ShowError(ctx, http.StatusNotFound, "user not found")
 		} else {
 			utils.ShowError(ctx, http.StatusInternalServerError, err.Error())
