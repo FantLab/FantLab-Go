@@ -7,17 +7,34 @@ type dbCommunity struct {
 	BlogId          uint32
 	Name            string
 	Description     string
+	Rules           string
 	TopicsCount     uint32
 	IsPublic        bool
 	LastTopicDate   time.Time
 	LastTopicHead   string
 	LastTopicId     uint32
-	LastTopicText   string
 	SubscriberCount uint32
 	LastUserId      uint32
 	LastLogin       string
 	LastSex         uint8
 	LastPhotoNumber uint32
+}
+
+// Модератор рубрики
+type dbModerator struct {
+	UserID      uint32
+	Login       string
+	Sex         uint8
+	PhotoNumber uint32
+}
+
+// Автор рубрики
+type dbAuthor struct {
+	UserID      uint32
+	DateOfAdd   time.Time
+	Login       string
+	Sex         uint8
+	PhotoNumber uint32
 }
 
 // Авторская колонка
@@ -34,11 +51,10 @@ type dbBlog struct {
 	LastTopicDate   time.Time
 	LastTopicHead   string
 	LastTopicId     uint32
-	LastTopicText   string
 }
 
-// Статья в авторской колонке
-type dbBlogTopic struct {
+// Статья
+type dbTopic struct {
 	TopicId       uint32
 	HeadTopic     string
 	DateOfAdd     time.Time

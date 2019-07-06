@@ -39,8 +39,9 @@ func SetupWith(services *shared.Services) *gin.Engine {
 			controller := blogsapi.NewController(services)
 
 			v1.GET("/communities", controller.ShowCommunities)
+			v1.GET("/communities/:id", controller.ShowCommunity)
 			v1.GET("/blogs", controller.ShowBlogs)
-			v1.GET("/blogs/:id", controller.ShowBlogArticles)
+			v1.GET("/blogs/:id", controller.ShowBlog)
 		}
 	}
 
