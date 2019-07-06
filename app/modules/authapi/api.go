@@ -3,11 +3,11 @@ package authapi
 import (
 	"net/http"
 
-	"fantlab/pb"
 	"fantlab/shared"
 	"fantlab/utils"
 
 	"github.com/gin-gonic/gin"
+	"github.com/jinzhu/gorm"
 	"github.com/segmentio/ksuid"
 	"golang.org/x/crypto/bcrypt"
 )
@@ -21,9 +21,9 @@ func NewController(services *shared.Services) *Controller {
 }
 
 func (c *Controller) Login(ctx *gin.Context) {
-	uid := ctx.Keys[gin.AuthUserKey].(int)
+	userId := ctx.Keys[gin.AuthUserKey].(int)
 
-	if uid > 0 {
+	if userId > 0 {
 		utils.ShowError(ctx, http.StatusMethodNotAllowed, "log out first")
 		return
 	}
@@ -31,14 +31,18 @@ func (c *Controller) Login(ctx *gin.Context) {
 	userName := ctx.PostForm("login")
 	password := ctx.PostForm("password")
 
-	userData := fetchUserPasswordHash(c.services.DB, userName)
+	userData, err := fetchUserPasswordHash(c.services.DB, userName)
 
-	if userData.UserID == 0 {
-		utils.ShowError(ctx, http.StatusNotFound, "user not found")
+	if err != nil {
+		if gorm.IsRecordNotFoundError(err) {
+			utils.ShowError(ctx, http.StatusNotFound, "user not found")
+		} else {
+			utils.ShowError(ctx, http.StatusInternalServerError, err.Error())
+		}
 		return
 	}
 
-	err := bcrypt.CompareHashAndPassword([]byte(userData.OldHash), []byte(password))
+	err = bcrypt.CompareHashAndPassword([]byte(userData.OldHash), []byte(password))
 
 	if err != nil {
 		err = bcrypt.CompareHashAndPassword([]byte(userData.NewHash), []byte(password))
@@ -51,15 +55,14 @@ func (c *Controller) Login(ctx *gin.Context) {
 
 	sid := ksuid.New().String()
 
-	if !insertNewSession(c.services.DB, sid, userData.UserID, ctx.ClientIP(), ctx.Request.UserAgent()) {
-		utils.ShowError(ctx, http.StatusInternalServerError, "failed to create session")
+	err = insertNewSession(c.services.DB, sid, userData.UserID, ctx.ClientIP(), ctx.Request.UserAgent())
+
+	if err != nil {
+		utils.ShowError(ctx, http.StatusInternalServerError, err.Error())
 		return
 	}
 
-	session := &pb.UserSessionResponse{
-		UserId:       userData.UserID,
-		SessionToken: sid,
-	}
+	session := createSession(userData, sid)
 
 	utils.ShowProto(ctx, http.StatusOK, session)
 }

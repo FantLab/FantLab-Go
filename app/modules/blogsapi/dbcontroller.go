@@ -1,15 +1,11 @@
 package blogsapi
 
-import (
-	"fmt"
+import "github.com/jinzhu/gorm"
 
-	"github.com/jinzhu/gorm"
-)
-
-func fetchCommunities(db *gorm.DB) []dbCommunity {
+func fetchCommunities(db *gorm.DB) ([]dbCommunity, error) {
 	var communities []dbCommunity
 
-	db.Table("b_blogs b").
+	err := db.Table("b_blogs b").
 		Select("b.blog_id, " +
 			"b.name, " +
 			"b.description, " +
@@ -26,27 +22,34 @@ func fetchCommunities(db *gorm.DB) []dbCommunity {
 		Joins("JOIN users u ON u.user_id = b.last_user_id").
 		Where("b.is_community = 1 AND b.is_hidden = 0").
 		Order("b.is_public DESC, b.last_topic_date DESC").
-		Scan(&communities)
+		Scan(&communities).
+		Error
 
-	return communities
+	if err != nil {
+		return nil, err
+	}
+
+	return communities, nil
 }
 
 func fetchCommunity(db *gorm.DB, communityID, limit, offset uint32) (dbCommunity, []dbModerator, []dbAuthor, []dbTopic, error) {
 	var community dbCommunity
 
-	if db.Table("b_blogs").
+	err := db.Table("b_blogs").
 		Select("blog_id, "+
 			"name, "+
 			"rules").
 		Where("blog_id = ? AND is_community = 1", communityID).
 		Scan(&community).
-		RecordNotFound() {
-		return community, nil, nil, nil, fmt.Errorf("incorrect community id: %d", communityID)
+		Error
+
+	if err != nil {
+		return dbCommunity{}, nil, nil, nil, err
 	}
 
 	var moderators []dbModerator
 
-	db.Table("b_community_moderators cm").
+	err = db.Table("b_community_moderators cm").
 		Select("cm.user_id, "+
 			"u.login, "+
 			"u.sex, "+
@@ -54,11 +57,16 @@ func fetchCommunity(db *gorm.DB, communityID, limit, offset uint32) (dbCommunity
 		Joins("JOIN users u ON u.user_id = cm.user_id").
 		Where("cm.blog_id = ?", communityID).
 		Order("cm.comm_moder_id").
-		Scan(&moderators)
+		Scan(&moderators).
+		Error
+
+	if err != nil {
+		return dbCommunity{}, nil, nil, nil, err
+	}
 
 	var authors []dbAuthor
 
-	db.Table("b_community_users cu").
+	err = db.Table("b_community_users cu").
 		Select("cu.user_id, "+
 			"cu.date_of_add, "+
 			"u.login, "+
@@ -67,11 +75,16 @@ func fetchCommunity(db *gorm.DB, communityID, limit, offset uint32) (dbCommunity
 		Joins("JOIN users u ON u.user_id = cu.user_id").
 		Where("cu.blog_id = ? AND cu.accepted = 1", communityID).
 		Order("cu.community_user_id").
-		Scan(&authors)
+		Scan(&authors).
+		Error
+
+	if err != nil {
+		return dbCommunity{}, nil, nil, nil, err
+	}
 
 	var topics []dbTopic
 
-	db.Table("b_topics b").
+	err = db.Table("b_topics b").
 		Select("b.topic_id, "+
 			"b.head_topic, "+
 			"b.date_of_add, "+
@@ -90,12 +103,17 @@ func fetchCommunity(db *gorm.DB, communityID, limit, offset uint32) (dbCommunity
 		Order("b.date_of_add DESC").
 		Limit(limit).
 		Offset(offset).
-		Scan(&topics)
+		Scan(&topics).
+		Error
+
+	if err != nil {
+		return dbCommunity{}, nil, nil, nil, err
+	}
 
 	return community, moderators, authors, topics, nil
 }
 
-func fetchBlogs(db *gorm.DB, limit, offset uint32, sort string) []dbBlog {
+func fetchBlogs(db *gorm.DB, limit, offset uint32, sort string) ([]dbBlog, error) {
 	var blogs []dbBlog
 
 	var sortOption string
@@ -108,7 +126,7 @@ func fetchBlogs(db *gorm.DB, limit, offset uint32, sort string) []dbBlog {
 		sortOption = "b.last_topic_date"
 	}
 
-	db.Table("b_blogs b").
+	err := db.Table("b_blogs b").
 		Select("b.blog_id, " +
 			"u.user_id, " +
 			"u.login, " +
@@ -126,21 +144,30 @@ func fetchBlogs(db *gorm.DB, limit, offset uint32, sort string) []dbBlog {
 		Order("b.is_close, " + sortOption + " DESC").
 		Limit(limit).
 		Offset(offset).
-		Scan(&blogs)
+		Scan(&blogs).
+		Error
 
-	return blogs
+	if err != nil {
+		return nil, err
+	}
+
+	return blogs, nil
 }
 
 func fetchBlog(db *gorm.DB, blogID, limit, offset uint32) ([]dbTopic, error) {
-	if db.Table("b_blogs").
-		First(&dbBlog{}, "blog_id = ? AND is_community = 0", blogID).
-		RecordNotFound() {
-		return nil, fmt.Errorf("incorrect blog id: %d", blogID)
+	var blog dbBlog
+
+	err := db.Table("b_blogs").
+		First(blog, "blog_id = ? AND is_community = 0", blogID).
+		Error
+
+	if err != nil {
+		return nil, err
 	}
 
 	var topics []dbTopic
 
-	db.Table("b_topics b").
+	err = db.Table("b_topics b").
 		Select("b.topic_id, "+
 			"b.head_topic, "+
 			"b.date_of_add, "+
@@ -159,7 +186,12 @@ func fetchBlog(db *gorm.DB, blogID, limit, offset uint32) ([]dbTopic, error) {
 		Order("b.date_of_add DESC").
 		Limit(limit).
 		Offset(offset).
-		Scan(&topics)
+		Scan(&topics).
+		Error
+
+	if err != nil {
+		return nil, err
+	}
 
 	return topics, nil
 }

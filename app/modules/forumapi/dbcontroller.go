@@ -1,15 +1,11 @@
 package forumapi
 
-import (
-	"fmt"
+import "github.com/jinzhu/gorm"
 
-	"github.com/jinzhu/gorm"
-)
-
-func fetchForums(db *gorm.DB, availableForums []uint16) []dbForum {
+func fetchForums(db *gorm.DB, availableForums []uint16) ([]dbForum, error) {
 	var forums []dbForum
 
-	db.Table("f_forums f").
+	err := db.Table("f_forums f").
 		Select("f.forum_id, "+
 			"f.name, "+
 			"f.description, "+
@@ -31,23 +27,60 @@ func fetchForums(db *gorm.DB, availableForums []uint16) []dbForum {
 		Joins("JOIN f_messages_text m ON m.message_id = f.last_message_id").
 		Where("f.forum_id IN (?)", availableForums).
 		Order("fb.level, f.level").
-		Scan(&forums)
+		Scan(&forums).
+		Error
 
-	return forums
+	if err != nil {
+		return nil, err
+	}
+
+	return forums, nil
+}
+
+func fetchModerators(db *gorm.DB) (map[uint32][]dbModerator, error) {
+	moderatorsMap := map[uint32][]dbModerator{}
+
+	var moderators []dbModerator
+
+	err := db.Table("f_moderators md").
+		Select("u.user_id, " +
+			"u.login, " +
+			"u.sex, " +
+			"u.photo_number, " +
+			"md.forum_id, " +
+			"u.user_class * 1000000 + u.level AS sort"). // модераторы сортируются по формуле UserClass * 10^6 + Level
+		Joins("JOIN users u ON u.user_id = md.user_id").
+		Order("md.forum_id, sort DESC").
+		Scan(&moderators).
+		Error
+
+	if err != nil {
+		return nil, err
+	}
+
+	for _, moderator := range moderators {
+		moderatorsMap[moderator.ForumID] = append(moderatorsMap[moderator.ForumID], moderator)
+	}
+
+	return moderatorsMap, nil
 }
 
 func fetchForumTopics(db *gorm.DB, availableForums []uint16, forumID uint16, limit, offset uint32) ([]dbForumTopic, error) {
-	if db.Table("f_forums").
-		First(&dbForum{}, "forum_id = ? AND forum_id IN (?)", forumID, availableForums).
-		RecordNotFound() {
-		return nil, fmt.Errorf("incorrect forum id: %d", forumID)
+	var forum dbForum
+
+	err := db.Table("f_forums").
+		First(&forum, "forum_id = ? AND forum_id IN (?)", forumID, availableForums).
+		Error
+
+	if err != nil {
+		return nil, err
 	}
 
 	var topics []dbForumTopic
 
 	// Возможен рассинхрон между message_count и реальным количеством сообщений в том случае, если модертор перенес
 	// сообщения из одной темы в другую и пересчет еще не произведен (need_update_numbers = 1)
-	db.Table("f_topics t").
+	err = db.Table("f_topics t").
 		Select("t.topic_id, "+
 			"t.name, "+
 			"t.date_of_add, "+
@@ -74,32 +107,36 @@ func fetchForumTopics(db *gorm.DB, availableForums []uint16, forumID uint16, lim
 		Order("t.is_pinned DESC, t.last_message_date DESC").
 		Limit(limit).
 		Offset(offset).
-		Scan(&topics)
+		Scan(&topics).
+		Error
+
+	if err != nil {
+		return nil, err
+	}
 
 	return topics, nil
 }
 
 func fetchTopicMessages(db *gorm.DB, availableForums []uint16, topicID, limit, offset uint32) (dbShortForumTopic, []dbForumMessage, error) {
-	if db.Table("f_topics").
-		First(&dbForumTopic{}, "topic_id = ? AND forum_id IN (?)", topicID, availableForums).
-		RecordNotFound() {
-		return dbShortForumTopic{}, nil, fmt.Errorf("incorrect topic id: %d", topicID)
-	}
-
 	var shortTopic dbShortForumTopic
 
-	db.Table("f_topics t").
+	err := db.Table("f_topics t").
 		Select("t.topic_id, "+
 			"t.name AS topic_name, "+
 			"f.forum_id, "+
 			"f.name AS forum_name").
 		Joins("JOIN f_forums f ON f.forum_id = t.forum_id").
-		Where("t.topic_id = ?", topicID).
-		Scan(&shortTopic)
+		Where("t.topic_id = ? AND t.forum_id IN (?)", topicID, availableForums).
+		Scan(&shortTopic).
+		Error
+
+	if err != nil {
+		return dbShortForumTopic{}, nil, err
+	}
 
 	var messages []dbForumMessage
 
-	db.Table("f_messages f").
+	err = db.Table("f_messages f").
 		Select("f.message_id, "+
 			"f.date_of_add, "+
 			"f.user_id, "+
@@ -119,30 +156,12 @@ func fetchTopicMessages(db *gorm.DB, availableForums []uint16, topicID, limit, o
 		Order("f.date_of_add").
 		Limit(limit).
 		Offset(offset).
-		Scan(&messages)
+		Scan(&messages).
+		Error
 
-	return shortTopic, messages, nil
-}
-
-func fetchModerators(db *gorm.DB) map[uint32][]dbModerator {
-	moderatorsMap := map[uint32][]dbModerator{}
-
-	var moderators []dbModerator
-
-	db.Table("f_moderators md").
-		Select("u.user_id, " +
-			"u.login, " +
-			"u.sex, " +
-			"u.photo_number, " +
-			"md.forum_id, " +
-			"u.user_class * 1000000 + u.level AS sort"). // модераторы сортируются по формуле UserClass * 10^6 + Level
-		Joins("JOIN users u ON u.user_id = md.user_id").
-		Order("md.forum_id, sort DESC").
-		Scan(&moderators)
-
-	for _, moderator := range moderators {
-		moderatorsMap[moderator.ForumID] = append(moderatorsMap[moderator.ForumID], moderator)
+	if err != nil {
+		return dbShortForumTopic{}, nil, err
 	}
 
-	return moderatorsMap
+	return shortTopic, messages, nil
 }
