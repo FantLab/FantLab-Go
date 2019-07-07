@@ -19,7 +19,7 @@ func fetchCommunities(db *gorm.DB) ([]dbCommunity, error) {
 			"u.login AS last_login, " +
 			"u.sex AS last_sex, " +
 			"u.photo_number AS last_photo_number").
-		Joins("JOIN users u ON u.user_id = b.last_user_id").
+		Joins("LEFT JOIN users u ON u.user_id = b.last_user_id").
 		Where("b.is_community = 1 AND b.is_hidden = 0").
 		Order("b.is_public DESC, b.last_topic_date DESC").
 		Scan(&communities).
@@ -54,7 +54,7 @@ func fetchCommunity(db *gorm.DB, communityID, limit, offset uint32) (dbCommunity
 			"u.login, "+
 			"u.sex, "+
 			"u.photo_number").
-		Joins("JOIN users u ON u.user_id = cm.user_id").
+		Joins("LEFT JOIN users u ON u.user_id = cm.user_id").
 		Where("cm.blog_id = ?", communityID).
 		Order("cm.comm_moder_id").
 		Scan(&moderators).
@@ -72,7 +72,7 @@ func fetchCommunity(db *gorm.DB, communityID, limit, offset uint32) (dbCommunity
 			"u.login, "+
 			"u.sex, "+
 			"u.photo_number").
-		Joins("JOIN users u ON u.user_id = cu.user_id").
+		Joins("LEFT JOIN users u ON u.user_id = cu.user_id").
 		Where("cu.blog_id = ? AND cu.accepted = 1", communityID).
 		Order("cu.community_user_id").
 		Scan(&authors).
@@ -98,7 +98,7 @@ func fetchCommunity(db *gorm.DB, communityID, limit, offset uint32) (dbCommunity
 			"b.views, "+
 			"b.comments_count").
 		Joins("JOIN b_topics_text t ON t.message_id = b.topic_id").
-		Joins("JOIN users u ON u.user_id = b.user_id").
+		Joins("LEFT JOIN users u ON u.user_id = b.user_id").
 		Where("b.blog_id = ? AND b.is_opened = 1", communityID).
 		Order("b.date_of_add DESC").
 		Limit(limit).
@@ -139,7 +139,7 @@ func fetchBlogs(db *gorm.DB, limit, offset uint32, sort string) ([]dbBlog, error
 			"b.last_topic_date, " +
 			"b.last_topic_head, " +
 			"b.last_topic_id").
-		Joins("JOIN users u ON u.user_id = b.user_id").
+		Joins("LEFT JOIN users u ON u.user_id = b.user_id").
 		Where("b.is_community = 0 AND b.topics_count > 0").
 		Order("b.is_close, " + sortOption + " DESC").
 		Limit(limit).
@@ -181,7 +181,7 @@ func fetchBlog(db *gorm.DB, blogID, limit, offset uint32) ([]dbTopic, error) {
 			"b.views, "+
 			"b.comments_count").
 		Joins("JOIN b_topics_text t ON t.message_id = b.topic_id").
-		Joins("JOIN users u ON u.user_id = b.user_id").
+		Joins("LEFT JOIN users u ON u.user_id = b.user_id").
 		Where("b.blog_id = ? AND b.is_opened = 1", blogID).
 		Order("b.date_of_add DESC").
 		Limit(limit).

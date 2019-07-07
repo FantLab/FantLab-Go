@@ -27,10 +27,11 @@ func getCommunities(dbCommunities []dbCommunity, urlFormatter utils.UrlFormatter
 				Id:    dbCommunity.LastTopicId,
 				Title: dbCommunity.LastTopicHead,
 				User: &pb.Common_UserLink{
-					Id:     dbCommunity.LastUserId,
-					Login:  dbCommunity.LastLogin,
-					Gender: userGender,
-					Avatar: userAvatar,
+					Id:        dbCommunity.LastUserId,
+					Login:     dbCommunity.LastLogin,
+					Gender:    userGender,
+					Avatar:    userAvatar,
+					IsDeleted: dbCommunity.LastUserId == 0,
 				},
 				Date: utils.ProtoTS(dbCommunity.LastTopicDate),
 			},
@@ -86,10 +87,11 @@ func getCommunity(dbCommunity dbCommunity,
 		avatar := urlFormatter.GetUserAvatarUrl(dbAuthor.UserID, dbAuthor.PhotoNumber)
 
 		author := &pb.Common_UserLink{
-			Id:     dbAuthor.UserID,
-			Login:  dbAuthor.Login,
-			Gender: gender,
-			Avatar: avatar,
+			Id:        dbAuthor.UserID,
+			Login:     dbAuthor.Login,
+			Gender:    gender,
+			Avatar:    avatar,
+			IsDeleted: dbAuthor.UserID == 0,
 		}
 
 		authors = append(authors, author)
@@ -107,10 +109,11 @@ func getCommunity(dbCommunity dbCommunity,
 			Title: dbTopic.HeadTopic,
 			Creation: &pb.Common_Creation{
 				User: &pb.Common_UserLink{
-					Id:     dbTopic.UserId,
-					Login:  dbTopic.Login,
-					Gender: gender,
-					Avatar: avatar,
+					Id:        dbTopic.UserId,
+					Login:     dbTopic.Login,
+					Gender:    gender,
+					Avatar:    avatar,
+					IsDeleted: dbTopic.UserId == 0,
 				},
 				Date: utils.ProtoTS(dbTopic.DateOfAdd),
 			},
@@ -145,11 +148,12 @@ func getBlogs(dbBlogs []dbBlog, urlFormatter utils.UrlFormatter) *pb.Blog_BlogsR
 		blog := &pb.Blog_Blog{
 			Id: dbBlog.BlogId,
 			User: &pb.Common_UserLink{
-				Id:     dbBlog.UserId,
-				Login:  dbBlog.Login,
-				Name:   dbBlog.Fio,
-				Gender: gender,
-				Avatar: avatar,
+				Id:        dbBlog.UserId,
+				Login:     dbBlog.Login,
+				Name:      dbBlog.Fio,
+				Gender:    gender,
+				Avatar:    avatar,
+				IsDeleted: dbBlog.UserId == 0,
 			},
 			IsClosed: dbBlog.IsClose,
 			Stats: &pb.Blog_Blog_Stats{
@@ -184,10 +188,11 @@ func getBlog(dbBlogTopics []dbTopic, urlFormatter utils.UrlFormatter) *pb.Blog_B
 			Title: dbBlogTopic.HeadTopic,
 			Creation: &pb.Common_Creation{
 				User: &pb.Common_UserLink{
-					Id:     dbBlogTopic.UserId,
-					Login:  dbBlogTopic.Login,
-					Gender: gender,
-					Avatar: avatar,
+					Id:        dbBlogTopic.UserId,
+					Login:     dbBlogTopic.Login,
+					Gender:    gender,
+					Avatar:    avatar,
+					IsDeleted: dbBlogTopic.UserId == 0,
 				},
 				Date: utils.ProtoTS(dbBlogTopic.DateOfAdd),
 			},

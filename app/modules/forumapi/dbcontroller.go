@@ -23,7 +23,7 @@ func fetchForums(db *gorm.DB, availableForums []uint16) ([]dbForum, error) {
 			"fb.forum_block_id, "+
 			"fb.name AS forum_block_name").
 		Joins("JOIN f_forum_blocks fb ON fb.forum_block_id = f.forum_block_id").
-		Joins("JOIN users u ON u.user_id = f.last_user_id").
+		Joins("LEFT JOIN users u ON u.user_id = f.last_user_id").
 		Joins("JOIN f_messages_text m ON m.message_id = f.last_message_id").
 		Where("f.forum_id IN (?)", availableForums).
 		Order("fb.level, f.level").
@@ -49,7 +49,7 @@ func fetchModerators(db *gorm.DB) (map[uint32][]dbModerator, error) {
 			"u.photo_number, " +
 			"md.forum_id, " +
 			"u.user_class * 1000000 + u.level AS sort"). // модераторы сортируются по формуле UserClass * 10^6 + Level
-		Joins("JOIN users u ON u.user_id = md.user_id").
+		Joins("LEFT JOIN users u ON u.user_id = md.user_id").
 		Order("md.forum_id, sort DESC").
 		Scan(&moderators).
 		Error
@@ -78,8 +78,6 @@ func fetchForumTopics(db *gorm.DB, availableForums []uint16, forumID uint16, lim
 
 	var topics []dbForumTopic
 
-	// Возможен рассинхрон между message_count и реальным количеством сообщений в том случае, если модертор перенес
-	// сообщения из одной темы в другую и пересчет еще не произведен (need_update_numbers = 1)
 	err = db.Table("f_topics t").
 		Select("t.topic_id, "+
 			"t.name, "+
@@ -100,8 +98,8 @@ func fetchForumTopics(db *gorm.DB, availableForums []uint16, forumID uint16, lim
 			"u2.photo_number AS last_photo_number, "+
 			"m.message_text AS last_message_text, "+
 			"t.last_message_date").
-		Joins("JOIN users u ON u.user_id = t.user_id").
-		Joins("JOIN users u2 ON u2.user_id = t.last_user_id").
+		Joins("LEFT JOIN users u ON u.user_id = t.user_id").
+		Joins("LEFT JOIN users u2 ON u2.user_id = t.last_user_id").
 		Joins("JOIN f_messages_text m ON m.message_id = t.last_message_id").
 		Where("t.forum_id = ?", forumID).
 		Order("t.is_pinned DESC, t.last_message_date DESC").
@@ -136,6 +134,9 @@ func fetchTopicMessages(db *gorm.DB, availableForums []uint16, topicID, limit, o
 
 	var messages []dbForumMessage
 
+	// todo не нужны ли какие-нибудь доп. манипуляции с полем number при чтении
+	//  (например, при переносе сообщений между темами)?
+	//  https://github.com/parserpro/fantlab/blob/HEAD@%7B2019-06-17T18:16:10Z%7D/pm/Forum.pm#L1011
 	err = db.Table("f_messages f").
 		Select("f.message_id, "+
 			"f.date_of_add, "+
@@ -150,12 +151,10 @@ func fetchTopicMessages(db *gorm.DB, availableForums []uint16, topicID, limit, o
 			"f.is_red, "+
 			"f.vote_plus, "+
 			"ABS(f.vote_minus) AS vote_minus").
-		Joins("JOIN users u ON u.user_id = f.user_id").
+		Joins("LEFT JOIN users u ON u.user_id = f.user_id").
 		Joins("JOIN f_messages_text m ON m.message_id = f.message_id").
-		Where("f.topic_id = ?", topicID).
+		Where("f.topic_id = ? AND f.number >= ? AND f.number <= ?", topicID, offset+1, offset+limit).
 		Order("f.date_of_add").
-		Limit(limit).
-		Offset(offset).
 		Scan(&messages).
 		Error
 
