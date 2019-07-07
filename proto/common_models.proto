@@ -21,6 +21,7 @@ message Common {
         string avatar = 5;
         uint32 class = 6;
         string sign = 7;
+        bool is_deleted = 8;
     }
 
     message Creation {
