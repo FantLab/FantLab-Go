@@ -12,7 +12,7 @@ type UrlFormatter struct {
 }
 
 func (f *UrlFormatter) GetImageUrl(fileName string) string {
-	return "//" + os.Getenv("MINIO_ENDPOINT") + "/" + f.Config.MinioImagesBucket + "/" + fileName
+	return "//" + os.Getenv("MINIO_PUBLIC_ENDPOINT") + "/" + f.Config.MinioImagesBucket + "/" + fileName
 }
 
 func (f *UrlFormatter) GetUserAvatarUrl(userId uint32, photoNumber uint32) string {
