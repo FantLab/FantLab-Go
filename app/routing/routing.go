@@ -5,6 +5,7 @@ import (
 	"fantlab/middlewares"
 	"fantlab/modules/authapi"
 	"fantlab/modules/blogsapi"
+	"fantlab/modules/fileuploadapi"
 	"fantlab/modules/forumapi"
 	"fantlab/shared"
 
@@ -42,6 +43,13 @@ func SetupWith(services *shared.Services) *gin.Engine {
 			v1.GET("/communities/:id", controller.ShowCommunity)
 			v1.GET("/blogs", controller.ShowBlogs)
 			v1.GET("/blogs/:id", controller.ShowBlog)
+		}
+
+		// загрузка файлов
+		{
+			controller := fileuploadapi.NewController(services)
+
+			v1.POST("/uploadimage", controller.UploadImage)
 		}
 	}
 

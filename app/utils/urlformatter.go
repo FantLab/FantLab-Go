@@ -1,6 +1,7 @@
 package utils
 
 import (
+	"os"
 	"strconv"
 
 	"fantlab/config"
@@ -8,6 +9,10 @@ import (
 
 type UrlFormatter struct {
 	Config *config.Config
+}
+
+func (f *UrlFormatter) GetImageUrl(fileName string) string {
+	return "//" + os.Getenv("MINIO_ENDPOINT") + "/" + f.Config.MinioImagesBucket + "/" + fileName
 }
 
 func (f *UrlFormatter) GetUserAvatarUrl(userId uint32, photoNumber uint32) string {
