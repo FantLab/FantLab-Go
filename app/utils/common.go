@@ -4,6 +4,7 @@ import (
 	"fantlab/pb"
 
 	"github.com/jinzhu/gorm"
+	"github.com/segmentio/ksuid"
 )
 
 func IsValidLimit(limit uint64) bool {
@@ -20,4 +21,8 @@ func GetGender(userSex uint8) pb.Common_Gender {
 
 func IsRecordNotFoundError(err error) bool {
 	return gorm.IsRecordNotFoundError(err)
+}
+
+func GenerateUniqueId() string {
+	return ksuid.New().String()
 }

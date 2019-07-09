@@ -1,0 +1,21 @@
+syntax = "proto3";
+
+package fantlab;
+
+option go_package = "app/pb";
+
+message Error {
+    message Response {
+        Status status = 1;
+        string context = 2;
+    }
+
+    enum Status {
+        UNKNOWN = 0;
+        SOMETHING_WENT_WRONG = 1;
+        INVALID_PARAMETER = 2;
+        NOT_FOUND = 3;
+        INVALID_PASSWORD = 4;
+        LOG_OUT_FIRST = 5;
+    }
+}

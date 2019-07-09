@@ -1,20 +1,12 @@
 package utils
 
 import (
-	"fantlab/pb"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
 	"github.com/golang/protobuf/jsonpb"
 	"github.com/golang/protobuf/proto"
 )
-
-func ShowError(ctx *gin.Context, code int, message string) {
-	ShowProto(ctx, code, &pb.Common_ErrorResponse{
-		ErrorCode: int32(code),
-		Message:   message,
-	})
-}
 
 func ShowProto(ctx *gin.Context, code int, pb proto.Message) {
 	if ctx.GetHeader("Accept") == "application/protobuf" {

@@ -1,13 +1,13 @@
 package authapi
 
 import (
+	"fantlab/pb"
 	"net/http"
 
 	"fantlab/shared"
 	"fantlab/utils"
 
 	"github.com/gin-gonic/gin"
-	"github.com/segmentio/ksuid"
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -23,7 +23,9 @@ func (c *Controller) Login(ctx *gin.Context) {
 	userId := ctx.Keys[gin.AuthUserKey].(int)
 
 	if userId > 0 {
-		utils.ShowError(ctx, http.StatusMethodNotAllowed, "log out first")
+		utils.ShowProto(ctx, http.StatusMethodNotAllowed, &pb.Error_Response{
+			Status: pb.Error_LOG_OUT_FIRST,
+		})
 		return
 	}
 
@@ -34,9 +36,14 @@ func (c *Controller) Login(ctx *gin.Context) {
 
 	if err != nil {
 		if utils.IsRecordNotFoundError(err) {
-			utils.ShowError(ctx, http.StatusNotFound, "user not found")
+			utils.ShowProto(ctx, http.StatusNotFound, &pb.Error_Response{
+				Status:  pb.Error_NOT_FOUND,
+				Context: userName,
+			})
 		} else {
-			utils.ShowError(ctx, http.StatusInternalServerError, err.Error())
+			utils.ShowProto(ctx, http.StatusInternalServerError, &pb.Error_Response{
+				Status: pb.Error_SOMETHING_WENT_WRONG,
+			})
 		}
 		return
 	}
@@ -48,20 +55,25 @@ func (c *Controller) Login(ctx *gin.Context) {
 	}
 
 	if err != nil {
-		utils.ShowError(ctx, http.StatusUnauthorized, "incorrect password")
+		utils.ShowProto(ctx, http.StatusUnauthorized, &pb.Error_Response{
+			Status: pb.Error_INVALID_PASSWORD,
+		})
 		return
 	}
 
-	sid := ksuid.New().String()
+	sid := utils.GenerateUniqueId()
 
 	err = insertNewSession(c.services.DB, sid, userData.UserID, ctx.ClientIP(), ctx.Request.UserAgent())
 
 	if err != nil {
-		utils.ShowError(ctx, http.StatusInternalServerError, err.Error())
+		utils.ShowProto(ctx, http.StatusInternalServerError, &pb.Error_Response{
+			Status: pb.Error_SOMETHING_WENT_WRONG,
+		})
 		return
 	}
 
-	session := createSession(userData, sid)
-
-	utils.ShowProto(ctx, http.StatusOK, session)
+	utils.ShowProto(ctx, http.StatusOK, &pb.Auth_LoginResponse{
+		UserId:       userData.UserID,
+		SessionToken: sid,
+	})
 }
