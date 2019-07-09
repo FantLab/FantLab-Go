@@ -1,7 +1,7 @@
 package blogsapi
 
 import (
-	"fmt"
+	"fantlab/pb"
 	"net/http"
 	"strconv"
 
@@ -23,7 +23,9 @@ func (c *Controller) ShowCommunities(ctx *gin.Context) {
 	dbCommunities, err := fetchCommunities(c.services.DB)
 
 	if err != nil {
-		utils.ShowError(ctx, http.StatusInternalServerError, err.Error())
+		utils.ShowProto(ctx, http.StatusInternalServerError, &pb.Error_Response{
+			Status: pb.Error_SOMETHING_WENT_WRONG,
+		})
 		return
 	}
 
@@ -35,14 +37,20 @@ func (c *Controller) ShowCommunity(ctx *gin.Context) {
 	communityId, err := strconv.ParseUint(ctx.Param("id"), 10, 32)
 
 	if err != nil {
-		utils.ShowError(ctx, http.StatusBadRequest, fmt.Sprintf("incorrect community id: %s", ctx.Param("id")))
+		utils.ShowProto(ctx, http.StatusBadRequest, &pb.Error_Response{
+			Status:  pb.Error_INVALID_PARAMETER,
+			Context: "id",
+		})
 		return
 	}
 
 	page, err := strconv.ParseUint(ctx.DefaultQuery("page", "1"), 10, 32)
 
 	if err != nil {
-		utils.ShowError(ctx, http.StatusBadRequest, fmt.Sprintf("incorrect page: %s", ctx.Query("page")))
+		utils.ShowProto(ctx, http.StatusBadRequest, &pb.Error_Response{
+			Status:  pb.Error_INVALID_PARAMETER,
+			Context: "page",
+		})
 		return
 	}
 
@@ -50,7 +58,10 @@ func (c *Controller) ShowCommunity(ctx *gin.Context) {
 	limit, err := strconv.ParseUint(ctx.DefaultQuery("limit", defaultLimit), 10, 32)
 
 	if err != nil || !utils.IsValidLimit(limit) {
-		utils.ShowError(ctx, http.StatusBadRequest, fmt.Sprintf("incorrect limit: %s", ctx.Query("limit")))
+		utils.ShowProto(ctx, http.StatusBadRequest, &pb.Error_Response{
+			Status:  pb.Error_INVALID_PARAMETER,
+			Context: "limit",
+		})
 		return
 	}
 
@@ -61,9 +72,14 @@ func (c *Controller) ShowCommunity(ctx *gin.Context) {
 
 	if err != nil {
 		if utils.IsRecordNotFoundError(err) {
-			utils.ShowError(ctx, http.StatusNotFound, fmt.Sprintf("incorrect community id: %d", communityId))
+			utils.ShowProto(ctx, http.StatusNotFound, &pb.Error_Response{
+				Status:  pb.Error_NOT_FOUND,
+				Context: strconv.FormatUint(communityId, 10),
+			})
 		} else {
-			utils.ShowError(ctx, http.StatusInternalServerError, err.Error())
+			utils.ShowProto(ctx, http.StatusInternalServerError, &pb.Error_Response{
+				Status: pb.Error_SOMETHING_WENT_WRONG,
+			})
 		}
 		return
 	}
@@ -76,7 +92,10 @@ func (c *Controller) ShowBlogs(ctx *gin.Context) {
 	page, err := strconv.ParseUint(ctx.DefaultQuery("page", "1"), 10, 32)
 
 	if err != nil {
-		utils.ShowError(ctx, http.StatusBadRequest, fmt.Sprintf("incorrect page: %s", ctx.Query("page")))
+		utils.ShowProto(ctx, http.StatusBadRequest, &pb.Error_Response{
+			Status:  pb.Error_INVALID_PARAMETER,
+			Context: "page",
+		})
 		return
 	}
 
@@ -84,7 +103,10 @@ func (c *Controller) ShowBlogs(ctx *gin.Context) {
 	limit, err := strconv.ParseUint(ctx.DefaultQuery("limit", defaultLimit), 10, 32)
 
 	if err != nil || !utils.IsValidLimit(limit) {
-		utils.ShowError(ctx, http.StatusBadRequest, fmt.Sprintf("incorrect limit: %s", ctx.Query("limit")))
+		utils.ShowProto(ctx, http.StatusBadRequest, &pb.Error_Response{
+			Status:  pb.Error_INVALID_PARAMETER,
+			Context: "limit",
+		})
 		return
 	}
 
@@ -94,7 +116,9 @@ func (c *Controller) ShowBlogs(ctx *gin.Context) {
 	dbBlogs, err := fetchBlogs(c.services.DB, uint32(limit), uint32(offset), sort)
 
 	if err != nil {
-		utils.ShowError(ctx, http.StatusInternalServerError, err.Error())
+		utils.ShowProto(ctx, http.StatusInternalServerError, &pb.Error_Response{
+			Status: pb.Error_SOMETHING_WENT_WRONG,
+		})
 		return
 	}
 
@@ -106,14 +130,20 @@ func (c *Controller) ShowBlog(ctx *gin.Context) {
 	blogID, err := strconv.ParseUint(ctx.Param("id"), 10, 32)
 
 	if err != nil {
-		utils.ShowError(ctx, http.StatusBadRequest, fmt.Sprintf("incorrect blog id: %s", ctx.Param("id")))
+		utils.ShowProto(ctx, http.StatusBadRequest, &pb.Error_Response{
+			Status:  pb.Error_INVALID_PARAMETER,
+			Context: "id",
+		})
 		return
 	}
 
 	page, err := strconv.ParseUint(ctx.DefaultQuery("page", "1"), 10, 32)
 
 	if err != nil {
-		utils.ShowError(ctx, http.StatusBadRequest, fmt.Sprintf("incorrect page: %s", ctx.Query("page")))
+		utils.ShowProto(ctx, http.StatusBadRequest, &pb.Error_Response{
+			Status:  pb.Error_INVALID_PARAMETER,
+			Context: "page",
+		})
 		return
 	}
 
@@ -121,7 +151,10 @@ func (c *Controller) ShowBlog(ctx *gin.Context) {
 	limit, err := strconv.ParseUint(ctx.DefaultQuery("limit", defaultLimit), 10, 32)
 
 	if err != nil || !utils.IsValidLimit(limit) {
-		utils.ShowError(ctx, http.StatusBadRequest, fmt.Sprintf("incorrect limit: %s", ctx.Query("limit")))
+		utils.ShowProto(ctx, http.StatusBadRequest, &pb.Error_Response{
+			Status:  pb.Error_INVALID_PARAMETER,
+			Context: "limit",
+		})
 		return
 	}
 
@@ -131,9 +164,14 @@ func (c *Controller) ShowBlog(ctx *gin.Context) {
 
 	if err != nil {
 		if utils.IsRecordNotFoundError(err) {
-			utils.ShowError(ctx, http.StatusNotFound, fmt.Sprintf("incorrect blog id: %d", blogID))
+			utils.ShowProto(ctx, http.StatusNotFound, &pb.Error_Response{
+				Status:  pb.Error_NOT_FOUND,
+				Context: strconv.FormatUint(blogID, 10),
+			})
 		} else {
-			utils.ShowError(ctx, http.StatusInternalServerError, err.Error())
+			utils.ShowProto(ctx, http.StatusInternalServerError, &pb.Error_Response{
+				Status: pb.Error_SOMETHING_WENT_WRONG,
+			})
 		}
 		return
 	}

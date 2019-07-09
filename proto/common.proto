@@ -27,9 +27,4 @@ message Common {
         UserLink user = 1;
         google.protobuf.Timestamp date = 2;
     }
-
-    message ErrorResponse {
-        int32 error_code = 1;
-        string message = 2;
-    }
 }

@@ -1,10 +1,10 @@
 package forumapi
 
 import (
-	"fmt"
 	"net/http"
 	"strconv"
 
+	"fantlab/pb"
 	"fantlab/shared"
 	"fantlab/utils"
 
@@ -23,14 +23,18 @@ func (c *Controller) ShowForums(ctx *gin.Context) {
 	dbForums, err := fetchForums(c.services.DB, c.services.Config.DefaultAccessToForums)
 
 	if err != nil {
-		utils.ShowError(ctx, http.StatusInternalServerError, err.Error())
+		utils.ShowProto(ctx, http.StatusInternalServerError, &pb.Error_Response{
+			Status: pb.Error_SOMETHING_WENT_WRONG,
+		})
 		return
 	}
 
 	dbModerators, err := fetchModerators(c.services.DB)
 
 	if err != nil {
-		utils.ShowError(ctx, http.StatusInternalServerError, err.Error())
+		utils.ShowProto(ctx, http.StatusInternalServerError, &pb.Error_Response{
+			Status: pb.Error_SOMETHING_WENT_WRONG,
+		})
 		return
 	}
 
@@ -42,14 +46,20 @@ func (c *Controller) ShowForumTopics(ctx *gin.Context) {
 	forumID, err := strconv.ParseUint(ctx.Param("id"), 10, 16)
 
 	if err != nil {
-		utils.ShowError(ctx, http.StatusBadRequest, fmt.Sprintf("incorrect forum id: %s", ctx.Param("id")))
+		utils.ShowProto(ctx, http.StatusBadRequest, &pb.Error_Response{
+			Status:  pb.Error_INVALID_PARAMETER,
+			Context: "id",
+		})
 		return
 	}
 
 	page, err := strconv.ParseUint(ctx.DefaultQuery("page", "1"), 10, 32)
 
 	if err != nil {
-		utils.ShowError(ctx, http.StatusBadRequest, fmt.Sprintf("incorrect page: %s", ctx.Query("page")))
+		utils.ShowProto(ctx, http.StatusBadRequest, &pb.Error_Response{
+			Status:  pb.Error_INVALID_PARAMETER,
+			Context: "page",
+		})
 		return
 	}
 
@@ -57,7 +67,10 @@ func (c *Controller) ShowForumTopics(ctx *gin.Context) {
 	limit, err := strconv.ParseUint(ctx.DefaultQuery("limit", defaultLimit), 10, 32)
 
 	if err != nil || !utils.IsValidLimit(limit) {
-		utils.ShowError(ctx, http.StatusBadRequest, fmt.Sprintf("incorrect limit: %s", ctx.Query("limit")))
+		utils.ShowProto(ctx, http.StatusBadRequest, &pb.Error_Response{
+			Status:  pb.Error_INVALID_PARAMETER,
+			Context: "limit",
+		})
 		return
 	}
 
@@ -68,13 +81,19 @@ func (c *Controller) ShowForumTopics(ctx *gin.Context) {
 		c.services.Config.DefaultAccessToForums,
 		uint16(forumID),
 		uint32(limit),
-		uint32(offset))
+		uint32(offset),
+	)
 
 	if err != nil {
 		if utils.IsRecordNotFoundError(err) {
-			utils.ShowError(ctx, http.StatusNotFound, fmt.Sprintf("incorrect forum id: %d", forumID))
+			utils.ShowProto(ctx, http.StatusNotFound, &pb.Error_Response{
+				Status:  pb.Error_NOT_FOUND,
+				Context: strconv.FormatUint(forumID, 10),
+			})
 		} else {
-			utils.ShowError(ctx, http.StatusInternalServerError, err.Error())
+			utils.ShowProto(ctx, http.StatusInternalServerError, &pb.Error_Response{
+				Status: pb.Error_SOMETHING_WENT_WRONG,
+			})
 		}
 		return
 	}
@@ -87,14 +106,20 @@ func (c *Controller) ShowTopicMessages(ctx *gin.Context) {
 	topicID, err := strconv.ParseUint(ctx.Param("id"), 10, 32)
 
 	if err != nil {
-		utils.ShowError(ctx, http.StatusBadRequest, fmt.Sprintf("incorrect topic id: %s", ctx.Param("id")))
+		utils.ShowProto(ctx, http.StatusBadRequest, &pb.Error_Response{
+			Status:  pb.Error_INVALID_PARAMETER,
+			Context: "id",
+		})
 		return
 	}
 
 	page, err := strconv.ParseUint(ctx.DefaultQuery("page", "1"), 10, 32)
 
 	if err != nil {
-		utils.ShowError(ctx, http.StatusBadRequest, fmt.Sprintf("incorrect page: %s", ctx.Query("page")))
+		utils.ShowProto(ctx, http.StatusBadRequest, &pb.Error_Response{
+			Status:  pb.Error_INVALID_PARAMETER,
+			Context: "page",
+		})
 		return
 	}
 
@@ -102,7 +127,10 @@ func (c *Controller) ShowTopicMessages(ctx *gin.Context) {
 	limit, err := strconv.ParseUint(ctx.DefaultQuery("limit", defaultLimit), 10, 32)
 
 	if err != nil || !utils.IsValidLimit(limit) {
-		utils.ShowError(ctx, http.StatusBadRequest, fmt.Sprintf("incorrect limit: %s", ctx.Query("limit")))
+		utils.ShowProto(ctx, http.StatusBadRequest, &pb.Error_Response{
+			Status:  pb.Error_INVALID_PARAMETER,
+			Context: "limit",
+		})
 		return
 	}
 
@@ -113,13 +141,19 @@ func (c *Controller) ShowTopicMessages(ctx *gin.Context) {
 		c.services.Config.DefaultAccessToForums,
 		uint32(topicID),
 		uint32(limit),
-		uint32(offset))
+		uint32(offset),
+	)
 
 	if err != nil {
 		if utils.IsRecordNotFoundError(err) {
-			utils.ShowError(ctx, http.StatusNotFound, fmt.Sprintf("incorrect topic id: %d", topicID))
+			utils.ShowProto(ctx, http.StatusNotFound, &pb.Error_Response{
+				Status:  pb.Error_NOT_FOUND,
+				Context: strconv.FormatUint(topicID, 10),
+			})
 		} else {
-			utils.ShowError(ctx, http.StatusInternalServerError, err.Error())
+			utils.ShowProto(ctx, http.StatusInternalServerError, &pb.Error_Response{
+				Status: pb.Error_SOMETHING_WENT_WRONG,
+			})
 		}
 		return
 	}
