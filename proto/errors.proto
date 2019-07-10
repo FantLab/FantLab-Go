@@ -11,7 +11,7 @@ message Error {
     }
 
     enum Status {
-        UNKNOWN = 0;
+        UNKNOWN_STATUS = 0;
         SOMETHING_WENT_WRONG = 1;
         INVALID_PARAMETER = 2;
         NOT_FOUND = 3;
