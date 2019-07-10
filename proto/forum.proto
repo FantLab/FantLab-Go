@@ -36,7 +36,7 @@ message Forum {
 
     message Topic {
         enum Type {
-            UNKNOWN = 0;
+            UNKNOWN_TYPE = 0;
             TOPIC = 1;
             POLL = 2;
         }

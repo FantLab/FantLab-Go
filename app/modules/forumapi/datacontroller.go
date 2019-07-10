@@ -28,7 +28,7 @@ func getForumBlocks(dbForums []dbForum, dbModerators map[uint32][]dbModerator, u
 				var moderators []*pb.Common_UserLink
 
 				for _, dbModerator := range dbModerators[dbForum.ForumID] {
-					gender := utils.GetGender(dbModerator.Sex)
+					gender := utils.GetGender(dbModerator.UserID, dbModerator.Sex)
 					avatar := urlFormatter.GetUserAvatarUrl(dbModerator.UserID, dbModerator.PhotoNumber)
 
 					userLink := &pb.Common_UserLink{
@@ -40,7 +40,7 @@ func getForumBlocks(dbForums []dbForum, dbModerators map[uint32][]dbModerator, u
 					moderators = append(moderators, userLink)
 				}
 
-				gender := utils.GetGender(dbForum.Sex)
+				gender := utils.GetGender(dbForum.UserID, dbForum.Sex)
 				avatar := urlFormatter.GetUserAvatarUrl(dbForum.UserID, dbForum.PhotoNumber)
 
 				forum := pb.Forum_Forum{
@@ -93,10 +93,10 @@ func getForumTopics(dbTopics []dbForumTopic, urlFormatter utils.UrlFormatter) *p
 			topicType = pb.Forum_Topic_TOPIC
 		}
 
-		creationUserGender := utils.GetGender(dbTopic.Sex)
+		creationUserGender := utils.GetGender(dbTopic.UserID, dbTopic.Sex)
 		creationUserAvatar := urlFormatter.GetUserAvatarUrl(dbTopic.UserID, dbTopic.PhotoNumber)
 
-		lastMessageUserGender := utils.GetGender(dbTopic.LastSex)
+		lastMessageUserGender := utils.GetGender(dbTopic.LastUserID, dbTopic.LastSex)
 		lastMessageUserAvatar := urlFormatter.GetUserAvatarUrl(dbTopic.LastUserID, dbTopic.LastPhotoNumber)
 
 		topic := &pb.Forum_Topic{
@@ -160,7 +160,7 @@ func getTopic(shortTopic dbShortForumTopic, dbMessages []dbForumMessage, urlForm
 			text = ""
 		}
 
-		gender := utils.GetGender(dbMessage.Sex)
+		gender := utils.GetGender(dbMessage.UserID, dbMessage.Sex)
 		avatar := urlFormatter.GetUserAvatarUrl(dbMessage.UserID, dbMessage.PhotoNumber)
 
 		message := &pb.Forum_TopicMessage{
