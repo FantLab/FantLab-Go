@@ -1,0 +1,10 @@
+language: go
+go:
+  - "1.12"
+env:
+  - GO111MODULE=on
+before_script:
+  - go get -u github.com/golangci/golangci-lint/cmd/golangci-lint
+  - cd app
+script:
+  - golangci-lint run -E maligned

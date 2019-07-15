@@ -1,13 +1,19 @@
 {
-    "go.formatTool": "goimports",
-    "saveAndRun": {
-      "commands": [
-        {
-          "match": ".proto",
-          "cmd": "rm -rf app/pb; mkdir -p app/pb; protoc --go_out=. proto/*.proto",
-          "useShortcut": false,
-          "silent": false
-        }
-      ]
-    }
+  "saveAndRun": {
+    "commands": [
+      {
+        "match": ".proto",
+        "cmd": "rm -rf app/pb; mkdir -p app/pb; protoc --go_out=. proto/*.proto",
+        "useShortcut": false,
+        "silent": false
+      }
+    ]
+  },
+  "go.formatTool": "goimports",
+  "go.lintTool": "golangci-lint",
+  "go.lintFlags": [
+    "--fast",
+    // "-E",
+    // "maligned"
+  ],
 }
