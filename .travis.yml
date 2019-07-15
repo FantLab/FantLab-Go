@@ -1,0 +1,7 @@
+language: go
+sudo: false
+before_script:
+  - go get -u github.com/golangci/golangci-lint/cmd/golangci-lint
+  - cd app
+script:
+  - golangci-lint run
