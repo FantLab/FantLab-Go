@@ -11,19 +11,9 @@ func Session(services *shared.Services) gin.HandlerFunc {
 		sid := ctx.GetHeader("X-Session")
 
 		if len(sid) > 0 {
-			type userID struct {
-				Value uint32 `gorm:"Column:user_id"`
-			}
+			userId := services.DB.FetchUserIdBySession(sid)
 
-			var uid userID
-
-			services.DB.
-				Table("sessions2").
-				Select("user_id").
-				Where("code = ?", sid).
-				First(&uid)
-
-			ctx.Set(gin.AuthUserKey, uid.Value)
+			ctx.Set(gin.AuthUserKey, userId)
 		} else {
 			ctx.Set(gin.AuthUserKey, 0)
 		}

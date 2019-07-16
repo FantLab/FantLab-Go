@@ -20,7 +20,7 @@ func NewController(services *shared.Services) *Controller {
 }
 
 func (c *Controller) ShowForums(ctx *gin.Context) {
-	dbForums, err := fetchForums(c.services.DB, c.services.Config.DefaultAccessToForums)
+	dbForums, err := c.services.DB.FetchForums(c.services.Config.DefaultAccessToForums)
 
 	if err != nil {
 		utils.ShowProto(ctx, http.StatusInternalServerError, &pb.Error_Response{
@@ -29,7 +29,7 @@ func (c *Controller) ShowForums(ctx *gin.Context) {
 		return
 	}
 
-	dbModerators, err := fetchModerators(c.services.DB)
+	dbModerators, err := c.services.DB.FetchModerators()
 
 	if err != nil {
 		utils.ShowProto(ctx, http.StatusInternalServerError, &pb.Error_Response{
@@ -76,8 +76,7 @@ func (c *Controller) ShowForumTopics(ctx *gin.Context) {
 
 	offset := limit * (page - 1)
 
-	dbForumTopics, err := fetchForumTopics(
-		c.services.DB,
+	dbForumTopics, err := c.services.DB.FetchForumTopics(
 		c.services.Config.DefaultAccessToForums,
 		uint16(forumID),
 		uint32(limit),
@@ -136,8 +135,7 @@ func (c *Controller) ShowTopicMessages(ctx *gin.Context) {
 
 	offset := limit * (page - 1)
 
-	dbShortForumTopic, dbTopicMessages, err := fetchTopicMessages(
-		c.services.DB,
+	dbShortForumTopic, dbTopicMessages, err := c.services.DB.FetchTopicMessages(
 		c.services.Config.DefaultAccessToForums,
 		uint32(topicID),
 		uint32(limit),

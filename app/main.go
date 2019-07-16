@@ -5,6 +5,7 @@ import (
 	"os"
 
 	"fantlab/config"
+	"fantlab/db"
 	"fantlab/logger"
 	"fantlab/routing"
 	"fantlab/shared"
@@ -15,25 +16,25 @@ import (
 )
 
 func main() {
-	db, err := gorm.Open("mysql", os.Getenv("MYSQL_URL"))
+	orm, err := gorm.Open("mysql", os.Getenv("MYSQL_URL"))
 	if err != nil {
 		log.Fatal(err)
 	}
 	defer func() {
-		err := db.Close()
+		err := orm.Close()
 		if err != nil {
 			log.Println(err)
 		}
 	}()
 
-	db.SetLogger(logger.GormLogger)
-	db.LogMode(true)
+	orm.SetLogger(logger.GormLogger)
+	orm.LogMode(true)
 
 	configuration := config.ParseConfig(os.Getenv("CONFIG_FILE"))
 
 	services := &shared.Services{
 		Config:       configuration,
-		DB:           db,
+		DB:           &db.DB{ORM: orm},
 		UrlFormatter: utils.UrlFormatter{Config: &configuration},
 	}
 

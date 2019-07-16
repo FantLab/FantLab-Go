@@ -1,11 +1,12 @@
 package blogsapi
 
 import (
+	"fantlab/db"
 	"fantlab/pb"
 	"fantlab/utils"
 )
 
-func getCommunities(dbCommunities []dbCommunity, urlFormatter utils.UrlFormatter) *pb.Blog_CommunitiesResponse {
+func getCommunities(dbCommunities []db.Community, urlFormatter utils.UrlFormatter) *pb.Blog_CommunitiesResponse {
 	var mainCommunities []*pb.Blog_Community
 	var additionalCommunities []*pb.Blog_Community
 
@@ -49,11 +50,12 @@ func getCommunities(dbCommunities []dbCommunity, urlFormatter utils.UrlFormatter
 	}
 }
 
-func getCommunity(dbCommunity dbCommunity,
-	dbModerators []dbModerator,
-	dbAuthors []dbAuthor,
-	dbTopics []dbTopic,
+func getCommunity(dbCommunity db.Community,
+	dbModerators []db.CommunityModerator,
+	dbAuthors []db.CommunityAuthor,
+	dbTopics []db.BlogTopic,
 	urlFormatter utils.UrlFormatter) *pb.Blog_CommunityResponse {
+
 	communityAvatar := urlFormatter.GetCommunityAvatarUrl(dbCommunity.BlogId)
 
 	community := &pb.Blog_Community{
@@ -134,7 +136,7 @@ func getCommunity(dbCommunity dbCommunity,
 	}
 }
 
-func getBlogs(dbBlogs []dbBlog, urlFormatter utils.UrlFormatter) *pb.Blog_BlogsResponse {
+func getBlogs(dbBlogs []db.Blog, urlFormatter utils.UrlFormatter) *pb.Blog_BlogsResponse {
 	//noinspection GoPreferNilSlice
 	var blogs = []*pb.Blog_Blog{}
 
@@ -171,7 +173,7 @@ func getBlogs(dbBlogs []dbBlog, urlFormatter utils.UrlFormatter) *pb.Blog_BlogsR
 	}
 }
 
-func getBlog(dbBlogTopics []dbTopic, urlFormatter utils.UrlFormatter) *pb.Blog_BlogResponse {
+func getBlog(dbBlogTopics []db.BlogTopic, urlFormatter utils.UrlFormatter) *pb.Blog_BlogResponse {
 	//noinspection GoPreferNilSlice
 	var articles = []*pb.Blog_Article{}
 
