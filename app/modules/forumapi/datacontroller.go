@@ -1,11 +1,12 @@
 package forumapi
 
 import (
+	"fantlab/db"
 	"fantlab/pb"
 	"fantlab/utils"
 )
 
-func getForumBlocks(dbForums []dbForum, dbModerators map[uint32][]dbModerator, urlFormatter utils.UrlFormatter) *pb.Forum_ForumBlocksResponse {
+func getForumBlocks(dbForums []db.Forum, dbModerators map[uint32][]db.ForumModerator, urlFormatter utils.UrlFormatter) *pb.Forum_ForumBlocksResponse {
 	var forumBlocks []*pb.Forum_ForumBlock
 
 	currentForumBlockID := uint32(0) // f_forum_block.id начинаются с 1
@@ -81,7 +82,7 @@ func getForumBlocks(dbForums []dbForum, dbModerators map[uint32][]dbModerator, u
 	}
 }
 
-func getForumTopics(dbTopics []dbForumTopic, urlFormatter utils.UrlFormatter) *pb.Forum_ForumTopicsResponse {
+func getForumTopics(dbTopics []db.ForumTopic, urlFormatter utils.UrlFormatter) *pb.Forum_ForumTopicsResponse {
 	//noinspection GoPreferNilSlice
 	topics := []*pb.Forum_Topic{}
 
@@ -139,7 +140,7 @@ func getForumTopics(dbTopics []dbForumTopic, urlFormatter utils.UrlFormatter) *p
 	}
 }
 
-func getTopic(shortTopic dbShortForumTopic, dbMessages []dbForumMessage, urlFormatter utils.UrlFormatter) *pb.Forum_TopicResponse {
+func getTopic(shortTopic db.ShortForumTopic, dbMessages []db.ForumMessage, urlFormatter utils.UrlFormatter) *pb.Forum_TopicResponse {
 	topic := &pb.Forum_Topic{
 		Id:    shortTopic.TopicID,
 		Title: shortTopic.TopicName,

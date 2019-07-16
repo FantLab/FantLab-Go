@@ -1,11 +1,13 @@
-package forumapi
+package db
 
-import "github.com/jinzhu/gorm"
+import (
+	"time"
+)
 
-func fetchForums(db *gorm.DB, availableForums []uint16) ([]dbForum, error) {
-	var forums []dbForum
+func (db *DB) FetchForums(availableForums []uint16) ([]Forum, error) {
+	var forums []Forum
 
-	err := db.Table("f_forums f").
+	err := db.ORM.Table("f_forums f").
 		Select("f.forum_id, "+
 			"f.name, "+
 			"f.description, "+
@@ -37,12 +39,12 @@ func fetchForums(db *gorm.DB, availableForums []uint16) ([]dbForum, error) {
 	return forums, nil
 }
 
-func fetchModerators(db *gorm.DB) (map[uint32][]dbModerator, error) {
-	moderatorsMap := map[uint32][]dbModerator{}
+func (db *DB) FetchModerators() (map[uint32][]ForumModerator, error) {
+	moderatorsMap := map[uint32][]ForumModerator{}
 
-	var moderators []dbModerator
+	var moderators []ForumModerator
 
-	err := db.Table("f_moderators md").
+	err := db.ORM.Table("f_moderators md").
 		Select("u.user_id, " +
 			"u.login, " +
 			"u.sex, " +
@@ -65,10 +67,10 @@ func fetchModerators(db *gorm.DB) (map[uint32][]dbModerator, error) {
 	return moderatorsMap, nil
 }
 
-func fetchForumTopics(db *gorm.DB, availableForums []uint16, forumID uint16, limit, offset uint32) ([]dbForumTopic, error) {
-	var forum dbForum
+func (db *DB) FetchForumTopics(availableForums []uint16, forumID uint16, limit, offset uint32) ([]ForumTopic, error) {
+	var forum Forum
 
-	err := db.Table("f_forums").
+	err := db.ORM.Table("f_forums").
 		First(&forum, "forum_id = ? AND forum_id IN (?)", forumID, availableForums).
 		Error
 
@@ -76,9 +78,9 @@ func fetchForumTopics(db *gorm.DB, availableForums []uint16, forumID uint16, lim
 		return nil, err
 	}
 
-	var topics []dbForumTopic
+	var topics []ForumTopic
 
-	err = db.Table("f_topics t").
+	err = db.ORM.Table("f_topics t").
 		Select("t.topic_id, "+
 			"t.name, "+
 			"t.date_of_add, "+
@@ -115,10 +117,10 @@ func fetchForumTopics(db *gorm.DB, availableForums []uint16, forumID uint16, lim
 	return topics, nil
 }
 
-func fetchTopicMessages(db *gorm.DB, availableForums []uint16, topicID, limit, offset uint32) (dbShortForumTopic, []dbForumMessage, error) {
-	var shortTopic dbShortForumTopic
+func (db *DB) FetchTopicMessages(availableForums []uint16, topicID, limit, offset uint32) (ShortForumTopic, []ForumMessage, error) {
+	var shortTopic ShortForumTopic
 
-	err := db.Table("f_topics t").
+	err := db.ORM.Table("f_topics t").
 		Select("t.topic_id, "+
 			"t.name AS topic_name, "+
 			"f.forum_id, "+
@@ -129,15 +131,15 @@ func fetchTopicMessages(db *gorm.DB, availableForums []uint16, topicID, limit, o
 		Error
 
 	if err != nil {
-		return dbShortForumTopic{}, nil, err
+		return ShortForumTopic{}, nil, err
 	}
 
-	var messages []dbForumMessage
+	var messages []ForumMessage
 
 	// todo не нужны ли какие-нибудь доп. манипуляции с полем number при чтении
 	//  (например, при переносе сообщений между темами)?
 	//  https://github.com/parserpro/fantlab/blob/HEAD@%7B2019-06-17T18:16:10Z%7D/pm/Forum.pm#L1011
-	err = db.Table("f_messages f").
+	err = db.ORM.Table("f_messages f").
 		Select("f.message_id, "+
 			"f.date_of_add, "+
 			"f.user_id, "+
@@ -159,8 +161,86 @@ func fetchTopicMessages(db *gorm.DB, availableForums []uint16, topicID, limit, o
 		Error
 
 	if err != nil {
-		return dbShortForumTopic{}, nil, err
+		return ShortForumTopic{}, nil, err
 	}
 
 	return shortTopic, messages, nil
+}
+
+// Форум
+type Forum struct {
+	ForumID         uint32
+	Name            string
+	Description     string
+	TopicCount      uint32
+	MessageCount    uint32
+	LastTopicID     uint32
+	LastTopicName   string
+	UserID          uint32
+	Login           string
+	Sex             uint8
+	PhotoNumber     uint32
+	LastMessageID   uint32
+	LastMessageText string
+	LastMessageDate time.Time
+	ForumBlockID    uint32
+	ForumBlockName  string
+}
+
+// Тема
+type ForumTopic struct {
+	TopicID         uint32
+	Name            string
+	DateOfAdd       time.Time
+	Views           uint32
+	UserID          uint32
+	Login           string
+	Sex             uint8
+	PhotoNumber     uint32
+	TopicTypeID     uint32
+	IsClosed        bool
+	IsPinned        bool
+	MessageCount    uint32
+	LastMessageID   uint32
+	LastUserID      uint32
+	LastLogin       string
+	LastSex         uint8
+	LastPhotoNumber uint32
+	LastMessageText string
+	LastMessageDate time.Time
+}
+
+// Краткие данные о теме
+type ShortForumTopic struct {
+	TopicID   uint32
+	TopicName string
+	ForumID   uint32
+	ForumName string
+}
+
+// Сообщение
+type ForumMessage struct {
+	MessageID   uint32
+	DateOfAdd   time.Time
+	UserID      uint32
+	Login       string
+	Sex         uint8
+	PhotoNumber uint32
+	UserClass   uint8
+	Sign        string
+	MessageText string
+	IsCensored  bool
+	IsRed       bool
+	VotePlus    uint32
+	VoteMinus   uint32
+}
+
+// Модератор
+type ForumModerator struct {
+	UserID      uint32
+	Login       string
+	Sex         uint8
+	PhotoNumber uint32
+	ForumID     uint32
+	Sort        float32
 }

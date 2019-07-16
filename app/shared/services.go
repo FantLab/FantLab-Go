@@ -2,13 +2,12 @@ package shared
 
 import (
 	"fantlab/config"
+	"fantlab/db"
 	"fantlab/utils"
-
-	"github.com/jinzhu/gorm"
 )
 
 type Services struct {
 	Config       config.Config
-	DB           *gorm.DB
+	DB           *db.DB
 	UrlFormatter utils.UrlFormatter
 }

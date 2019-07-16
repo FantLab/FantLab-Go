@@ -3,18 +3,17 @@
 PACKAGE=$1
 
 if [ -z $PACKAGE ]; then
-    echo "Usage: make_module.sh package_name"
+    echo "Usage: make_api_module.sh <package_name>"
     exit 1
 fi
 
 cd app
 cd modules
 mkdir -p $PACKAGE && cd $PACKAGE
-for FILE in datacontroller dbcontroller dbmodels; do
-    if [ ! -f "$FILE.go" ]; then
-        echo "package $PACKAGE" > "$FILE.go"
-    fi
-done
+
+if [ ! -f "datacontroller.go" ]; then
+	echo "package $PACKAGE" > "datacontroller.go"
+fi
 
 if [ ! -f "api.go" ]; then
 cat > api.go << EOF
@@ -41,4 +40,4 @@ func (c *Controller) DeleteMe(ctx *gin.Context) {
 EOF
 fi
 
-echo "Module $PACKAGE has been successfully created!"
+echo "API module $PACKAGE has been successfully created!"

@@ -32,7 +32,7 @@ func (c *Controller) Login(ctx *gin.Context) {
 	userName := ctx.PostForm("login")
 	password := ctx.PostForm("password")
 
-	userData, err := fetchUserPasswordHash(c.services.DB, userName)
+	userData, err := c.services.DB.FetchUserPasswordHash(userName)
 
 	if err != nil {
 		if utils.IsRecordNotFoundError(err) {
@@ -63,7 +63,7 @@ func (c *Controller) Login(ctx *gin.Context) {
 
 	sid := utils.GenerateUniqueId()
 
-	err = insertNewSession(c.services.DB, sid, userData.UserID, ctx.ClientIP(), ctx.Request.UserAgent())
+	err = c.services.DB.InsertNewSession(sid, userData.UserID, ctx.ClientIP(), ctx.Request.UserAgent())
 
 	if err != nil {
 		utils.ShowProto(ctx, http.StatusInternalServerError, &pb.Error_Response{

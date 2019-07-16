@@ -1,11 +1,13 @@
-package blogsapi
+package db
 
-import "github.com/jinzhu/gorm"
+import (
+	"time"
+)
 
-func fetchCommunities(db *gorm.DB) ([]dbCommunity, error) {
-	var communities []dbCommunity
+func (db *DB) FetchCommunities() ([]Community, error) {
+	var communities []Community
 
-	err := db.Table("b_blogs b").
+	err := db.ORM.Table("b_blogs b").
 		Select("b.blog_id, " +
 			"b.name, " +
 			"b.description, " +
@@ -32,10 +34,10 @@ func fetchCommunities(db *gorm.DB) ([]dbCommunity, error) {
 	return communities, nil
 }
 
-func fetchCommunity(db *gorm.DB, communityID, limit, offset uint32) (dbCommunity, []dbModerator, []dbAuthor, []dbTopic, error) {
-	var community dbCommunity
+func (db *DB) FetchCommunity(communityID, limit, offset uint32) (Community, []CommunityModerator, []CommunityAuthor, []BlogTopic, error) {
+	var community Community
 
-	err := db.Table("b_blogs").
+	err := db.ORM.Table("b_blogs").
 		Select("blog_id, "+
 			"name, "+
 			"rules").
@@ -44,12 +46,12 @@ func fetchCommunity(db *gorm.DB, communityID, limit, offset uint32) (dbCommunity
 		Error
 
 	if err != nil {
-		return dbCommunity{}, nil, nil, nil, err
+		return Community{}, nil, nil, nil, err
 	}
 
-	var moderators []dbModerator
+	var moderators []CommunityModerator
 
-	err = db.Table("b_community_moderators cm").
+	err = db.ORM.Table("b_community_moderators cm").
 		Select("cm.user_id, "+
 			"u.login, "+
 			"u.sex, "+
@@ -61,12 +63,12 @@ func fetchCommunity(db *gorm.DB, communityID, limit, offset uint32) (dbCommunity
 		Error
 
 	if err != nil {
-		return dbCommunity{}, nil, nil, nil, err
+		return Community{}, nil, nil, nil, err
 	}
 
-	var authors []dbAuthor
+	var authors []CommunityAuthor
 
-	err = db.Table("b_community_users cu").
+	err = db.ORM.Table("b_community_users cu").
 		Select("cu.user_id, "+
 			"cu.date_of_add, "+
 			"u.login, "+
@@ -79,12 +81,12 @@ func fetchCommunity(db *gorm.DB, communityID, limit, offset uint32) (dbCommunity
 		Error
 
 	if err != nil {
-		return dbCommunity{}, nil, nil, nil, err
+		return Community{}, nil, nil, nil, err
 	}
 
-	var topics []dbTopic
+	var topics []BlogTopic
 
-	err = db.Table("b_topics b").
+	err = db.ORM.Table("b_topics b").
 		Select("b.topic_id, "+
 			"b.head_topic, "+
 			"b.date_of_add, "+
@@ -107,14 +109,14 @@ func fetchCommunity(db *gorm.DB, communityID, limit, offset uint32) (dbCommunity
 		Error
 
 	if err != nil {
-		return dbCommunity{}, nil, nil, nil, err
+		return Community{}, nil, nil, nil, err
 	}
 
 	return community, moderators, authors, topics, nil
 }
 
-func fetchBlogs(db *gorm.DB, limit, offset uint32, sort string) ([]dbBlog, error) {
-	var blogs []dbBlog
+func (db *DB) FetchBlogs(limit, offset uint32, sort string) ([]Blog, error) {
+	var blogs []Blog
 
 	var sortOption string
 	switch sort {
@@ -126,7 +128,7 @@ func fetchBlogs(db *gorm.DB, limit, offset uint32, sort string) ([]dbBlog, error
 		sortOption = "b.last_topic_date"
 	}
 
-	err := db.Table("b_blogs b").
+	err := db.ORM.Table("b_blogs b").
 		Select("b.blog_id, " +
 			"u.user_id, " +
 			"u.login, " +
@@ -154,10 +156,10 @@ func fetchBlogs(db *gorm.DB, limit, offset uint32, sort string) ([]dbBlog, error
 	return blogs, nil
 }
 
-func fetchBlog(db *gorm.DB, blogID, limit, offset uint32) ([]dbTopic, error) {
-	var blog dbBlog
+func (db *DB) FetchBlog(blogID, limit, offset uint32) ([]BlogTopic, error) {
+	var blog Blog
 
-	err := db.Table("b_blogs").
+	err := db.ORM.Table("b_blogs").
 		First(blog, "blog_id = ? AND is_community = 0", blogID).
 		Error
 
@@ -165,9 +167,9 @@ func fetchBlog(db *gorm.DB, blogID, limit, offset uint32) ([]dbTopic, error) {
 		return nil, err
 	}
 
-	var topics []dbTopic
+	var topics []BlogTopic
 
-	err = db.Table("b_topics b").
+	err = db.ORM.Table("b_topics b").
 		Select("b.topic_id, "+
 			"b.head_topic, "+
 			"b.date_of_add, "+
@@ -194,4 +196,71 @@ func fetchBlog(db *gorm.DB, blogID, limit, offset uint32) ([]dbTopic, error) {
 	}
 
 	return topics, nil
+}
+
+// Рубрика
+type Community struct {
+	BlogId          uint32
+	Name            string
+	Description     string
+	Rules           string
+	TopicsCount     uint32
+	IsPublic        bool
+	LastTopicDate   time.Time
+	LastTopicHead   string
+	LastTopicId     uint32
+	SubscriberCount uint32
+	LastUserId      uint32
+	LastLogin       string
+	LastSex         uint8
+	LastPhotoNumber uint32
+}
+
+// Модератор рубрики
+type CommunityModerator struct {
+	UserID      uint32
+	Login       string
+	Sex         uint8
+	PhotoNumber uint32
+}
+
+// Автор рубрики
+type CommunityAuthor struct {
+	UserID      uint32
+	DateOfAdd   time.Time
+	Login       string
+	Sex         uint8
+	PhotoNumber uint32
+}
+
+// Авторская колонка
+type Blog struct {
+	BlogId          uint32
+	UserId          uint32
+	Login           string
+	Fio             string
+	Sex             uint8
+	PhotoNumber     uint32
+	TopicsCount     uint32
+	SubscriberCount uint32
+	IsClose         bool
+	LastTopicDate   time.Time
+	LastTopicHead   string
+	LastTopicId     uint32
+}
+
+// Статья
+type BlogTopic struct {
+	TopicId       uint32
+	HeadTopic     string
+	DateOfAdd     time.Time
+	UserId        uint32
+	Login         string
+	Sex           uint8
+	PhotoNumber   uint16
+	MessageText   string
+	Tags          string
+	LikesCount    uint32
+	Views         uint32
+	CommentsCount uint32
 }
