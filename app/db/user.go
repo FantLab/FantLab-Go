@@ -4,6 +4,27 @@ import (
 	"time"
 )
 
+type UserPasswordHash struct {
+	UserID  uint32
+	OldHash string `gorm:"Column:password_hash"`
+	NewHash string `gorm:"Column:new_password_hash"`
+}
+
+type UserSession struct {
+	SessionID        uint32 `gorm:"AUTO_INCREMENT"`
+	Code             string
+	UserID           uint32
+	UserIP           string
+	UserAgent        string
+	DateOfCreate     time.Time
+	DateOfLastAction time.Time
+	Hits             uint32
+}
+
+type userID struct {
+	Value uint32 `gorm:"Column:user_id"`
+}
+
 func (db *DB) FetchUserIdBySession(sid string) uint32 {
 	var uid userID
 
@@ -53,25 +74,4 @@ func (db *DB) InsertNewSession(code string, userID uint32, userIP string, userAg
 		Error
 
 	return err
-}
-
-type UserPasswordHash struct {
-	UserID  uint32
-	OldHash string `gorm:"Column:password_hash"`
-	NewHash string `gorm:"Column:new_password_hash"`
-}
-
-type UserSession struct {
-	SessionID        uint32 `gorm:"AUTO_INCREMENT"`
-	Code             string
-	UserID           uint32
-	UserIP           string
-	UserAgent        string
-	DateOfCreate     time.Time
-	DateOfLastAction time.Time
-	Hits             uint32
-}
-
-type userID struct {
-	Value uint32 `gorm:"Column:user_id"`
 }

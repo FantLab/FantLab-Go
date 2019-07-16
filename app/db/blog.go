@@ -4,6 +4,68 @@ import (
 	"time"
 )
 
+type Community struct {
+	BlogId          uint32
+	Name            string
+	Description     string
+	Rules           string
+	TopicsCount     uint32
+	IsPublic        bool
+	LastTopicDate   time.Time
+	LastTopicHead   string
+	LastTopicId     uint32
+	SubscriberCount uint32
+	LastUserId      uint32
+	LastLogin       string
+	LastSex         uint8
+	LastPhotoNumber uint32
+}
+
+type CommunityModerator struct {
+	UserID      uint32
+	Login       string
+	Sex         uint8
+	PhotoNumber uint32
+}
+
+type CommunityAuthor struct {
+	UserID      uint32
+	DateOfAdd   time.Time
+	Login       string
+	Sex         uint8
+	PhotoNumber uint32
+}
+
+type Blog struct {
+	BlogId          uint32
+	UserId          uint32
+	Login           string
+	Fio             string
+	Sex             uint8
+	PhotoNumber     uint32
+	TopicsCount     uint32
+	SubscriberCount uint32
+	IsClose         bool
+	LastTopicDate   time.Time
+	LastTopicHead   string
+	LastTopicId     uint32
+}
+
+type BlogTopic struct {
+	TopicId       uint32
+	HeadTopic     string
+	DateOfAdd     time.Time
+	UserId        uint32
+	Login         string
+	Sex           uint8
+	PhotoNumber   uint16
+	MessageText   string
+	Tags          string
+	LikesCount    uint32
+	Views         uint32
+	CommentsCount uint32
+}
+
 func (db *DB) FetchCommunities() ([]Community, error) {
 	var communities []Community
 
@@ -196,71 +258,4 @@ func (db *DB) FetchBlog(blogID, limit, offset uint32) ([]BlogTopic, error) {
 	}
 
 	return topics, nil
-}
-
-// Рубрика
-type Community struct {
-	BlogId          uint32
-	Name            string
-	Description     string
-	Rules           string
-	TopicsCount     uint32
-	IsPublic        bool
-	LastTopicDate   time.Time
-	LastTopicHead   string
-	LastTopicId     uint32
-	SubscriberCount uint32
-	LastUserId      uint32
-	LastLogin       string
-	LastSex         uint8
-	LastPhotoNumber uint32
-}
-
-// Модератор рубрики
-type CommunityModerator struct {
-	UserID      uint32
-	Login       string
-	Sex         uint8
-	PhotoNumber uint32
-}
-
-// Автор рубрики
-type CommunityAuthor struct {
-	UserID      uint32
-	DateOfAdd   time.Time
-	Login       string
-	Sex         uint8
-	PhotoNumber uint32
-}
-
-// Авторская колонка
-type Blog struct {
-	BlogId          uint32
-	UserId          uint32
-	Login           string
-	Fio             string
-	Sex             uint8
-	PhotoNumber     uint32
-	TopicsCount     uint32
-	SubscriberCount uint32
-	IsClose         bool
-	LastTopicDate   time.Time
-	LastTopicHead   string
-	LastTopicId     uint32
-}
-
-// Статья
-type BlogTopic struct {
-	TopicId       uint32
-	HeadTopic     string
-	DateOfAdd     time.Time
-	UserId        uint32
-	Login         string
-	Sex           uint8
-	PhotoNumber   uint16
-	MessageText   string
-	Tags          string
-	LikesCount    uint32
-	Views         uint32
-	CommentsCount uint32
 }
