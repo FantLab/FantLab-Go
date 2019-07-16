@@ -12,8 +12,6 @@
   "go.formatTool": "goimports",
   "go.lintTool": "golangci-lint",
   "go.lintFlags": [
-    "--fast",
-    // "-E",
-    // "maligned"
+    "--fast"
   ],
 }
