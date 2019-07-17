@@ -38,7 +38,7 @@ func (c *Controller) ShowForums(ctx *gin.Context) {
 		return
 	}
 
-	forumBlocks := getForumBlocks(dbForums, dbModerators, c.services.UrlFormatter)
+	forumBlocks := getForumBlocks(dbForums, dbModerators, c.services.Config)
 	utils.ShowProto(ctx, http.StatusOK, forumBlocks)
 }
 
@@ -97,7 +97,7 @@ func (c *Controller) ShowForumTopics(ctx *gin.Context) {
 		return
 	}
 
-	forumTopics := getForumTopics(dbForumTopics, c.services.UrlFormatter)
+	forumTopics := getForumTopics(dbForumTopics, c.services.Config)
 	utils.ShowProto(ctx, http.StatusOK, forumTopics)
 }
 
@@ -156,6 +156,6 @@ func (c *Controller) ShowTopicMessages(ctx *gin.Context) {
 		return
 	}
 
-	topicMessages := getTopic(dbShortForumTopic, dbTopicMessages, c.services.UrlFormatter)
+	topicMessages := getTopic(dbShortForumTopic, dbTopicMessages, c.services.Config)
 	utils.ShowProto(ctx, http.StatusOK, topicMessages)
 }

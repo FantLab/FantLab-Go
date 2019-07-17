@@ -3,10 +3,11 @@ package forumapi
 import (
 	"fantlab/db"
 	"fantlab/pb"
+	"fantlab/shared"
 	"fantlab/utils"
 )
 
-func getForumBlocks(dbForums []db.Forum, dbModerators map[uint32][]db.ForumModerator, urlFormatter utils.UrlFormatter) *pb.Forum_ForumBlocksResponse {
+func getForumBlocks(dbForums []db.Forum, dbModerators map[uint32][]db.ForumModerator, cfg *shared.AppConfig) *pb.Forum_ForumBlocksResponse {
 	var forumBlocks []*pb.Forum_ForumBlock
 
 	currentForumBlockID := uint32(0) // f_forum_block.id начинаются с 1
@@ -30,7 +31,7 @@ func getForumBlocks(dbForums []db.Forum, dbModerators map[uint32][]db.ForumModer
 
 				for _, dbModerator := range dbModerators[dbForum.ForumID] {
 					gender := utils.GetGender(dbModerator.UserID, dbModerator.Sex)
-					avatar := urlFormatter.GetUserAvatarUrl(dbModerator.UserID, dbModerator.PhotoNumber)
+					avatar := utils.GetUserAvatarUrl(cfg.ImagesBaseURL, dbModerator.UserID, dbModerator.PhotoNumber)
 
 					userLink := &pb.Common_UserLink{
 						Id:     dbModerator.UserID,
@@ -42,7 +43,7 @@ func getForumBlocks(dbForums []db.Forum, dbModerators map[uint32][]db.ForumModer
 				}
 
 				gender := utils.GetGender(dbForum.UserID, dbForum.Sex)
-				avatar := urlFormatter.GetUserAvatarUrl(dbForum.UserID, dbForum.PhotoNumber)
+				avatar := utils.GetUserAvatarUrl(cfg.ImagesBaseURL, dbForum.UserID, dbForum.PhotoNumber)
 
 				forum := pb.Forum_Forum{
 					Id:               dbForum.ForumID,
@@ -82,7 +83,7 @@ func getForumBlocks(dbForums []db.Forum, dbModerators map[uint32][]db.ForumModer
 	}
 }
 
-func getForumTopics(dbTopics []db.ForumTopic, urlFormatter utils.UrlFormatter) *pb.Forum_ForumTopicsResponse {
+func getForumTopics(dbTopics []db.ForumTopic, cfg *shared.AppConfig) *pb.Forum_ForumTopicsResponse {
 	//noinspection GoPreferNilSlice
 	topics := []*pb.Forum_Topic{}
 
@@ -95,10 +96,10 @@ func getForumTopics(dbTopics []db.ForumTopic, urlFormatter utils.UrlFormatter) *
 		}
 
 		creationUserGender := utils.GetGender(dbTopic.UserID, dbTopic.Sex)
-		creationUserAvatar := urlFormatter.GetUserAvatarUrl(dbTopic.UserID, dbTopic.PhotoNumber)
+		creationUserAvatar := utils.GetUserAvatarUrl(cfg.ImagesBaseURL, dbTopic.UserID, dbTopic.PhotoNumber)
 
 		lastMessageUserGender := utils.GetGender(dbTopic.LastUserID, dbTopic.LastSex)
-		lastMessageUserAvatar := urlFormatter.GetUserAvatarUrl(dbTopic.LastUserID, dbTopic.LastPhotoNumber)
+		lastMessageUserAvatar := utils.GetUserAvatarUrl(cfg.ImagesBaseURL, dbTopic.LastUserID, dbTopic.LastPhotoNumber)
 
 		topic := &pb.Forum_Topic{
 			Id:        dbTopic.TopicID,
@@ -140,7 +141,7 @@ func getForumTopics(dbTopics []db.ForumTopic, urlFormatter utils.UrlFormatter) *
 	}
 }
 
-func getTopic(shortTopic db.ShortForumTopic, dbMessages []db.ForumMessage, urlFormatter utils.UrlFormatter) *pb.Forum_TopicResponse {
+func getTopic(shortTopic db.ShortForumTopic, dbMessages []db.ForumMessage, cfg *shared.AppConfig) *pb.Forum_TopicResponse {
 	topic := &pb.Forum_Topic{
 		Id:    shortTopic.TopicID,
 		Title: shortTopic.TopicName,
@@ -162,7 +163,7 @@ func getTopic(shortTopic db.ShortForumTopic, dbMessages []db.ForumMessage, urlFo
 		}
 
 		gender := utils.GetGender(dbMessage.UserID, dbMessage.Sex)
-		avatar := urlFormatter.GetUserAvatarUrl(dbMessage.UserID, dbMessage.PhotoNumber)
+		avatar := utils.GetUserAvatarUrl(cfg.ImagesBaseURL, dbMessage.UserID, dbMessage.PhotoNumber)
 
 		message := &pb.Forum_TopicMessage{
 			Id: dbMessage.MessageID,
