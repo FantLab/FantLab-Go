@@ -4,12 +4,10 @@ import (
 	"log"
 	"os"
 
-	"fantlab/config"
 	"fantlab/db"
 	"fantlab/logger"
 	"fantlab/routing"
 	"fantlab/shared"
-	"fantlab/utils"
 
 	"github.com/jinzhu/gorm"
 	_ "github.com/jinzhu/gorm/dialects/mysql"
@@ -30,17 +28,25 @@ func main() {
 	orm.SetLogger(logger.GormLogger)
 	orm.LogMode(true)
 
-	configuration := config.ParseConfig(os.Getenv("CONFIG_FILE"))
-
 	services := &shared.Services{
-		Config:       configuration,
-		DB:           &db.DB{ORM: orm},
-		UrlFormatter: utils.UrlFormatter{Config: &configuration},
+		Config: makeConfig(os.Getenv("IMAGES_BASE_URL")),
+		DB:     &db.DB{ORM: orm},
 	}
 
 	router := routing.SetupWith(services)
 
 	if err := router.Run(":" + os.Getenv("PORT")); err != nil {
 		log.Fatal(err)
+	}
+}
+
+func makeConfig(imagesBaseURL string) *shared.AppConfig {
+	return &shared.AppConfig{
+		ImagesBaseURL:         imagesBaseURL,
+		BlogsInPage:           50,
+		BlogTopicsInPage:      5,
+		ForumTopicsInPage:     20,
+		ForumMessagesInPage:   20,
+		DefaultAccessToForums: []uint16{1, 2, 3, 5, 6, 7, 8, 10, 12, 13, 14, 15, 16, 17, 20, 22},
 	}
 }

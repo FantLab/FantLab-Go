@@ -29,7 +29,7 @@ func (c *Controller) ShowCommunities(ctx *gin.Context) {
 		return
 	}
 
-	communities := getCommunities(dbCommunities, c.services.UrlFormatter)
+	communities := getCommunities(dbCommunities, c.services.Config)
 	utils.ShowProto(ctx, http.StatusOK, communities)
 }
 
@@ -84,7 +84,7 @@ func (c *Controller) ShowCommunity(ctx *gin.Context) {
 		return
 	}
 
-	community := getCommunity(dbCommunity, dbModerators, dbAuthors, dbTopics, c.services.UrlFormatter)
+	community := getCommunity(dbCommunity, dbModerators, dbAuthors, dbTopics, c.services.Config)
 	utils.ShowProto(ctx, http.StatusOK, community)
 }
 
@@ -122,7 +122,7 @@ func (c *Controller) ShowBlogs(ctx *gin.Context) {
 		return
 	}
 
-	blogs := getBlogs(dbBlogs, c.services.UrlFormatter)
+	blogs := getBlogs(dbBlogs, c.services.Config)
 	utils.ShowProto(ctx, http.StatusOK, blogs)
 }
 
@@ -176,6 +176,6 @@ func (c *Controller) ShowBlog(ctx *gin.Context) {
 		return
 	}
 
-	blog := getBlog(dbBlogTopics, c.services.UrlFormatter)
+	blog := getBlog(dbBlogTopics, c.services.Config)
 	utils.ShowProto(ctx, http.StatusOK, blog)
 }

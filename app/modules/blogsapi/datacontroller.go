@@ -3,17 +3,18 @@ package blogsapi
 import (
 	"fantlab/db"
 	"fantlab/pb"
+	"fantlab/shared"
 	"fantlab/utils"
 )
 
-func getCommunities(dbCommunities []db.Community, urlFormatter utils.UrlFormatter) *pb.Blog_CommunitiesResponse {
+func getCommunities(dbCommunities []db.Community, cfg *shared.AppConfig) *pb.Blog_CommunitiesResponse {
 	var mainCommunities []*pb.Blog_Community
 	var additionalCommunities []*pb.Blog_Community
 
 	for _, dbCommunity := range dbCommunities {
 		userGender := utils.GetGender(dbCommunity.LastUserId, dbCommunity.LastSex)
-		userAvatar := urlFormatter.GetUserAvatarUrl(dbCommunity.LastUserId, dbCommunity.LastPhotoNumber)
-		communityAvatar := urlFormatter.GetCommunityAvatarUrl(dbCommunity.BlogId)
+		userAvatar := utils.GetUserAvatarUrl(cfg.ImagesBaseURL, dbCommunity.LastUserId, dbCommunity.LastPhotoNumber)
+		communityAvatar := utils.GetCommunityAvatarUrl(cfg.ImagesBaseURL, dbCommunity.BlogId)
 
 		community := &pb.Blog_Community{
 			Id:                   dbCommunity.BlogId,
@@ -54,9 +55,9 @@ func getCommunity(dbCommunity db.Community,
 	dbModerators []db.CommunityModerator,
 	dbAuthors []db.CommunityAuthor,
 	dbTopics []db.BlogTopic,
-	urlFormatter utils.UrlFormatter) *pb.Blog_CommunityResponse {
+	cfg *shared.AppConfig) *pb.Blog_CommunityResponse {
 
-	communityAvatar := urlFormatter.GetCommunityAvatarUrl(dbCommunity.BlogId)
+	communityAvatar := utils.GetCommunityAvatarUrl(cfg.ImagesBaseURL, dbCommunity.BlogId)
 
 	community := &pb.Blog_Community{
 		Id:     dbCommunity.BlogId,
@@ -69,7 +70,7 @@ func getCommunity(dbCommunity db.Community,
 
 	for _, dbModerator := range dbModerators {
 		gender := utils.GetGender(dbModerator.UserID, dbModerator.Sex)
-		avatar := urlFormatter.GetUserAvatarUrl(dbModerator.UserID, dbModerator.PhotoNumber)
+		avatar := utils.GetUserAvatarUrl(cfg.ImagesBaseURL, dbModerator.UserID, dbModerator.PhotoNumber)
 
 		moderator := &pb.Common_UserLink{
 			Id:     dbModerator.UserID,
@@ -85,7 +86,7 @@ func getCommunity(dbCommunity db.Community,
 
 	for _, dbAuthor := range dbAuthors {
 		gender := utils.GetGender(dbAuthor.UserID, dbAuthor.Sex)
-		avatar := urlFormatter.GetUserAvatarUrl(dbAuthor.UserID, dbAuthor.PhotoNumber)
+		avatar := utils.GetUserAvatarUrl(cfg.ImagesBaseURL, dbAuthor.UserID, dbAuthor.PhotoNumber)
 
 		author := &pb.Common_UserLink{
 			Id:     dbAuthor.UserID,
@@ -102,7 +103,7 @@ func getCommunity(dbCommunity db.Community,
 
 	for _, dbTopic := range dbTopics {
 		gender := utils.GetGender(dbTopic.UserId, dbTopic.Sex)
-		avatar := urlFormatter.GetUserAvatarUrl(dbTopic.UserId, uint32(dbTopic.PhotoNumber))
+		avatar := utils.GetUserAvatarUrl(cfg.ImagesBaseURL, dbTopic.UserId, uint32(dbTopic.PhotoNumber))
 
 		article := &pb.Blog_Article{
 			Id:    dbTopic.TopicId,
@@ -136,13 +137,13 @@ func getCommunity(dbCommunity db.Community,
 	}
 }
 
-func getBlogs(dbBlogs []db.Blog, urlFormatter utils.UrlFormatter) *pb.Blog_BlogsResponse {
+func getBlogs(dbBlogs []db.Blog, cfg *shared.AppConfig) *pb.Blog_BlogsResponse {
 	//noinspection GoPreferNilSlice
 	var blogs = []*pb.Blog_Blog{}
 
 	for _, dbBlog := range dbBlogs {
 		gender := utils.GetGender(dbBlog.UserId, dbBlog.Sex)
-		avatar := urlFormatter.GetUserAvatarUrl(dbBlog.UserId, dbBlog.PhotoNumber)
+		avatar := utils.GetUserAvatarUrl(cfg.ImagesBaseURL, dbBlog.UserId, dbBlog.PhotoNumber)
 
 		blog := &pb.Blog_Blog{
 			Id: dbBlog.BlogId,
@@ -173,13 +174,13 @@ func getBlogs(dbBlogs []db.Blog, urlFormatter utils.UrlFormatter) *pb.Blog_Blogs
 	}
 }
 
-func getBlog(dbBlogTopics []db.BlogTopic, urlFormatter utils.UrlFormatter) *pb.Blog_BlogResponse {
+func getBlog(dbBlogTopics []db.BlogTopic, cfg *shared.AppConfig) *pb.Blog_BlogResponse {
 	//noinspection GoPreferNilSlice
 	var articles = []*pb.Blog_Article{}
 
 	for _, dbBlogTopic := range dbBlogTopics {
 		gender := utils.GetGender(dbBlogTopic.UserId, dbBlogTopic.Sex)
-		avatar := urlFormatter.GetUserAvatarUrl(dbBlogTopic.UserId, uint32(dbBlogTopic.PhotoNumber))
+		avatar := utils.GetUserAvatarUrl(cfg.ImagesBaseURL, dbBlogTopic.UserId, uint32(dbBlogTopic.PhotoNumber))
 
 		article := &pb.Blog_Article{
 			Id:    dbBlogTopic.TopicId,
