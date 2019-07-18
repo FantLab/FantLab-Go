@@ -27,7 +27,7 @@ $ protoc --go_out=. proto/*.proto
 
 #### Docker
 
-Для запуска проекта целиков в докере выполните следующие команды:
+Для запуска проекта целиком в докере выполните следующие команды:
 
 ```console
 $ docker-compose -f docker-compose/all.debug.yml build
