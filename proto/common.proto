@@ -27,4 +27,6 @@ message Common {
         UserLink user = 1;
         google.protobuf.Timestamp date = 2;
     }
+
+    message SuccessResponse {}
 }

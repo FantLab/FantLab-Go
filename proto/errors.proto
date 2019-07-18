@@ -17,5 +17,6 @@ message Error {
         NOT_FOUND = 3;
         INVALID_PASSWORD = 4;
         LOG_OUT_FIRST = 5;
+        INVALID_SESSION = 6;
     }
 }
