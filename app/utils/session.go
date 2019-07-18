@@ -23,7 +23,7 @@ func PutSessionInCache(cache cache.Protocol, sid string, uid uint64, dateOfCreat
 
 	expirationDate := dateOfCreate.AddDate(1, 0, 0) // +1 год
 
-	if time.Now().Sub(expirationDate) > 0 {
+	if time.Since(expirationDate) > 0 {
 		return false
 	}
 
