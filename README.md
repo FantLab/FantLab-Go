@@ -15,7 +15,7 @@
 
 ## Полезная информация
 
-#### Protobuf
+### Protobuf
 
 Для перегенерации моделей выполните следующий скрипт (в *vscode* уже настроен экшн для расширения **saveAndRun**):
 
@@ -23,7 +23,7 @@
 $ ./make_protos.sh
 ```
 
-#### Docker
+### Docker
 
 Для запуска проекта целиком в докере выполните следующие команды:
 
@@ -38,18 +38,16 @@ $ docker-compose -f docker-compose/all.debug.yml up
 $ docker-compose -f docker-compose/depsonly.yml up
 ```
 
-#### Memcached
+### Memcached
 
 Для дебага мемкеша удобно использовать **telnet**:
 
 ```console
-telnet localhost 11211
+$ telnet localhost 11211
 ```
 
 [Список команд](https://github.com/memcached/memcached/wiki/Commands)
 
-#### Хэш пароля
-
-Для дебага на тестовой базе удобно подставить пользователю хэш пароля:
+### Пример хэша пароля
 
 qwe123 -> $2a$08$mr.Ptyqkh5fx82ThA5w.Iuo/DHh2W7YN7vkm/kGUc3bOkthk9JBN.
