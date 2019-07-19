@@ -4,11 +4,13 @@ import (
 	"log"
 	"os"
 
+	"fantlab/cache"
 	"fantlab/db"
 	"fantlab/logger"
 	"fantlab/routing"
 	"fantlab/shared"
 
+	"github.com/bradfitz/gomemcache/memcache"
 	"github.com/jinzhu/gorm"
 	_ "github.com/jinzhu/gorm/dialects/mysql"
 )
@@ -28,8 +30,11 @@ func main() {
 	orm.SetLogger(logger.GormLogger)
 	orm.LogMode(true)
 
+	mc := memcache.New(os.Getenv("MC_ADDRESS"))
+
 	services := &shared.Services{
 		Config: makeConfig(os.Getenv("IMAGES_BASE_URL")),
+		Cache:  &cache.MemCache{Client: mc},
 		DB:     &db.DB{ORM: orm},
 	}
 

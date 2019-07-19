@@ -23,6 +23,7 @@ func SetupWith(services *shared.Services) *gin.Engine {
 			controller := authapi.NewController(services)
 
 			v1.POST("/login", controller.Login)
+			v1.DELETE("/logout", controller.Logout)
 		}
 
 		// Форум

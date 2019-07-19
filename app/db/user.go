@@ -11,8 +11,7 @@ type UserPasswordHash struct {
 }
 
 type UserSession struct {
-	SessionID        uint32 `gorm:"AUTO_INCREMENT"`
-	Code             string
+	Code             string `gorm:"unique;not null"`
 	UserID           uint32
 	UserIP           string
 	UserAgent        string
@@ -21,29 +20,36 @@ type UserSession struct {
 	Hits             uint32
 }
 
-type userID struct {
-	Value uint32 `gorm:"Column:user_id"`
+type UserSessionInfo struct {
+	UserID       uint64    `gorm:"Column:user_id"`
+	DateOfCreate time.Time `gorm:"Column:date_of_create"`
 }
 
-func (db *DB) FetchUserIdBySession(sid string) uint32 {
-	var uid userID
+const sessionsTable = "sessions2" // sessions https://github.com/parserpro/fantlab/issues/908
+const usersTable = "users"        // users2
 
-	db.ORM.
-		Table("sessions2").
-		Select("user_id").
+func (db *DB) FetchUserSessionInfo(sid string) (UserSessionInfo, error) {
+	var info UserSessionInfo
+
+	err := db.ORM.
+		Table(sessionsTable).
+		Select("user_id, date_of_create").
 		Where("code = ?", sid).
-		First(&uid)
+		First(&info).
+		Error
 
-	return uid.Value
+	if err != nil {
+		return UserSessionInfo{}, err
+	}
+
+	return info, nil
 }
 
 func (db *DB) FetchUserPasswordHash(login string) (UserPasswordHash, error) {
 	var data UserPasswordHash
 
-	err := db.ORM.Table("users").
-		Select("user_id, "+
-			"password_hash, "+
-			"new_password_hash").
+	err := db.ORM.Table(usersTable).
+		Select("user_id, password_hash, new_password_hash").
 		Where("login = ?", login).
 		First(&data).
 		Error
@@ -55,7 +61,7 @@ func (db *DB) FetchUserPasswordHash(login string) (UserPasswordHash, error) {
 	return data, nil
 }
 
-func (db *DB) InsertNewSession(code string, userID uint32, userIP string, userAgent string) error {
+func (db *DB) InsertNewSession(code string, userID uint32, userIP string, userAgent string) (time.Time, error) {
 	now := time.Now()
 
 	session := &UserSession{
@@ -68,10 +74,17 @@ func (db *DB) InsertNewSession(code string, userID uint32, userIP string, userAg
 		Hits:             0,
 	}
 
-	// todo replace with `sessions` after https://github.com/parserpro/fantlab/issues/908
-	err := db.ORM.Table("sessions2").
+	err := db.ORM.Table(sessionsTable).
 		Create(&session).
 		Error
 
-	return err
+	return now, err
+}
+
+func (db *DB) DeleteSession(code string) error {
+	return db.ORM.
+		Table(sessionsTable).
+		Where("code = ?", code).
+		Delete(UserSession{}).
+		Error
 }

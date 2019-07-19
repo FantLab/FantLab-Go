@@ -20,7 +20,7 @@ func NewController(services *shared.Services) *Controller {
 }
 
 func (c *Controller) Login(ctx *gin.Context) {
-	userId := ctx.Keys[gin.AuthUserKey].(int)
+	userId := ctx.Keys[gin.AuthUserKey].(uint64)
 
 	if userId > 0 {
 		utils.ShowProto(ctx, http.StatusMethodNotAllowed, &pb.Error_Response{
@@ -29,16 +29,16 @@ func (c *Controller) Login(ctx *gin.Context) {
 		return
 	}
 
-	userName := ctx.PostForm("login")
+	login := ctx.PostForm("login")
 	password := ctx.PostForm("password")
 
-	userData, err := c.services.DB.FetchUserPasswordHash(userName)
+	userData, err := c.services.DB.FetchUserPasswordHash(login)
 
 	if err != nil {
 		if utils.IsRecordNotFoundError(err) {
 			utils.ShowProto(ctx, http.StatusNotFound, &pb.Error_Response{
 				Status:  pb.Error_NOT_FOUND,
-				Context: userName,
+				Context: login,
 			})
 		} else {
 			utils.ShowProto(ctx, http.StatusInternalServerError, &pb.Error_Response{
@@ -63,7 +63,7 @@ func (c *Controller) Login(ctx *gin.Context) {
 
 	sid := utils.GenerateUniqueId()
 
-	err = c.services.DB.InsertNewSession(sid, userData.UserID, ctx.ClientIP(), ctx.Request.UserAgent())
+	dateOfCreate, err := c.services.DB.InsertNewSession(sid, userData.UserID, ctx.ClientIP(), ctx.Request.UserAgent())
 
 	if err != nil {
 		utils.ShowProto(ctx, http.StatusInternalServerError, &pb.Error_Response{
@@ -72,8 +72,36 @@ func (c *Controller) Login(ctx *gin.Context) {
 		return
 	}
 
+	_ = utils.PutSessionInCache(c.services.Cache, sid, uint64(userData.UserID), dateOfCreate)
+
 	utils.ShowProto(ctx, http.StatusOK, &pb.Auth_LoginResponse{
 		UserId:       userData.UserID,
 		SessionToken: sid,
 	})
+}
+
+func (c *Controller) Logout(ctx *gin.Context) {
+	userId := ctx.Keys[gin.AuthUserKey].(uint64)
+
+	if userId == 0 {
+		utils.ShowProto(ctx, http.StatusUnauthorized, &pb.Error_Response{
+			Status: pb.Error_INVALID_SESSION,
+		})
+		return
+	}
+
+	sid := ctx.GetHeader(utils.SessionHeader)
+
+	err := c.services.DB.DeleteSession(sid)
+
+	if err != nil {
+		utils.ShowProto(ctx, http.StatusInternalServerError, &pb.Error_Response{
+			Status: pb.Error_SOMETHING_WENT_WRONG,
+		})
+		return
+	}
+
+	utils.DeleteSessionFromCache(c.services.Cache, sid)
+
+	utils.ShowProto(ctx, http.StatusOK, &pb.Common_SuccessResponse{})
 }
