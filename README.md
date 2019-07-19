@@ -48,6 +48,6 @@ $ telnet localhost 11211
 
 [Список команд](https://github.com/memcached/memcached/wiki/Commands)
 
-### Пример хэша пароля
+### Тестовый пароль/хэш
 
-qwe123 -> $2a$08$mr.Ptyqkh5fx82ThA5w.Iuo/DHh2W7YN7vkm/kGUc3bOkthk9JBN.
+password -> $2a$08$5.4GFX2fkP7XWYrpDWQFqup6.NC6MejFMEOmgX30gRCu4AsMd/A0G
