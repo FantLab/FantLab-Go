@@ -28,5 +28,10 @@ message Common {
         google.protobuf.Timestamp date = 2;
     }
 
+    message Pages {
+        uint32 current = 1;
+        uint32 count = 2;
+    }
+
     message SuccessResponse {}
 }

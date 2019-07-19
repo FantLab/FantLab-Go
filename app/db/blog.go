@@ -96,7 +96,7 @@ func (db *DB) FetchCommunities() ([]Community, error) {
 	return communities, nil
 }
 
-func (db *DB) FetchCommunity(communityID, limit, offset uint32) (Community, []CommunityModerator, []CommunityAuthor, []BlogTopic, error) {
+func (db *DB) FetchCommunity(communityID, limit, offset uint32) (Community, []CommunityModerator, []CommunityAuthor, []BlogTopic, uint32, error) {
 	var community Community
 
 	err := db.ORM.Table("b_blogs").
@@ -108,7 +108,7 @@ func (db *DB) FetchCommunity(communityID, limit, offset uint32) (Community, []Co
 		Error
 
 	if err != nil {
-		return Community{}, nil, nil, nil, err
+		return Community{}, nil, nil, nil, 0, err
 	}
 
 	var moderators []CommunityModerator
@@ -125,7 +125,7 @@ func (db *DB) FetchCommunity(communityID, limit, offset uint32) (Community, []Co
 		Error
 
 	if err != nil {
-		return Community{}, nil, nil, nil, err
+		return Community{}, nil, nil, nil, 0, err
 	}
 
 	var authors []CommunityAuthor
@@ -143,7 +143,7 @@ func (db *DB) FetchCommunity(communityID, limit, offset uint32) (Community, []Co
 		Error
 
 	if err != nil {
-		return Community{}, nil, nil, nil, err
+		return Community{}, nil, nil, nil, 0, err
 	}
 
 	var topics []BlogTopic
@@ -171,23 +171,34 @@ func (db *DB) FetchCommunity(communityID, limit, offset uint32) (Community, []Co
 		Error
 
 	if err != nil {
-		return Community{}, nil, nil, nil, err
+		return Community{}, nil, nil, nil, 0, err
 	}
 
-	return community, moderators, authors, topics, nil
+	var count uint32
+
+	err = db.ORM.Table("b_topics b").
+		Where("b.blog_id = ? AND b.is_opened = 1", communityID).
+		Count(&count).
+		Error
+
+	if err != nil {
+		return Community{}, nil, nil, nil, 0, err
+	}
+
+	return community, moderators, authors, topics, count, nil
 }
 
-func (db *DB) FetchBlogs(limit, offset uint32, sort string) ([]Blog, error) {
+func (db *DB) FetchBlogs(limit, offset uint32, sort string) ([]Blog, uint32, error) {
 	var blogs []Blog
 
 	var sortOption string
 	switch sort {
 	case "article":
-		sortOption = "b.topics_count"
+		sortOption = "topics_count"
 	case "subscriber":
-		sortOption = "b.subscriber_count"
+		sortOption = "subscriber_count"
 	default: // "update"
-		sortOption = "b.last_topic_date"
+		sortOption = "last_topic_date"
 	}
 
 	err := db.ORM.Table("b_blogs b").
@@ -205,28 +216,39 @@ func (db *DB) FetchBlogs(limit, offset uint32, sort string) ([]Blog, error) {
 			"b.last_topic_id").
 		Joins("LEFT JOIN users u ON u.user_id = b.user_id").
 		Where("b.is_community = 0 AND b.topics_count > 0").
-		Order("b.is_close, " + sortOption + " DESC").
+		Order("b.is_close, b." + sortOption + " DESC").
 		Limit(limit).
 		Offset(offset).
 		Scan(&blogs).
 		Error
 
 	if err != nil {
-		return nil, err
+		return nil, 0, err
 	}
 
-	return blogs, nil
-}
+	var count uint32
 
-func (db *DB) FetchBlog(blogID, limit, offset uint32) ([]BlogTopic, error) {
-	var blog Blog
-
-	err := db.ORM.Table("b_blogs").
-		First(blog, "blog_id = ? AND is_community = 0", blogID).
+	err = db.ORM.Table("b_blogs b").
+		Where("b.is_community = 0 AND b.topics_count > 0").
+		Count(&count).
 		Error
 
 	if err != nil {
-		return nil, err
+		return nil, 0, err
+	}
+
+	return blogs, count, nil
+}
+
+func (db *DB) FetchBlog(blogID, limit, offset uint32) ([]BlogTopic, uint32, error) {
+	var blog Blog
+
+	err := db.ORM.Table("b_blogs").
+		First(&blog, "blog_id = ? AND is_community = 0", blogID).
+		Error
+
+	if err != nil {
+		return nil, 0, err
 	}
 
 	var topics []BlogTopic
@@ -254,8 +276,19 @@ func (db *DB) FetchBlog(blogID, limit, offset uint32) ([]BlogTopic, error) {
 		Error
 
 	if err != nil {
-		return nil, err
+		return nil, 0, err
 	}
 
-	return topics, nil
+	var count uint32
+
+	err = db.ORM.Table("b_topics b").
+		Where("b.blog_id = ? AND b.is_opened = 1", blogID).
+		Count(&count).
+		Error
+
+	if err != nil {
+		return nil, 0, err
+	}
+
+	return topics, count, nil
 }

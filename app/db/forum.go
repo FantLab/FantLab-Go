@@ -138,7 +138,7 @@ func (db *DB) FetchModerators() (map[uint32][]ForumModerator, error) {
 	return moderatorsMap, nil
 }
 
-func (db *DB) FetchForumTopics(availableForums []uint16, forumID uint16, limit, offset uint32) ([]ForumTopic, error) {
+func (db *DB) FetchForumTopics(availableForums []uint16, forumID uint16, limit, offset uint32) ([]ForumTopic, uint32, error) {
 	var forum Forum
 
 	err := db.ORM.Table("f_forums").
@@ -146,7 +146,7 @@ func (db *DB) FetchForumTopics(availableForums []uint16, forumID uint16, limit, 
 		Error
 
 	if err != nil {
-		return nil, err
+		return nil, 0, err
 	}
 
 	var topics []ForumTopic
@@ -182,13 +182,24 @@ func (db *DB) FetchForumTopics(availableForums []uint16, forumID uint16, limit, 
 		Error
 
 	if err != nil {
-		return nil, err
+		return nil, 0, err
 	}
 
-	return topics, nil
+	var count uint32
+
+	err = db.ORM.Table("f_topics t").
+		Where("t.forum_id = ?", forumID).
+		Count(&count).
+		Error
+
+	if err != nil {
+		return nil, 0, err
+	}
+
+	return topics, count, nil
 }
 
-func (db *DB) FetchTopicMessages(availableForums []uint16, topicID, limit, offset uint32) (ShortForumTopic, []ForumMessage, error) {
+func (db *DB) FetchTopicMessages(availableForums []uint16, topicID, limit, offset uint32) (ShortForumTopic, []ForumMessage, uint32, error) {
 	var shortTopic ShortForumTopic
 
 	err := db.ORM.Table("f_topics t").
@@ -202,7 +213,7 @@ func (db *DB) FetchTopicMessages(availableForums []uint16, topicID, limit, offse
 		Error
 
 	if err != nil {
-		return ShortForumTopic{}, nil, err
+		return ShortForumTopic{}, nil, 0, err
 	}
 
 	var messages []ForumMessage
@@ -232,8 +243,19 @@ func (db *DB) FetchTopicMessages(availableForums []uint16, topicID, limit, offse
 		Error
 
 	if err != nil {
-		return ShortForumTopic{}, nil, err
+		return ShortForumTopic{}, nil, 0, err
 	}
 
-	return shortTopic, messages, nil
+	var count uint32
+
+	err = db.ORM.Table("f_messages f").
+		Where("f.topic_id = ?", topicID).
+		Count(&count).
+		Error
+
+	if err != nil {
+		return ShortForumTopic{}, nil, 0, err
+	}
+
+	return shortTopic, messages, count, nil
 }

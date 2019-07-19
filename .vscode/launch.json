@@ -12,7 +12,7 @@
                 "MC_ADDRESS": "localhost:11211",
                 "PORT": 4242,
                 "GIN_MODE": "debug",
-                "IMAGES_BASE_URL": "https://data.fantlab.ru/images",
+                "IMAGES_BASE_URL": "https://data.fantlab.ru/images"
             },
             "args": [],
             "buildFlags": "-tags debug"
