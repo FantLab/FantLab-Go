@@ -8,6 +8,7 @@ import (
 )
 
 const SessionHeader = "X-Session"
+const sessionCachePrefix = "sessions:code="
 
 func GetUserIdBySessionFromCache(cache cache.Protocol, sid string) (uint64, error) {
 	return strconv.ParseUint(cache.Get(cacheKey(sid)), 10, 32)
@@ -38,5 +39,5 @@ func PutSessionInCache(cache cache.Protocol, sid string, uid uint64, dateOfCreat
 }
 
 func cacheKey(sid string) string {
-	return "sessions:code=" + sid
+	return sessionCachePrefix + sid
 }
