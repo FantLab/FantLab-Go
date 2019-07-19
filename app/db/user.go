@@ -28,16 +28,21 @@ type UserSessionInfo struct {
 const sessionsTable = "sessions2" // sessions https://github.com/parserpro/fantlab/issues/908
 const usersTable = "users"        // users2
 
-func (db *DB) FetchUserSessionInfo(sid string) UserSessionInfo {
+func (db *DB) FetchUserSessionInfo(sid string) (UserSessionInfo, error) {
 	var info UserSessionInfo
 
-	db.ORM.
+	err := db.ORM.
 		Table(sessionsTable).
 		Select("user_id, date_of_create").
 		Where("code = ?", sid).
-		First(&info)
+		First(&info).
+		Error
 
-	return info
+	if err != nil {
+		return UserSessionInfo{}, err
+	}
+
+	return info, nil
 }
 
 func (db *DB) FetchUserPasswordHash(login string) (UserPasswordHash, error) {
@@ -73,7 +78,7 @@ func (db *DB) InsertNewSession(code string, userID uint32, userIP string, userAg
 		Create(&session).
 		Error
 
-	return session.DateOfCreate, err
+	return now, err
 }
 
 func (db *DB) DeleteSession(code string) error {

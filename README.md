@@ -20,9 +20,7 @@
 Для перегенерации моделей выполните следующий скрипт (в *vscode* уже настроен экшн для расширения **saveAndRun**):
 
 ```console
-$ rm -rf app/pb
-$ mkdir -p app/pb
-$ protoc --go_out=. proto/*.proto
+$ ./make_protos.sh
 ```
 
 #### Docker

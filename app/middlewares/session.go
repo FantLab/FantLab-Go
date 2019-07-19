@@ -15,10 +15,14 @@ func Session(services *shared.Services) gin.HandlerFunc {
 			uid, err := utils.GetUserIdBySessionFromCache(services.Cache, sid)
 
 			if err != nil || uid == 0 {
-				dbSession := services.DB.FetchUserSessionInfo(sid)
+				dbSession, err := services.DB.FetchUserSessionInfo(sid)
 
-				if utils.PutSessionInCache(services.Cache, sid, dbSession.UserID, dbSession.DateOfCreate) {
-					uid = dbSession.UserID
+				if err == nil {
+					err = utils.PutSessionInCache(services.Cache, sid, dbSession.UserID, dbSession.DateOfCreate)
+
+					if err == nil {
+						uid = dbSession.UserID
+					}
 				}
 			}
 

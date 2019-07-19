@@ -1,6 +1,7 @@
 package utils
 
 import (
+	"errors"
 	"fantlab/cache"
 	"strconv"
 	"time"
@@ -16,15 +17,15 @@ func DeleteSessionFromCache(cache cache.Protocol, sid string) {
 	cache.Delete(cacheKey(sid))
 }
 
-func PutSessionInCache(cache cache.Protocol, sid string, uid uint64, dateOfCreate time.Time) bool {
+func PutSessionInCache(cache cache.Protocol, sid string, uid uint64, dateOfCreate time.Time) error {
 	if uid == 0 {
-		return false
+		return errors.New("user id cannot be zero")
 	}
 
 	expirationDate := dateOfCreate.AddDate(1, 0, 0) // +1 год
 
 	if time.Since(expirationDate) > 0 {
-		return false
+		return errors.New("session is too old")
 	}
 
 	err := cache.Set(
@@ -33,7 +34,7 @@ func PutSessionInCache(cache cache.Protocol, sid string, uid uint64, dateOfCreat
 		expirationDate,
 	)
 
-	return err != nil
+	return err
 }
 
 func cacheKey(sid string) string {
