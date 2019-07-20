@@ -66,6 +66,24 @@ type BlogTopic struct {
 	CommentsCount uint32
 }
 
+type CommunityDBResponse struct {
+	Community        Community
+	Moderators       []CommunityModerator
+	Authors          []CommunityAuthor
+	Topics           []BlogTopic
+	TotalTopicsCount uint32
+}
+
+type BlogsDBResponse struct {
+	Blogs      []Blog
+	TotalCount uint32
+}
+
+type BlogDBResponse struct {
+	Topics           []BlogTopic
+	TotalTopicsCount uint32
+}
+
 func (db *DB) FetchCommunities() ([]Community, error) {
 	var communities []Community
 
@@ -96,7 +114,7 @@ func (db *DB) FetchCommunities() ([]Community, error) {
 	return communities, nil
 }
 
-func (db *DB) FetchCommunity(communityID, limit, offset uint32) (Community, []CommunityModerator, []CommunityAuthor, []BlogTopic, uint32, error) {
+func (db *DB) FetchCommunity(communityID, limit, offset uint32) (*CommunityDBResponse, error) {
 	var community Community
 
 	err := db.ORM.Table("b_blogs").
@@ -108,7 +126,7 @@ func (db *DB) FetchCommunity(communityID, limit, offset uint32) (Community, []Co
 		Error
 
 	if err != nil {
-		return Community{}, nil, nil, nil, 0, err
+		return nil, err
 	}
 
 	var moderators []CommunityModerator
@@ -125,7 +143,7 @@ func (db *DB) FetchCommunity(communityID, limit, offset uint32) (Community, []Co
 		Error
 
 	if err != nil {
-		return Community{}, nil, nil, nil, 0, err
+		return nil, err
 	}
 
 	var authors []CommunityAuthor
@@ -143,7 +161,7 @@ func (db *DB) FetchCommunity(communityID, limit, offset uint32) (Community, []Co
 		Error
 
 	if err != nil {
-		return Community{}, nil, nil, nil, 0, err
+		return nil, err
 	}
 
 	var topics []BlogTopic
@@ -171,7 +189,7 @@ func (db *DB) FetchCommunity(communityID, limit, offset uint32) (Community, []Co
 		Error
 
 	if err != nil {
-		return Community{}, nil, nil, nil, 0, err
+		return nil, err
 	}
 
 	var count uint32
@@ -182,13 +200,21 @@ func (db *DB) FetchCommunity(communityID, limit, offset uint32) (Community, []Co
 		Error
 
 	if err != nil {
-		return Community{}, nil, nil, nil, 0, err
+		return nil, err
 	}
 
-	return community, moderators, authors, topics, count, nil
+	result := &CommunityDBResponse{
+		Community:        community,
+		Moderators:       moderators,
+		Authors:          authors,
+		Topics:           topics,
+		TotalTopicsCount: count,
+	}
+
+	return result, nil
 }
 
-func (db *DB) FetchBlogs(limit, offset uint32, sort string) ([]Blog, uint32, error) {
+func (db *DB) FetchBlogs(limit, offset uint32, sort string) (*BlogsDBResponse, error) {
 	var blogs []Blog
 
 	var sortOption string
@@ -223,7 +249,7 @@ func (db *DB) FetchBlogs(limit, offset uint32, sort string) ([]Blog, uint32, err
 		Error
 
 	if err != nil {
-		return nil, 0, err
+		return nil, err
 	}
 
 	var count uint32
@@ -234,13 +260,18 @@ func (db *DB) FetchBlogs(limit, offset uint32, sort string) ([]Blog, uint32, err
 		Error
 
 	if err != nil {
-		return nil, 0, err
+		return nil, err
 	}
 
-	return blogs, count, nil
+	result := &BlogsDBResponse{
+		Blogs:      blogs,
+		TotalCount: count,
+	}
+
+	return result, nil
 }
 
-func (db *DB) FetchBlog(blogID, limit, offset uint32) ([]BlogTopic, uint32, error) {
+func (db *DB) FetchBlog(blogID, limit, offset uint32) (*BlogDBResponse, error) {
 	var blog Blog
 
 	err := db.ORM.Table("b_blogs").
@@ -248,7 +279,7 @@ func (db *DB) FetchBlog(blogID, limit, offset uint32) ([]BlogTopic, uint32, erro
 		Error
 
 	if err != nil {
-		return nil, 0, err
+		return nil, err
 	}
 
 	var topics []BlogTopic
@@ -276,7 +307,7 @@ func (db *DB) FetchBlog(blogID, limit, offset uint32) ([]BlogTopic, uint32, erro
 		Error
 
 	if err != nil {
-		return nil, 0, err
+		return nil, err
 	}
 
 	var count uint32
@@ -287,8 +318,13 @@ func (db *DB) FetchBlog(blogID, limit, offset uint32) ([]BlogTopic, uint32, erro
 		Error
 
 	if err != nil {
-		return nil, 0, err
+		return nil, err
 	}
 
-	return topics, count, nil
+	response := &BlogDBResponse{
+		Topics:           topics,
+		TotalTopicsCount: count,
+	}
+
+	return response, nil
 }

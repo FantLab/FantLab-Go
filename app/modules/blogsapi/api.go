@@ -67,8 +67,7 @@ func (c *Controller) ShowCommunity(ctx *gin.Context) {
 
 	offset := limit * (page - 1)
 
-	dbCommunity, dbModerators, dbAuthors, dbTopics, totalCount, err :=
-		c.services.DB.FetchCommunity(uint32(communityId), uint32(limit), uint32(offset))
+	dbResponse, err := c.services.DB.FetchCommunity(uint32(communityId), uint32(limit), uint32(offset))
 
 	if err != nil {
 		if utils.IsRecordNotFoundError(err) {
@@ -84,9 +83,7 @@ func (c *Controller) ShowCommunity(ctx *gin.Context) {
 		return
 	}
 
-	pageCount := utils.GetPageCount(totalCount, uint32(limit))
-
-	community := getCommunity(dbCommunity, dbModerators, dbAuthors, dbTopics, uint32(page), pageCount, c.services.Config)
+	community := getCommunity(dbResponse, uint32(page), uint32(limit), c.services.Config)
 	utils.ShowProto(ctx, http.StatusOK, community)
 }
 
@@ -115,7 +112,7 @@ func (c *Controller) ShowBlogs(ctx *gin.Context) {
 	sort := ctx.DefaultQuery("sort", "update")
 	offset := limit * (page - 1)
 
-	dbBlogs, totalCount, err := c.services.DB.FetchBlogs(uint32(limit), uint32(offset), sort)
+	dbResponse, err := c.services.DB.FetchBlogs(uint32(limit), uint32(offset), sort)
 
 	if err != nil {
 		utils.ShowProto(ctx, http.StatusInternalServerError, &pb.Error_Response{
@@ -124,9 +121,7 @@ func (c *Controller) ShowBlogs(ctx *gin.Context) {
 		return
 	}
 
-	pageCount := utils.GetPageCount(totalCount, uint32(limit))
-
-	blogs := getBlogs(dbBlogs, uint32(page), pageCount, c.services.Config)
+	blogs := getBlogs(dbResponse, uint32(page), uint32(limit), c.services.Config)
 	utils.ShowProto(ctx, http.StatusOK, blogs)
 }
 
@@ -164,7 +159,7 @@ func (c *Controller) ShowBlog(ctx *gin.Context) {
 
 	offset := limit * (page - 1)
 
-	dbBlogTopics, totalCount, err := c.services.DB.FetchBlog(uint32(blogID), uint32(limit), uint32(offset))
+	dbResponse, err := c.services.DB.FetchBlog(uint32(blogID), uint32(limit), uint32(offset))
 
 	if err != nil {
 		if utils.IsRecordNotFoundError(err) {
@@ -180,8 +175,6 @@ func (c *Controller) ShowBlog(ctx *gin.Context) {
 		return
 	}
 
-	pageCount := utils.GetPageCount(totalCount, uint32(limit))
-
-	blog := getBlog(dbBlogTopics, uint32(page), pageCount, c.services.Config)
+	blog := getBlog(dbResponse, uint32(page), uint32(limit), c.services.Config)
 	utils.ShowProto(ctx, http.StatusOK, blog)
 }

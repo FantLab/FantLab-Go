@@ -51,26 +51,19 @@ func getCommunities(dbCommunities []db.Community, cfg *shared.AppConfig) *pb.Blo
 	}
 }
 
-func getCommunity(dbCommunity db.Community,
-	dbModerators []db.CommunityModerator,
-	dbAuthors []db.CommunityAuthor,
-	dbTopics []db.BlogTopic,
-	page,
-	pageCount uint32,
-	cfg *shared.AppConfig) *pb.Blog_CommunityResponse {
-
-	communityAvatar := utils.GetCommunityAvatarUrl(cfg.ImagesBaseURL, dbCommunity.BlogId)
+func getCommunity(dbResponse *db.CommunityDBResponse, page, limit uint32, cfg *shared.AppConfig) *pb.Blog_CommunityResponse {
+	communityAvatar := utils.GetCommunityAvatarUrl(cfg.ImagesBaseURL, dbResponse.Community.BlogId)
 
 	community := &pb.Blog_Community{
-		Id:     dbCommunity.BlogId,
-		Title:  dbCommunity.Name,
-		Rules:  dbCommunity.Rules,
+		Id:     dbResponse.Community.BlogId,
+		Title:  dbResponse.Community.Name,
+		Rules:  dbResponse.Community.Rules,
 		Avatar: communityAvatar,
 	}
 
 	var moderators []*pb.Common_UserLink
 
-	for _, dbModerator := range dbModerators {
+	for _, dbModerator := range dbResponse.Moderators {
 		gender := utils.GetGender(dbModerator.UserID, dbModerator.Sex)
 		avatar := utils.GetUserAvatarUrl(cfg.ImagesBaseURL, dbModerator.UserID, dbModerator.PhotoNumber)
 
@@ -86,7 +79,7 @@ func getCommunity(dbCommunity db.Community,
 
 	var authors []*pb.Common_UserLink
 
-	for _, dbAuthor := range dbAuthors {
+	for _, dbAuthor := range dbResponse.Authors {
 		gender := utils.GetGender(dbAuthor.UserID, dbAuthor.Sex)
 		avatar := utils.GetUserAvatarUrl(cfg.ImagesBaseURL, dbAuthor.UserID, dbAuthor.PhotoNumber)
 
@@ -103,7 +96,7 @@ func getCommunity(dbCommunity db.Community,
 	//noinspection GoPreferNilSlice
 	articles := []*pb.Blog_Article{}
 
-	for _, dbTopic := range dbTopics {
+	for _, dbTopic := range dbResponse.Topics {
 		gender := utils.GetGender(dbTopic.UserId, dbTopic.Sex)
 		avatar := utils.GetUserAvatarUrl(cfg.ImagesBaseURL, dbTopic.UserId, uint32(dbTopic.PhotoNumber))
 
@@ -131,6 +124,8 @@ func getCommunity(dbCommunity db.Community,
 		articles = append(articles, article)
 	}
 
+	pageCount := utils.GetPageCount(dbResponse.TotalTopicsCount, limit)
+
 	return &pb.Blog_CommunityResponse{
 		Community:  community,
 		Moderators: moderators,
@@ -143,11 +138,11 @@ func getCommunity(dbCommunity db.Community,
 	}
 }
 
-func getBlogs(dbBlogs []db.Blog, page, pageCount uint32, cfg *shared.AppConfig) *pb.Blog_BlogsResponse {
+func getBlogs(dbResponse *db.BlogsDBResponse, page, limit uint32, cfg *shared.AppConfig) *pb.Blog_BlogsResponse {
 	//noinspection GoPreferNilSlice
 	var blogs = []*pb.Blog_Blog{}
 
-	for _, dbBlog := range dbBlogs {
+	for _, dbBlog := range dbResponse.Blogs {
 		gender := utils.GetGender(dbBlog.UserId, dbBlog.Sex)
 		avatar := utils.GetUserAvatarUrl(cfg.ImagesBaseURL, dbBlog.UserId, dbBlog.PhotoNumber)
 
@@ -175,6 +170,8 @@ func getBlogs(dbBlogs []db.Blog, page, pageCount uint32, cfg *shared.AppConfig) 
 		blogs = append(blogs, blog)
 	}
 
+	pageCount := utils.GetPageCount(dbResponse.TotalCount, limit)
+
 	return &pb.Blog_BlogsResponse{
 		Blogs: blogs,
 		Pages: &pb.Common_Pages{
@@ -184,11 +181,11 @@ func getBlogs(dbBlogs []db.Blog, page, pageCount uint32, cfg *shared.AppConfig) 
 	}
 }
 
-func getBlog(dbBlogTopics []db.BlogTopic, page, pageCount uint32, cfg *shared.AppConfig) *pb.Blog_BlogResponse {
+func getBlog(dbResponse *db.BlogDBResponse, page, limit uint32, cfg *shared.AppConfig) *pb.Blog_BlogResponse {
 	//noinspection GoPreferNilSlice
 	var articles = []*pb.Blog_Article{}
 
-	for _, dbBlogTopic := range dbBlogTopics {
+	for _, dbBlogTopic := range dbResponse.Topics {
 		gender := utils.GetGender(dbBlogTopic.UserId, dbBlogTopic.Sex)
 		avatar := utils.GetUserAvatarUrl(cfg.ImagesBaseURL, dbBlogTopic.UserId, uint32(dbBlogTopic.PhotoNumber))
 
@@ -215,6 +212,8 @@ func getBlog(dbBlogTopics []db.BlogTopic, page, pageCount uint32, cfg *shared.Ap
 
 		articles = append(articles, article)
 	}
+
+	pageCount := utils.GetPageCount(dbResponse.TotalTopicsCount, limit)
 
 	return &pb.Blog_BlogResponse{
 		Articles: articles,

@@ -83,11 +83,11 @@ func getForumBlocks(dbForums []db.Forum, dbModerators map[uint32][]db.ForumModer
 	}
 }
 
-func getForumTopics(dbTopics []db.ForumTopic, page, pageCount uint32, cfg *shared.AppConfig) *pb.Forum_ForumTopicsResponse {
+func getForumTopics(dbResponse *db.ForumTopicsDBResponse, page, limit uint32, cfg *shared.AppConfig) *pb.Forum_ForumTopicsResponse {
 	//noinspection GoPreferNilSlice
 	topics := []*pb.Forum_Topic{}
 
-	for _, dbTopic := range dbTopics {
+	for _, dbTopic := range dbResponse.Topics {
 		var topicType pb.Forum_Topic_Type
 		if dbTopic.TopicTypeID == 2 {
 			topicType = pb.Forum_Topic_POLL
@@ -136,6 +136,8 @@ func getForumTopics(dbTopics []db.ForumTopic, page, pageCount uint32, cfg *share
 		topics = append(topics, topic)
 	}
 
+	pageCount := utils.GetPageCount(dbResponse.TotalTopicsCount, limit)
+
 	return &pb.Forum_ForumTopicsResponse{
 		Topics: topics,
 		Pages: &pb.Common_Pages{
@@ -145,21 +147,21 @@ func getForumTopics(dbTopics []db.ForumTopic, page, pageCount uint32, cfg *share
 	}
 }
 
-func getTopic(shortTopic db.ShortForumTopic, dbMessages []db.ForumMessage, page, pageCount uint32, cfg *shared.AppConfig) *pb.Forum_TopicResponse {
+func getTopic(dbResponse *db.ForumTopicMessagesDBResponse, page, limit uint32, cfg *shared.AppConfig) *pb.Forum_TopicResponse {
 	topic := &pb.Forum_Topic{
-		Id:    shortTopic.TopicID,
-		Title: shortTopic.TopicName,
+		Id:    dbResponse.Topic.TopicID,
+		Title: dbResponse.Topic.TopicName,
 	}
 
 	forum := &pb.Forum_Forum{
-		Id:    shortTopic.ForumID,
-		Title: shortTopic.ForumName,
+		Id:    dbResponse.Topic.ForumID,
+		Title: dbResponse.Topic.ForumName,
 	}
 
 	//noinspection GoPreferNilSlice
 	messages := []*pb.Forum_TopicMessage{}
 
-	for _, dbMessage := range dbMessages {
+	for _, dbMessage := range dbResponse.Messages {
 		text := dbMessage.MessageText
 
 		if dbMessage.IsCensored {
@@ -192,6 +194,8 @@ func getTopic(shortTopic db.ShortForumTopic, dbMessages []db.ForumMessage, page,
 
 		messages = append(messages, message)
 	}
+
+	pageCount := utils.GetPageCount(dbResponse.TotalMessagesCount, limit)
 
 	return &pb.Forum_TopicResponse{
 		Topic:    topic,
