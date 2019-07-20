@@ -82,11 +82,13 @@ message Forum {
 
     message ForumTopicsResponse {
         repeated Topic topics = 1;
+        Common.Pages pages = 2;
     }
 
     message TopicResponse {
         Topic topic = 1;
         Forum forum = 2;
         repeated TopicMessage messages = 3;
+        Common.Pages pages = 4;
     }
 }

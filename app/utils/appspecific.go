@@ -9,6 +9,16 @@ func IsValidLimit(limit uint64) bool {
 	return limit >= 5 && limit <= 50
 }
 
+func GetPageCount(totalCount, limit uint32) uint32 {
+	pageCount := totalCount / limit
+
+	if totalCount%limit > 0 {
+		pageCount++
+	}
+
+	return pageCount
+}
+
 func GetGender(userId uint32, userSex uint8) pb.Common_Gender {
 	if userId > 0 {
 		if userSex == 0 {

@@ -55,6 +55,8 @@ func getCommunity(dbCommunity db.Community,
 	dbModerators []db.CommunityModerator,
 	dbAuthors []db.CommunityAuthor,
 	dbTopics []db.BlogTopic,
+	page,
+	pageCount uint32,
 	cfg *shared.AppConfig) *pb.Blog_CommunityResponse {
 
 	communityAvatar := utils.GetCommunityAvatarUrl(cfg.ImagesBaseURL, dbCommunity.BlogId)
@@ -134,10 +136,14 @@ func getCommunity(dbCommunity db.Community,
 		Moderators: moderators,
 		Authors:    authors,
 		Articles:   articles,
+		Pages: &pb.Common_Pages{
+			Current: page,
+			Count:   pageCount,
+		},
 	}
 }
 
-func getBlogs(dbBlogs []db.Blog, cfg *shared.AppConfig) *pb.Blog_BlogsResponse {
+func getBlogs(dbBlogs []db.Blog, page, pageCount uint32, cfg *shared.AppConfig) *pb.Blog_BlogsResponse {
 	//noinspection GoPreferNilSlice
 	var blogs = []*pb.Blog_Blog{}
 
@@ -171,10 +177,14 @@ func getBlogs(dbBlogs []db.Blog, cfg *shared.AppConfig) *pb.Blog_BlogsResponse {
 
 	return &pb.Blog_BlogsResponse{
 		Blogs: blogs,
+		Pages: &pb.Common_Pages{
+			Current: page,
+			Count:   pageCount,
+		},
 	}
 }
 
-func getBlog(dbBlogTopics []db.BlogTopic, cfg *shared.AppConfig) *pb.Blog_BlogResponse {
+func getBlog(dbBlogTopics []db.BlogTopic, page, pageCount uint32, cfg *shared.AppConfig) *pb.Blog_BlogResponse {
 	//noinspection GoPreferNilSlice
 	var articles = []*pb.Blog_Article{}
 
@@ -208,5 +218,9 @@ func getBlog(dbBlogTopics []db.BlogTopic, cfg *shared.AppConfig) *pb.Blog_BlogRe
 
 	return &pb.Blog_BlogResponse{
 		Articles: articles,
+		Pages: &pb.Common_Pages{
+			Current: page,
+			Count:   pageCount,
+		},
 	}
 }

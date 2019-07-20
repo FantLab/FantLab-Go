@@ -83,7 +83,7 @@ func getForumBlocks(dbForums []db.Forum, dbModerators map[uint32][]db.ForumModer
 	}
 }
 
-func getForumTopics(dbTopics []db.ForumTopic, cfg *shared.AppConfig) *pb.Forum_ForumTopicsResponse {
+func getForumTopics(dbTopics []db.ForumTopic, page, pageCount uint32, cfg *shared.AppConfig) *pb.Forum_ForumTopicsResponse {
 	//noinspection GoPreferNilSlice
 	topics := []*pb.Forum_Topic{}
 
@@ -138,10 +138,14 @@ func getForumTopics(dbTopics []db.ForumTopic, cfg *shared.AppConfig) *pb.Forum_F
 
 	return &pb.Forum_ForumTopicsResponse{
 		Topics: topics,
+		Pages: &pb.Common_Pages{
+			Current: page,
+			Count:   pageCount,
+		},
 	}
 }
 
-func getTopic(shortTopic db.ShortForumTopic, dbMessages []db.ForumMessage, cfg *shared.AppConfig) *pb.Forum_TopicResponse {
+func getTopic(shortTopic db.ShortForumTopic, dbMessages []db.ForumMessage, page, pageCount uint32, cfg *shared.AppConfig) *pb.Forum_TopicResponse {
 	topic := &pb.Forum_Topic{
 		Id:    shortTopic.TopicID,
 		Title: shortTopic.TopicName,
@@ -193,5 +197,9 @@ func getTopic(shortTopic db.ShortForumTopic, dbMessages []db.ForumMessage, cfg *
 		Topic:    topic,
 		Forum:    forum,
 		Messages: messages,
+		Pages: &pb.Common_Pages{
+			Current: page,
+			Count:   pageCount,
+		},
 	}
 }

@@ -68,13 +68,16 @@ message Blog {
         repeated Common.UserLink moderators = 2;
         repeated Common.UserLink authors = 3;
         repeated Article articles = 4;
+        Common.Pages pages = 5;
     }
 
     message BlogsResponse {
         repeated Blog blogs = 1;
+        Common.Pages pages = 2;
     }
 
     message BlogResponse {
         repeated Article articles = 1;
+        Common.Pages pages = 2;
     }
 }

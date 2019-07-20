@@ -76,7 +76,7 @@ func (c *Controller) ShowForumTopics(ctx *gin.Context) {
 
 	offset := limit * (page - 1)
 
-	dbForumTopics, err := c.services.DB.FetchForumTopics(
+	dbForumTopics, totalCount, err := c.services.DB.FetchForumTopics(
 		c.services.Config.DefaultAccessToForums,
 		uint16(forumID),
 		uint32(limit),
@@ -97,7 +97,9 @@ func (c *Controller) ShowForumTopics(ctx *gin.Context) {
 		return
 	}
 
-	forumTopics := getForumTopics(dbForumTopics, c.services.Config)
+	pageCount := utils.GetPageCount(totalCount, uint32(limit))
+
+	forumTopics := getForumTopics(dbForumTopics, uint32(page), pageCount, c.services.Config)
 	utils.ShowProto(ctx, http.StatusOK, forumTopics)
 }
 
@@ -135,7 +137,7 @@ func (c *Controller) ShowTopicMessages(ctx *gin.Context) {
 
 	offset := limit * (page - 1)
 
-	dbShortForumTopic, dbTopicMessages, err := c.services.DB.FetchTopicMessages(
+	dbShortForumTopic, dbTopicMessages, totalCount, err := c.services.DB.FetchTopicMessages(
 		c.services.Config.DefaultAccessToForums,
 		uint32(topicID),
 		uint32(limit),
@@ -156,6 +158,8 @@ func (c *Controller) ShowTopicMessages(ctx *gin.Context) {
 		return
 	}
 
-	topicMessages := getTopic(dbShortForumTopic, dbTopicMessages, c.services.Config)
+	pageCount := utils.GetPageCount(totalCount, uint32(limit))
+
+	topicMessages := getTopic(dbShortForumTopic, dbTopicMessages, uint32(page), pageCount, c.services.Config)
 	utils.ShowProto(ctx, http.StatusOK, topicMessages)
 }
