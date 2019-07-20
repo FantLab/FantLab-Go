@@ -75,6 +75,17 @@ type ForumModerator struct {
 	Sort        float32
 }
 
+type ForumTopicsDBResponse struct {
+	Topics           []ForumTopic
+	TotalTopicsCount uint32
+}
+
+type ForumTopicMessagesDBResponse struct {
+	Topic              ShortForumTopic
+	Messages           []ForumMessage
+	TotalMessagesCount uint32
+}
+
 func (db *DB) FetchForums(availableForums []uint16) ([]Forum, error) {
 	var forums []Forum
 
@@ -138,7 +149,7 @@ func (db *DB) FetchModerators() (map[uint32][]ForumModerator, error) {
 	return moderatorsMap, nil
 }
 
-func (db *DB) FetchForumTopics(availableForums []uint16, forumID uint16, limit, offset uint32) ([]ForumTopic, uint32, error) {
+func (db *DB) FetchForumTopics(availableForums []uint16, forumID uint16, limit, offset uint32) (*ForumTopicsDBResponse, error) {
 	var forum Forum
 
 	err := db.ORM.Table("f_forums").
@@ -146,7 +157,7 @@ func (db *DB) FetchForumTopics(availableForums []uint16, forumID uint16, limit, 
 		Error
 
 	if err != nil {
-		return nil, 0, err
+		return nil, err
 	}
 
 	var topics []ForumTopic
@@ -182,7 +193,7 @@ func (db *DB) FetchForumTopics(availableForums []uint16, forumID uint16, limit, 
 		Error
 
 	if err != nil {
-		return nil, 0, err
+		return nil, err
 	}
 
 	var count uint32
@@ -193,13 +204,18 @@ func (db *DB) FetchForumTopics(availableForums []uint16, forumID uint16, limit, 
 		Error
 
 	if err != nil {
-		return nil, 0, err
+		return nil, err
 	}
 
-	return topics, count, nil
+	result := &ForumTopicsDBResponse{
+		Topics:           topics,
+		TotalTopicsCount: count,
+	}
+
+	return result, nil
 }
 
-func (db *DB) FetchTopicMessages(availableForums []uint16, topicID, limit, offset uint32) (ShortForumTopic, []ForumMessage, uint32, error) {
+func (db *DB) FetchTopicMessages(availableForums []uint16, topicID, limit, offset uint32) (*ForumTopicMessagesDBResponse, error) {
 	var shortTopic ShortForumTopic
 
 	err := db.ORM.Table("f_topics t").
@@ -213,7 +229,7 @@ func (db *DB) FetchTopicMessages(availableForums []uint16, topicID, limit, offse
 		Error
 
 	if err != nil {
-		return ShortForumTopic{}, nil, 0, err
+		return nil, err
 	}
 
 	var messages []ForumMessage
@@ -243,7 +259,7 @@ func (db *DB) FetchTopicMessages(availableForums []uint16, topicID, limit, offse
 		Error
 
 	if err != nil {
-		return ShortForumTopic{}, nil, 0, err
+		return nil, err
 	}
 
 	var count uint32
@@ -254,8 +270,14 @@ func (db *DB) FetchTopicMessages(availableForums []uint16, topicID, limit, offse
 		Error
 
 	if err != nil {
-		return ShortForumTopic{}, nil, 0, err
+		return nil, err
 	}
 
-	return shortTopic, messages, count, nil
+	result := &ForumTopicMessagesDBResponse{
+		Topic:              shortTopic,
+		Messages:           messages,
+		TotalMessagesCount: count,
+	}
+
+	return result, nil
 }
