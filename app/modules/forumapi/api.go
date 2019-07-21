@@ -3,6 +3,7 @@ package forumapi
 import (
 	"net/http"
 	"strconv"
+	"strings"
 
 	"fantlab/pb"
 	"fantlab/shared"
@@ -133,6 +134,12 @@ func (c *Controller) ShowTopicMessages(ctx *gin.Context) {
 		return
 	}
 
+	sort := ctx.DefaultQuery("sort", "time:asc")
+	sortDirection := "asc"
+	if index := strings.Index(sort, ":"); index != -1 && sort[(index+1):] == "desc" {
+		sortDirection = "desc"
+	}
+
 	offset := limit * (page - 1)
 
 	dbResponse, err := c.services.DB.FetchTopicMessages(
@@ -140,6 +147,7 @@ func (c *Controller) ShowTopicMessages(ctx *gin.Context) {
 		uint32(topicID),
 		uint32(limit),
 		uint32(offset),
+		sortDirection,
 	)
 
 	if err != nil {
