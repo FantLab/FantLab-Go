@@ -215,7 +215,7 @@ func (db *DB) FetchForumTopics(availableForums []uint16, forumID uint16, limit, 
 	return result, nil
 }
 
-func (db *DB) FetchTopicMessages(availableForums []uint16, topicID, limit, offset uint32) (*ForumTopicMessagesDBResponse, error) {
+func (db *DB) FetchTopicMessages(availableForums []uint16, topicID, limit, offset uint32, sortDirection string) (*ForumTopicMessagesDBResponse, error) {
 	var shortTopic ShortForumTopic
 
 	err := db.ORM.Table("f_topics t").
@@ -230,6 +230,22 @@ func (db *DB) FetchTopicMessages(availableForums []uint16, topicID, limit, offse
 
 	if err != nil {
 		return nil, err
+	}
+
+	var count uint32
+
+	err = db.ORM.Table("f_messages f").
+		Where("f.topic_id = ?", topicID).
+		Count(&count).
+		Error
+
+	if err != nil {
+		return nil, err
+	}
+
+	finalOffset := int32(offset)
+	if sortDirection == "desc" {
+		finalOffset = int32(count) - int32(offset) - int32(limit)
 	}
 
 	var messages []ForumMessage
@@ -253,20 +269,9 @@ func (db *DB) FetchTopicMessages(availableForums []uint16, topicID, limit, offse
 			"ABS(f.vote_minus) AS vote_minus").
 		Joins("LEFT JOIN users u ON u.user_id = f.user_id").
 		Joins("JOIN f_messages_text m ON m.message_id = f.message_id").
-		Where("f.topic_id = ? AND f.number >= ? AND f.number <= ?", topicID, offset+1, offset+limit).
-		Order("f.date_of_add").
+		Where("f.topic_id = ? AND f.number >= ? AND f.number <= ?", topicID, finalOffset+1, finalOffset+int32(limit)).
+		Order("f.date_of_add " + sortDirection).
 		Scan(&messages).
-		Error
-
-	if err != nil {
-		return nil, err
-	}
-
-	var count uint32
-
-	err = db.ORM.Table("f_messages f").
-		Where("f.topic_id = ?", topicID).
-		Count(&count).
 		Error
 
 	if err != nil {

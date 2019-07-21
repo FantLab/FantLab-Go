@@ -133,6 +133,11 @@ func (c *Controller) ShowTopicMessages(ctx *gin.Context) {
 		return
 	}
 
+	sortDirection := ctx.DefaultQuery("order", "asc")
+	if sortDirection != "desc" {
+		sortDirection = "asc"
+	}
+
 	offset := limit * (page - 1)
 
 	dbResponse, err := c.services.DB.FetchTopicMessages(
@@ -140,6 +145,7 @@ func (c *Controller) ShowTopicMessages(ctx *gin.Context) {
 		uint32(topicID),
 		uint32(limit),
 		uint32(offset),
+		sortDirection,
 	)
 
 	if err != nil {
