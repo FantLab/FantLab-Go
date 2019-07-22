@@ -4,6 +4,7 @@ import (
 	"fantlab/pb"
 	"net/http"
 	"strconv"
+	"strings"
 
 	"fantlab/shared"
 	"fantlab/utils"
@@ -109,7 +110,7 @@ func (c *Controller) ShowBlogs(ctx *gin.Context) {
 		return
 	}
 
-	sort := ctx.DefaultQuery("sort", "update")
+	sort := strings.ToLower(ctx.DefaultQuery("sort", "update"))
 	offset := limit * (page - 1)
 
 	dbResponse, err := c.services.DB.FetchBlogs(uint32(limit), uint32(offset), sort)

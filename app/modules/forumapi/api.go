@@ -3,6 +3,7 @@ package forumapi
 import (
 	"net/http"
 	"strconv"
+	"strings"
 
 	"fantlab/pb"
 	"fantlab/shared"
@@ -133,7 +134,7 @@ func (c *Controller) ShowTopicMessages(ctx *gin.Context) {
 		return
 	}
 
-	sortDirection := ctx.DefaultQuery("order", "asc")
+	sortDirection := strings.ToLower(ctx.DefaultQuery("order", "asc"))
 	if sortDirection != "desc" {
 		sortDirection = "asc"
 	}
