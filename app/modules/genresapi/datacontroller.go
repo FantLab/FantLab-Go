@@ -17,10 +17,10 @@ func getGenres(dbResponse *db.WorkGenresDBResponse) *pb.Genre_Response {
 		}
 	}
 
-	groupsMap := make(map[uint16]*pb.Genre_Genre)
+	groupsTable := make(map[uint16]*pb.Genre_Genre)
 
 	for _, dbGenre := range dbResponse.Genres {
-		root := groupsMap[dbGenre.GroupId]
+		root := groupsTable[dbGenre.GroupId]
 
 		if root == nil {
 			root = &pb.Genre_Genre{}
@@ -35,13 +35,13 @@ func getGenres(dbResponse *db.WorkGenresDBResponse) *pb.Genre_Response {
 			root.Subgenres = append(root.Subgenres, genre)
 		}
 
-		groupsMap[dbGenre.GroupId] = root
+		groupsTable[dbGenre.GroupId] = root
 	}
 
 	genreGroups := make([]*pb.Genre_Group, len(dbResponse.GenreGroups))
 
 	for index, dbGroup := range dbResponse.GenreGroups {
-		rootGenre := groupsMap[dbGroup.Id]
+		rootGenre := groupsTable[dbGroup.Id]
 
 		if rootGenre == nil {
 			continue

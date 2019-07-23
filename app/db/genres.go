@@ -6,7 +6,7 @@ type WorkGenre struct {
 	GroupId   uint16 `gorm:"Column:work_genre_group_id"`
 	Name      string `gorm:"Column:name"`
 	Info      string `gorm:"Column:description"`
-	WorkCount int32  `gorm:"Column:work_count_voting_finished"`
+	WorkCount uint32 `gorm:"Column:work_count_voting_finished"`
 }
 
 type WorkGenreGroup struct {

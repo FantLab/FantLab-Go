@@ -9,7 +9,7 @@ message Genre {
         uint32 id = 1;
         string name = 2;
         string info = 3;
-        int32 work_count = 4;
+        uint32 work_count = 4;
         repeated Genre subgenres = 5;
     }
 
