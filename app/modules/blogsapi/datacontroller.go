@@ -223,3 +223,33 @@ func getBlog(dbResponse *db.BlogDBResponse, page, limit uint32, cfg *shared.AppC
 		},
 	}
 }
+
+func getArticle(dbBlogTopic *db.BlogTopic, cfg *shared.AppConfig) *pb.Blog_BlogArticleResponse {
+	gender := utils.GetGender(dbBlogTopic.UserId, dbBlogTopic.Sex)
+	avatar := utils.GetUserAvatarUrl(cfg.ImagesBaseURL, dbBlogTopic.UserId, uint32(dbBlogTopic.PhotoNumber))
+
+	article := &pb.Blog_Article{
+		Id:    dbBlogTopic.TopicId,
+		Title: dbBlogTopic.HeadTopic,
+		Creation: &pb.Common_Creation{
+			User: &pb.Common_UserLink{
+				Id:     dbBlogTopic.UserId,
+				Login:  dbBlogTopic.Login,
+				Gender: gender,
+				Avatar: avatar,
+			},
+			Date: utils.ProtoTS(dbBlogTopic.DateOfAdd),
+		},
+		Text: dbBlogTopic.MessageText,
+		Tags: dbBlogTopic.Tags,
+		Stats: &pb.Blog_Article_Stats{
+			LikeCount:    dbBlogTopic.LikesCount,
+			ViewCount:    dbBlogTopic.Views,
+			CommentCount: dbBlogTopic.CommentsCount,
+		},
+	}
+
+	return &pb.Blog_BlogArticleResponse{
+		Article: article,
+	}
+}

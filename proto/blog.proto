@@ -80,4 +80,8 @@ message Blog {
         repeated Article articles = 1;
         Common.Pages pages = 2;
     }
+
+    message BlogArticleResponse {
+        Article article = 1;
+    }
 }

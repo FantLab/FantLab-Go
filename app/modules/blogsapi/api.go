@@ -179,3 +179,34 @@ func (c *Controller) ShowBlog(ctx *gin.Context) {
 	blog := getBlog(dbResponse, uint32(page), uint32(limit), c.services.Config)
 	utils.ShowProto(ctx, http.StatusOK, blog)
 }
+
+func (c *Controller) ShowArticle(ctx *gin.Context) {
+	articleId, err := strconv.ParseUint(ctx.Param("id"), 10, 32)
+
+	if err != nil {
+		utils.ShowProto(ctx, http.StatusBadRequest, &pb.Error_Response{
+			Status:  pb.Error_INVALID_PARAMETER,
+			Context: "id",
+		})
+		return
+	}
+
+	dbTopic, err := c.services.DB.FetchBlogTopic(uint32(articleId))
+
+	if err != nil {
+		if utils.IsRecordNotFoundError(err) {
+			utils.ShowProto(ctx, http.StatusNotFound, &pb.Error_Response{
+				Status:  pb.Error_NOT_FOUND,
+				Context: strconv.FormatUint(articleId, 10),
+			})
+		} else {
+			utils.ShowProto(ctx, http.StatusInternalServerError, &pb.Error_Response{
+				Status: pb.Error_SOMETHING_WENT_WRONG,
+			})
+		}
+		return
+	}
+
+	article := getArticle(dbTopic, c.services.Config)
+	utils.ShowProto(ctx, http.StatusOK, article)
+}
