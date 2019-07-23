@@ -1,0 +1,25 @@
+syntax = "proto3";
+
+package fantlab.genres;
+
+option go_package = "app/pb";
+
+message Genre {
+    message Genre {
+        uint32 id = 1;
+        string name = 2;
+        string info = 3;
+        uint32 work_count = 4;
+        repeated Genre subgenres = 5;
+    }
+
+    message Group {
+        uint32 id = 1;
+        string name = 2;
+        repeated Genre genres = 5;
+    }
+
+    message Response {
+        repeated Group groups = 1;
+    }
+}
