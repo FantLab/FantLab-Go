@@ -6,6 +6,7 @@ import (
 	"fantlab/modules/authapi"
 	"fantlab/modules/blogsapi"
 	"fantlab/modules/forumapi"
+	"fantlab/modules/genresapi"
 	"fantlab/shared"
 
 	"github.com/gin-gonic/gin"
@@ -43,6 +44,13 @@ func SetupWith(services *shared.Services) *gin.Engine {
 			v1.GET("/communities/:id", controller.ShowCommunity)
 			v1.GET("/blogs", controller.ShowBlogs)
 			v1.GET("/blogs/:id", controller.ShowBlog)
+		}
+
+		// Жанры
+		{
+			controller := genresapi.NewController(services)
+
+			v1.GET("/genres", controller.ShowGenres)
 		}
 	}
 
