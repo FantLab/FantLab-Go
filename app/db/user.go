@@ -21,8 +21,8 @@ type UserSession struct {
 }
 
 type UserSessionInfo struct {
-	UserID       uint64    `gorm:"Column:user_id"`
-	DateOfCreate time.Time `gorm:"Column:date_of_create"`
+	UserID       uint64
+	DateOfCreate time.Time
 }
 
 const sessionsTable = "sessions2" // sessions https://github.com/parserpro/fantlab/issues/908

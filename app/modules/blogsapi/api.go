@@ -210,3 +210,171 @@ func (c *Controller) ShowArticle(ctx *gin.Context) {
 	article := getArticle(dbTopic, c.services.Config)
 	utils.ShowProto(ctx, http.StatusOK, article)
 }
+
+func (c *Controller) LikeArticle(ctx *gin.Context) {
+	userId := ctx.GetInt64(gin.AuthUserKey)
+
+	if userId == 0 {
+		utils.ShowProto(ctx, http.StatusUnauthorized, &pb.Error_Response{
+			Status: pb.Error_INVALID_SESSION,
+		})
+		return
+	}
+
+	articleId, err := strconv.ParseUint(ctx.Param("id"), 10, 32)
+
+	if err != nil {
+		utils.ShowProto(ctx, http.StatusBadRequest, &pb.Error_Response{
+			Status:  pb.Error_INVALID_PARAMETER,
+			Context: "id",
+		})
+		return
+	}
+
+	dbTopicCreatorId, err := c.services.DB.FetchBlogTopicCreatorId(uint32(articleId))
+
+	if err != nil {
+		if utils.IsRecordNotFoundError(err) {
+			utils.ShowProto(ctx, http.StatusNotFound, &pb.Error_Response{
+				Status:  pb.Error_NOT_FOUND,
+				Context: strconv.FormatUint(articleId, 10),
+			})
+		} else {
+			utils.ShowProto(ctx, http.StatusInternalServerError, &pb.Error_Response{
+				Status: pb.Error_SOMETHING_WENT_WRONG,
+			})
+		}
+		return
+	}
+
+	if *dbTopicCreatorId == uint32(userId) {
+		utils.ShowProto(ctx, http.StatusUnauthorized, &pb.Error_Response{
+			Status:  pb.Error_ACTION_PERMITTED,
+			Context: "your own article",
+		})
+		return
+	}
+
+	isDbTopicLiked, err := c.services.DB.FetchBlogTopicLiked(uint32(articleId), uint32(userId))
+
+	if err != nil {
+		utils.ShowProto(ctx, http.StatusInternalServerError, &pb.Error_Response{
+			Status: pb.Error_SOMETHING_WENT_WRONG,
+		})
+		return
+	}
+
+	if *isDbTopicLiked == true {
+		utils.ShowProto(ctx, http.StatusUnauthorized, &pb.Error_Response{
+			Status:  pb.Error_ACTION_PERMITTED,
+			Context: "already liked",
+		})
+		return
+	}
+
+	err = c.services.DB.UpdateBlogTopicLiked(uint32(articleId), uint32(userId))
+
+	if err != nil {
+		utils.ShowProto(ctx, http.StatusInternalServerError, &pb.Error_Response{
+			Status: pb.Error_SOMETHING_WENT_WRONG,
+		})
+		return
+	}
+
+	dbTopicLikeCount, err := c.services.DB.FetchBlogTopicLikeCount(uint32(articleId))
+
+	if err != nil {
+		utils.ShowProto(ctx, http.StatusInternalServerError, &pb.Error_Response{
+			Status: pb.Error_SOMETHING_WENT_WRONG,
+		})
+		return
+	}
+
+	utils.ShowProto(ctx, http.StatusOK, &pb.Blog_BlogArticleLikeResponse{
+		LikeCount: *dbTopicLikeCount,
+	})
+}
+
+func (c *Controller) DislikeArticle(ctx *gin.Context) {
+	userId := ctx.GetInt64(gin.AuthUserKey)
+
+	if userId == 0 {
+		utils.ShowProto(ctx, http.StatusUnauthorized, &pb.Error_Response{
+			Status: pb.Error_INVALID_SESSION,
+		})
+		return
+	}
+
+	articleId, err := strconv.ParseUint(ctx.Param("id"), 10, 32)
+
+	if err != nil {
+		utils.ShowProto(ctx, http.StatusBadRequest, &pb.Error_Response{
+			Status:  pb.Error_INVALID_PARAMETER,
+			Context: "id",
+		})
+		return
+	}
+
+	dbTopicCreatorId, err := c.services.DB.FetchBlogTopicCreatorId(uint32(articleId))
+
+	if err != nil {
+		if utils.IsRecordNotFoundError(err) {
+			utils.ShowProto(ctx, http.StatusNotFound, &pb.Error_Response{
+				Status:  pb.Error_NOT_FOUND,
+				Context: strconv.FormatUint(articleId, 10),
+			})
+		} else {
+			utils.ShowProto(ctx, http.StatusInternalServerError, &pb.Error_Response{
+				Status: pb.Error_SOMETHING_WENT_WRONG,
+			})
+		}
+		return
+	}
+
+	if *dbTopicCreatorId == uint32(userId) {
+		utils.ShowProto(ctx, http.StatusUnauthorized, &pb.Error_Response{
+			Status:  pb.Error_ACTION_PERMITTED,
+			Context: "your own article",
+		})
+		return
+	}
+
+	isDbTopicLiked, err := c.services.DB.FetchBlogTopicLiked(uint32(articleId), uint32(userId))
+
+	if err != nil {
+		utils.ShowProto(ctx, http.StatusInternalServerError, &pb.Error_Response{
+			Status: pb.Error_SOMETHING_WENT_WRONG,
+		})
+		return
+	}
+
+	if *isDbTopicLiked == false {
+		utils.ShowProto(ctx, http.StatusUnauthorized, &pb.Error_Response{
+			Status:  pb.Error_ACTION_PERMITTED,
+			Context: "already disliked",
+		})
+		return
+	}
+
+	err = c.services.DB.UpdateBlogTopicDisliked(uint32(articleId), uint32(userId))
+
+	if err != nil {
+		utils.ShowProto(ctx, http.StatusInternalServerError, &pb.Error_Response{
+			Status: pb.Error_SOMETHING_WENT_WRONG,
+		})
+		return
+	}
+
+	dbTopicLikeCount, err := c.services.DB.FetchBlogTopicLikeCount(uint32(articleId))
+
+	if err != nil {
+		utils.ShowProto(ctx, http.StatusInternalServerError, &pb.Error_Response{
+			Status: pb.Error_SOMETHING_WENT_WRONG,
+		})
+		return
+	}
+
+	utils.ShowProto(ctx, http.StatusOK, &pb.Blog_BlogArticleLikeResponse{
+		LikeCount: *dbTopicLikeCount,
+	})
+}

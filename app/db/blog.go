@@ -2,6 +2,8 @@ package db
 
 import (
 	"time"
+
+	"github.com/jinzhu/gorm"
 )
 
 type Community struct {
@@ -64,6 +66,13 @@ type BlogTopic struct {
 	LikesCount    uint32
 	Views         uint32
 	CommentsCount uint32
+}
+
+type BlogTopicLike struct {
+	TopicLikeId uint32 `gorm:"unique;not null"`
+	TopicId     uint32
+	UserId      uint32
+	DateOfAdd   time.Time
 }
 
 type CommunityDBResponse struct {
@@ -353,4 +362,101 @@ func (db *DB) FetchBlogTopic(topicId uint32) (*BlogTopic, error) {
 	}
 
 	return &topic, nil
+}
+
+func (db *DB) FetchBlogTopicCreatorId(topicId uint32) (*uint32, error) {
+	var topic BlogTopic
+
+	err := db.ORM.Table("b_topics b").
+		Select("b.user_id").
+		Where("b.topic_id = ? AND b.is_opened > 0", topicId).
+		First(&topic).
+		Error
+
+	if err != nil {
+		return nil, err
+	}
+
+	return &topic.UserId, nil
+}
+
+func (db *DB) FetchBlogTopicLikeCount(topicId uint32) (*uint32, error) {
+	var topic BlogTopic
+
+	err := db.ORM.Table("b_topics b").
+		Select("b.likes_count").
+		Where("b.topic_id = ?", topicId).
+		First(&topic).
+		Error
+
+	if err != nil {
+		return nil, err
+	}
+
+	return &topic.LikesCount, nil
+}
+
+func (db *DB) FetchBlogTopicLiked(topicId, userId uint32) (*bool, error) {
+	var topicLike BlogTopicLike
+
+	err := db.ORM.Table("b_topic_likes b").
+		Select("b.topic_like_id").
+		Where("b.topic_id = ? AND b.user_id = ?", topicId, userId).
+		First(&topicLike).
+		Error
+
+	if err != nil {
+		if gorm.IsRecordNotFoundError(err) {
+			topicLike = BlogTopicLike{
+				TopicLikeId: 0,
+			}
+		} else {
+			return nil, err
+		}
+	}
+
+	isTopicLiked := topicLike.TopicLikeId > 0
+
+	return &isTopicLiked, nil
+}
+
+func (db *DB) UpdateBlogTopicLiked(topicId, userId uint32) error {
+	topicLike := &BlogTopicLike{
+		TopicId:   topicId,
+		UserId:    userId,
+		DateOfAdd: time.Now(),
+	}
+
+	err := db.ORM.Table("b_topic_likes").
+		Create(&topicLike).
+		Error
+
+	if err != nil {
+		return err
+	}
+
+	err = db.ORM.Table("b_topics").
+		Where("topic_id = ?", topicId).
+		Update("likes_count", gorm.Expr("CASE WHEN likes_count IS NULL THEN 1 ELSE likes_count + 1 END")).
+		Error
+
+	return err
+}
+
+func (db *DB) UpdateBlogTopicDisliked(topicId, userId uint32) error {
+	err := db.ORM.Table("b_topic_likes").
+		Where("topic_id = ? AND user_id = ?", topicId, userId).
+		Delete(&BlogTopicLike{}).
+		Error
+
+	if err != nil {
+		return err
+	}
+
+	err = db.ORM.Table("b_topics").
+		Where("topic_id = ?", topicId).
+		Update("likes_count", gorm.Expr("likes_count - 1")).
+		Error
+
+	return err
 }
