@@ -177,7 +177,6 @@ func (db *DB) FetchCommunity(communityID, limit, offset uint32) (*CommunityDBRes
 			"t.message_text, "+
 			"b.tags, "+
 			"b.likes_count, "+
-			"b.views, "+
 			"b.comments_count").
 		Joins("JOIN b_topics_text t ON t.message_id = b.topic_id").
 		Joins("LEFT JOIN users u ON u.user_id = b.user_id").
@@ -295,7 +294,6 @@ func (db *DB) FetchBlog(blogID, limit, offset uint32) (*BlogDBResponse, error) {
 			"t.message_text, "+
 			"b.tags, "+
 			"b.likes_count, "+
-			"b.views, "+
 			"b.comments_count").
 		Joins("JOIN b_topics_text t ON t.message_id = b.topic_id").
 		Joins("LEFT JOIN users u ON u.user_id = b.user_id").
@@ -327,4 +325,32 @@ func (db *DB) FetchBlog(blogID, limit, offset uint32) (*BlogDBResponse, error) {
 	}
 
 	return response, nil
+}
+
+func (db *DB) FetchBlogTopic(topicId uint32) (*BlogTopic, error) {
+	var topic BlogTopic
+
+	err := db.ORM.Table("b_topics b").
+		Select("b.topic_id, "+
+			"b.head_topic, "+
+			"b.date_of_add, "+
+			"u.user_id, "+
+			"u.login, "+
+			"u.sex, "+
+			"u.photo_number, "+
+			"t.message_text, "+
+			"b.tags, "+
+			"b.likes_count, "+
+			"b.comments_count").
+		Joins("JOIN b_topics_text t ON t.message_id = b.topic_id").
+		Joins("LEFT JOIN users u ON u.user_id = b.user_id").
+		Where("b.topic_id = ? AND b.is_opened > 0", topicId).
+		First(&topic).
+		Error
+
+	if err != nil {
+		return nil, err
+	}
+
+	return &topic, nil
 }
