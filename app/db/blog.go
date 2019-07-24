@@ -435,9 +435,10 @@ func (db *DB) UpdateBlogTopicLiked(topicId, userId uint32) error {
 		return err
 	}
 
-	err = db.ORM.Table("b_topics").
-		Where("topic_id = ?", topicId).
-		Update("likes_count", gorm.Expr("CASE WHEN likes_count IS NULL THEN 1 ELSE likes_count + 1 END")).
+	err = db.ORM.Table("b_topics b").
+		Where("b.topic_id = ?", topicId).
+		Update("b.likes_count",
+			gorm.Expr("(SELECT COUNT(DISTINCT btl.user_id) FROM b_topic_likes btl WHERE btl.topic_id = b.topic_id)")).
 		Error
 
 	return err
@@ -453,9 +454,10 @@ func (db *DB) UpdateBlogTopicDisliked(topicId, userId uint32) error {
 		return err
 	}
 
-	err = db.ORM.Table("b_topics").
-		Where("topic_id = ?", topicId).
-		Update("likes_count", gorm.Expr("likes_count - 1")).
+	err = db.ORM.Table("b_topics b").
+		Where("b.topic_id = ?", topicId).
+		Update("b.likes_count",
+			gorm.Expr("(SELECT COUNT(DISTINCT btl.user_id) FROM b_topic_likes btl WHERE btl.topic_id = b.topic_id)")).
 		Error
 
 	return err
