@@ -364,7 +364,7 @@ func (db *DB) FetchBlogTopic(topicId uint32) (*BlogTopic, error) {
 	return &topic, nil
 }
 
-func (db *DB) FetchBlogTopicCreatorId(topicId uint32) (*uint32, error) {
+func (db *DB) FetchBlogTopicCreatorId(topicId uint32) (uint32, error) {
 	var topic BlogTopic
 
 	err := db.ORM.Table("b_topics b").
@@ -374,13 +374,13 @@ func (db *DB) FetchBlogTopicCreatorId(topicId uint32) (*uint32, error) {
 		Error
 
 	if err != nil {
-		return nil, err
+		return 0, err
 	}
 
-	return &topic.UserId, nil
+	return topic.UserId, nil
 }
 
-func (db *DB) FetchBlogTopicLikeCount(topicId uint32) (*uint32, error) {
+func (db *DB) FetchBlogTopicLikeCount(topicId uint32) (uint32, error) {
 	var topic BlogTopic
 
 	err := db.ORM.Table("b_topics b").
@@ -390,13 +390,13 @@ func (db *DB) FetchBlogTopicLikeCount(topicId uint32) (*uint32, error) {
 		Error
 
 	if err != nil {
-		return nil, err
+		return 0, err
 	}
 
-	return &topic.LikesCount, nil
+	return topic.LikesCount, nil
 }
 
-func (db *DB) FetchBlogTopicLiked(topicId, userId uint32) (*bool, error) {
+func (db *DB) FetchBlogTopicLiked(topicId, userId uint32) (bool, error) {
 	var topicLike BlogTopicLike
 
 	err := db.ORM.Table("b_topic_likes b").
@@ -411,13 +411,13 @@ func (db *DB) FetchBlogTopicLiked(topicId, userId uint32) (*bool, error) {
 				TopicLikeId: 0,
 			}
 		} else {
-			return nil, err
+			return false, err
 		}
 	}
 
 	isTopicLiked := topicLike.TopicLikeId > 0
 
-	return &isTopicLiked, nil
+	return isTopicLiked, nil
 }
 
 func (db *DB) UpdateBlogTopicLiked(topicId, userId uint32) error {

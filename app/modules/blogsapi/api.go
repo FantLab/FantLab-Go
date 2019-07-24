@@ -247,7 +247,7 @@ func (c *Controller) LikeArticle(ctx *gin.Context) {
 		return
 	}
 
-	if *dbTopicCreatorId == uint32(userId) {
+	if dbTopicCreatorId == uint32(userId) {
 		utils.ShowProto(ctx, http.StatusUnauthorized, &pb.Error_Response{
 			Status:  pb.Error_ACTION_PERMITTED,
 			Context: "your own article",
@@ -264,7 +264,7 @@ func (c *Controller) LikeArticle(ctx *gin.Context) {
 		return
 	}
 
-	if *isDbTopicLiked == true {
+	if isDbTopicLiked {
 		utils.ShowProto(ctx, http.StatusUnauthorized, &pb.Error_Response{
 			Status:  pb.Error_ACTION_PERMITTED,
 			Context: "already liked",
@@ -291,7 +291,7 @@ func (c *Controller) LikeArticle(ctx *gin.Context) {
 	}
 
 	utils.ShowProto(ctx, http.StatusOK, &pb.Blog_BlogArticleLikeResponse{
-		LikeCount: *dbTopicLikeCount,
+		LikeCount: dbTopicLikeCount,
 	})
 }
 
@@ -331,7 +331,7 @@ func (c *Controller) DislikeArticle(ctx *gin.Context) {
 		return
 	}
 
-	if *dbTopicCreatorId == uint32(userId) {
+	if dbTopicCreatorId == uint32(userId) {
 		utils.ShowProto(ctx, http.StatusUnauthorized, &pb.Error_Response{
 			Status:  pb.Error_ACTION_PERMITTED,
 			Context: "your own article",
@@ -348,7 +348,7 @@ func (c *Controller) DislikeArticle(ctx *gin.Context) {
 		return
 	}
 
-	if *isDbTopicLiked == false {
+	if !isDbTopicLiked {
 		utils.ShowProto(ctx, http.StatusUnauthorized, &pb.Error_Response{
 			Status:  pb.Error_ACTION_PERMITTED,
 			Context: "already disliked",
@@ -375,6 +375,6 @@ func (c *Controller) DislikeArticle(ctx *gin.Context) {
 	}
 
 	utils.ShowProto(ctx, http.StatusOK, &pb.Blog_BlogArticleLikeResponse{
-		LikeCount: *dbTopicLikeCount,
+		LikeCount: dbTopicLikeCount,
 	})
 }
