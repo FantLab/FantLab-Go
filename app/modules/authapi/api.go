@@ -20,7 +20,7 @@ func NewController(services *shared.Services) *Controller {
 }
 
 func (c *Controller) Login(ctx *gin.Context) {
-	userId := ctx.Keys[gin.AuthUserKey].(uint64)
+	userId := ctx.GetInt64(gin.AuthUserKey)
 
 	if userId > 0 {
 		utils.ShowProto(ctx, http.StatusMethodNotAllowed, &pb.Error_Response{
@@ -81,7 +81,7 @@ func (c *Controller) Login(ctx *gin.Context) {
 }
 
 func (c *Controller) Logout(ctx *gin.Context) {
-	userId := ctx.Keys[gin.AuthUserKey].(uint64)
+	userId := ctx.GetInt64(gin.AuthUserKey)
 
 	if userId == 0 {
 		utils.ShowProto(ctx, http.StatusUnauthorized, &pb.Error_Response{

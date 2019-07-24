@@ -45,6 +45,8 @@ func SetupWith(services *shared.Services) *gin.Engine {
 			v1.GET("/blogs", controller.ShowBlogs)
 			v1.GET("/blogs/:id", controller.ShowBlog)
 			v1.GET("/blog_articles/:id", controller.ShowArticle)
+			v1.POST("/blog_articles/:id/like", controller.LikeArticle)
+			v1.POST("/blog_articles/:id/dislike", controller.DislikeArticle)
 		}
 
 		// Жанры
