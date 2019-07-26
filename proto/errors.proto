@@ -19,5 +19,6 @@ message Error {
         LOG_OUT_FIRST = 5;
         INVALID_SESSION = 6;
         ACTION_PERMITTED = 7;
+        VALIDATION_FAILED = 8;
     }
 }

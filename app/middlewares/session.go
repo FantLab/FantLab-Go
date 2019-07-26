@@ -26,9 +26,9 @@ func Session(services *shared.Services) gin.HandlerFunc {
 				}
 			}
 
-			ctx.Set(gin.AuthUserKey, uid)
+			ctx.Set(gin.AuthUserKey, int64(uid))
 		} else {
-			ctx.Set(gin.AuthUserKey, uint64(0))
+			ctx.Set(gin.AuthUserKey, int64(0))
 		}
 
 		ctx.Next()
