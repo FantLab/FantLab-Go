@@ -157,7 +157,7 @@ func checkRequiredGroupsForGenreIds(genreIds []uint64, tree *genreTree) error {
 		groupNames = append(groupNames, groupName)
 	}
 
-	return errors.New("Выберите х-ки из следующих групп: " + strings.Join(groupNames, ", "))
+	return errors.New("Выберите характеристики из следующих групп: " + strings.Join(groupNames, ", "))
 }
 
 func selectGenreIdsWithParents(genreIds []uint64, tree *genreTree) []int32 {
