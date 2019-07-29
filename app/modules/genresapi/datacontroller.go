@@ -1,9 +1,28 @@
 package genresapi
 
 import (
+	"errors"
 	"fantlab/db"
 	"fantlab/pb"
+	"strings"
 )
+
+type genreIdNode struct {
+	id       int32
+	children []*genreIdNode
+	parent   *genreIdNode
+}
+
+func (node *genreIdNode) append(child *genreIdNode) *genreIdNode {
+	child.parent = node
+	node.children = append(node.children, child)
+	return node
+}
+
+type genreTree struct {
+	root  *genreIdNode
+	table map[int32]*genreIdNode
+}
 
 func getGenres(dbResponse *db.WorkGenresDBResponse) *pb.Genre_Response {
 	genresTable := make(map[uint16]*pb.Genre_Genre, len(dbResponse.Genres))
@@ -59,4 +78,102 @@ func getGenres(dbResponse *db.WorkGenresDBResponse) *pb.Genre_Response {
 	return &pb.Genre_Response{
 		Groups: genreGroups,
 	}
+}
+
+func makeGenreTree(dbResponse *db.WorkGenresDBResponse) *genreTree {
+	root := &genreIdNode{}
+
+	genresTable := make(map[int32]*genreIdNode, len(dbResponse.Genres)+len(dbResponse.GenreGroups))
+
+	// для удобства, группы жанров - тоже жанры, но с отрицательными идентификаторами
+
+	for _, dbGroup := range dbResponse.GenreGroups {
+		groupNode := &genreIdNode{id: -int32(dbGroup.Id)}
+		genresTable[groupNode.id] = groupNode
+		root.append(groupNode)
+	}
+
+	for _, dbGenre := range dbResponse.Genres {
+		nodeId := int32(dbGenre.Id)
+		genresTable[nodeId] = &genreIdNode{id: nodeId}
+	}
+
+	for _, dbGenre := range dbResponse.Genres {
+		genre := genresTable[int32(dbGenre.Id)]
+
+		parentGenre := genresTable[int32(dbGenre.ParentId)]
+
+		if parentGenre != nil {
+			parentGenre.append(genre)
+		} else {
+			groupNode := genresTable[-int32(dbGenre.GroupId)]
+
+			if groupNode != nil {
+				groupNode.append(genre)
+			}
+		}
+	}
+
+	tree := &genreTree{
+		root:  root,
+		table: genresTable,
+	}
+
+	return tree
+}
+
+func checkRequiredGroupsForGenreIds(genreIds []uint64, tree *genreTree) error {
+	var requiredGenreGroups = map[int32]string{
+		-1: "Жанры/поджанры",
+		-3: "Место действия",
+		-4: "Время действия",
+		-5: "Возраст читателя",
+	}
+
+	for _, genreId := range genreIds {
+		node := tree.table[int32(genreId)]
+
+		for {
+			if node == nil {
+				return errors.New("Неизвестная характеристика")
+			}
+
+			if node.id < 0 {
+				delete(requiredGenreGroups, node.id)
+				break
+			}
+
+			node = node.parent
+		}
+	}
+
+	if len(requiredGenreGroups) == 0 {
+		return nil
+	}
+
+	var groupNames []string
+
+	for _, groupName := range requiredGenreGroups {
+		groupNames = append(groupNames, groupName)
+	}
+
+	return errors.New("Выберите характеристики из следующих групп: " + strings.Join(groupNames, ", "))
+}
+
+func selectGenreIdsWithParents(genreIds []uint64, tree *genreTree) []int32 {
+	var result []int32
+
+	for _, genreId := range genreIds {
+		node := tree.table[int32(genreId)]
+
+		for node != nil {
+			if node.id > 0 {
+				result = append(result, node.id)
+			}
+
+			node = node.parent
+		}
+	}
+
+	return result
 }

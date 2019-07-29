@@ -53,7 +53,8 @@ func SetupWith(services *shared.Services) *gin.Engine {
 		{
 			controller := genresapi.NewController(services)
 
-			v1.GET("/genres", controller.ShowGenres)
+			v1.GET("/allgenres", controller.ShowGenres)
+			// v1.PUT("/work/:id/genres", controller.SetWorkGenres)
 		}
 	}
 

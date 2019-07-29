@@ -1,17 +1,17 @@
 package db
 
 type WorkGenre struct {
-	Id        uint16 `gorm:"Column:work_genre_id"`
-	ParentId  uint16 `gorm:"Column:parent_work_genre_id"`
-	GroupId   uint16 `gorm:"Column:work_genre_group_id"`
-	Name      string `gorm:"Column:name"`
-	Info      string `gorm:"Column:description"`
-	WorkCount uint32 `gorm:"Column:work_count_voting_finished"`
+	Id        uint16 `db:"work_genre_id"`
+	ParentId  uint16 `db:"parent_work_genre_id"`
+	GroupId   uint16 `db:"work_genre_group_id"`
+	Name      string `db:"name"`
+	Info      string `db:"description"`
+	WorkCount uint32 `db:"work_count_voting_finished"`
 }
 
 type WorkGenreGroup struct {
-	Id   uint16 `gorm:"Column:work_genre_group_id"`
-	Name string `gorm:"Column:name"`
+	Id   uint16 `db:"work_genre_group_id"`
+	Name string `db:"name"`
 }
 
 type WorkGenresDBResponse struct {
@@ -20,31 +20,38 @@ type WorkGenresDBResponse struct {
 }
 
 func (db *DB) FetchGenres() (*WorkGenresDBResponse, error) {
+	const genresQuery = `
+	SELECT
+		wg.work_genre_id,
+		IFNULL(wg.parent_work_genre_id, 0) AS parent_work_genre_id,
+		wg.work_genre_group_id,
+		wg.name,
+		IFNULL(wg.description, '') AS description,
+		wg.work_count_voting_finished
+	FROM
+		work_genres wg
+	ORDER BY
+		wg.work_genre_group_id ASC, wg.level ASC`
+
 	var genres []WorkGenre
 
-	err := db.ORM.Table("work_genres wg").
-		Select("wg.work_genre_id, " +
-			"wg.parent_work_genre_id, " +
-			"wg.work_genre_group_id, " +
-			"wg.name, " +
-			"wg.description, " +
-			"wg.work_count_voting_finished",
-		).
-		Order("wg.work_genre_group_id asc, wg.level asc").
-		Scan(&genres).
-		Error
+	err := db.X.Select(&genres, genresQuery)
 
 	if err != nil {
 		return nil, err
 	}
 
+	const genreGroupsQuery = `
+	SELECT
+		wgg.work_genre_group_id, wgg.name
+	FROM
+		work_genre_groups wgg
+	ORDER BY
+		wgg.level ASC`
+
 	var genreGroups []WorkGenreGroup
 
-	err = db.ORM.Table("work_genre_groups wgg").
-		Select("wgg.work_genre_group_id, wgg.name").
-		Order("wgg.level asc").
-		Scan(&genreGroups).
-		Error
+	err = db.X.Select(&genreGroups, genreGroupsQuery)
 
 	if err != nil {
 		return nil, err
@@ -56,4 +63,49 @@ func (db *DB) FetchGenres() (*WorkGenresDBResponse, error) {
 	}
 
 	return result, nil
+}
+
+func (db *DB) FetchGenreIds() (*WorkGenresDBResponse, error) {
+	const genresQuery = `
+	SELECT
+		wg.work_genre_id,
+		IFNULL(wg.parent_work_genre_id, 0) AS parent_work_genre_id,
+		wg.work_genre_group_id
+	FROM
+		work_genres wg`
+
+	var genres []WorkGenre
+
+	err := db.X.Select(&genres, genresQuery)
+
+	if err != nil {
+		return nil, err
+	}
+
+	const genreGroupsQuery = `
+	SELECT
+		wgg.work_genre_group_id
+	FROM
+		work_genre_groups wgg`
+
+	var genreGroups []WorkGenreGroup
+
+	err = db.X.Select(&genreGroups, genreGroupsQuery)
+
+	if err != nil {
+		return nil, err
+	}
+
+	result := &WorkGenresDBResponse{
+		Genres:      genres,
+		GenreGroups: genreGroups,
+	}
+
+	return result, nil
+}
+
+func (db *DB) GenreVote(workId uint64, userId int64, genreIds []int32) error {
+	// TODO:
+
+	return nil
 }
