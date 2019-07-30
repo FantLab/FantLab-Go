@@ -31,7 +31,7 @@ func (db *DB) FetchGenres() (*WorkGenresDBResponse, error) {
 	FROM
 		work_genres wg
 	ORDER BY
-		wg.work_genre_group_id ASC, wg.level ASC`
+		wg.work_genre_group_id, wg.level`
 
 	var genres []WorkGenre
 
@@ -47,7 +47,7 @@ func (db *DB) FetchGenres() (*WorkGenresDBResponse, error) {
 	FROM
 		work_genre_groups wgg
 	ORDER BY
-		wgg.level ASC`
+		wgg.level`
 
 	var genreGroups []WorkGenreGroup
 

@@ -5,24 +5,24 @@ import (
 )
 
 type UserPasswordHash struct {
-	UserID  uint32
-	OldHash string `gorm:"Column:password_hash"`
-	NewHash string `gorm:"Column:new_password_hash"`
+	UserID  uint32 `db:"user_id"`
+	OldHash string `db:"password_hash"`
+	NewHash string `db:"new_password_hash"`
 }
 
 type UserSession struct {
-	Code             string `gorm:"unique;not null"`
-	UserID           uint32
-	UserIP           string
-	UserAgent        string
-	DateOfCreate     time.Time
-	DateOfLastAction time.Time
-	Hits             uint32
+	Code             string    `db:"code;unique;not null"`
+	UserID           uint32    `db:"user_id"`
+	UserIP           string    `db:"user_ip"`
+	UserAgent        string    `db:"user_agent"`
+	DateOfCreate     time.Time `db:"date_of_create"`
+	DateOfLastAction time.Time `db:"date_of_last_action"`
+	Hits             uint32    `db:"hits"`
 }
 
 type UserSessionInfo struct {
-	UserID       uint64
-	DateOfCreate time.Time
+	UserID       uint64    `db:"user_id"`
+	DateOfCreate time.Time `db:"date_of_create"`
 }
 
 const sessionsTable = "sessions2" // sessions https://github.com/parserpro/fantlab/issues/908

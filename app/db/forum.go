@@ -3,76 +3,76 @@ package db
 import "time"
 
 type Forum struct {
-	ForumID         uint32
-	Name            string
-	Description     string
-	TopicCount      uint32
-	MessageCount    uint32
-	LastTopicID     uint32
-	LastTopicName   string
-	UserID          uint32
-	Login           string
-	Sex             uint8
-	PhotoNumber     uint32
-	LastMessageID   uint32
-	LastMessageText string
-	LastMessageDate time.Time
-	ForumBlockID    uint32
-	ForumBlockName  string
+	ForumID         uint32    `db:"forum_id"`
+	Name            string    `db:"name"`
+	Description     string    `db:"description"`
+	TopicCount      uint32    `db:"topic_count"`
+	MessageCount    uint32    `db:"message_count"`
+	LastTopicID     uint32    `db:"last_topic_id"`
+	LastTopicName   string    `db:"last_topic_name"`
+	UserID          uint32    `db:"user_id"`
+	Login           string    `db:"login"`
+	Sex             uint8     `db:"sex"`
+	PhotoNumber     uint32    `db:"photo_number"`
+	LastMessageID   uint32    `db:"last_message_id"`
+	LastMessageText string    `db:"last_message_text"`
+	LastMessageDate time.Time `db:"last_message_date"`
+	ForumBlockID    uint32    `db:"forum_block_id"`
+	ForumBlockName  string    `db:"forum_block_name"`
 }
 
 type ForumTopic struct {
-	TopicID         uint32
-	Name            string
-	DateOfAdd       time.Time
-	Views           uint32
-	UserID          uint32
-	Login           string
-	Sex             uint8
-	PhotoNumber     uint32
-	TopicTypeID     uint32
-	IsClosed        bool
-	IsPinned        bool
-	MessageCount    uint32
-	LastMessageID   uint32
-	LastUserID      uint32
-	LastLogin       string
-	LastSex         uint8
-	LastPhotoNumber uint32
-	LastMessageText string
-	LastMessageDate time.Time
+	TopicID         uint32    `db:"topic_id"`
+	Name            string    `db:"name"`
+	DateOfAdd       time.Time `db:"date_of_add"`
+	Views           uint32    `db:"views"`
+	UserID          uint32    `db:"user_id"`
+	Login           string    `db:"login"`
+	Sex             uint8     `db:"sex"`
+	PhotoNumber     uint32    `db:"photo_number"`
+	TopicTypeID     uint32    `db:"topic_type_id"`
+	IsClosed        bool      `db:"is_closed"`
+	IsPinned        bool      `db:"is_pinned"`
+	MessageCount    uint32    `db:"message_count"`
+	LastMessageID   uint32    `db:"last_message_id"`
+	LastUserID      uint32    `db:"last_user_id"`
+	LastLogin       string    `db:"last_login"`
+	LastSex         uint8     `db:"last_sex"`
+	LastPhotoNumber uint32    `db:"last_photo_number"`
+	LastMessageText string    `db:"last_message_text"`
+	LastMessageDate time.Time `db:"last_message_date"`
 }
 
 type ShortForumTopic struct {
-	TopicID   uint32
-	TopicName string
-	ForumID   uint32
-	ForumName string
+	TopicID   uint32 `db:"topic_id"`
+	TopicName string `db:"topic_name"`
+	ForumID   uint32 `db:"forum_id"`
+	ForumName string `db:"forum_name"`
 }
 
 type ForumMessage struct {
-	MessageID   uint32
-	DateOfAdd   time.Time
-	UserID      uint32
-	Login       string
-	Sex         uint8
-	PhotoNumber uint32
-	UserClass   uint8
-	Sign        string
-	MessageText string
-	IsCensored  bool
-	IsRed       bool
-	VotePlus    uint32
-	VoteMinus   uint32
+	MessageID   uint32    `db:"message_id"`
+	DateOfAdd   time.Time `db:"date_of_add"`
+	UserID      uint32    `db:"user_id"`
+	Login       string    `db:"login"`
+	Sex         uint8     `db:"sex"`
+	PhotoNumber uint32    `db:"photo_number"`
+	UserClass   uint8     `db:"user_class"`
+	Sign        string    `db:"sign"`
+	MessageText string    `db:"message_text"`
+	IsCensored  bool      `db:"is_censored"`
+	IsRed       bool      `db:"is_red"`
+	VotePlus    uint32    `db:"vote_plus"`
+	VoteMinus   uint32    `db:"vote_minus"`
 }
 
 type ForumModerator struct {
-	UserID      uint32
-	Login       string
-	Sex         uint8
-	PhotoNumber uint32
-	ForumID     uint32
-	Sort        float32
+	UserID      uint32  `db:"user_id"`
+	Login       string  `db:"login"`
+	Sex         uint8   `db:"sex"`
+	PhotoNumber uint32  `db:"photo_number"`
+	ForumID     uint32  `db:"forum_id"`
+	Sort        float32 `db:"sort"`
 }
 
 type ForumTopicsDBResponse struct {
