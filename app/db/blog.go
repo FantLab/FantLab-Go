@@ -69,7 +69,7 @@ type BlogTopic struct {
 }
 
 type BlogTopicLike struct {
-	TopicLikeId uint32    `db:"topic_like_id;unique;not null"`
+	TopicLikeId uint32    `db:"topic_like_id"`
 	TopicId     uint32    `db:"topic_id"`
 	UserId      uint32    `db:"user_id"`
 	DateOfAdd   time.Time `db:"date_of_add"`

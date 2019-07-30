@@ -11,7 +11,7 @@ type UserPasswordHash struct {
 }
 
 type UserSession struct {
-	Code             string    `db:"code;unique;not null"`
+	Code             string    `db:"code"`
 	UserID           uint32    `db:"user_id"`
 	UserIP           string    `db:"user_ip"`
 	UserAgent        string    `db:"user_agent"`
