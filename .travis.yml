@@ -9,4 +9,4 @@ before_script:
   - cd app
   - chmod +x linter
 script:
-  - ./linter run
+  - ./linter run --verbose --deadline=5m
