@@ -7,72 +7,72 @@ import (
 )
 
 type Community struct {
-	BlogId          uint32
-	Name            string
-	Description     string
-	Rules           string
-	TopicsCount     uint32
-	IsPublic        bool
-	LastTopicDate   time.Time
-	LastTopicHead   string
-	LastTopicId     uint32
-	SubscriberCount uint32
-	LastUserId      uint32
-	LastLogin       string
-	LastSex         uint8
-	LastPhotoNumber uint32
+	BlogId          uint32    `db:"blog_id"`
+	Name            string    `db:"name"`
+	Description     string    `db:"description"`
+	Rules           string    `db:"rules"`
+	TopicsCount     uint32    `db:"topics_count"`
+	IsPublic        bool      `db:"is_public"`
+	LastTopicDate   time.Time `db:"last_topic_date"`
+	LastTopicHead   string    `db:"last_topic_head"`
+	LastTopicId     uint32    `db:"last_topic_id"`
+	SubscriberCount uint32    `db:"subscriber_count"`
+	LastUserId      uint32    `db:"last_user_id"`
+	LastLogin       string    `db:"last_login"`
+	LastSex         uint8     `db:"last_sex"`
+	LastPhotoNumber uint32    `db:"last_photo_number"`
 }
 
 type CommunityModerator struct {
-	UserID      uint32
-	Login       string
-	Sex         uint8
-	PhotoNumber uint32
+	UserID      uint32 `db:"user_id"`
+	Login       string `db:"login"`
+	Sex         uint8  `db:"sex"`
+	PhotoNumber uint32 `db:"photo_number"`
 }
 
 type CommunityAuthor struct {
-	UserID      uint32
-	DateOfAdd   time.Time
-	Login       string
-	Sex         uint8
-	PhotoNumber uint32
+	UserID      uint32    `db:"user_id"`
+	DateOfAdd   time.Time `db:"date_of_add"`
+	Login       string    `db:"login"`
+	Sex         uint8     `db:"sex"`
+	PhotoNumber uint32    `db:"photo_number"`
 }
 
 type Blog struct {
-	BlogId          uint32
-	UserId          uint32
-	Login           string
-	Fio             string
-	Sex             uint8
-	PhotoNumber     uint32
-	TopicsCount     uint32
-	SubscriberCount uint32
-	IsClose         bool
-	LastTopicDate   time.Time
-	LastTopicHead   string
-	LastTopicId     uint32
+	BlogId          uint32    `db:"blog_id"`
+	UserId          uint32    `db:"user_id"`
+	Login           string    `db:"login"`
+	Fio             string    `db:"fio"`
+	Sex             uint8     `db:"sex"`
+	PhotoNumber     uint32    `db:"photo_number"`
+	TopicsCount     uint32    `db:"topics_count"`
+	SubscriberCount uint32    `db:"subscriber_count"`
+	IsClose         bool      `db:"is_close"`
+	LastTopicDate   time.Time `db:"last_topic_date"`
+	LastTopicHead   string    `db:"last_topic_head"`
+	LastTopicId     uint32    `db:"last_topic_id"`
 }
 
 type BlogTopic struct {
-	TopicId       uint32
-	HeadTopic     string
-	DateOfAdd     time.Time
-	UserId        uint32
-	Login         string
-	Sex           uint8
-	PhotoNumber   uint16
-	MessageText   string
-	Tags          string
-	LikesCount    uint32
-	Views         uint32
-	CommentsCount uint32
+	TopicId       uint32    `db:"topic_id"`
+	HeadTopic     string    `db:"head_topic"`
+	DateOfAdd     time.Time `db:"date_of_add"`
+	UserId        uint32    `db:"user_id"`
+	Login         string    `db:"login"`
+	Sex           uint8     `db:"sex"`
+	PhotoNumber   uint16    `db:"photo_number"`
+	MessageText   string    `db:"message_text"`
+	Tags          string    `db:"tags"`
+	LikesCount    uint32    `db:"likes_count"`
+	Views         uint32    `db:"views"`
+	CommentsCount uint32    `db:"comments_count"`
 }
 
 type BlogTopicLike struct {
-	TopicLikeId uint32 `gorm:"unique;not null"`
-	TopicId     uint32
-	UserId      uint32
-	DateOfAdd   time.Time
+	TopicLikeId uint32    `db:"topic_like_id"`
+	TopicId     uint32    `db:"topic_id"`
+	UserId      uint32    `db:"user_id"`
+	DateOfAdd   time.Time `db:"date_of_add"`
 }
 
 type CommunityDBResponse struct {
