@@ -1,6 +1,7 @@
 package utils
 
 import (
+	"database/sql"
 	"strconv"
 
 	"github.com/jinzhu/gorm"
@@ -8,7 +9,7 @@ import (
 )
 
 func IsRecordNotFoundError(err error) bool {
-	return err == ErrRecordNotFound || gorm.IsRecordNotFoundError(err)
+	return err == sql.ErrNoRows || gorm.IsRecordNotFoundError(err)
 }
 
 func GenerateUniqueId() string {
