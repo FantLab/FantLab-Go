@@ -150,7 +150,8 @@ func (db *DB) FetchModerators() (map[uint32][]ForumModerator, error) {
 		f_moderators md
 	LEFT JOIN
 		users u ON u.user_id = md.user_id
-	ORDER BY md.forum_id, u.user_class DESC, u.level DESC`
+	ORDER BY 
+		md.forum_id, u.user_class DESC, u.level DESC`
 
 	var moderators []ForumModerator
 
