@@ -104,7 +104,7 @@ func makeFieldNameIndexMapFromStruct(t reflect.Type) map[string]int {
 	return m
 }
 
-func scanRowsIntoSliceOfStructs(slice reflect.Value, elemType reflect.Type, rows *sql.Rows, nullablesAsDefaults bool) error {
+func scanRowsIntoSliceOfStructs(output reflect.Value, elemType reflect.Type, rows *sql.Rows, nullablesAsDefaults bool) error {
 	idxMap := makeFieldNameIndexMapFromStruct(elemType)
 
 	err := mapRowsUsingFunc(rows, func(columns []*columnInfo, values []interface{}) error {
@@ -116,7 +116,7 @@ func scanRowsIntoSliceOfStructs(slice reflect.Value, elemType reflect.Type, rows
 			return err
 		}
 
-		slice.Set(reflect.Append(slice, newElem))
+		output.Set(reflect.Append(output, newElem))
 
 		return nil
 	})
@@ -124,8 +124,8 @@ func scanRowsIntoSliceOfStructs(slice reflect.Value, elemType reflect.Type, rows
 	return err
 }
 
-func scanSingleRowIntoStruct(strct reflect.Value, rows *sql.Rows, nullablesAsDefaults bool) error {
-	idxMap := makeFieldNameIndexMapFromStruct(strct.Type())
+func scanSingleRowIntoStruct(output reflect.Value, rows *sql.Rows, nullablesAsDefaults bool) error {
+	idxMap := makeFieldNameIndexMapFromStruct(output.Type())
 
 	once := false
 
@@ -134,7 +134,7 @@ func scanSingleRowIntoStruct(strct reflect.Value, rows *sql.Rows, nullablesAsDef
 			return errors.New("Multiple rows were found")
 		}
 
-		err := setValuesToStruct(values, columns, strct, idxMap, nullablesAsDefaults)
+		err := setValuesToStruct(values, columns, output, idxMap, nullablesAsDefaults)
 
 		once = true
 
@@ -148,7 +148,7 @@ func scanSingleRowIntoStruct(strct reflect.Value, rows *sql.Rows, nullablesAsDef
 	return err
 }
 
-func scanSingleValue(val reflect.Value, rows *sql.Rows, nullablesAsDefaults bool) error {
+func scanSingleValue(output reflect.Value, rows *sql.Rows, nullablesAsDefaults bool) error {
 	once := false
 
 	err := mapRowsUsingFunc(rows, func(columns []*columnInfo, values []interface{}) error {
@@ -160,7 +160,7 @@ func scanSingleValue(val reflect.Value, rows *sql.Rows, nullablesAsDefaults bool
 			return errors.New("Multiple rows found")
 		}
 
-		setSingleValue(values[0], val, nullablesAsDefaults && columns[0].hasNullType)
+		setSingleValue(values[0], output, nullablesAsDefaults && columns[0].hasNullType)
 
 		once = true
 
@@ -174,18 +174,18 @@ func scanSingleValue(val reflect.Value, rows *sql.Rows, nullablesAsDefaults bool
 	return err
 }
 
-func scanRowsIntoValue(value reflect.Value, rows *sql.Rows, nullablesAsDefaults bool) error {
-	switch value.Type().Kind() {
+func scanRowsIntoValue(output reflect.Value, rows *sql.Rows, nullablesAsDefaults bool) error {
+	switch output.Type().Kind() {
 	case reflect.Slice:
-		elemType := value.Type().Elem()
+		elemType := output.Type().Elem()
 
 		if elemType.Kind() != reflect.Struct {
 			return errors.New("Slice element type must be a struct")
 		}
 
-		return scanRowsIntoSliceOfStructs(value, elemType, rows, nullablesAsDefaults)
+		return scanRowsIntoSliceOfStructs(output, elemType, rows, nullablesAsDefaults)
 	case reflect.Struct:
-		return scanSingleRowIntoStruct(value, rows, nullablesAsDefaults)
+		return scanSingleRowIntoStruct(output, rows, nullablesAsDefaults)
 	case
 		reflect.Bool,
 		reflect.Int,
@@ -201,7 +201,7 @@ func scanRowsIntoValue(value reflect.Value, rows *sql.Rows, nullablesAsDefaults 
 		reflect.Float32,
 		reflect.Float64,
 		reflect.String:
-		return scanSingleValue(value, rows, nullablesAsDefaults)
+		return scanSingleValue(output, rows, nullablesAsDefaults)
 	default:
 		return errors.New("Unsupported output type")
 	}
