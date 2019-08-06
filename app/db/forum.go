@@ -171,7 +171,7 @@ func (db *DB) FetchModerators() (map[uint32][]ForumModerator, error) {
 }
 
 func (db *DB) FetchForumTopics(availableForums []uint16, forumID uint16, limit, offset uint32) (*ForumTopicsDBResponse, error) {
-	const forumExistsQuery = "SELECT 1 FROM f_forums WHERE forum_id = ? AND forum_id IN (?)"
+	const forumExistsQuery = `SELECT 1 FROM f_forums WHERE forum_id = ? AND forum_id IN (?)`
 
 	forumExistsModifiedQuery, forumExistsQueryArgs, err := sqlx.In(forumExistsQuery, forumID, availableForums)
 
