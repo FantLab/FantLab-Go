@@ -1,6 +1,7 @@
 package main
 
 import (
+	"database/sql"
 	"log"
 	"os"
 
@@ -9,12 +10,12 @@ import (
 	"fantlab/logger"
 	"fantlab/routing"
 	"fantlab/shared"
+	"fantlab/sqlr"
 
 	"github.com/bradfitz/gomemcache/memcache"
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/jinzhu/gorm"
 	_ "github.com/jinzhu/gorm/dialects/mysql"
-	"github.com/jmoiron/sqlx"
 )
 
 func main() {
@@ -32,16 +33,11 @@ func main() {
 	orm.SetLogger(logger.GormLogger)
 	orm.LogMode(true)
 
-	dbx, err := sqlx.Connect("mysql", os.Getenv("MYSQL_URL"))
+	mysql, err := sql.Open("mysql", os.Getenv("MYSQL_URL"))
 	if err != nil {
-		log.Fatalln(err)
+		log.Fatal(err)
 	}
-	defer func() {
-		err := dbx.Close()
-		if err != nil {
-			log.Println(err)
-		}
-	}()
+	defer mysql.Close()
 
 	mc := memcache.New(os.Getenv("MC_ADDRESS"))
 
@@ -50,7 +46,7 @@ func main() {
 		Cache:  &cache.MemCache{Client: mc},
 		DB: &db.DB{
 			ORM: orm,
-			X:   dbx,
+			R:   sqlr.New(mysql),
 		},
 	}
 

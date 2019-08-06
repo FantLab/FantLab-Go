@@ -23,10 +23,10 @@ func (db *DB) FetchGenres() (*WorkGenresDBResponse, error) {
 	const genresQuery = `
 	SELECT
 		wg.work_genre_id,
-		IFNULL(wg.parent_work_genre_id, 0) AS parent_work_genre_id,
+		wg.parent_work_genre_id,
 		wg.work_genre_group_id,
 		wg.name,
-		IFNULL(wg.description, '') AS description,
+		wg.description,
 		wg.work_count_voting_finished
 	FROM
 		work_genres wg
@@ -35,7 +35,7 @@ func (db *DB) FetchGenres() (*WorkGenresDBResponse, error) {
 
 	var genres []WorkGenre
 
-	err := db.X.Select(&genres, genresQuery)
+	err := db.R.Query(&genres, genresQuery)
 
 	if err != nil {
 		return nil, err
@@ -51,7 +51,7 @@ func (db *DB) FetchGenres() (*WorkGenresDBResponse, error) {
 
 	var genreGroups []WorkGenreGroup
 
-	err = db.X.Select(&genreGroups, genreGroupsQuery)
+	err = db.R.Query(&genreGroups, genreGroupsQuery)
 
 	if err != nil {
 		return nil, err
@@ -76,7 +76,7 @@ func (db *DB) FetchGenreIds() (*WorkGenresDBResponse, error) {
 
 	var genres []WorkGenre
 
-	err := db.X.Select(&genres, genresQuery)
+	err := db.R.Query(&genres, genresQuery)
 
 	if err != nil {
 		return nil, err
@@ -90,7 +90,7 @@ func (db *DB) FetchGenreIds() (*WorkGenresDBResponse, error) {
 
 	var genreGroups []WorkGenreGroup
 
-	err = db.X.Select(&genreGroups, genreGroupsQuery)
+	err = db.R.Query(&genreGroups, genreGroupsQuery)
 
 	if err != nil {
 		return nil, err
