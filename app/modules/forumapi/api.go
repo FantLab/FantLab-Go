@@ -134,9 +134,9 @@ func (c *Controller) ShowTopicMessages(ctx *gin.Context) {
 		return
 	}
 
-	sortDirection := strings.ToLower(ctx.DefaultQuery("order", "asc"))
-	if sortDirection != "desc" {
-		sortDirection = "asc"
+	sortDirection := strings.ToUpper(ctx.DefaultQuery("order", "asc"))
+	if sortDirection != "DESC" {
+		sortDirection = "ASC"
 	}
 
 	offset := limit * (page - 1)
