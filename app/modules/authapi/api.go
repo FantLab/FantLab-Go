@@ -20,15 +20,6 @@ func NewController(services *shared.Services) *Controller {
 }
 
 func (c *Controller) Login(ctx *gin.Context) {
-	userId := ctx.GetInt64(gin.AuthUserKey)
-
-	if userId > 0 {
-		utils.ShowProto(ctx, http.StatusMethodNotAllowed, &pb.Error_Response{
-			Status: pb.Error_LOG_OUT_FIRST,
-		})
-		return
-	}
-
 	login := ctx.PostForm("login")
 	password := ctx.PostForm("password")
 
@@ -81,15 +72,6 @@ func (c *Controller) Login(ctx *gin.Context) {
 }
 
 func (c *Controller) Logout(ctx *gin.Context) {
-	userId := ctx.GetInt64(gin.AuthUserKey)
-
-	if userId == 0 {
-		utils.ShowProto(ctx, http.StatusUnauthorized, &pb.Error_Response{
-			Status: pb.Error_INVALID_SESSION,
-		})
-		return
-	}
-
 	sid := ctx.GetHeader(utils.SessionHeader)
 
 	err := c.services.DB.DeleteSession(sid)

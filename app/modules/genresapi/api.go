@@ -34,16 +34,7 @@ func (c *Controller) ShowGenres(ctx *gin.Context) {
 }
 
 func (c *Controller) SetWorkGenres(ctx *gin.Context) {
-	// проверяем что юзер может голосовать
-
 	userId := ctx.GetInt64(gin.AuthUserKey)
-
-	if userId == 0 {
-		utils.ShowProto(ctx, http.StatusUnauthorized, &pb.Error_Response{
-			Status: pb.Error_INVALID_SESSION,
-		})
-		return
-	}
 
 	// валидируем идентификатор ворка
 

@@ -214,13 +214,6 @@ func (c *Controller) ShowArticle(ctx *gin.Context) {
 func (c *Controller) LikeArticle(ctx *gin.Context) {
 	userId := ctx.GetInt64(gin.AuthUserKey)
 
-	if userId == 0 {
-		utils.ShowProto(ctx, http.StatusUnauthorized, &pb.Error_Response{
-			Status: pb.Error_INVALID_SESSION,
-		})
-		return
-	}
-
 	articleId, err := strconv.ParseUint(ctx.Param("id"), 10, 32)
 
 	if err != nil {
@@ -297,13 +290,6 @@ func (c *Controller) LikeArticle(ctx *gin.Context) {
 
 func (c *Controller) DislikeArticle(ctx *gin.Context) {
 	userId := ctx.GetInt64(gin.AuthUserKey)
-
-	if userId == 0 {
-		utils.ShowProto(ctx, http.StatusUnauthorized, &pb.Error_Response{
-			Status: pb.Error_INVALID_SESSION,
-		})
-		return
-	}
 
 	articleId, err := strconv.ParseUint(ctx.Param("id"), 10, 32)
 
