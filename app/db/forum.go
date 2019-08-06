@@ -1,6 +1,8 @@
 package db
 
-import "time"
+import (
+	"time"
+)
 
 type Forum struct {
 	ForumID         uint32    `db:"forum_id"`
