@@ -38,7 +38,7 @@ func getCommunities(dbCommunities []db.Community, cfg *shared.AppConfig) *pb.Blo
 			},
 		}
 
-		if dbCommunity.IsPublic {
+		if dbCommunity.IsPublic != 0 {
 			mainCommunities = append(mainCommunities, community)
 		} else {
 			additionalCommunities = append(additionalCommunities, community)
@@ -155,7 +155,7 @@ func getBlogs(dbResponse *db.BlogsDBResponse, page, limit uint32, cfg *shared.Ap
 				Gender: gender,
 				Avatar: avatar,
 			},
-			IsClosed: dbBlog.IsClose,
+			IsClosed: dbBlog.IsClose != 0,
 			Stats: &pb.Blog_Blog_Stats{
 				ArticleCount:    dbBlog.TopicsCount,
 				SubscriberCount: dbBlog.SubscriberCount,
