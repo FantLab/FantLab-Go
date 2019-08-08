@@ -386,6 +386,96 @@ func (db *DB) FetchBlog(blogID, limit, offset uint32) (*BlogDBResponse, error) {
 	return response, nil
 }
 
+func (db *DB) FetchBlogCreatorId(blogId uint32) (uint32, error) {
+	const blogUserIdQuery = `
+	SELECT
+		user_id
+	FROM
+		b_blogs
+	WHERE
+		blog_id = ?`
+
+	var userId uint32
+
+	err := db.R.Query(blogUserIdQuery, blogId).Scan(&userId)
+
+	if err != nil {
+		return 0, err
+	}
+
+	return userId, nil
+}
+
+func (db *DB) FetchBlogSubscribed(blogId, userId uint32) (bool, error) {
+	const blogSubscriptionExistsQuery = `SELECT 1 FROM b_subscribers WHERE blog_id = ? AND user_id = ?`
+
+	var blogSubscriptionExists uint8
+
+	err := db.R.Query(blogSubscriptionExistsQuery, blogId, userId).Scan(&blogSubscriptionExists)
+
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return false, nil
+		}
+		return false, err
+	}
+
+	return true, nil
+}
+
+// todo завернуть в транзакцию
+func (db *DB) UpdateBlogSubscribed(blogId, userId uint32) error {
+	const blogSubscriptionInsert = `
+	INSERT INTO
+		b_subscribers
+		(user_id, blog_id, date_of_add)
+	VALUES
+		(?, ?, ?)`
+
+	err := db.R.Exec(blogSubscriptionInsert, userId, blogId, time.Now()).Error
+
+	if err != nil {
+		return err
+	}
+
+	err = db.UpdateBlogSubscriberCount(blogId)
+
+	return err
+}
+
+// todo завернуть в транзакцию
+func (db *DB) UpdateBlogUnsubscribed(blogId, userId uint32) error {
+	const blogSubscriptionDelete = `
+	DELETE FROM
+		b_subscribers
+	WHERE
+		blog_id = ? AND user_id = ?`
+
+	err := db.R.Exec(blogSubscriptionDelete, blogId, userId).Error
+
+	if err != nil {
+		return err
+	}
+
+	err = db.UpdateBlogSubscriberCount(blogId)
+
+	return err
+}
+
+func (db *DB) UpdateBlogSubscriberCount(blogId uint32) error {
+	const blogSubscriberUpdate = `
+	UPDATE
+		b_blogs b
+	SET
+		b.subscriber_count = (SELECT COUNT(DISTINCT bs.user_id) FROM b_subscribers bs WHERE bs.blog_id = b.blog_id)
+	WHERE
+		b.blog_id = ?`
+
+	err := db.R.Exec(blogSubscriberUpdate, blogId).Error
+
+	return err
+}
+
 func (db *DB) FetchBlogTopic(topicId uint32) (*BlogTopic, error) {
 	const topicQuery = `
 	SELECT
@@ -418,6 +508,48 @@ func (db *DB) FetchBlogTopic(topicId uint32) (*BlogTopic, error) {
 	}
 
 	return &topic, nil
+}
+
+func (db *DB) FetchBlogTopicSubscribed(topicId, userId uint32) (bool, error) {
+	const topicSubscriptionExistsQuery = `SELECT 1 FROM b_topics_subscribers WHERE topic_id = ? AND user_id = ?`
+
+	var topicSubscriptionExists uint8
+
+	err := db.R.Query(topicSubscriptionExistsQuery, topicId, userId).Scan(&topicSubscriptionExists)
+
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return false, nil
+		}
+		return false, err
+	}
+
+	return true, nil
+}
+
+func (db *DB) UpdateBlogTopicSubscribed(topicId, userId uint32) error {
+	const topicSubscriptionInsert = `
+	INSERT INTO
+		b_topics_subscribers
+		(user_id, topic_id, date_of_add)
+	VALUES
+		(?, ?, ?)`
+
+	err := db.R.Exec(topicSubscriptionInsert, userId, topicId, time.Now()).Error
+
+	return err
+}
+
+func (db *DB) UpdateBlogTopicUnsubscribed(topicId, userId uint32) error {
+	const topicSubscriptionDelete = `
+	DELETE FROM
+		b_topics_subscribers
+	WHERE
+		topic_id = ? AND user_id = ?`
+
+	err := db.R.Exec(topicSubscriptionDelete, topicId, userId).Error
+
+	return err
 }
 
 func (db *DB) FetchBlogTopicCreatorId(topicId uint32) (uint32, error) {
