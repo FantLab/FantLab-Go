@@ -478,40 +478,44 @@ func (db *DB) FetchBlogTopicLiked(topicId, userId uint32) (bool, error) {
 }
 
 func (db *DB) UpdateBlogTopicLiked(topicId, userId uint32) error {
-	const topicLikeInsert = `
-	INSERT INTO
-		b_topic_likes
-		(topic_id, user_id, date_of_add)
-	VALUES
-		(?, ?, ?)`
+	return db.R.InTransaction(func() error {
+		const topicLikeInsert = `
+		INSERT INTO
+			b_topic_likes
+			(topic_id, user_id, date_of_add)
+		VALUES
+			(?, ?, ?)`
 
-	err := db.R.Exec(topicLikeInsert, topicId, userId, time.Now()).Error
+		err := db.R.Exec(topicLikeInsert, topicId, userId, time.Now()).Error
 
-	if err != nil {
+		if err != nil {
+			return err
+		}
+
+		err = db.UpdateTopicLikesCount(topicId)
+
 		return err
-	}
-
-	err = db.UpdateTopicLikesCount(topicId)
-
-	return err
+	})
 }
 
 func (db *DB) UpdateBlogTopicDisliked(topicId, userId uint32) error {
-	const topicLikeDelete = `
-	DELETE FROM
-		b_topic_likes
-	WHERE
-		topic_id = ? AND user_id = ?`
+	return db.R.InTransaction(func() error {
+		const topicLikeDelete = `
+		DELETE FROM
+			b_topic_likes
+		WHERE
+			topic_id = ? AND user_id = ?`
 
-	err := db.R.Exec(topicLikeDelete, topicId, userId).Error
+		err := db.R.Exec(topicLikeDelete, topicId, userId).Error
 
-	if err != nil {
+		if err != nil {
+			return err
+		}
+
+		err = db.UpdateTopicLikesCount(topicId)
+
 		return err
-	}
-
-	err = db.UpdateTopicLikesCount(topicId)
-
-	return err
+	})
 }
 
 func (db *DB) UpdateTopicLikesCount(topicId uint32) error {

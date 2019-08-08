@@ -76,3 +76,22 @@ func (db *DB) QueryIn(q string, args ...interface{}) Rows {
 
 	return db.Query(newQuery, newArgs...)
 }
+
+func (db *DB) InTransaction(perform func() error) error {
+	tx, err := db.handler.Begin()
+
+	if err != nil {
+		return err
+	}
+
+	err = perform()
+
+	switch err {
+	case nil:
+		err = tx.Commit()
+	default:
+		err = tx.Rollback()
+	}
+
+	return err
+}
