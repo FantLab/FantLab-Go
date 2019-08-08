@@ -1,6 +1,7 @@
 package db
 
 import (
+	"database/sql"
 	"time"
 )
 
@@ -10,7 +11,7 @@ type Community struct {
 	Description     string    `db:"description"`
 	Rules           string    `db:"rules"`
 	TopicsCount     uint32    `db:"topics_count"`
-	IsPublic        bool      `db:"is_public"`
+	IsPublic        uint8     `db:"is_public"`
 	LastTopicDate   time.Time `db:"last_topic_date"`
 	LastTopicHead   string    `db:"last_topic_head"`
 	LastTopicId     uint32    `db:"last_topic_id"`
@@ -45,7 +46,7 @@ type Blog struct {
 	PhotoNumber     uint32    `db:"photo_number"`
 	TopicsCount     uint32    `db:"topics_count"`
 	SubscriberCount uint32    `db:"subscriber_count"`
-	IsClose         bool      `db:"is_close"`
+	IsClose         uint8     `db:"is_close"`
 	LastTopicDate   time.Time `db:"last_topic_date"`
 	LastTopicHead   string    `db:"last_topic_head"`
 	LastTopicId     uint32    `db:"last_topic_id"`
@@ -94,14 +95,14 @@ type BlogDBResponse struct {
 func (db *DB) FetchCommunities() ([]Community, error) {
 	const communitiesQuery = `
 	SELECT
-		IFNULL(b.name, '') AS name,
-		IFNULL(b.description, '') AS description,
-		IFNULL(b.topics_count, 0) AS topics_count,
+		b.name,
+		b.description,
+		b.topics_count,
 		b.is_public,
-		IFNULL(b.last_topic_date, '0000-00-00 00:00:00') AS last_topic_date,
-		IFNULL(b.last_topic_head, '') AS last_topic_head,
-		IFNULL(b.last_topic_id, 0) AS last_topic_id,
-		IFNULL(b.subscriber_count, 0) AS subscriber_count,
+		b.last_topic_date,
+		b.last_topic_head,
+		b.last_topic_id,
+		b.subscriber_count,
 		u.user_id AS last_user_id,
 		u.login AS last_login,
 		u.sex AS last_sex,
@@ -117,7 +118,7 @@ func (db *DB) FetchCommunities() ([]Community, error) {
 
 	var communities []Community
 
-	err := db.X.Select(&communities, communitiesQuery)
+	err := db.R.Query(communitiesQuery).Scan(&communities)
 
 	if err != nil {
 		return nil, err
@@ -130,8 +131,8 @@ func (db *DB) FetchCommunity(communityID, limit, offset uint32) (*CommunityDBRes
 	const communityQuery = `
 	SELECT
 		blog_id,
-		IFNULL(name, '') AS name,
-		IFNULL(rules, '') AS rules
+		name,
+		rules
 	FROM
 		b_blogs
 	WHERE
@@ -139,7 +140,7 @@ func (db *DB) FetchCommunity(communityID, limit, offset uint32) (*CommunityDBRes
 
 	var community Community
 
-	err := db.X.Get(&community, communityQuery, communityID)
+	err := db.R.Query(communityQuery, communityID).Scan(&community)
 
 	if err != nil {
 		return nil, err
@@ -162,7 +163,7 @@ func (db *DB) FetchCommunity(communityID, limit, offset uint32) (*CommunityDBRes
 
 	var moderators []CommunityModerator
 
-	err = db.X.Select(&moderators, moderatorsQuery, communityID)
+	err = db.R.Query(moderatorsQuery, communityID).Scan(&moderators)
 
 	if err != nil {
 		return nil, err
@@ -185,7 +186,7 @@ func (db *DB) FetchCommunity(communityID, limit, offset uint32) (*CommunityDBRes
 
 	var authors []CommunityAuthor
 
-	err = db.X.Select(&authors, authorsQuery, communityID)
+	err = db.R.Query(authorsQuery, communityID).Scan(&authors)
 
 	if err != nil {
 		return nil, err
@@ -194,15 +195,15 @@ func (db *DB) FetchCommunity(communityID, limit, offset uint32) (*CommunityDBRes
 	const topicsQuery = `
 	SELECT
 		b.topic_id,
-		IFNULL(b.head_topic, '') AS head_topic,
+		b.head_topic,
 		b.date_of_add,
 		u.user_id,
 		u.login,
 		u.sex,
 		u.photo_number,
 		t.message_text,
-		IFNULL(b.tags, '') AS tags,
-		IFNULL(b.likes_count, 0) AS likes_count,
+		b.tags,
+		b.likes_count,
 		b.comments_count
 	FROM
 		b_topics b
@@ -217,7 +218,7 @@ func (db *DB) FetchCommunity(communityID, limit, offset uint32) (*CommunityDBRes
 
 	var topics []BlogTopic
 
-	err = db.X.Select(&topics, topicsQuery, communityID)
+	err = db.R.Query(topicsQuery, communityID).Scan(&topics)
 
 	if err != nil {
 		return nil, err
@@ -233,7 +234,7 @@ func (db *DB) FetchCommunity(communityID, limit, offset uint32) (*CommunityDBRes
 
 	var count uint32
 
-	err = db.X.Get(&count, countQuery, communityID)
+	err = db.R.Query(countQuery, communityID).Scan(&count)
 
 	if err != nil {
 		return nil, err
@@ -266,15 +267,15 @@ func (db *DB) FetchBlogs(limit, offset uint32, sort string) (*BlogsDBResponse, e
 		b.blog_id,
 		u.user_id,
 		u.login,
-		IFNULL(u.fio, '') AS fio,
+		u.fio,
 		u.sex,
 		u.photo_number,
-		IFNULL(b.topics_count, 0) AS topics_count,
-		IFNULL(b.subscriber_count, 0) AS subscriber_count,
-		IFNULL(b.is_close, 0) AS is_close,
-		IFNULL(b.last_topic_date, '0000-00-00 00:00:00') AS last_topic_date,
-		IFNULL(b.last_topic_head, '') AS last_topic_head,
-		IFNULL(b.last_topic_id, 0) AS last_topic_id
+		b.topics_count,
+		b.subscriber_count,
+		b.is_close,
+		b.last_topic_date,
+		b.last_topic_head,
+		b.last_topic_id
 	FROM
 		b_blogs b
 	LEFT JOIN
@@ -288,7 +289,7 @@ func (db *DB) FetchBlogs(limit, offset uint32, sort string) (*BlogsDBResponse, e
 
 	var blogs []Blog
 
-	err := db.X.Select(&blogs, blogsQuery, sortOption, limit, offset)
+	err := db.R.Query(blogsQuery, sortOption, limit, offset).Scan(&blogs)
 
 	if err != nil {
 		return nil, err
@@ -304,7 +305,7 @@ func (db *DB) FetchBlogs(limit, offset uint32, sort string) (*BlogsDBResponse, e
 
 	var count uint32
 
-	err = db.X.Get(&count, countQuery)
+	err = db.R.Query(countQuery).Scan(&count)
 
 	if err != nil {
 		return nil, err
@@ -321,9 +322,9 @@ func (db *DB) FetchBlogs(limit, offset uint32, sort string) (*BlogsDBResponse, e
 func (db *DB) FetchBlog(blogID, limit, offset uint32) (*BlogDBResponse, error) {
 	const blogExistsQuery = `SELECT 1 FROM b_blogs WHERE blog_id = ? AND is_community = 0`
 
-	var blogExists bool
+	var blogExists uint8
 
-	err := db.X.Get(&blogExists, blogExistsQuery, blogID)
+	err := db.R.Query(blogExistsQuery, blogID).Scan(&blogExists)
 
 	if err != nil {
 		return nil, err
@@ -332,15 +333,15 @@ func (db *DB) FetchBlog(blogID, limit, offset uint32) (*BlogDBResponse, error) {
 	const topicsQuery = `
 	SELECT
 		b.topic_id,
-		IFNULL(b.head_topic, '') AS head_topic,
+		b.head_topic,
 		b.date_of_add,
 		u.user_id,
 		u.login,
 		u.sex,
 		u.photo_number,
 		t.message_text,
-		IFNULL(b.tags, '') AS tags,
-		IFNULL(b.likes_count, 0) AS likes_count,
+		b.tags,
+		b.likes_count,
 		b.comments_count
 	FROM
 		b_topics b
@@ -355,7 +356,7 @@ func (db *DB) FetchBlog(blogID, limit, offset uint32) (*BlogDBResponse, error) {
 
 	var topics []BlogTopic
 
-	err = db.X.Select(&topics, topicsQuery, blogID)
+	err = db.R.Query(topicsQuery, blogID).Scan(&topics)
 
 	if err != nil {
 		return nil, err
@@ -371,7 +372,7 @@ func (db *DB) FetchBlog(blogID, limit, offset uint32) (*BlogDBResponse, error) {
 
 	var count uint32
 
-	err = db.X.Get(&count, countQuery, blogID)
+	err = db.R.Query(countQuery, blogID).Scan(&count)
 
 	if err != nil {
 		return nil, err
@@ -389,15 +390,15 @@ func (db *DB) FetchBlogTopic(topicId uint32) (*BlogTopic, error) {
 	const topicQuery = `
 	SELECT
 		b.topic_id,
-		IFNULL(b.head_topic, '') AS head_topic,
+		b.head_topic,
 		b.date_of_add,
 		u.user_id,
 		u.login,
 		u.sex,
 		u.photo_number,
 		t.message_text,
-		IFNULL(b.tags, '') AS tags,
-		IFNULL(b.likes_count, 0) AS likes_count,
+		b.tags,
+		b.likes_count,
 		b.comments_count
 	FROM
 		b_topics b
@@ -410,7 +411,7 @@ func (db *DB) FetchBlogTopic(topicId uint32) (*BlogTopic, error) {
 
 	var topic BlogTopic
 
-	err := db.X.Get(&topic, topicQuery, topicId)
+	err := db.R.Query(topicQuery, topicId).Scan(&topic)
 
 	if err != nil {
 		return nil, err
@@ -430,7 +431,7 @@ func (db *DB) FetchBlogTopicCreatorId(topicId uint32) (uint32, error) {
 
 	var userId uint32
 
-	err := db.X.Get(&userId, topicUserIdQuery, topicId)
+	err := db.R.Query(topicUserIdQuery, topicId).Scan(&userId)
 
 	if err != nil {
 		return 0, err
@@ -442,7 +443,7 @@ func (db *DB) FetchBlogTopicCreatorId(topicId uint32) (uint32, error) {
 func (db *DB) FetchBlogTopicLikeCount(topicId uint32) (uint32, error) {
 	const topicLikeCountQuery = `
 	SELECT
-		IFNULL(likes_count, 0) AS likes_count
+		likes_count
 	FROM
 		b_topics
 	WHERE
@@ -450,7 +451,7 @@ func (db *DB) FetchBlogTopicLikeCount(topicId uint32) (uint32, error) {
 
 	var likeCount uint32
 
-	err := db.X.Get(&likeCount, topicLikeCountQuery, topicId)
+	err := db.R.Query(topicLikeCountQuery, topicId).Scan(&likeCount)
 
 	if err != nil {
 		return 0, err
@@ -462,11 +463,14 @@ func (db *DB) FetchBlogTopicLikeCount(topicId uint32) (uint32, error) {
 func (db *DB) FetchBlogTopicLiked(topicId, userId uint32) (bool, error) {
 	const topicLikeExistsQuery = `SELECT 1 FROM b_topic_likes WHERE topic_id = ? AND user_id = ?`
 
-	var topicLikeExists bool
+	var topicLikeExists uint8
 
-	err := db.X.Get(&topicLikeExists, topicLikeExistsQuery, topicId, userId)
+	err := db.R.Query(topicLikeExistsQuery, topicId, userId).Scan(&topicLikeExists)
 
 	if err != nil {
+		if err == sql.ErrNoRows {
+			return false, nil
+		}
 		return false, err
 	}
 
@@ -481,7 +485,7 @@ func (db *DB) UpdateBlogTopicLiked(topicId, userId uint32) error {
 	VALUES
 		(?, ?, ?)`
 
-	_, err := db.X.Exec(topicLikeInsert, topicId, userId, time.Now())
+	err := db.R.Exec(topicLikeInsert, topicId, userId, time.Now()).Error
 
 	if err != nil {
 		return err
@@ -499,7 +503,7 @@ func (db *DB) UpdateBlogTopicDisliked(topicId, userId uint32) error {
 	WHERE
 		topic_id = ? AND user_id = ?`
 
-	_, err := db.X.Exec(topicLikeDelete, topicId, userId)
+	err := db.R.Exec(topicLikeDelete, topicId, userId).Error
 
 	if err != nil {
 		return err
@@ -519,7 +523,7 @@ func (db *DB) UpdateTopicLikesCount(topicId uint32) error {
 	WHERE
 		b.topic_id = ?`
 
-	_, err := db.X.Exec(topicLikeUpdate, topicId)
+	err := db.R.Exec(topicLikeUpdate, topicId).Error
 
 	return err
 }

@@ -8,7 +8,7 @@ import (
 )
 
 type columnInfo struct {
-	*sql.ColumnType
+	name        string
 	hasNullType bool
 }
 
@@ -31,8 +31,8 @@ func mapRowsUsingFunc(rows *sql.Rows, mapFn rowMapFunc) error {
 	for i, columnType := range columnTypes {
 		values[i] = reflect.New(columnType.ScanType()).Interface()
 		columns[i] = &columnInfo{
-			columnType,
-			strings.HasPrefix(columnType.ScanType().Name(), "Null"),
+			name:        columnType.Name(),
+			hasNullType: strings.HasPrefix(columnType.ScanType().Name(), "Null"),
 		}
 	}
 
@@ -66,9 +66,8 @@ func setSingleValue(value interface{}, output reflect.Value, takeNonNullSubField
 func setValuesToStruct(values []interface{}, columns []*columnInfo, output reflect.Value, idxMap map[string]int, nullablesAsDefaults bool) {
 	for i, value := range values {
 		column := columns[i]
-		columnName := column.Name()
 
-		j, ok := idxMap[columnName]
+		j, ok := idxMap[column.name]
 
 		if !ok {
 			continue

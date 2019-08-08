@@ -2,8 +2,6 @@ package db
 
 import (
 	"time"
-
-	"github.com/jmoiron/sqlx"
 )
 
 type Forum struct {
@@ -35,8 +33,8 @@ type ForumTopic struct {
 	Sex             uint8     `db:"sex"`
 	PhotoNumber     uint32    `db:"photo_number"`
 	TopicTypeID     uint32    `db:"topic_type_id"`
-	IsClosed        bool      `db:"is_closed"`
-	IsPinned        bool      `db:"is_pinned"`
+	IsClosed        uint8     `db:"is_closed"`
+	IsPinned        uint8     `db:"is_pinned"`
 	MessageCount    uint32    `db:"message_count"`
 	LastMessageID   uint32    `db:"last_message_id"`
 	LastUserID      uint32    `db:"last_user_id"`
@@ -64,8 +62,8 @@ type ForumMessage struct {
 	UserClass   uint8     `db:"user_class"`
 	Sign        string    `db:"sign"`
 	MessageText string    `db:"message_text"`
-	IsCensored  bool      `db:"is_censored"`
-	IsRed       bool      `db:"is_red"`
+	IsCensored  uint8     `db:"is_censored"`
+	IsRed       uint8     `db:"is_red"`
 	VotePlus    uint32    `db:"vote_plus"`
 	VoteMinus   uint32    `db:"vote_minus"`
 }
@@ -94,18 +92,18 @@ func (db *DB) FetchForums(availableForums []uint16) ([]Forum, error) {
 	SELECT
 		f.forum_id,
 		f.name,
-		IFNULL(f.description, '') AS description,
+		f.description,
 		f.topic_count,
 		f.message_count,
-		IFNULL(f.last_topic_id, 0) AS last_topic_id,
-		IFNULL(f.last_topic_name, '') AS last_topic_name,
+		f.last_topic_id,
+		f.last_topic_name,
 		u.user_id,
 		u.login,
 		u.sex,
 		u.photo_number,
-		IFNULL(f.last_message_id, 0) AS last_message_id,
+		f.last_message_id,
 		m.message_text AS last_message_text,
-		IFNULL(f.last_message_date, '0000-00-00 00:00:00') AS last_message_date,
+		f.last_message_date,
 		fb.forum_block_id,
 		fb.name AS forum_block_name
 	FROM 
@@ -121,15 +119,9 @@ func (db *DB) FetchForums(availableForums []uint16) ([]Forum, error) {
 	ORDER BY 
 		fb.level, f.level`
 
-	forumsModifiedQuery, forumsQueryArgs, err := sqlx.In(forumsQuery, availableForums)
-
-	if err != nil {
-		return nil, err
-	}
-
 	var forums []Forum
 
-	err = db.X.Select(&forums, db.X.Rebind(forumsModifiedQuery), forumsQueryArgs...)
+	err := db.R.QueryIn(forumsQuery, availableForums).Scan(&forums)
 
 	if err != nil {
 		return nil, err
@@ -155,7 +147,7 @@ func (db *DB) FetchModerators() (map[uint32][]ForumModerator, error) {
 
 	var moderators []ForumModerator
 
-	err := db.X.Select(&moderators, moderatorsQuery)
+	err := db.R.Query(moderatorsQuery).Scan(&moderators)
 
 	if err != nil {
 		return nil, err
@@ -171,17 +163,9 @@ func (db *DB) FetchModerators() (map[uint32][]ForumModerator, error) {
 }
 
 func (db *DB) FetchForumTopics(availableForums []uint16, forumID uint16, limit, offset uint32) (*ForumTopicsDBResponse, error) {
-	const forumExistsQuery = `SELECT 1 FROM f_forums WHERE forum_id = ? AND forum_id IN (?)`
+	var forumExists uint8
 
-	forumExistsModifiedQuery, forumExistsQueryArgs, err := sqlx.In(forumExistsQuery, forumID, availableForums)
-
-	if err != nil {
-		return nil, err
-	}
-
-	var forumExists bool
-
-	err = db.X.Get(&forumExists, db.X.Rebind(forumExistsModifiedQuery), forumExistsQueryArgs...)
+	err := db.R.QueryIn("SELECT 1 FROM f_forums WHERE forum_id = ? AND forum_id IN (?)", forumID, availableForums).Scan(&forumExists)
 
 	if err != nil {
 		return nil, err
@@ -191,21 +175,21 @@ func (db *DB) FetchForumTopics(availableForums []uint16, forumID uint16, limit, 
 	SELECT
 		t.topic_id,
 		t.name,
-		IFNULL(t.date_of_add, '0000-00-00 00:00:00') AS date_of_add,
+		t.date_of_add,
 		t.views,
 		u.user_id,
 		u.login,
 		u.sex,
 		u.photo_number,
-		IFNULL(t.topic_type_id, 0) AS topic_type_id,
+		t.topic_type_id,
 		t.is_closed,
 		t.is_pinned,
 		t.message_count,
-		IFNULL(t.last_message_id, 0) AS last_message_id,
+		t.last_message_id,
 		u2.user_id AS last_user_id,
 		u2.photo_number AS last_photo_number,
 		m.message_text AS last_message_text,
-		IFNULL(t.last_message_date, '0000-00-00 00:00:00') AS last_message_date
+		t.last_message_date
 	FROM 
 		f_topics t
 	LEFT JOIN
@@ -223,7 +207,7 @@ func (db *DB) FetchForumTopics(availableForums []uint16, forumID uint16, limit, 
 
 	var topics []ForumTopic
 
-	err = db.X.Select(&topics, topicsQuery, forumID, limit, offset)
+	err = db.R.Query(topicsQuery, forumID, limit, offset).Scan(&topics)
 
 	if err != nil {
 		return nil, err
@@ -231,7 +215,7 @@ func (db *DB) FetchForumTopics(availableForums []uint16, forumID uint16, limit, 
 
 	var count uint32
 
-	err = db.X.Get(&count, "SELECT COUNT(*) FROM f_topics WHERE forum_id = ?", forumID)
+	err = db.R.Query("SELECT COUNT(*) FROM f_topics WHERE forum_id = ?", forumID).Scan(&count)
 
 	if err != nil {
 		return nil, err
@@ -259,15 +243,9 @@ func (db *DB) FetchTopicMessages(availableForums []uint16, topicID, limit, offse
 	WHERE
 		t.topic_id = ? AND t.forum_id IN (?)`
 
-	shortTopicModifiedQuery, shortTopicQueryArgs, err := sqlx.In(shortTopicQuery, topicID, availableForums)
-
-	if err != nil {
-		return nil, err
-	}
-
 	var shortTopic ShortForumTopic
 
-	err = db.X.Get(&shortTopic, db.X.Rebind(shortTopicModifiedQuery), shortTopicQueryArgs...)
+	err := db.R.QueryIn(shortTopicQuery, topicID, availableForums).Scan(&shortTopic)
 
 	if err != nil {
 		return nil, err
@@ -275,7 +253,7 @@ func (db *DB) FetchTopicMessages(availableForums []uint16, topicID, limit, offse
 
 	var count uint32
 
-	err = db.X.Get(&count, "SELECT COUNT(*) FROM f_messages WHERE topic_id = ?", topicID)
+	err = db.R.Query("SELECT COUNT(*) FROM f_messages WHERE topic_id = ?", topicID).Scan(&count)
 
 	if err != nil {
 		return nil, err
@@ -298,12 +276,12 @@ func (db *DB) FetchTopicMessages(availableForums []uint16, topicID, limit, offse
 		u.sex,
 		u.photo_number,
 		u.user_class,
-		IFNULL(u.sign, '') AS sign,
+		u.sign,
 		m.message_text,
 		f.is_censored,
 		f.is_red,
-		IFNULL(f.vote_plus, 0) AS vote_plus,
-		ABS(IFNULL(f.vote_minus, 0)) AS vote_minus
+		f.vote_plus,
+		ABS(f.vote_minus) as vote_minus
 	FROM
 		f_messages f
 	LEFT JOIN 
@@ -317,7 +295,7 @@ func (db *DB) FetchTopicMessages(availableForums []uint16, topicID, limit, offse
 
 	var messages []ForumMessage
 
-	err = db.X.Select(&messages, messagesQuery, topicID, finalOffset+1, finalOffset+int32(limit), sortDirection)
+	err = db.R.Query(messagesQuery, topicID, finalOffset+1, finalOffset+int32(limit), sortDirection).Scan(&messages)
 
 	if err != nil {
 		return nil, err

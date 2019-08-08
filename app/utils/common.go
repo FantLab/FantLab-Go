@@ -4,12 +4,11 @@ import (
 	"database/sql"
 	"strconv"
 
-	"github.com/jinzhu/gorm"
 	"github.com/segmentio/ksuid"
 )
 
 func IsRecordNotFoundError(err error) bool {
-	return err == sql.ErrNoRows || gorm.IsRecordNotFoundError(err)
+	return err == sql.ErrNoRows
 }
 
 func GenerateUniqueId() string {
