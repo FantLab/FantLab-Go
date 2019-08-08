@@ -3,8 +3,12 @@ package sqlr
 import (
 	"fmt"
 	"strings"
+	"time"
 	"unicode"
 )
+
+//                query,  rows,  time,      duration
+type LogFunc func(string, int64, time.Time, time.Duration)
 
 func formatQuery(q string, bindVarChar rune, args ...interface{}) string {
 	var sb strings.Builder

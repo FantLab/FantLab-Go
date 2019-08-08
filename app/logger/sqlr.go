@@ -6,19 +6,19 @@ import (
 	"time"
 )
 
-func Sqlr(formattedQuery string, rowsAffected int64, startTime time.Time, finishTime time.Time) {
+func Sqlr(query string, rowsAffected int64, time time.Time, duration time.Duration) {
 	if rowsAffected >= 0 {
 		fmt.Printf("%s  %s  %s  %s\n",
-			utils.FormatTime(startTime),
-			utils.FormatDuration(finishTime.Sub(startTime)),
+			utils.FormatTime(time),
+			utils.FormatDuration(duration),
 			utils.FormatRowsCount(rowsAffected),
-			formattedQuery,
+			query,
 		)
 	} else {
 		fmt.Printf("%s  %s  %s\n",
-			utils.FormatTime(startTime),
-			utils.FormatDuration(finishTime.Sub(startTime)),
-			formattedQuery,
+			utils.FormatTime(time),
+			utils.FormatDuration(duration),
+			query,
 		)
 	}
 }
