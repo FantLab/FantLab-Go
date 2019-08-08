@@ -2,6 +2,7 @@ package main
 
 import (
 	"database/sql"
+	"fantlab/logger"
 	"log"
 	"os"
 
@@ -27,9 +28,7 @@ func main() {
 	services := &shared.Services{
 		Config: makeConfig(os.Getenv("IMAGES_BASE_URL")),
 		Cache:  &cache.MemCache{Client: mc},
-		DB: &db.DB{
-			R: sqlr.New(mysql),
-		},
+		DB:     &db.DB{R: sqlr.New(mysql, logger.Sqlr)},
 	}
 
 	router := routing.SetupWith(services)

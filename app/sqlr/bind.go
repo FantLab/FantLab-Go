@@ -8,7 +8,7 @@ import (
 
 const bindVarChar = '?'
 
-func rebindQuery(q string, args ...interface{}) (string, []interface{}, error) {
+func rebindQuery(q string, bindVarChar rune, args ...interface{}) (string, []interface{}, error) {
 	newArgs, counts := flatArgs(args...)
 
 	newQuery, err := expandQuery(q, bindVarChar, counts)
