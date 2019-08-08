@@ -2,6 +2,7 @@ package db
 
 import (
 	"database/sql"
+	"fantlab/sqlr"
 	"time"
 )
 
@@ -610,43 +611,47 @@ func (db *DB) FetchBlogTopicLiked(topicId, userId uint32) (bool, error) {
 }
 
 func (db *DB) UpdateBlogTopicLiked(topicId, userId uint32) error {
-	const topicLikeInsert = `
-	INSERT INTO
-		b_topic_likes
-		(topic_id, user_id, date_of_add)
-	VALUES
-		(?, ?, ?)`
+	return db.R.InTransaction(func(dbrw sqlr.DBReaderWriter) error {
+		const topicLikeInsert = `
+		INSERT INTO
+			b_topic_likes
+			(topic_id, user_id, date_of_add)
+		VALUES
+			(?, ?, ?)`
 
-	err := db.R.Exec(topicLikeInsert, topicId, userId, time.Now()).Error
+		err := dbrw.Exec(topicLikeInsert, topicId, userId, time.Now()).Error
 
-	if err != nil {
+		if err != nil {
+			return err
+		}
+
+		err = updateTopicLikesCount(dbrw, topicId)
+
 		return err
-	}
-
-	err = db.UpdateTopicLikesCount(topicId)
-
-	return err
+	})
 }
 
 func (db *DB) UpdateBlogTopicDisliked(topicId, userId uint32) error {
-	const topicLikeDelete = `
-	DELETE FROM
-		b_topic_likes
-	WHERE
-		topic_id = ? AND user_id = ?`
+	return db.R.InTransaction(func(dbrw sqlr.DBReaderWriter) error {
+		const topicLikeDelete = `
+		DELETE FROM
+			b_topic_likes
+		WHERE
+			topic_id = ? AND user_id = ?`
 
-	err := db.R.Exec(topicLikeDelete, topicId, userId).Error
+		err := dbrw.Exec(topicLikeDelete, topicId, userId).Error
 
-	if err != nil {
+		if err != nil {
+			return err
+		}
+
+		err = updateTopicLikesCount(dbrw, topicId)
+
 		return err
-	}
-
-	err = db.UpdateTopicLikesCount(topicId)
-
-	return err
+	})
 }
 
-func (db *DB) UpdateTopicLikesCount(topicId uint32) error {
+func updateTopicLikesCount(dbrw sqlr.DBReaderWriter, topicId uint32) error {
 	const topicLikeUpdate = `
 	UPDATE
 		b_topics b
@@ -655,7 +660,7 @@ func (db *DB) UpdateTopicLikesCount(topicId uint32) error {
 	WHERE
 		b.topic_id = ?`
 
-	err := db.R.Exec(topicLikeUpdate, topicId).Error
+	err := dbrw.Exec(topicLikeUpdate, topicId).Error
 
 	return err
 }
