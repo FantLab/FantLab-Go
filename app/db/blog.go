@@ -424,46 +424,48 @@ func (db *DB) FetchBlogSubscribed(blogId, userId uint32) (bool, error) {
 	return true, nil
 }
 
-// todo завернуть в транзакцию
 func (db *DB) UpdateBlogSubscribed(blogId, userId uint32) error {
-	const blogSubscriptionInsert = `
-	INSERT INTO
-		b_subscribers
-		(user_id, blog_id, date_of_add)
-	VALUES
-		(?, ?, ?)`
+	return db.R.InTransaction(func(dbrw sqlr.DBReaderWriter) error {
+		const blogSubscriptionInsert = `
+		INSERT INTO
+			b_subscribers
+			(user_id, blog_id, date_of_add)
+		VALUES
+			(?, ?, ?)`
 
-	err := db.R.Exec(blogSubscriptionInsert, userId, blogId, time.Now()).Error
+		err := dbrw.Exec(blogSubscriptionInsert, userId, blogId, time.Now()).Error
 
-	if err != nil {
+		if err != nil {
+			return err
+		}
+
+		err = updateBlogSubscriberCount(dbrw, blogId)
+
 		return err
-	}
-
-	err = db.UpdateBlogSubscriberCount(blogId)
-
-	return err
+	})
 }
 
-// todo завернуть в транзакцию
 func (db *DB) UpdateBlogUnsubscribed(blogId, userId uint32) error {
-	const blogSubscriptionDelete = `
-	DELETE FROM
-		b_subscribers
-	WHERE
-		blog_id = ? AND user_id = ?`
+	return db.R.InTransaction(func(dbrw sqlr.DBReaderWriter) error {
+		const blogSubscriptionDelete = `
+		DELETE FROM
+			b_subscribers
+		WHERE
+			blog_id = ? AND user_id = ?`
 
-	err := db.R.Exec(blogSubscriptionDelete, blogId, userId).Error
+		err := dbrw.Exec(blogSubscriptionDelete, blogId, userId).Error
 
-	if err != nil {
+		if err != nil {
+			return err
+		}
+
+		err = updateBlogSubscriberCount(dbrw, blogId)
+
 		return err
-	}
-
-	err = db.UpdateBlogSubscriberCount(blogId)
-
-	return err
+	})
 }
 
-func (db *DB) UpdateBlogSubscriberCount(blogId uint32) error {
+func updateBlogSubscriberCount(dbrw sqlr.DBReaderWriter, blogId uint32) error {
 	const blogSubscriberUpdate = `
 	UPDATE
 		b_blogs b
@@ -472,7 +474,7 @@ func (db *DB) UpdateBlogSubscriberCount(blogId uint32) error {
 	WHERE
 		b.blog_id = ?`
 
-	err := db.R.Exec(blogSubscriberUpdate, blogId).Error
+	err := dbrw.Exec(blogSubscriberUpdate, blogId).Error
 
 	return err
 }
