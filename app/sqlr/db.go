@@ -2,15 +2,19 @@ package sqlr
 
 import (
 	"database/sql"
+	"time"
 )
+
+type LogFunc func(string, int64, time.Time, time.Time) // formattedQuery, rowsAffected, startTime, finishTime
 
 type DB struct {
 	handler *sql.DB
+	logFn   LogFunc
 }
 
 type Result struct {
-	sql.Result
-	Error error
+	RowsAffected int64
+	Error        error
 }
 
 type Rows struct {
@@ -18,8 +22,11 @@ type Rows struct {
 	Error error
 }
 
-func New(handler *sql.DB) *DB {
-	return &DB{handler: handler}
+func New(handler *sql.DB, logFn LogFunc) *DB {
+	return &DB{
+		handler: handler,
+		logFn:   logFn,
+	}
 }
 
 func (rows Rows) Scan(output interface{}) error {
@@ -31,13 +38,25 @@ func (rows Rows) Scan(output interface{}) error {
 }
 
 func (db *DB) Exec(q string, args ...interface{}) Result {
-	r, err := db.handler.Exec(q, args...)
+	startTime := time.Now()
 
-	return Result{r, err}
+	result, err := db.handler.Exec(q, args...)
+	rowsAffected, _ := result.RowsAffected()
+
+	db.logFn(formatQuery(q, bindVarChar, args...), rowsAffected, startTime, time.Now())
+
+	return Result{
+		RowsAffected: rowsAffected,
+		Error:        err,
+	}
 }
 
 func (db *DB) Query(q string, args ...interface{}) Rows {
+	startTime := time.Now()
+
 	rows, err := db.handler.Query(q, args...)
+
+	db.logFn(formatQuery(q, bindVarChar, args...), -1, startTime, time.Now())
 
 	return Rows{
 		data:  rows,
@@ -46,7 +65,7 @@ func (db *DB) Query(q string, args ...interface{}) Rows {
 }
 
 func (db *DB) QueryIn(q string, args ...interface{}) Rows {
-	newQuery, newArgs, err := rebindQuery(q, args...)
+	newQuery, newArgs, err := rebindQuery(q, bindVarChar, args...)
 
 	if err != nil {
 		return Rows{
@@ -55,10 +74,5 @@ func (db *DB) QueryIn(q string, args ...interface{}) Rows {
 		}
 	}
 
-	rows, err := db.handler.Query(newQuery, newArgs...)
-
-	return Rows{
-		data:  rows,
-		Error: err,
-	}
+	return db.Query(newQuery, newArgs...)
 }

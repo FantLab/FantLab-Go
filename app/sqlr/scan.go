@@ -83,13 +83,11 @@ func makeFieldNameIndexMapFromStruct(t reflect.Type) map[string]int {
 	for i := 0; i < t.NumField(); i++ {
 		f := t.Field(i)
 
-		dbName, ok := f.Tag.Lookup("db")
+		m[f.Name] = i
 
-		if !ok {
-			continue
+		if dbName, ok := f.Tag.Lookup("db"); ok {
+			m[dbName] = i
 		}
-
-		m[dbName] = i
 	}
 
 	return m
