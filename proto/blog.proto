@@ -85,6 +85,10 @@ message Blog {
         Article article = 1;
     }
 
+    message BlogSubscriptionResponse {
+        bool is_subscribed = 1;
+    }
+
     message BlogArticleLikeResponse {
         uint32 like_count = 1;
     }

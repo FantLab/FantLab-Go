@@ -75,7 +75,7 @@ type BlogTopicLike struct {
 	DateOfAdd   time.Time `db:"date_of_add"`
 }
 
-type CommunityDBResponse struct {
+type CommunityTopicsDBResponse struct {
 	Community        Community
 	Moderators       []CommunityModerator
 	Authors          []CommunityAuthor
@@ -88,7 +88,7 @@ type BlogsDBResponse struct {
 	TotalCount uint32
 }
 
-type BlogDBResponse struct {
+type BlogTopicsDBResponse struct {
 	Topics           []BlogTopic
 	TotalTopicsCount uint32
 }
@@ -128,7 +128,40 @@ func (db *DB) FetchCommunities() ([]Community, error) {
 	return communities, nil
 }
 
-func (db *DB) FetchCommunity(communityID, limit, offset uint32) (*CommunityDBResponse, error) {
+func (db *DB) FetchCommunity(communityID uint32) (*Community, error) {
+	const communityQuery = `
+	SELECT
+		b.name,
+		b.description,
+		b.topics_count,
+		b.is_public,
+		b.last_topic_date,
+		b.last_topic_head,
+		b.last_topic_id,
+		b.subscriber_count,
+		u.user_id AS last_user_id,
+		u.login AS last_login,
+		u.sex AS last_sex,
+		u.photo_number AS last_photo_number
+	FROM
+		b_blogs b
+	LEFT JOIN
+		users u ON u.user_id = b.last_user_id
+	WHERE
+		b.blog_id = ? AND b.is_community = 1 AND b.is_hidden = 0`
+
+	var community Community
+
+	err := db.R.Query(communityQuery, communityID).Scan(&community)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return &community, nil
+}
+
+func (db *DB) FetchCommunityTopics(communityID, limit, offset uint32) (*CommunityTopicsDBResponse, error) {
 	const communityQuery = `
 	SELECT
 		blog_id,
@@ -241,7 +274,7 @@ func (db *DB) FetchCommunity(communityID, limit, offset uint32) (*CommunityDBRes
 		return nil, err
 	}
 
-	result := &CommunityDBResponse{
+	result := &CommunityTopicsDBResponse{
 		Community:        community,
 		Moderators:       moderators,
 		Authors:          authors,
@@ -320,7 +353,40 @@ func (db *DB) FetchBlogs(limit, offset uint32, sort string) (*BlogsDBResponse, e
 	return result, nil
 }
 
-func (db *DB) FetchBlog(blogID, limit, offset uint32) (*BlogDBResponse, error) {
+func (db *DB) FetchBlog(blogId uint32) (*Blog, error) {
+	const blogQuery = `
+	SELECT
+		b.blog_id,
+		u.user_id,
+		u.login,
+		u.fio,
+		u.sex,
+		u.photo_number,
+		b.topics_count,
+		b.subscriber_count,
+		b.is_close,
+		b.last_topic_date,
+		b.last_topic_head,
+		b.last_topic_id
+	FROM
+		b_blogs b
+	LEFT JOIN
+		users u ON u.user_id = b.user_id
+	WHERE
+		b.blog_id = ? AND b.is_community = 0`
+
+	var blog Blog
+
+	err := db.R.Query(blogQuery, blogId).Scan(&blog)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return &blog, nil
+}
+
+func (db *DB) FetchBlogTopics(blogID, limit, offset uint32) (*BlogTopicsDBResponse, error) {
 	const blogExistsQuery = `SELECT 1 FROM b_blogs WHERE blog_id = ? AND is_community = 0`
 
 	var blogExists uint8
@@ -379,12 +445,84 @@ func (db *DB) FetchBlog(blogID, limit, offset uint32) (*BlogDBResponse, error) {
 		return nil, err
 	}
 
-	response := &BlogDBResponse{
+	response := &BlogTopicsDBResponse{
 		Topics:           topics,
 		TotalTopicsCount: count,
 	}
 
 	return response, nil
+}
+
+func (db *DB) FetchBlogSubscribed(blogId, userId uint32) (bool, error) {
+	const blogSubscriptionExistsQuery = `SELECT 1 FROM b_subscribers WHERE blog_id = ? AND user_id = ?`
+
+	var blogSubscriptionExists uint8
+
+	err := db.R.Query(blogSubscriptionExistsQuery, blogId, userId).Scan(&blogSubscriptionExists)
+
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return false, nil
+		}
+		return false, err
+	}
+
+	return true, nil
+}
+
+func (db *DB) UpdateBlogSubscribed(blogId, userId uint32) error {
+	return db.R.InTransaction(func(dbrw sqlr.DBReaderWriter) error {
+		const blogSubscriptionInsert = `
+		INSERT INTO
+			b_subscribers
+			(user_id, blog_id, date_of_add)
+		VALUES
+			(?, ?, ?)`
+
+		err := dbrw.Exec(blogSubscriptionInsert, userId, blogId, time.Now()).Error
+
+		if err != nil {
+			return err
+		}
+
+		err = updateBlogSubscriberCount(dbrw, blogId)
+
+		return err
+	})
+}
+
+func (db *DB) UpdateBlogUnsubscribed(blogId, userId uint32) error {
+	return db.R.InTransaction(func(dbrw sqlr.DBReaderWriter) error {
+		const blogSubscriptionDelete = `
+		DELETE FROM
+			b_subscribers
+		WHERE
+			blog_id = ? AND user_id = ?`
+
+		err := dbrw.Exec(blogSubscriptionDelete, blogId, userId).Error
+
+		if err != nil {
+			return err
+		}
+
+		err = updateBlogSubscriberCount(dbrw, blogId)
+
+		return err
+	})
+}
+
+func updateBlogSubscriberCount(dbrw sqlr.DBReaderWriter, blogId uint32) error {
+	const blogSubscriberUpdate = `
+	UPDATE
+		b_blogs b
+	SET
+		b.subscriber_count = (SELECT COUNT(DISTINCT bs.user_id) FROM b_subscribers bs WHERE bs.blog_id = b.blog_id)
+	WHERE
+		b.blog_id = ?`
+
+	err := dbrw.Exec(blogSubscriberUpdate, blogId).Error
+
+	return err
 }
 
 func (db *DB) FetchBlogTopic(topicId uint32) (*BlogTopic, error) {
@@ -421,24 +559,46 @@ func (db *DB) FetchBlogTopic(topicId uint32) (*BlogTopic, error) {
 	return &topic, nil
 }
 
-func (db *DB) FetchBlogTopicCreatorId(topicId uint32) (uint32, error) {
-	const topicUserIdQuery = `
-	SELECT
-		user_id
-	FROM
-		b_topics
-	WHERE
-		topic_id = ? AND is_opened > 0`
+func (db *DB) FetchBlogTopicSubscribed(topicId, userId uint32) (bool, error) {
+	const topicSubscriptionExistsQuery = `SELECT 1 FROM b_topics_subscribers WHERE topic_id = ? AND user_id = ?`
 
-	var userId uint32
+	var topicSubscriptionExists uint8
 
-	err := db.R.Query(topicUserIdQuery, topicId).Scan(&userId)
+	err := db.R.Query(topicSubscriptionExistsQuery, topicId, userId).Scan(&topicSubscriptionExists)
 
 	if err != nil {
-		return 0, err
+		if err == sql.ErrNoRows {
+			return false, nil
+		}
+		return false, err
 	}
 
-	return userId, nil
+	return true, nil
+}
+
+func (db *DB) UpdateBlogTopicSubscribed(topicId, userId uint32) error {
+	const topicSubscriptionInsert = `
+	INSERT INTO
+		b_topics_subscribers
+		(user_id, topic_id, date_of_add)
+	VALUES
+		(?, ?, ?)`
+
+	err := db.R.Exec(topicSubscriptionInsert, userId, topicId, time.Now()).Error
+
+	return err
+}
+
+func (db *DB) UpdateBlogTopicUnsubscribed(topicId, userId uint32) error {
+	const topicSubscriptionDelete = `
+	DELETE FROM
+		b_topics_subscribers
+	WHERE
+		topic_id = ? AND user_id = ?`
+
+	err := db.R.Exec(topicSubscriptionDelete, topicId, userId).Error
+
+	return err
 }
 
 func (db *DB) FetchBlogTopicLikeCount(topicId uint32) (uint32, error) {

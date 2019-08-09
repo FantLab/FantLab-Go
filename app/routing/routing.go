@@ -58,6 +58,12 @@ func SetupWith(services *shared.Services) *gin.Engine {
 	{
 		g := r.Group(baseGroupName).Use(middlewares.AuthorizedUserIsRequired)
 		g.DELETE("/logout", c.auth.Logout)
+		g.POST("/communities/:id/subscription", c.blogs.SubscribeCommunity)
+		g.DELETE("/communities/:id/subscription", c.blogs.UnsubscribeCommunity)
+		g.POST("/blogs/:id/subscription", c.blogs.SubscribeBlog)
+		g.DELETE("/blogs/:id/subscription", c.blogs.UnsubscribeBlog)
+		g.POST("/blog_articles/:id/subscription", c.blogs.SubscribeArticle)
+		g.DELETE("/blog_articles/:id/subscription", c.blogs.UnsubscribeArticle)
 		g.POST("/blog_articles/:id/like", c.blogs.LikeArticle)
 		g.DELETE("/blog_articles/:id/like", c.blogs.DislikeArticle)
 		g.PUT("/work/:id/genres", c.genres.SetWorkGenres)
