@@ -2,11 +2,13 @@ package sqlr
 
 import (
 	"errors"
+	"fmt"
 	"reflect"
 	"strings"
+	"unicode"
 )
 
-const bindVarChar = '?'
+var ErrArgsCount = errors.New("Invalid number of arguments")
 
 func rebindQuery(q string, bindVarChar rune, args ...interface{}) (string, []interface{}, error) {
 	newArgs, counts := flatArgs(args...)
@@ -29,7 +31,7 @@ func expandQuery(q string, bindVarChar rune, counts []int) (string, error) {
 		}
 
 		if cursor > end {
-			return "", errors.New("Invalid number of arguments")
+			return "", ErrArgsCount
 		}
 
 		for j := 0; j < counts[cursor]-1; j++ {
@@ -87,4 +89,30 @@ func deepFlat(input interface{}) ([]interface{}, int) {
 	}
 
 	return flatSlice, totalCount
+}
+
+func formatQuery(q string, bindVarChar rune, args ...interface{}) string {
+	var sb strings.Builder
+
+	prevIsPrint := false
+
+	for _, char := range q {
+		if unicode.IsPrint(char) && !unicode.IsSpace(char) {
+			if char == bindVarChar {
+				sb.WriteString("%v")
+			} else {
+				sb.WriteRune(char)
+			}
+
+			prevIsPrint = true
+		} else {
+			if prevIsPrint {
+				sb.WriteRune(' ')
+			}
+
+			prevIsPrint = false
+		}
+	}
+
+	return fmt.Sprintf(sb.String(), args...)
 }

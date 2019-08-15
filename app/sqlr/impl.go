@@ -1,6 +1,10 @@
 package sqlr
 
-import "time"
+import (
+	"time"
+)
+
+const BindVarChar = '?'
 
 type impl struct {
 	rw    dbReaderWriter
@@ -13,7 +17,7 @@ func (i impl) Exec(query string, args ...interface{}) Result {
 	result, err := i.rw.Exec(query, args...)
 	rowsAffected, _ := result.RowsAffected()
 
-	i.logFn(formatQuery(query, bindVarChar, args...), rowsAffected, t, time.Since(t))
+	i.logFn(formatQuery(query, BindVarChar, args...), rowsAffected, t, time.Since(t))
 
 	return Result{
 		RowsAffected: rowsAffected,
@@ -26,7 +30,7 @@ func (i impl) Query(query string, args ...interface{}) Rows {
 
 	rows, err := i.rw.Query(query, args...)
 
-	i.logFn(formatQuery(query, bindVarChar, args...), -1, t, time.Since(t))
+	i.logFn(formatQuery(query, BindVarChar, args...), -1, t, time.Since(t))
 
 	return Rows{
 		data:  rows,
@@ -35,7 +39,7 @@ func (i impl) Query(query string, args ...interface{}) Rows {
 }
 
 func (i impl) QueryIn(query string, args ...interface{}) Rows {
-	newQuery, newArgs, err := rebindQuery(query, bindVarChar, args...)
+	newQuery, newArgs, err := rebindQuery(query, BindVarChar, args...)
 
 	if err != nil {
 		return Rows{

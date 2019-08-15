@@ -2,13 +2,14 @@ package utils
 
 import (
 	"database/sql"
+	"fantlab/scanr"
 	"strconv"
 
 	"github.com/segmentio/ksuid"
 )
 
 func IsRecordNotFoundError(err error) bool {
-	return err == sql.ErrNoRows
+	return err == scanr.ErrNoRows || err == sql.ErrNoRows
 }
 
 func GenerateUniqueId() string {

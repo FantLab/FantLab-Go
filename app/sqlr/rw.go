@@ -1,8 +1,6 @@
 package sqlr
 
-import (
-	"database/sql"
-)
+import "database/sql"
 
 type dbReaderWriter interface {
 	Exec(query string, args ...interface{}) (sql.Result, error)
