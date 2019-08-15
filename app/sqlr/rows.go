@@ -1,6 +1,9 @@
 package sqlr
 
-import "database/sql"
+import (
+	"database/sql"
+	"fantlab/scanr"
+)
 
 type Rows struct {
 	data  *sql.Rows
@@ -12,5 +15,8 @@ func (rows Rows) Scan(output interface{}) error {
 		return rows.Error
 	}
 
-	return scanRows(output, rows.data, true)
+	return scanr.Scan(output, &sqlRows{
+		data:                rows.data,
+		nullablesAsDefaults: true,
+	})
 }
