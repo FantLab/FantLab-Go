@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"strconv"
 	"strings"
+	"time"
 
 	"fantlab/shared"
 	"fantlab/utils"
@@ -248,16 +249,16 @@ func (c *Controller) LikeArticle(ctx *gin.Context) {
 		return
 	}
 
-	isDbTopicLiked, err := c.services.DB.FetchBlogTopicLiked(uint32(articleId), uint32(userId))
+	ok, err := c.services.DB.IsBlogTopicLiked(uint32(articleId), uint32(userId))
 
-	if err != nil {
+	if err != nil && !utils.IsRecordNotFoundError(err) {
 		utils.ShowProto(ctx, http.StatusInternalServerError, &pb.Error_Response{
 			Status: pb.Error_SOMETHING_WENT_WRONG,
 		})
 		return
 	}
 
-	if isDbTopicLiked {
+	if ok {
 		utils.ShowProto(ctx, http.StatusUnauthorized, &pb.Error_Response{
 			Status:  pb.Error_ACTION_PERMITTED,
 			Context: "already liked",
@@ -265,7 +266,7 @@ func (c *Controller) LikeArticle(ctx *gin.Context) {
 		return
 	}
 
-	err = c.services.DB.UpdateBlogTopicLiked(uint32(articleId), uint32(userId))
+	_, err = c.services.DB.LikeBlogTopic(time.Now(), uint32(articleId), uint32(userId))
 
 	if err != nil {
 		utils.ShowProto(ctx, http.StatusInternalServerError, &pb.Error_Response{
@@ -325,16 +326,16 @@ func (c *Controller) DislikeArticle(ctx *gin.Context) {
 		return
 	}
 
-	isDbTopicLiked, err := c.services.DB.FetchBlogTopicLiked(uint32(articleId), uint32(userId))
+	ok, err := c.services.DB.IsBlogTopicLiked(uint32(articleId), uint32(userId))
 
-	if err != nil {
+	if err != nil && !utils.IsRecordNotFoundError(err) {
 		utils.ShowProto(ctx, http.StatusInternalServerError, &pb.Error_Response{
 			Status: pb.Error_SOMETHING_WENT_WRONG,
 		})
 		return
 	}
 
-	if !isDbTopicLiked {
+	if !ok {
 		utils.ShowProto(ctx, http.StatusUnauthorized, &pb.Error_Response{
 			Status:  pb.Error_ACTION_PERMITTED,
 			Context: "already disliked",
@@ -342,7 +343,7 @@ func (c *Controller) DislikeArticle(ctx *gin.Context) {
 		return
 	}
 
-	err = c.services.DB.UpdateBlogTopicDisliked(uint32(articleId), uint32(userId))
+	_, err = c.services.DB.DislikeBlogTopic(uint32(articleId), uint32(userId))
 
 	if err != nil {
 		utils.ShowProto(ctx, http.StatusInternalServerError, &pb.Error_Response{
@@ -351,7 +352,7 @@ func (c *Controller) DislikeArticle(ctx *gin.Context) {
 		return
 	}
 
-	dbTopicLikeCount, err := c.services.DB.FetchBlogTopicLikeCount(uint32(articleId))
+	likeCount, err := c.services.DB.FetchBlogTopicLikeCount(uint32(articleId))
 
 	if err != nil {
 		utils.ShowProto(ctx, http.StatusInternalServerError, &pb.Error_Response{
@@ -361,7 +362,7 @@ func (c *Controller) DislikeArticle(ctx *gin.Context) {
 	}
 
 	utils.ShowProto(ctx, http.StatusOK, &pb.Blog_BlogArticleLikeResponse{
-		LikeCount: dbTopicLikeCount,
+		LikeCount: likeCount,
 	})
 }
 

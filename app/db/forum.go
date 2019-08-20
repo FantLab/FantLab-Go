@@ -1,6 +1,7 @@
 package db
 
 import (
+	"fantlab/dbtools/sqlr"
 	"time"
 )
 
@@ -121,7 +122,7 @@ func (db *DB) FetchForums(availableForums []uint16) ([]Forum, error) {
 
 	var forums []Forum
 
-	err := db.R.QueryIn(forumsQuery, availableForums).Scan(&forums)
+	err := sqlr.RebindQuery(db.R, forumsQuery, availableForums).Scan(&forums)
 
 	if err != nil {
 		return nil, err
@@ -165,7 +166,7 @@ func (db *DB) FetchModerators() (map[uint32][]ForumModerator, error) {
 func (db *DB) FetchForumTopics(availableForums []uint16, forumID uint16, limit, offset uint32) (*ForumTopicsDBResponse, error) {
 	var forumExists uint8
 
-	err := db.R.QueryIn("SELECT 1 FROM f_forums WHERE forum_id = ? AND forum_id IN (?)", forumID, availableForums).Scan(&forumExists)
+	err := sqlr.RebindQuery(db.R, "SELECT 1 FROM f_forums WHERE forum_id = ? AND forum_id IN (?)", forumID, availableForums).Scan(&forumExists)
 
 	if err != nil {
 		return nil, err
@@ -245,7 +246,7 @@ func (db *DB) FetchTopicMessages(availableForums []uint16, topicID, limit, offse
 
 	var shortTopic ShortForumTopic
 
-	err := db.R.QueryIn(shortTopicQuery, topicID, availableForums).Scan(&shortTopic)
+	err := sqlr.RebindQuery(db.R, shortTopicQuery, topicID, availableForums).Scan(&shortTopic)
 
 	if err != nil {
 		return nil, err

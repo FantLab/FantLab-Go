@@ -32,12 +32,12 @@ func (db *DB) FetchUserPasswordHash(login string) (UserPasswordHash, error) {
 	return data, err
 }
 
-func (db *DB) InsertNewSession(code string, userID uint32, userIP string, userAgent string) (time.Time, error) {
-	now := time.Now()
-	err := db.R.Exec("INSERT INTO "+sessionsTable+" (code, user_id, user_ip, user_agent, date_of_create, date_of_last_action, hits) VALUES (?, ?, ?, ?, ?, ?, ?)", code, userID, userIP, userAgent, now, now, 0).Error
-	return now, err
+func (db *DB) InsertNewSession(t time.Time, code string, userID uint32, userIP string, userAgent string) error {
+	return db.R.Exec("INSERT INTO "+sessionsTable+" (code, user_id, user_ip, user_agent, date_of_create, date_of_last_action, hits) VALUES (?, ?, ?, ?, ?, ?, ?)", code, userID, userIP, userAgent, t, t, 0).Error
 }
 
-func (db *DB) DeleteSession(code string) error {
-	return db.R.Exec("DELETE FROM "+sessionsTable+" WHERE code = ?", code).Error
+func (db *DB) DeleteSession(code string) (bool, error) {
+	result := db.R.Exec("DELETE FROM "+sessionsTable+" WHERE code = ?", code)
+
+	return result.Rows > 0, result.Error
 }

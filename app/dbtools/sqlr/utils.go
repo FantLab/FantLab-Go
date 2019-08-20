@@ -5,10 +5,43 @@ import (
 	"fmt"
 	"reflect"
 	"strings"
+	"time"
 	"unicode"
 )
 
 var ErrArgsCount = errors.New("Invalid number of arguments")
+
+const (
+	BindVarChar = '?'
+	TimeLayout  = "2006-01-02 15:04:05"
+)
+
+// *******************************************************
+
+type NoRows struct {
+	Err error
+}
+
+func (rows NoRows) Error() error {
+	return rows.Err
+}
+func (rows NoRows) Scan(output interface{}) error {
+	return rows.Err
+}
+
+// *******************************************************
+
+func RebindQuery(db DB, query string, args ...interface{}) Rows {
+	newQuery, newArgs, err := rebindQuery(query, BindVarChar, args...)
+
+	if err != nil {
+		return NoRows{Err: err}
+	}
+
+	return db.Query(newQuery, newArgs...)
+}
+
+// *******************************************************
 
 func rebindQuery(q string, bindVarChar rune, args ...interface{}) (string, []interface{}, error) {
 	newArgs, counts := flatArgs(args...)
@@ -91,15 +124,35 @@ func deepFlat(input interface{}) ([]interface{}, int) {
 	return flatSlice, totalCount
 }
 
+// *******************************************************
+
+func FormatQuery(q string, args ...interface{}) string {
+	return formatQuery(q, BindVarChar, args...)
+}
+
 func formatQuery(q string, bindVarChar rune, args ...interface{}) string {
+	end := len(args)
+	cursor := 0
+
 	var sb strings.Builder
 
 	prevIsPrint := false
+	shouldAppendSpace := false
 
 	for _, char := range q {
 		if unicode.IsPrint(char) && !unicode.IsSpace(char) {
+			if shouldAppendSpace {
+				sb.WriteRune(' ')
+
+				shouldAppendSpace = false
+			}
+
 			if char == bindVarChar {
-				sb.WriteString("%v")
+				if cursor < end {
+					sb.WriteString(formatArg(args[cursor]))
+
+					cursor += 1
+				}
 			} else {
 				sb.WriteRune(char)
 			}
@@ -107,12 +160,23 @@ func formatQuery(q string, bindVarChar rune, args ...interface{}) string {
 			prevIsPrint = true
 		} else {
 			if prevIsPrint {
-				sb.WriteRune(' ')
+				shouldAppendSpace = true
 			}
 
 			prevIsPrint = false
 		}
 	}
 
-	return fmt.Sprintf(sb.String(), args...)
+	return sb.String()
+}
+
+func formatArg(arg interface{}) string {
+	switch x := arg.(type) {
+	case string:
+		return fmt.Sprintf("'%s'", x)
+	case time.Time:
+		return fmt.Sprintf("'%s'", x.Format(TimeLayout))
+	}
+
+	return fmt.Sprintf("%v", arg)
 }

@@ -1,22 +1,20 @@
 package scanr
 
 import (
-	"fantlab/testutils"
+	"fantlab/tt"
 	"reflect"
 	"testing"
 )
 
 // *******************************************************
 
-type _testColumn struct {
-	name string
+type _testColumn string
+
+func (column _testColumn) Name() string {
+	return string(column)
 }
 
-func (column *_testColumn) Name() string {
-	return column.name
-}
-
-func (column *_testColumn) Get(value reflect.Value) reflect.Value {
+func (column _testColumn) Get(value reflect.Value) reflect.Value {
 	return value
 }
 
@@ -53,7 +51,7 @@ func Test_Scan(t *testing.T) {
 
 		err := Scan(x, rows)
 
-		testutils.Assert(t, err == ErrIsNil)
+		tt.Assert(t, err == ErrIsNil)
 	})
 
 	t.Run("negative_output_not_a_ptr", func(t *testing.T) {
@@ -63,7 +61,7 @@ func Test_Scan(t *testing.T) {
 
 		err := Scan(x, rows)
 
-		testutils.Assert(t, err == ErrNotAPtr)
+		tt.Assert(t, err == ErrNotAPtr)
 	})
 
 	t.Run("negative_output_not_a_struct_slice", func(t *testing.T) {
@@ -73,14 +71,14 @@ func Test_Scan(t *testing.T) {
 
 		err := Scan(&x, rows)
 
-		testutils.Assert(t, err == ErrNotAStruct)
+		tt.Assert(t, err == ErrNotAStruct)
 	})
 
 	t.Run("positive_single_value_1", func(t *testing.T) {
 		rows := &_testRows{
 			values: [][]interface{}{{1}},
 			columns: []Column{
-				&_testColumn{name: ""},
+				_testColumn(""),
 			},
 		}
 
@@ -88,15 +86,15 @@ func Test_Scan(t *testing.T) {
 
 		err := Scan(&x, rows)
 
-		testutils.Assert(t, err == nil)
-		testutils.Assert(t, x == 1)
+		tt.Assert(t, err == nil)
+		tt.Assert(t, x == 1)
 	})
 
 	t.Run("positive_single_value_2", func(t *testing.T) {
 		rows := &_testRows{
 			values: [][]interface{}{{"hello"}},
 			columns: []Column{
-				&_testColumn{name: ""},
+				_testColumn(""),
 			},
 		}
 
@@ -104,16 +102,16 @@ func Test_Scan(t *testing.T) {
 
 		err := Scan(&x, rows)
 
-		testutils.Assert(t, err == nil)
-		testutils.Assert(t, x == "hello")
+		tt.Assert(t, err == nil)
+		tt.Assert(t, x == "hello")
 	})
 
 	t.Run("negative_single_value_multi_columns", func(t *testing.T) {
 		rows := &_testRows{
 			values: [][]interface{}{{"hello", "world"}},
 			columns: []Column{
-				&_testColumn{name: ""},
-				&_testColumn{name: ""},
+				_testColumn(""),
+				_testColumn(""),
 			},
 		}
 
@@ -121,15 +119,15 @@ func Test_Scan(t *testing.T) {
 
 		err := Scan(&x, rows)
 
-		testutils.Assert(t, err == ErrMultiColumns)
-		testutils.Assert(t, x == "")
+		tt.Assert(t, err == ErrMultiColumns)
+		tt.Assert(t, x == "")
 	})
 
 	t.Run("negative_single_value_no_rows", func(t *testing.T) {
 		rows := &_testRows{
 			values: [][]interface{}{},
 			columns: []Column{
-				&_testColumn{name: ""},
+				_testColumn(""),
 			},
 		}
 
@@ -137,15 +135,15 @@ func Test_Scan(t *testing.T) {
 
 		err := Scan(&x, rows)
 
-		testutils.Assert(t, err == ErrNoRows)
-		testutils.Assert(t, x == "")
+		tt.Assert(t, err == ErrNoRows)
+		tt.Assert(t, x == "")
 	})
 
 	t.Run("negative_single_value_multi_rows", func(t *testing.T) {
 		rows := &_testRows{
 			values: [][]interface{}{{"hello"}, {"world"}},
 			columns: []Column{
-				&_testColumn{name: ""},
+				_testColumn(""),
 			},
 		}
 
@@ -153,16 +151,16 @@ func Test_Scan(t *testing.T) {
 
 		err := Scan(&x, rows)
 
-		testutils.Assert(t, err == ErrMultiRows)
-		testutils.Assert(t, x == "")
+		tt.Assert(t, err == ErrMultiRows)
+		tt.Assert(t, x == "")
 	})
 
 	t.Run("positive_single_struct_field_name", func(t *testing.T) {
 		rows := &_testRows{
 			values: [][]interface{}{{"a", "b"}},
 			columns: []Column{
-				&_testColumn{name: "FirstName"},
-				&_testColumn{name: "LastName"},
+				_testColumn("FirstName"),
+				_testColumn("LastName"),
 			},
 		}
 
@@ -173,17 +171,17 @@ func Test_Scan(t *testing.T) {
 
 		err := Scan(&x, rows)
 
-		testutils.Assert(t, err == nil)
-		testutils.Assert(t, x.FirstName == "a")
-		testutils.Assert(t, x.LastName == "b")
+		tt.Assert(t, err == nil)
+		tt.Assert(t, x.FirstName == "a")
+		tt.Assert(t, x.LastName == "b")
 	})
 
 	t.Run("positive_single_struct_alt_name", func(t *testing.T) {
 		rows := &_testRows{
 			values: [][]interface{}{{"a", "b"}},
 			columns: []Column{
-				&_testColumn{name: "first_name"},
-				&_testColumn{name: "last_name"},
+				_testColumn("first_name"),
+				_testColumn("last_name"),
 			},
 		}
 
@@ -194,17 +192,17 @@ func Test_Scan(t *testing.T) {
 
 		err := Scan(&x, rows)
 
-		testutils.Assert(t, err == nil)
-		testutils.Assert(t, x.FirstName == "a")
-		testutils.Assert(t, x.LastName == "b")
+		tt.Assert(t, err == nil)
+		tt.Assert(t, x.FirstName == "a")
+		tt.Assert(t, x.LastName == "b")
 	})
 
 	t.Run("negative_single_struct_no_rows", func(t *testing.T) {
 		rows := &_testRows{
 			values: [][]interface{}{},
 			columns: []Column{
-				&_testColumn{name: "first_name"},
-				&_testColumn{name: "last_name"},
+				_testColumn("first_name"),
+				_testColumn("last_name"),
 			},
 		}
 
@@ -215,17 +213,17 @@ func Test_Scan(t *testing.T) {
 
 		err := Scan(&x, rows)
 
-		testutils.Assert(t, err == ErrNoRows)
-		testutils.Assert(t, x.FirstName == "")
-		testutils.Assert(t, x.LastName == "")
+		tt.Assert(t, err == ErrNoRows)
+		tt.Assert(t, x.FirstName == "")
+		tt.Assert(t, x.LastName == "")
 	})
 
 	t.Run("negative_single_value_multi_rows", func(t *testing.T) {
 		rows := &_testRows{
 			values: [][]interface{}{{"a", "b"}, {"c", "d"}},
 			columns: []Column{
-				&_testColumn{name: "first_name"},
-				&_testColumn{name: "last_name"},
+				_testColumn("first_name"),
+				_testColumn("last_name"),
 			},
 		}
 
@@ -236,17 +234,17 @@ func Test_Scan(t *testing.T) {
 
 		err := Scan(&x, rows)
 
-		testutils.Assert(t, err == ErrMultiRows)
-		testutils.Assert(t, x.FirstName == "")
-		testutils.Assert(t, x.LastName == "")
+		tt.Assert(t, err == ErrMultiRows)
+		tt.Assert(t, x.FirstName == "")
+		tt.Assert(t, x.LastName == "")
 	})
 
 	t.Run("positive_slice_alt_name", func(t *testing.T) {
 		rows := &_testRows{
 			values: [][]interface{}{{"a", "b"}, {"c", "d"}},
 			columns: []Column{
-				&_testColumn{name: "first_name"},
-				&_testColumn{name: "last_name"},
+				_testColumn("first_name"),
+				_testColumn("last_name"),
 			},
 		}
 
@@ -257,19 +255,19 @@ func Test_Scan(t *testing.T) {
 
 		err := Scan(&x, rows)
 
-		testutils.Assert(t, err == nil)
-		testutils.Assert(t, x[0].FirstName == "a")
-		testutils.Assert(t, x[0].LastName == "b")
-		testutils.Assert(t, x[1].FirstName == "c")
-		testutils.Assert(t, x[1].LastName == "d")
+		tt.Assert(t, err == nil)
+		tt.Assert(t, x[0].FirstName == "a")
+		tt.Assert(t, x[0].LastName == "b")
+		tt.Assert(t, x[1].FirstName == "c")
+		tt.Assert(t, x[1].LastName == "d")
 	})
 
 	t.Run("positive_slice_mix_names", func(t *testing.T) {
 		rows := &_testRows{
 			values: [][]interface{}{{"a", "b"}, {"c", "d"}},
 			columns: []Column{
-				&_testColumn{name: "FirstName"},
-				&_testColumn{name: "last_name"},
+				_testColumn("FirstName"),
+				_testColumn("last_name"),
 			},
 		}
 
@@ -280,11 +278,11 @@ func Test_Scan(t *testing.T) {
 
 		err := Scan(&x, rows)
 
-		testutils.Assert(t, err == nil)
-		testutils.Assert(t, x[0].FirstName == "a")
-		testutils.Assert(t, x[0].LastName == "b")
-		testutils.Assert(t, x[1].FirstName == "c")
-		testutils.Assert(t, x[1].LastName == "d")
+		tt.Assert(t, err == nil)
+		tt.Assert(t, x[0].FirstName == "a")
+		tt.Assert(t, x[0].LastName == "b")
+		tt.Assert(t, x[1].FirstName == "c")
+		tt.Assert(t, x[1].LastName == "d")
 	})
 
 	t.Run("positive_complex_slice", func(t *testing.T) {
@@ -294,12 +292,12 @@ func Test_Scan(t *testing.T) {
 				{"c", "d", 3, 4, false, 3.2},
 			},
 			columns: []Column{
-				&_testColumn{name: "first_name"},
-				&_testColumn{name: "last_name"},
-				&_testColumn{name: "id1"},
-				&_testColumn{name: "id2"},
-				&_testColumn{name: "is_closed"},
-				&_testColumn{name: "coef"},
+				_testColumn("first_name"),
+				_testColumn("last_name"),
+				_testColumn("id1"),
+				_testColumn("id2"),
+				_testColumn("is_closed"),
+				_testColumn("coef"),
 			},
 		}
 
@@ -316,8 +314,8 @@ func Test_Scan(t *testing.T) {
 
 		err := Scan(&x, rows)
 
-		testutils.Assert(t, err == nil)
-		testutils.AssertDeepEqual(t, x[0], testData{
+		tt.Assert(t, err == nil)
+		tt.AssertDeepEqual(t, x[0], testData{
 			FirstName: "a",
 			LastName:  "b",
 			Id1:       1,
@@ -325,7 +323,7 @@ func Test_Scan(t *testing.T) {
 			IsClosed:  true,
 			Coef:      2.8,
 		})
-		testutils.AssertDeepEqual(t, x[1], testData{
+		tt.AssertDeepEqual(t, x[1], testData{
 			FirstName: "c",
 			LastName:  "d",
 			Id1:       3,

@@ -2,7 +2,7 @@ package db
 
 import (
 	"database/sql"
-	"fantlab/sqlr"
+	"fantlab/dbtools/sqlr"
 	"time"
 )
 
@@ -471,7 +471,7 @@ func (db *DB) FetchBlogSubscribed(blogId, userId uint32) (bool, error) {
 }
 
 func (db *DB) UpdateBlogSubscribed(blogId, userId uint32) error {
-	return db.R.InTransaction(func(dbrw sqlr.DBReaderWriter) error {
+	return db.R.InTransaction(func(rw sqlr.ReaderWriter) error {
 		const blogSubscriptionInsert = `
 		INSERT INTO
 			b_subscribers
@@ -479,39 +479,39 @@ func (db *DB) UpdateBlogSubscribed(blogId, userId uint32) error {
 		VALUES
 			(?, ?, ?)`
 
-		err := dbrw.Exec(blogSubscriptionInsert, userId, blogId, time.Now()).Error
+		err := rw.Exec(blogSubscriptionInsert, userId, blogId, time.Now()).Error
 
 		if err != nil {
 			return err
 		}
 
-		err = updateBlogSubscriberCount(dbrw, blogId)
+		err = updateBlogSubscriberCount(rw, blogId)
 
 		return err
 	})
 }
 
 func (db *DB) UpdateBlogUnsubscribed(blogId, userId uint32) error {
-	return db.R.InTransaction(func(dbrw sqlr.DBReaderWriter) error {
+	return db.R.InTransaction(func(rw sqlr.ReaderWriter) error {
 		const blogSubscriptionDelete = `
 		DELETE FROM
 			b_subscribers
 		WHERE
 			blog_id = ? AND user_id = ?`
 
-		err := dbrw.Exec(blogSubscriptionDelete, blogId, userId).Error
+		err := rw.Exec(blogSubscriptionDelete, blogId, userId).Error
 
 		if err != nil {
 			return err
 		}
 
-		err = updateBlogSubscriberCount(dbrw, blogId)
+		err = updateBlogSubscriberCount(rw, blogId)
 
 		return err
 	})
 }
 
-func updateBlogSubscriberCount(dbrw sqlr.DBReaderWriter, blogId uint32) error {
+func updateBlogSubscriberCount(rw sqlr.ReaderWriter, blogId uint32) error {
 	const blogSubscriberUpdate = `
 	UPDATE
 		b_blogs b
@@ -520,7 +520,7 @@ func updateBlogSubscriberCount(dbrw sqlr.DBReaderWriter, blogId uint32) error {
 	WHERE
 		b.blog_id = ?`
 
-	err := dbrw.Exec(blogSubscriberUpdate, blogId).Error
+	err := rw.Exec(blogSubscriberUpdate, blogId).Error
 
 	return err
 }
@@ -597,98 +597,6 @@ func (db *DB) UpdateBlogTopicUnsubscribed(topicId, userId uint32) error {
 		topic_id = ? AND user_id = ?`
 
 	err := db.R.Exec(topicSubscriptionDelete, topicId, userId).Error
-
-	return err
-}
-
-func (db *DB) FetchBlogTopicLikeCount(topicId uint32) (uint32, error) {
-	const topicLikeCountQuery = `
-	SELECT
-		likes_count
-	FROM
-		b_topics
-	WHERE
-		topic_id = ?`
-
-	var likeCount uint32
-
-	err := db.R.Query(topicLikeCountQuery, topicId).Scan(&likeCount)
-
-	if err != nil {
-		return 0, err
-	}
-
-	return likeCount, nil
-}
-
-func (db *DB) FetchBlogTopicLiked(topicId, userId uint32) (bool, error) {
-	const topicLikeExistsQuery = `SELECT 1 FROM b_topic_likes WHERE topic_id = ? AND user_id = ?`
-
-	var topicLikeExists uint8
-
-	err := db.R.Query(topicLikeExistsQuery, topicId, userId).Scan(&topicLikeExists)
-
-	if err != nil {
-		if err == sql.ErrNoRows {
-			return false, nil
-		}
-		return false, err
-	}
-
-	return true, nil
-}
-
-func (db *DB) UpdateBlogTopicLiked(topicId, userId uint32) error {
-	return db.R.InTransaction(func(dbrw sqlr.DBReaderWriter) error {
-		const topicLikeInsert = `
-		INSERT INTO
-			b_topic_likes
-			(topic_id, user_id, date_of_add)
-		VALUES
-			(?, ?, ?)`
-
-		err := dbrw.Exec(topicLikeInsert, topicId, userId, time.Now()).Error
-
-		if err != nil {
-			return err
-		}
-
-		err = updateTopicLikesCount(dbrw, topicId)
-
-		return err
-	})
-}
-
-func (db *DB) UpdateBlogTopicDisliked(topicId, userId uint32) error {
-	return db.R.InTransaction(func(dbrw sqlr.DBReaderWriter) error {
-		const topicLikeDelete = `
-		DELETE FROM
-			b_topic_likes
-		WHERE
-			topic_id = ? AND user_id = ?`
-
-		err := dbrw.Exec(topicLikeDelete, topicId, userId).Error
-
-		if err != nil {
-			return err
-		}
-
-		err = updateTopicLikesCount(dbrw, topicId)
-
-		return err
-	})
-}
-
-func updateTopicLikesCount(dbrw sqlr.DBReaderWriter, topicId uint32) error {
-	const topicLikeUpdate = `
-	UPDATE
-		b_topics b
-	SET
-		b.likes_count = (SELECT COUNT(DISTINCT btl.user_id) FROM b_topic_likes btl WHERE btl.topic_id = b.topic_id)
-	WHERE
-		b.topic_id = ?`
-
-	err := dbrw.Exec(topicLikeUpdate, topicId).Error
 
 	return err
 }
