@@ -57,9 +57,9 @@ func (c *Controller) Login(ctx *gin.Context) {
 
 	dateOfCreate := time.Now()
 
-	err = c.services.DB.InsertNewSession(dateOfCreate, sid, userData.UserID, ctx.ClientIP(), ctx.Request.UserAgent())
+	ok, err := c.services.DB.InsertNewSession(dateOfCreate, sid, userData.UserID, ctx.ClientIP(), ctx.Request.UserAgent())
 
-	if err != nil {
+	if !ok || err != nil {
 		utils.ShowProto(ctx, http.StatusInternalServerError, &pb.Error_Response{
 			Status: pb.Error_SOMETHING_WENT_WRONG,
 		})

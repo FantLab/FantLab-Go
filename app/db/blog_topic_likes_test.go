@@ -9,7 +9,7 @@ import (
 	"time"
 )
 
-func Test_FetchBlogTopicLikeCount(t *testing.T) {
+func Test_LikeDiskie(t *testing.T) {
 	stubDB := &stubs.StubDB{
 		ExecTable:  make(stubs.StubExecTable),
 		QueryTable: make(stubs.StubQueryTable),

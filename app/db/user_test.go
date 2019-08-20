@@ -42,8 +42,9 @@ func Test_InsertNewSession(t *testing.T) {
 
 		db := &DB{R: &stubs.StubDB{ExecTable: execTable}}
 
-		err := db.InsertNewSession(time.Date(2019, 8, 19, 17, 40, 03, 0, time.UTC), "1234", 1, "::1", "User Agent")
+		ok, err := db.InsertNewSession(time.Date(2019, 8, 19, 17, 40, 03, 0, time.UTC), "1234", 1, "::1", "User Agent")
 
+		tt.Assert(t, ok)
 		tt.Assert(t, err == nil)
 	})
 
@@ -56,8 +57,9 @@ func Test_InsertNewSession(t *testing.T) {
 
 		db := &DB{R: &stubs.StubDB{ExecTable: execTable}}
 
-		err := db.InsertNewSession(time.Date(2019, 8, 19, 17, 40, 03, 0, time.UTC), "1234", 1, "::1", "User Agent")
+		ok, err := db.InsertNewSession(time.Date(2019, 8, 19, 17, 40, 03, 0, time.UTC), "1234", 1, "::1", "User Agent")
 
+		tt.Assert(t, !ok)
 		tt.Assert(t, err != nil)
 	})
 }
