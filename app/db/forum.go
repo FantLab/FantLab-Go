@@ -88,8 +88,7 @@ type ForumTopicMessagesDBResponse struct {
 	TotalMessagesCount uint32
 }
 
-func (db *DB) FetchForums(availableForums []uint16) ([]Forum, error) {
-	const forumsQuery = `
+const forumsQuery = `
 	SELECT
 		f.forum_id,
 		f.name,
@@ -120,6 +119,7 @@ func (db *DB) FetchForums(availableForums []uint16) ([]Forum, error) {
 	ORDER BY 
 		fb.level, f.level`
 
+func (db *DB) FetchForums(availableForums []uint16) ([]Forum, error) {
 	var forums []Forum
 
 	err := sqlr.RebindQuery(db.R, forumsQuery, availableForums).Scan(&forums)
@@ -131,8 +131,7 @@ func (db *DB) FetchForums(availableForums []uint16) ([]Forum, error) {
 	return forums, nil
 }
 
-func (db *DB) FetchModerators() (map[uint32][]ForumModerator, error) {
-	const moderatorsQuery = `
+const moderatorsQuery = `
 	SELECT
 		u.user_id,
 		u.login,
@@ -146,6 +145,7 @@ func (db *DB) FetchModerators() (map[uint32][]ForumModerator, error) {
 	ORDER BY 
 		md.forum_id, u.user_class DESC, u.level DESC`
 
+func (db *DB) FetchModerators() (map[uint32][]ForumModerator, error) {
 	var moderators []ForumModerator
 
 	err := db.R.Query(moderatorsQuery).Scan(&moderators)
