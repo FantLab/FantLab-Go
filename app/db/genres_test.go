@@ -10,7 +10,7 @@ import (
 func Test_FetchGenres(t *testing.T) {
 	queryTable := make(stubs.StubQueryTable)
 
-	queryTable["SELECT wg.work_genre_id, wg.parent_work_genre_id, wg.work_genre_group_id, wg.name, wg.description, wg.work_count_voting_finished FROM work_genres wg ORDER BY wg.work_genre_group_id ASC, wg.level ASC"] = &stubs.StubRows{
+	queryTable[fetchGenresQuery.String()] = &stubs.StubRows{
 		Values: [][]interface{}{
 			{1, 0, 1, "Фантастика", "", 10},
 			{2, 1, 1, "Научная фантастика", "", 20},
@@ -26,7 +26,7 @@ func Test_FetchGenres(t *testing.T) {
 		},
 	}
 
-	queryTable["SELECT wgg.work_genre_group_id, wgg.name FROM work_genre_groups wgg ORDER BY wgg.level ASC"] = &stubs.StubRows{
+	queryTable[fetchGenreGroupsQuery.String()] = &stubs.StubRows{
 		Values: [][]interface{}{
 			{1, "Жанры/поджанры"},
 		},

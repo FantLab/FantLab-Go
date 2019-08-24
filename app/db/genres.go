@@ -1,5 +1,9 @@
 package db
 
+import (
+	"fantlab/dbtools/sqlr"
+)
+
 type WorkGenre struct {
 	Id        uint16 `db:"work_genre_id"`
 	ParentId  uint16 `db:"parent_work_genre_id"`
@@ -19,39 +23,59 @@ type WorkGenresDBResponse struct {
 	GenreGroups []WorkGenreGroup
 }
 
-func (db *DB) FetchGenres() (*WorkGenresDBResponse, error) {
-	const genresQuery = `
-	SELECT
-		wg.work_genre_id,
-		wg.parent_work_genre_id,
-		wg.work_genre_group_id,
-		wg.name,
-		wg.description,
-		wg.work_count_voting_finished
-	FROM
-		work_genres wg
-	ORDER BY
-		wg.work_genre_group_id ASC, wg.level ASC`
+var (
+	fetchGenresQuery = sqlr.NewQuery(`
+		SELECT
+			wg.work_genre_id,
+			wg.parent_work_genre_id,
+			wg.work_genre_group_id,
+			wg.name,
+			wg.description,
+			wg.work_count_voting_finished
+		FROM
+			work_genres wg
+		ORDER BY
+			wg.work_genre_group_id ASC, wg.level ASC
+	`)
 
+	fetchGenreGroupsQuery = sqlr.NewQuery(`
+		SELECT
+			wgg.work_genre_group_id, wgg.name
+		FROM
+			work_genre_groups wgg
+		ORDER BY
+			wgg.level ASC
+	`)
+
+	fetchGenreIdsQuery = sqlr.NewQuery(`
+		SELECT
+			wg.work_genre_id,
+			wg.parent_work_genre_id
+			wg.work_genre_group_id
+		FROM
+			work_genres wg
+	`)
+
+	fetchGenreGroupIdsQuery = sqlr.NewQuery(`
+		SELECT
+			wgg.work_genre_group_id
+		FROM
+			work_genre_groups wgg
+	`)
+)
+
+func (db *DB) FetchGenres() (*WorkGenresDBResponse, error) {
 	var genres []WorkGenre
 
-	err := db.R.Query(genresQuery).Scan(&genres)
+	err := db.R.Read(fetchGenresQuery).Scan(&genres)
 
 	if err != nil {
 		return nil, err
 	}
 
-	const genreGroupsQuery = `
-	SELECT
-		wgg.work_genre_group_id, wgg.name
-	FROM
-		work_genre_groups wgg
-	ORDER BY
-		wgg.level ASC`
-
 	var genreGroups []WorkGenreGroup
 
-	err = db.R.Query(genreGroupsQuery).Scan(&genreGroups)
+	err = db.R.Read(fetchGenreGroupsQuery).Scan(&genreGroups)
 
 	if err != nil {
 		return nil, err
@@ -66,31 +90,17 @@ func (db *DB) FetchGenres() (*WorkGenresDBResponse, error) {
 }
 
 func (db *DB) FetchGenreIds() (*WorkGenresDBResponse, error) {
-	const genresQuery = `
-	SELECT
-		wg.work_genre_id,
-		wg.parent_work_genre_id
-		wg.work_genre_group_id
-	FROM
-		work_genres wg`
-
 	var genres []WorkGenre
 
-	err := db.R.Query(genresQuery).Scan(&genres)
+	err := db.R.Read(fetchGenreIdsQuery).Scan(&genres)
 
 	if err != nil {
 		return nil, err
 	}
 
-	const genreGroupsQuery = `
-	SELECT
-		wgg.work_genre_group_id
-	FROM
-		work_genre_groups wgg`
-
 	var genreGroups []WorkGenreGroup
 
-	err = db.R.Query(genreGroupsQuery).Scan(&genreGroups)
+	err = db.R.Read(fetchGenreGroupIdsQuery).Scan(&genreGroups)
 
 	if err != nil {
 		return nil, err

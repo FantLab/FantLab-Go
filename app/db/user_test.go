@@ -13,7 +13,7 @@ import (
 func Test_DeleteSession(t *testing.T) {
 	execTable := make(stubs.StubExecTable)
 
-	execTable["DELETE FROM "+sessionsTable+" WHERE code = '1234'"] = sqlr.Result{
+	execTable[deleteSessionQuery.WithArgs("1234").String()] = sqlr.Result{
 		Rows: 1,
 	}
 
@@ -36,13 +36,15 @@ func Test_InsertNewSession(t *testing.T) {
 	t.Run("positive", func(t *testing.T) {
 		execTable := make(stubs.StubExecTable)
 
-		execTable["INSERT INTO sessions2 (code, user_id, user_ip, user_agent, date_of_create, date_of_last_action, hits) VALUES ('1234', 1, '::1', 'User Agent', '2019-08-19 17:40:03', '2019-08-19 17:40:03', 0)"] = sqlr.Result{
+		time := time.Date(2019, 8, 19, 17, 40, 03, 0, time.UTC)
+
+		execTable[insertNewSessionQuery.WithArgs("1234", 1, "::1", "User Agent", time, time, 0).String()] = sqlr.Result{
 			Rows: 1,
 		}
 
 		db := &DB{R: &stubs.StubDB{ExecTable: execTable}}
 
-		ok, err := db.InsertNewSession(time.Date(2019, 8, 19, 17, 40, 03, 0, time.UTC), "1234", 1, "::1", "User Agent")
+		ok, err := db.InsertNewSession(time, "1234", 1, "::1", "User Agent")
 
 		tt.Assert(t, ok)
 		tt.Assert(t, err == nil)
@@ -51,23 +53,25 @@ func Test_InsertNewSession(t *testing.T) {
 	t.Run("negative", func(t *testing.T) {
 		execTable := make(stubs.StubExecTable)
 
-		execTable["INSERT INTO sessions2 (code, user_id, user_ip, user_agent, date_of_create, date_of_last_action, hits) VALUES ('1234', 1, '::1', 'User Agent', '2019-08-19 17:40:03', '2019-08-19 17:40:03', 0)"] = sqlr.Result{
-			Error: stubs.ErrSome,
+		time := time.Date(2019, 8, 19, 17, 40, 03, 0, time.UTC)
+
+		execTable[insertNewSessionQuery.WithArgs("4321", 1, "::1", "User Agent", time, time, 0).String()] = sqlr.Result{
+			Rows: 1,
 		}
 
 		db := &DB{R: &stubs.StubDB{ExecTable: execTable}}
 
-		ok, err := db.InsertNewSession(time.Date(2019, 8, 19, 17, 40, 03, 0, time.UTC), "1234", 1, "::1", "User Agent")
+		ok, err := db.InsertNewSession(time, "1234", 1, "::1", "User Agent")
 
 		tt.Assert(t, !ok)
-		tt.Assert(t, err != nil)
+		tt.Assert(t, err == nil)
 	})
 }
 
 func Test_FetchUserPasswordHash(t *testing.T) {
 	queryTable := make(stubs.StubQueryTable)
 
-	queryTable["SELECT user_id, password_hash, new_password_hash FROM "+usersTable+" WHERE login = 'user' LIMIT 1"] = &stubs.StubRows{
+	queryTable[fetchUserPasswordHashQuery.WithArgs("user").String()] = &stubs.StubRows{
 		Values: [][]interface{}{{1, "abc", "xyz"}},
 		Columns: []scanr.Column{
 			stubs.StubColumn("user_id"),
@@ -98,10 +102,12 @@ func Test_FetchUserPasswordHash(t *testing.T) {
 }
 
 func Test_FetchUserSessionInfo(t *testing.T) {
+	time := time.Date(2019, 8, 19, 17, 40, 03, 0, time.UTC)
+
 	queryTable := make(stubs.StubQueryTable)
 
-	queryTable["SELECT user_id, date_of_create FROM "+sessionsTable+" WHERE code = '1234' LIMIT 1"] = &stubs.StubRows{
-		Values: [][]interface{}{{1, time.Date(2019, 8, 19, 17, 40, 03, 0, time.UTC)}},
+	queryTable[fetchUserSessionInfoQuery.WithArgs("1234").String()] = &stubs.StubRows{
+		Values: [][]interface{}{{1, time}},
 		Columns: []scanr.Column{
 			stubs.StubColumn("user_id"),
 			stubs.StubColumn("date_of_create"),
@@ -116,7 +122,7 @@ func Test_FetchUserSessionInfo(t *testing.T) {
 		tt.Assert(t, err == nil)
 		tt.AssertDeepEqual(t, data, UserSessionInfo{
 			UserID:       1,
-			DateOfCreate: time.Date(2019, 8, 19, 17, 40, 03, 0, time.UTC),
+			DateOfCreate: time,
 		})
 	})
 

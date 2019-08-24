@@ -11,7 +11,7 @@ import (
 func Test_WorkExists(t *testing.T) {
 	queryTable := make(stubs.StubQueryTable)
 
-	queryTable["SELECT 1 FROM works WHERE work_id = 1"] = &stubs.StubRows{
+	queryTable[workExistsQuery.WithArgs(1).String()] = &stubs.StubRows{
 		Values: [][]interface{}{{1}},
 		Columns: []scanr.Column{
 			stubs.StubColumn(""),

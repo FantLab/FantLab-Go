@@ -8,24 +8,21 @@ import (
 
 func Test_expandQuery(t *testing.T) {
 	t.Run("positive", func(t *testing.T) {
-		x, err := expandQuery("? (?) ?", '?', []int{1, 2, 3})
+		x := expandQuery("? (?) ?", '?', []int{1, 2, 3})
 
-		tt.Assert(t, err == nil)
 		tt.Assert(t, x == "? (?,?) ?,?,?")
 	})
 
 	t.Run("zero", func(t *testing.T) {
-		x, err := expandQuery("", '?', []int{})
+		x := expandQuery("", '?', []int{})
 
-		tt.Assert(t, err == nil)
 		tt.Assert(t, x == "")
 	})
 
 	t.Run("negative", func(t *testing.T) {
-		x, err := expandQuery("? (?) ?", '?', []int{1, 2})
+		x := expandQuery("? (?) ?", '?', []int{1, 2})
 
-		tt.Assert(t, err != nil)
-		tt.Assert(t, x == "")
+		tt.Assert(t, x == "? (?,?) ?")
 	})
 }
 

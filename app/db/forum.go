@@ -106,17 +106,17 @@ const forumsQuery = `
 		f.last_message_date,
 		fb.forum_block_id,
 		fb.name AS forum_block_name
-	FROM 
+	FROM
 		f_forums f
 	JOIN
 		f_forum_blocks fb ON fb.forum_block_id = f.forum_block_id
-	LEFT JOIN 
+	LEFT JOIN
 		users u ON u.user_id = f.last_user_id
-	JOIN 
+	JOIN
 		f_messages_text m ON m.message_id = f.last_message_id
-	WHERE 
+	WHERE
 		f.forum_id IN (?)
-	ORDER BY 
+	ORDER BY
 		fb.level, f.level`
 
 func (db *DB) FetchForums(availableForums []uint16) ([]Forum, error) {
@@ -142,7 +142,7 @@ const moderatorsQuery = `
 		f_moderators md
 	LEFT JOIN
 		users u ON u.user_id = md.user_id
-	ORDER BY 
+	ORDER BY
 		md.forum_id, u.user_class DESC, u.level DESC`
 
 func (db *DB) FetchModerators() (map[uint32][]ForumModerator, error) {
@@ -191,13 +191,13 @@ func (db *DB) FetchForumTopics(availableForums []uint16, forumID uint16, limit, 
 		u2.photo_number AS last_photo_number,
 		m.message_text AS last_message_text,
 		t.last_message_date
-	FROM 
+	FROM
 		f_topics t
 	LEFT JOIN
 		users u ON u.user_id = t.user_id
-	LEFT JOIN 
+	LEFT JOIN
 		users u2 ON u2.user_id = t.last_user_id
-	JOIN 
+	JOIN
 		f_messages_text m ON m.message_id = t.last_message_id
 	WHERE
 		t.forum_id = ?
@@ -239,7 +239,7 @@ func (db *DB) FetchTopicMessages(availableForums []uint16, topicID, limit, offse
 		f.name AS forum_name
 	FROM
 		f_topics t
-	JOIN 
+	JOIN
 		f_forums f ON f.forum_id = t.forum_id
 	WHERE
 		t.topic_id = ? AND t.forum_id IN (?)`
@@ -285,7 +285,7 @@ func (db *DB) FetchTopicMessages(availableForums []uint16, topicID, limit, offse
 		ABS(f.vote_minus) as vote_minus
 	FROM
 		f_messages f
-	LEFT JOIN 
+	LEFT JOIN
 		users u ON u.user_id = f.user_id
 	JOIN
 		f_messages_text m ON m.message_id = f.message_id

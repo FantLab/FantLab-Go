@@ -10,9 +10,17 @@ type Rows interface {
 	Scan(output interface{}) error
 }
 
+type Reader interface {
+	Read(q Query) Rows
+}
+
+type Writer interface {
+	Write(q Query) Result
+}
+
 type ReaderWriter interface {
-	Exec(query string, args ...interface{}) Result
-	Query(query string, args ...interface{}) Rows
+	Reader
+	Writer
 }
 
 type Transactional interface {

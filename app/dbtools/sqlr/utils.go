@@ -1,15 +1,12 @@
 package sqlr
 
 import (
-	"errors"
 	"fmt"
 	"reflect"
 	"strings"
 	"time"
 	"unicode"
 )
-
-var ErrArgsCount = errors.New("Invalid number of arguments")
 
 const (
 	BindVarChar = '?'
@@ -18,40 +15,7 @@ const (
 
 // *******************************************************
 
-type NoRows struct {
-	Err error
-}
-
-func (rows NoRows) Error() error {
-	return rows.Err
-}
-func (rows NoRows) Scan(output interface{}) error {
-	return rows.Err
-}
-
-// *******************************************************
-
-func RebindQuery(db DB, query string, args ...interface{}) Rows {
-	newQuery, newArgs, err := rebindQuery(query, BindVarChar, args...)
-
-	if err != nil {
-		return NoRows{Err: err}
-	}
-
-	return db.Query(newQuery, newArgs...)
-}
-
-// *******************************************************
-
-func rebindQuery(q string, bindVarChar rune, args ...interface{}) (string, []interface{}, error) {
-	newArgs, counts := flatArgs(args...)
-
-	newQuery, err := expandQuery(q, bindVarChar, counts)
-
-	return newQuery, newArgs, err
-}
-
-func expandQuery(q string, bindVarChar rune, counts []int) (string, error) {
+func expandQuery(q string, bindVarChar rune, counts []int) string {
 	end := len(counts) - 1
 	cursor := 0
 
@@ -64,7 +28,9 @@ func expandQuery(q string, bindVarChar rune, counts []int) (string, error) {
 		}
 
 		if cursor > end {
-			return "", ErrArgsCount
+			sb.WriteRune(bindVarChar)
+
+			continue
 		}
 
 		for j := 0; j < counts[cursor]-1; j++ {
@@ -77,9 +43,7 @@ func expandQuery(q string, bindVarChar rune, counts []int) (string, error) {
 		cursor += 1
 	}
 
-	newQuery := sb.String()
-
-	return newQuery, nil
+	return sb.String()
 }
 
 func flatArgs(args ...interface{}) ([]interface{}, []int) {
@@ -125,10 +89,6 @@ func deepFlat(input interface{}) ([]interface{}, int) {
 }
 
 // *******************************************************
-
-func FormatQuery(q string, args ...interface{}) string {
-	return formatQuery(q, BindVarChar, args...)
-}
 
 func formatQuery(q string, bindVarChar rune, args ...interface{}) string {
 	end := len(args)

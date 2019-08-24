@@ -1,6 +1,7 @@
 package db
 
 import (
+	"fantlab/dbtools/sqlr"
 	"time"
 )
 
@@ -20,26 +21,33 @@ const (
 	usersTable    = "users"     // users2
 )
 
+var (
+	fetchUserSessionInfoQuery  = sqlr.NewQuery("SELECT user_id, date_of_create FROM " + sessionsTable + " WHERE code = ? LIMIT 1")
+	fetchUserPasswordHashQuery = sqlr.NewQuery("SELECT user_id, password_hash, new_password_hash FROM " + usersTable + " WHERE login = ? LIMIT 1")
+	insertNewSessionQuery      = sqlr.NewQuery("INSERT INTO " + sessionsTable + " (code, user_id, user_ip, user_agent, date_of_create, date_of_last_action, hits) VALUES (?, ?, ?, ?, ?, ?, ?)")
+	deleteSessionQuery         = sqlr.NewQuery("DELETE FROM " + sessionsTable + " WHERE code = ?")
+)
+
 func (db *DB) FetchUserSessionInfo(sid string) (UserSessionInfo, error) {
 	var info UserSessionInfo
-	err := db.R.Query("SELECT user_id, date_of_create FROM "+sessionsTable+" WHERE code = ? LIMIT 1", sid).Scan(&info)
+	err := db.R.Read(fetchUserSessionInfoQuery.WithArgs(sid)).Scan(&info)
 	return info, err
 }
 
 func (db *DB) FetchUserPasswordHash(login string) (UserPasswordHash, error) {
 	var data UserPasswordHash
-	err := db.R.Query("SELECT user_id, password_hash, new_password_hash FROM "+usersTable+" WHERE login = ? LIMIT 1", login).Scan(&data)
+	err := db.R.Read(fetchUserPasswordHashQuery.WithArgs(login)).Scan(&data)
 	return data, err
 }
 
 func (db *DB) InsertNewSession(t time.Time, code string, userID uint32, userIP string, userAgent string) (bool, error) {
-	result := db.R.Exec("INSERT INTO "+sessionsTable+" (code, user_id, user_ip, user_agent, date_of_create, date_of_last_action, hits) VALUES (?, ?, ?, ?, ?, ?, ?)", code, userID, userIP, userAgent, t, t, 0)
+	result := db.R.Write(insertNewSessionQuery.WithArgs(code, userID, userIP, userAgent, t, t, 0))
 
 	return result.Rows == 1, result.Error
 }
 
 func (db *DB) DeleteSession(code string) (bool, error) {
-	result := db.R.Exec("DELETE FROM "+sessionsTable+" WHERE code = ?", code)
+	result := db.R.Write(deleteSessionQuery.WithArgs(code))
 
 	return result.Rows > 0, result.Error
 }

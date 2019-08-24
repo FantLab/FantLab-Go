@@ -15,12 +15,12 @@ type logDB struct {
 	f  LogFunc
 }
 
-func (l logDB) Exec(query string, args ...interface{}) Result {
-	return logRW{rw: l.db, f: l.f}.Exec(query, args...)
+func (l logDB) Write(q Query) Result {
+	return logRW{rw: l.db, f: l.f}.Write(q)
 }
 
-func (l logDB) Query(query string, args ...interface{}) Rows {
-	return logRW{rw: l.db, f: l.f}.Query(query, args...)
+func (l logDB) Read(q Query) Rows {
+	return logRW{rw: l.db, f: l.f}.Read(q)
 }
 
 func (l logDB) InTransaction(perform func(ReaderWriter) error) error {
@@ -36,16 +36,16 @@ type logRW struct {
 	f  LogFunc
 }
 
-func (l logRW) Exec(query string, args ...interface{}) Result {
+func (l logRW) Write(q Query) Result {
 	t := time.Now()
-	result := l.rw.Exec(query, args...)
-	l.f(FormatQuery(query, args...), result.Rows, t, time.Since(t))
+	result := l.rw.Write(q)
+	l.f(q.String(), result.Rows, t, time.Since(t))
 	return result
 }
 
-func (l logRW) Query(query string, args ...interface{}) Rows {
+func (l logRW) Read(q Query) Rows {
 	t := time.Now()
-	rows := l.rw.Query(query, args...)
-	l.f(FormatQuery(query, args...), -1, t, time.Since(t))
+	rows := l.rw.Read(q)
+	l.f(q.String(), -1, t, time.Since(t))
 	return rows
 }

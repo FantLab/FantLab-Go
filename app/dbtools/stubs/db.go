@@ -21,12 +21,12 @@ func (db *StubDB) InTransaction(perform func(sqlr.ReaderWriter) error) error {
 	return perform(db)
 }
 
-func (db *StubDB) Exec(query string, args ...interface{}) sqlr.Result {
-	return db.ExecTable[sqlr.FormatQuery(query, args...)]
+func (db *StubDB) Write(q sqlr.Query) sqlr.Result {
+	return db.ExecTable[q.String()]
 }
 
-func (db *StubDB) Query(query string, args ...interface{}) sqlr.Rows {
-	rows := db.QueryTable[sqlr.FormatQuery(query, args...)]
+func (db *StubDB) Read(q sqlr.Query) sqlr.Rows {
+	rows := db.QueryTable[q.String()]
 
 	if rows != nil {
 		return rows

@@ -32,12 +32,12 @@ func (db sqlDB) InTransaction(perform func(sqlr.ReaderWriter) error) error {
 	return err
 }
 
-func (db sqlDB) Exec(query string, args ...interface{}) sqlr.Result {
-	return readerWriter{db.sql}.Exec(query, args...)
+func (db sqlDB) Write(q sqlr.Query) sqlr.Result {
+	return readerWriter{db.sql}.Write(q)
 }
 
-func (db sqlDB) Query(query string, args ...interface{}) sqlr.Rows {
-	return readerWriter{db.sql}.Query(query, args...)
+func (db sqlDB) Read(q sqlr.Query) sqlr.Rows {
+	return readerWriter{db.sql}.Read(q)
 }
 
 // *******************************************************
@@ -51,8 +51,8 @@ type readerWriter struct {
 	sql sqlReaderWriter
 }
 
-func (rw readerWriter) Exec(query string, args ...interface{}) sqlr.Result {
-	r, err := rw.sql.Exec(query, args...)
+func (rw readerWriter) Write(q sqlr.Query) sqlr.Result {
+	r, err := rw.sql.Exec(q.Text, q.Args...)
 
 	n, _ := r.RowsAffected()
 
@@ -62,8 +62,8 @@ func (rw readerWriter) Exec(query string, args ...interface{}) sqlr.Result {
 	}
 }
 
-func (rw readerWriter) Query(query string, args ...interface{}) sqlr.Rows {
-	r, err := rw.sql.Query(query, args...)
+func (rw readerWriter) Read(q sqlr.Query) sqlr.Rows {
+	r, err := rw.sql.Query(q.Text, q.Args...)
 
 	return sqlRows{
 		data:           r,

@@ -19,13 +19,13 @@ func Test_LikeDiskie(t *testing.T) {
 
 	t.Run("like_dislike", func(t *testing.T) {
 		{
-			stubDB.ExecTable["UPDATE b_topics b SET b.likes_count = (SELECT COUNT(DISTINCT btl.user_id) FROM b_topic_likes btl WHERE btl.topic_id = b.topic_id) WHERE b.topic_id = 1"] = sqlr.Result{
+			stubDB.ExecTable[updateTopicLikesCountQuery.WithArgs(1).String()] = sqlr.Result{
 				Rows: 1,
 			}
 		}
 
 		{
-			stubDB.QueryTable["SELECT likes_count FROM b_topics WHERE topic_id = 1"] = &stubs.StubRows{
+			stubDB.QueryTable[fetchBlogTopicLikeCountQuery.WithArgs(1).String()] = &stubs.StubRows{
 				Values: [][]interface{}{{1}},
 				Columns: []scanr.Column{
 					stubs.StubColumn(""),
@@ -39,14 +39,14 @@ func Test_LikeDiskie(t *testing.T) {
 		tt.Assert(t, err == nil)
 
 		{
-			stubDB.QueryTable["SELECT likes_count FROM b_topics WHERE topic_id = 1"] = &stubs.StubRows{
+			stubDB.QueryTable[fetchBlogTopicLikeCountQuery.WithArgs(1).String()] = &stubs.StubRows{
 				Values: [][]interface{}{{0}},
 				Columns: []scanr.Column{
 					stubs.StubColumn(""),
 				},
 			}
 
-			stubDB.ExecTable["DELETE FROM b_topic_likes WHERE topic_id = 1 AND user_id = 1"] = sqlr.Result{
+			stubDB.ExecTable[dislikeBlogTopicQuery.WithArgs(1, 1).String()] = sqlr.Result{
 				Rows: 1,
 			}
 		}
@@ -62,18 +62,18 @@ func Test_LikeDiskie(t *testing.T) {
 		tt.Assert(t, likesCount == 0)
 
 		{
-			stubDB.QueryTable["SELECT likes_count FROM b_topics WHERE topic_id = 1"] = &stubs.StubRows{
+			stubDB.QueryTable[fetchBlogTopicLikeCountQuery.WithArgs(1).String()] = &stubs.StubRows{
 				Values: [][]interface{}{{1}},
 				Columns: []scanr.Column{
 					stubs.StubColumn(""),
 				},
 			}
 
-			stubDB.ExecTable["INSERT INTO b_topic_likes (topic_id, user_id, date_of_add) VALUES (1, 1, '2019-08-19 17:40:03')"] = sqlr.Result{
+			stubDB.ExecTable[likeBlogTopicQuery.WithArgs(1, 1, time.Date(2019, 8, 19, 17, 40, 03, 0, time.UTC)).String()] = sqlr.Result{
 				Rows: 1,
 			}
 
-			stubDB.QueryTable["SELECT 1 FROM b_topic_likes WHERE topic_id = 1 AND user_id = 1"] = &stubs.StubRows{
+			stubDB.QueryTable[isBlogTopicLikedQuery.WithArgs(1, 1).String()] = &stubs.StubRows{
 				Values: [][]interface{}{{1}},
 				Columns: []scanr.Column{
 					stubs.StubColumn(""),
