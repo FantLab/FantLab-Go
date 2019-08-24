@@ -3,38 +3,46 @@ package sqlr
 import "fmt"
 
 type Query struct {
-	Text string
-	Args []interface{}
+	text string
+	args []interface{}
 }
 
 func NewQuery(text string) Query {
-	return Query{Text: text}
+	return Query{text: text}
+}
+
+func (q Query) Text() string {
+	return q.text
+}
+
+func (q Query) Args() []interface{} {
+	return q.args
 }
 
 func (q Query) WithArgs(args ...interface{}) Query {
 	return Query{
-		Text: q.Text,
-		Args: args,
+		text: q.text,
+		args: args,
 	}
 }
 
 func (q Query) Format(values ...interface{}) Query {
 	return Query{
-		Text: fmt.Sprintf(q.Text, values...),
-		Args: q.Args,
+		text: fmt.Sprintf(q.text, values...),
+		args: q.args,
 	}
 }
 
 func (q Query) Rebind() Query {
-	newArgs, counts := flatArgs(q.Args...)
-	newQuery := expandQuery(q.Text, BindVarChar, counts)
+	newArgs, counts := flatArgs(q.args...)
+	newQuery := expandQuery(q.text, BindVarChar, counts)
 
 	return Query{
-		Text: newQuery,
-		Args: newArgs,
+		text: newQuery,
+		args: newArgs,
 	}
 }
 
 func (q Query) String() string {
-	return formatQuery(q.Text, BindVarChar, q.Args...)
+	return formatQuery(q.text, BindVarChar, q.args...)
 }

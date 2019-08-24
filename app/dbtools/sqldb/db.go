@@ -52,7 +52,7 @@ type readerWriter struct {
 }
 
 func (rw readerWriter) Write(q sqlr.Query) sqlr.Result {
-	r, err := rw.sql.Exec(q.Text, q.Args...)
+	r, err := rw.sql.Exec(q.Text(), q.Args()...)
 
 	n, _ := r.RowsAffected()
 
@@ -63,7 +63,7 @@ func (rw readerWriter) Write(q sqlr.Query) sqlr.Result {
 }
 
 func (rw readerWriter) Read(q sqlr.Query) sqlr.Rows {
-	r, err := rw.sql.Query(q.Text, q.Args...)
+	r, err := rw.sql.Query(q.Text(), q.Args()...)
 
 	return sqlRows{
 		data:           r,

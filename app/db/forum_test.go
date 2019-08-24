@@ -5,7 +5,6 @@ import (
 	"time"
 
 	"fantlab/dbtools/scanr"
-	"fantlab/dbtools/sqlr"
 	"fantlab/dbtools/stubs"
 	"fantlab/tt"
 )
@@ -15,7 +14,7 @@ func Test_FetchForums(t *testing.T) {
 
 	now := time.Now()
 
-	queryTable[sqlr.FormatQuery(forumsQuery, 1)] = &stubs.StubRows{
+	queryTable[fetchForumsQuery.WithArgs(1).String()] = &stubs.StubRows{
 		Values: [][]interface{}{
 			{
 				1,
@@ -88,7 +87,7 @@ func Test_FetchForums(t *testing.T) {
 func Test_FetchModerators(t *testing.T) {
 	queryTable := make(stubs.StubQueryTable)
 
-	queryTable[sqlr.FormatQuery(moderatorsQuery)] = &stubs.StubRows{
+	queryTable[fetchModeratorsQuery.String()] = &stubs.StubRows{
 		Values: [][]interface{}{
 			{1, "creator", 1, 19, 2},
 			{1, "creator", 1, 19, 4},
