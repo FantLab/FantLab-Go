@@ -50,20 +50,25 @@ func (c *Controller) SetWorkGenres(ctx *gin.Context) {
 
 	// проверяем что ворк существует
 
-	err = c.services.DB.WorkExists(workId)
+	_, err = c.services.DB.WorkExists(workId)
 
-	if err != nil {
+	{
 		if utils.IsRecordNotFoundError(err) {
 			utils.ShowProto(ctx, http.StatusNotFound, &pb.Error_Response{
 				Status:  pb.Error_NOT_FOUND,
 				Context: strconv.FormatUint(workId, 10),
 			})
-		} else {
+
+			return
+		}
+
+		if err != nil {
 			utils.ShowProto(ctx, http.StatusInternalServerError, &pb.Error_Response{
 				Status: pb.Error_SOMETHING_WENT_WRONG,
 			})
+
+			return
 		}
-		return
 	}
 
 	// валидируем идентификаторы жанров

@@ -1,12 +1,13 @@
 package db
 
 import (
-	"fantlab/sqlr"
-
-	"github.com/jinzhu/gorm"
+	"fantlab/dbtools/sqlr"
 )
 
 type DB struct {
-	ORM *gorm.DB
-	R   *sqlr.DB
+	engine sqlr.DB
+}
+
+func NewDB(engine sqlr.DB) *DB {
+	return &DB{engine: engine}
 }

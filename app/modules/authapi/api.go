@@ -3,6 +3,7 @@ package authapi
 import (
 	"fantlab/pb"
 	"net/http"
+	"time"
 
 	"fantlab/shared"
 	"fantlab/utils"
@@ -54,9 +55,11 @@ func (c *Controller) Login(ctx *gin.Context) {
 
 	sid := utils.GenerateUniqueId()
 
-	dateOfCreate, err := c.services.DB.InsertNewSession(sid, userData.UserID, ctx.ClientIP(), ctx.Request.UserAgent())
+	dateOfCreate := time.Now()
 
-	if err != nil {
+	ok, err := c.services.DB.InsertNewSession(dateOfCreate, sid, userData.UserID, ctx.ClientIP(), ctx.Request.UserAgent())
+
+	if !ok || err != nil {
 		utils.ShowProto(ctx, http.StatusInternalServerError, &pb.Error_Response{
 			Status: pb.Error_SOMETHING_WENT_WRONG,
 		})
@@ -74,7 +77,7 @@ func (c *Controller) Login(ctx *gin.Context) {
 func (c *Controller) Logout(ctx *gin.Context) {
 	sid := ctx.GetHeader(utils.SessionHeader)
 
-	err := c.services.DB.DeleteSession(sid)
+	_, err := c.services.DB.DeleteSession(sid)
 
 	if err != nil {
 		utils.ShowProto(ctx, http.StatusInternalServerError, &pb.Error_Response{

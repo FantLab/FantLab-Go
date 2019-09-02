@@ -2,6 +2,8 @@ package main
 
 import (
 	"database/sql"
+	"fantlab/dbtools/sqldb"
+	"fantlab/dbtools/sqlr"
 	"log"
 	"os"
 
@@ -10,29 +12,12 @@ import (
 	"fantlab/logger"
 	"fantlab/routing"
 	"fantlab/shared"
-	"fantlab/sqlr"
 
 	"github.com/bradfitz/gomemcache/memcache"
 	_ "github.com/go-sql-driver/mysql"
-	"github.com/jinzhu/gorm"
-	_ "github.com/jinzhu/gorm/dialects/mysql"
 )
 
 func main() {
-	orm, err := gorm.Open("mysql", os.Getenv("MYSQL_URL"))
-	if err != nil {
-		log.Fatal(err)
-	}
-	defer func() {
-		err := orm.Close()
-		if err != nil {
-			log.Println(err)
-		}
-	}()
-
-	orm.SetLogger(logger.GormLogger)
-	orm.LogMode(true)
-
 	mysql, err := sql.Open("mysql", os.Getenv("MYSQL_URL"))
 	if err != nil {
 		log.Fatal(err)
@@ -44,10 +29,7 @@ func main() {
 	services := &shared.Services{
 		Config: makeConfig(os.Getenv("IMAGES_BASE_URL")),
 		Cache:  &cache.MemCache{Client: mc},
-		DB: &db.DB{
-			ORM: orm,
-			R:   sqlr.New(mysql),
-		},
+		DB:     db.NewDB(sqlr.Log(sqldb.New(mysql), logger.Sqlr)),
 	}
 
 	router := routing.SetupWith(services)

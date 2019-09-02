@@ -1,15 +1,14 @@
 package utils
 
 import (
-	"database/sql"
+	"fantlab/dbtools"
 	"strconv"
 
-	"github.com/jinzhu/gorm"
 	"github.com/segmentio/ksuid"
 )
 
 func IsRecordNotFoundError(err error) bool {
-	return err == sql.ErrNoRows || gorm.IsRecordNotFoundError(err)
+	return dbtools.IsNotFoundError(err)
 }
 
 func GenerateUniqueId() string {

@@ -1,7 +1,7 @@
 package genresapi
 
 import (
-	"reflect"
+	"fantlab/tt"
 	"testing"
 )
 
@@ -58,67 +58,25 @@ func _makeTestTree() *genreTree {
 func Test_selectGenreIdsWithParents(t *testing.T) {
 	testTree := _makeTestTree()
 
-	type args struct {
-		genreIds []uint64
-		tree     *genreTree
-	}
-	tests := []struct {
-		name string
-		args args
-		want []int32
-	}{
-		{
-			name: "positive1",
-			args: args{
-				genreIds: []uint64{2, 4, 6, 8},
-				tree:     testTree,
-			},
-			want: []int32{2, 1, 4, 3, 6, 5, 8, 7},
-		},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			if got := selectGenreIdsWithParents(tt.args.genreIds, tt.args.tree); !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("selectGenreIdsWithParents() = %v, want %v", got, tt.want)
-			}
-		})
-	}
+	t.Run("positive", func(t *testing.T) {
+		x := selectGenreIdsWithParents([]uint64{2, 4, 6, 8}, testTree)
+
+		tt.AssertDeepEqual(t, x, []int32{2, 1, 4, 3, 6, 5, 8, 7})
+	})
 }
 
 func Test_checkRequiredGroupsForGenreIds(t *testing.T) {
 	testTree := _makeTestTree()
 
-	type args struct {
-		genreIds []uint64
-		tree     *genreTree
-	}
-	tests := []struct {
-		name    string
-		args    args
-		wantErr bool
-	}{
-		{
-			name: "positive1",
-			args: args{
-				genreIds: []uint64{2, 4, 6, 8},
-				tree:     testTree,
-			},
-			wantErr: false,
-		},
-		{
-			name: "negative1",
-			args: args{
-				genreIds: []uint64{2, 4, 6},
-				tree:     testTree,
-			},
-			wantErr: true,
-		},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			if err := checkRequiredGroupsForGenreIds(tt.args.genreIds, tt.args.tree); (err != nil) != tt.wantErr {
-				t.Errorf("checkRequiredGroupsForGenreIds() error = %v, wantErr %v", err, tt.wantErr)
-			}
-		})
-	}
+	t.Run("positive", func(t *testing.T) {
+		err := checkRequiredGroupsForGenreIds([]uint64{2, 4, 6, 8}, testTree)
+
+		tt.Assert(t, err == nil)
+	})
+
+	t.Run("negative", func(t *testing.T) {
+		err := checkRequiredGroupsForGenreIds([]uint64{2, 4, 6}, testTree)
+
+		tt.Assert(t, err != nil)
+	})
 }

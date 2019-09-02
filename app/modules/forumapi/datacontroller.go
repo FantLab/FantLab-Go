@@ -114,8 +114,8 @@ func getForumTopics(dbResponse *db.ForumTopicsDBResponse, page, limit uint32, cf
 				},
 				Date: utils.ProtoTS(dbTopic.DateOfAdd),
 			},
-			IsClosed: dbTopic.IsClosed,
-			IsPinned: dbTopic.IsPinned,
+			IsClosed: dbTopic.IsClosed != 0,
+			IsPinned: dbTopic.IsPinned != 0,
 			Stats: &pb.Forum_Topic_Stats{
 				MessageCount: dbTopic.MessageCount,
 				ViewCount:    dbTopic.Views,
@@ -164,7 +164,7 @@ func getTopic(dbResponse *db.ForumTopicMessagesDBResponse, page, limit uint32, c
 	for _, dbMessage := range dbResponse.Messages {
 		text := dbMessage.MessageText
 
-		if dbMessage.IsCensored {
+		if dbMessage.IsCensored != 0 {
 			text = ""
 		}
 
@@ -185,8 +185,8 @@ func getTopic(dbResponse *db.ForumTopicMessagesDBResponse, page, limit uint32, c
 				Date: utils.ProtoTS(dbMessage.DateOfAdd),
 			},
 			Text:            text,
-			IsCensored:      dbMessage.IsCensored,
-			IsModerTagWorks: dbMessage.IsRed,
+			IsCensored:      dbMessage.IsCensored != 0,
+			IsModerTagWorks: dbMessage.IsRed != 0,
 			Stats: &pb.Forum_TopicMessage_Stats{
 				Rating: int32(dbMessage.VotePlus - dbMessage.VoteMinus),
 			},

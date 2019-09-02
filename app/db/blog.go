@@ -2,6 +2,8 @@ package db
 
 import (
 	"time"
+
+	"fantlab/dbtools/sqlr"
 )
 
 type Community struct {
@@ -10,7 +12,7 @@ type Community struct {
 	Description     string    `db:"description"`
 	Rules           string    `db:"rules"`
 	TopicsCount     uint32    `db:"topics_count"`
-	IsPublic        bool      `db:"is_public"`
+	IsPublic        uint8     `db:"is_public"`
 	LastTopicDate   time.Time `db:"last_topic_date"`
 	LastTopicHead   string    `db:"last_topic_head"`
 	LastTopicId     uint32    `db:"last_topic_id"`
@@ -45,7 +47,7 @@ type Blog struct {
 	PhotoNumber     uint32    `db:"photo_number"`
 	TopicsCount     uint32    `db:"topics_count"`
 	SubscriberCount uint32    `db:"subscriber_count"`
-	IsClose         bool      `db:"is_close"`
+	IsClose         uint8     `db:"is_close"`
 	LastTopicDate   time.Time `db:"last_topic_date"`
 	LastTopicHead   string    `db:"last_topic_head"`
 	LastTopicId     uint32    `db:"last_topic_id"`
@@ -73,7 +75,7 @@ type BlogTopicLike struct {
 	DateOfAdd   time.Time `db:"date_of_add"`
 }
 
-type CommunityDBResponse struct {
+type CommunityTopicsDBResponse struct {
 	Community        Community
 	Moderators       []CommunityModerator
 	Authors          []CommunityAuthor
@@ -86,38 +88,257 @@ type BlogsDBResponse struct {
 	TotalCount uint32
 }
 
-type BlogDBResponse struct {
+type BlogTopicsDBResponse struct {
 	Topics           []BlogTopic
 	TotalTopicsCount uint32
 }
 
-func (db *DB) FetchCommunities() ([]Community, error) {
-	const communitiesQuery = `
-	SELECT
-		IFNULL(b.name, '') AS name,
-		IFNULL(b.description, '') AS description,
-		IFNULL(b.topics_count, 0) AS topics_count,
-		b.is_public,
-		IFNULL(b.last_topic_date, '0000-00-00 00:00:00') AS last_topic_date,
-		IFNULL(b.last_topic_head, '') AS last_topic_head,
-		IFNULL(b.last_topic_id, 0) AS last_topic_id,
-		IFNULL(b.subscriber_count, 0) AS subscriber_count,
-		u.user_id AS last_user_id,
-		u.login AS last_login,
-		u.sex AS last_sex,
-		u.photo_number AS last_photo_number
-	FROM
-		b_blogs b
-	LEFT JOIN
-		users u ON u.user_id = b.last_user_id
-	WHERE
-		b.is_community = 1 AND b.is_hidden = 0
-	ORDER BY
-		b.is_public DESC, b.last_topic_date DESC`
+var (
+	communitiesQuery = sqlr.NewQuery(`
+		SELECT
+			b.blog_id,
+			b.name,
+			b.description,
+			b.topics_count,
+			b.is_public,
+			b.last_topic_date,
+			b.last_topic_head,
+			b.last_topic_id,
+			b.subscriber_count,
+			u.user_id AS last_user_id,
+			u.login AS last_login,
+			u.sex AS last_sex,
+			u.photo_number AS last_photo_number
+		FROM
+			b_blogs b
+		LEFT JOIN
+			users u ON u.user_id = b.last_user_id
+		WHERE
+			b.is_community = 1 AND b.is_hidden = 0
+		ORDER BY
+			b.is_public DESC, b.last_topic_date DESC
+	`)
 
+	communityQuery = sqlr.NewQuery(`
+		SELECT
+			b.name,
+			b.description,
+			b.topics_count,
+			b.is_public,
+			b.last_topic_date,
+			b.last_topic_head,
+			b.last_topic_id,
+			b.subscriber_count,
+			u.user_id AS last_user_id,
+			u.login AS last_login,
+			u.sex AS last_sex,
+			u.photo_number AS last_photo_number
+		FROM
+			b_blogs b
+		LEFT JOIN
+			users u ON u.user_id = b.last_user_id
+		WHERE
+			b.blog_id = ? AND b.is_community = 1 AND b.is_hidden = 0
+	`)
+
+	shortCommunityQuery = sqlr.NewQuery(`
+		SELECT
+			blog_id,
+			name,
+			rules
+		FROM
+			b_blogs
+		WHERE
+			blog_id = ? AND is_community = 1
+	`)
+
+	communityModeratorsQuery = sqlr.NewQuery(`
+		SELECT
+			cm.user_id,
+			u.login,
+			u.sex,
+			u.photo_number
+		FROM
+			b_community_moderators cm
+		LEFT JOIN
+			users u ON u.user_id = cm.user_id
+		WHERE
+			cm.blog_id = ?
+		ORDER BY
+			cm.comm_moder_id
+	`)
+
+	communityAuthorsQuery = sqlr.NewQuery(`
+		SELECT
+			cu.user_id,
+			u.login,
+			u.sex,
+			u.photo_number
+		FROM
+			b_community_users cu
+		LEFT JOIN
+			users u ON u.user_id = cu.user_id
+		WHERE
+			cu.blog_id = ? AND cu.accepted = 1
+		ORDER BY
+			cu.community_user_id
+	`)
+
+	communityTopicsQuery = sqlr.NewQuery(`
+		SELECT
+			b.topic_id,
+			b.head_topic,
+			b.date_of_add,
+			u.user_id,
+			u.login,
+			u.sex,
+			u.photo_number,
+			t.message_text,
+			b.tags,
+			b.likes_count,
+			b.comments_count
+		FROM
+			b_topics b
+		JOIN
+			b_topics_text t ON t.message_id = b.topic_id
+		LEFT JOIN
+			users u ON u.user_id = b.user_id
+		WHERE
+			b.blog_id = ? AND b.is_opened = 1
+		ORDER BY
+			b.date_of_add DESC
+	`)
+
+	communityTopicCountQuery = sqlr.NewQuery(`
+		SELECT
+			COUNT(*)
+		FROM
+			b_topics
+		WHERE
+			blog_id = ? AND is_opened = 1
+	`)
+
+	blogsQuery = sqlr.NewQuery(`
+		SELECT
+			b.blog_id,
+			u.user_id,
+			u.login,
+			u.fio,
+			u.sex,
+			u.photo_number,
+			b.topics_count,
+			b.subscriber_count,
+			b.is_close,
+			b.last_topic_date,
+			b.last_topic_head,
+			b.last_topic_id
+		FROM
+			b_blogs b
+		LEFT JOIN
+			users u ON u.user_id = b.user_id
+		WHERE
+			b.is_community = 0 AND b.topics_count > 0
+		ORDER BY
+			b.is_close, b.%s DESC
+		LIMIT ?
+		OFFSET ?
+	`)
+
+	blogCountQuery = sqlr.NewQuery(`
+		SELECT
+			COUNT(*)
+		FROM
+			b_blogs
+		WHERE
+			is_community = 0 AND topics_count > 0
+	`)
+
+	blogQuery = sqlr.NewQuery(`
+		SELECT
+			b.blog_id,
+			u.user_id,
+			u.login,
+			u.fio,
+			u.sex,
+			u.photo_number,
+			b.topics_count,
+			b.subscriber_count,
+			b.is_close,
+			b.last_topic_date,
+			b.last_topic_head,
+			b.last_topic_id
+		FROM
+			b_blogs b
+		LEFT JOIN
+			users u ON u.user_id = b.user_id
+		WHERE
+			b.blog_id = ? AND b.is_community = 0
+	`)
+
+	blogExistsQuery = sqlr.NewQuery("SELECT 1 FROM b_blogs WHERE blog_id = ? AND is_community = 0")
+
+	blogTopicsQuery = sqlr.NewQuery(`
+		SELECT
+			b.topic_id,
+			b.head_topic,
+			b.date_of_add,
+			u.user_id,
+			u.login,
+			u.sex,
+			u.photo_number,
+			t.message_text,
+			b.tags,
+			b.likes_count,
+			b.comments_count
+		FROM
+			b_topics b
+		JOIN
+			b_topics_text t ON t.message_id = b.topic_id
+		LEFT JOIN
+			users u ON u.user_id = b.user_id
+		WHERE
+			b.blog_id = ? AND b.is_opened = 1
+		ORDER BY
+			b.date_of_add DESC
+	`)
+
+	blogTopicCountQuery = sqlr.NewQuery(`
+		SELECT
+			COUNT(*)
+		FROM
+			b_topics
+		WHERE
+			blog_id = ? AND is_opened = 1
+	`)
+
+	topicQuery = sqlr.NewQuery(`
+		SELECT
+			b.topic_id,
+			b.head_topic,
+			b.date_of_add,
+			u.user_id,
+			u.login,
+			u.sex,
+			u.photo_number,
+			t.message_text,
+			b.tags,
+			b.likes_count,
+			b.comments_count
+		FROM
+			b_topics b
+		JOIN
+			b_topics_text t ON t.message_id = b.topic_id
+		LEFT JOIN
+			users u ON u.user_id = b.user_id
+		WHERE
+			b.topic_id = ? AND b.is_opened > 0
+	`)
+)
+
+func (db *DB) FetchCommunities() ([]Community, error) {
 	var communities []Community
 
-	err := db.X.Select(&communities, communitiesQuery)
+	err := db.engine.Read(communitiesQuery).Scan(&communities)
 
 	if err != nil {
 		return nil, err
@@ -126,120 +347,60 @@ func (db *DB) FetchCommunities() ([]Community, error) {
 	return communities, nil
 }
 
-func (db *DB) FetchCommunity(communityID, limit, offset uint32) (*CommunityDBResponse, error) {
-	const communityQuery = `
-	SELECT
-		blog_id,
-		IFNULL(name, '') AS name,
-		IFNULL(rules, '') AS rules
-	FROM
-		b_blogs
-	WHERE
-		blog_id = ? AND is_community = 1`
-
+func (db *DB) FetchCommunity(communityID uint32) (*Community, error) {
 	var community Community
 
-	err := db.X.Get(&community, communityQuery, communityID)
+	err := db.engine.Read(communityQuery.WithArgs(communityID)).Scan(&community)
 
 	if err != nil {
 		return nil, err
 	}
 
-	const moderatorsQuery = `
-	SELECT
-		cm.user_id,
-		u.login,
-		u.sex,
-		u.photo_number
-	FROM
-		b_community_moderators cm
-	LEFT JOIN
-		users u ON u.user_id = cm.user_id
-	WHERE
-		cm.blog_id = ?
-	ORDER BY
-		cm.comm_moder_id`
+	return &community, nil
+}
+
+func (db *DB) FetchCommunityTopics(communityID, limit, offset uint32) (*CommunityTopicsDBResponse, error) {
+	var community Community
+
+	err := db.engine.Read(shortCommunityQuery.WithArgs(communityID)).Scan(&community)
+
+	if err != nil {
+		return nil, err
+	}
 
 	var moderators []CommunityModerator
 
-	err = db.X.Select(&moderators, moderatorsQuery, communityID)
+	err = db.engine.Read(communityModeratorsQuery.WithArgs(communityID)).Scan(&moderators)
 
 	if err != nil {
 		return nil, err
 	}
-
-	const authorsQuery = `
-	SELECT
-		cu.user_id,
-		u.login,
-		u.sex,
-		u.photo_number
-	FROM
-		b_community_users cu
-	LEFT JOIN
-		users u ON u.user_id = cu.user_id
-	WHERE
-		cu.blog_id = ? AND cu.accepted = 1
-	ORDER BY
-		cu.community_user_id`
 
 	var authors []CommunityAuthor
 
-	err = db.X.Select(&authors, authorsQuery, communityID)
+	err = db.engine.Read(communityAuthorsQuery.WithArgs(communityID)).Scan(&authors)
 
 	if err != nil {
 		return nil, err
 	}
-
-	const topicsQuery = `
-	SELECT
-		b.topic_id,
-		IFNULL(b.head_topic, '') AS head_topic,
-		b.date_of_add,
-		u.user_id,
-		u.login,
-		u.sex,
-		u.photo_number,
-		t.message_text,
-		IFNULL(b.tags, '') AS tags,
-		IFNULL(b.likes_count, 0) AS likes_count,
-		b.comments_count
-	FROM
-		b_topics b
-	JOIN
-		b_topics_text t ON t.message_id = b.topic_id
-	LEFT JOIN
-		users u ON u.user_id = b.user_id
-	WHERE
-		b.blog_id = ? AND b.is_opened = 1
-	ORDER BY
-		b.date_of_add DESC`
 
 	var topics []BlogTopic
 
-	err = db.X.Select(&topics, topicsQuery, communityID)
+	err = db.engine.Read(communityTopicsQuery.WithArgs(communityID)).Scan(&topics)
 
 	if err != nil {
 		return nil, err
 	}
-
-	const countQuery = `
-	SELECT
-		COUNT(*)
-	FROM
-		b_topics
-	WHERE
-		blog_id = ? AND is_opened = 1`
 
 	var count uint32
 
-	err = db.X.Get(&count, countQuery, communityID)
+	err = db.engine.Read(communityTopicCountQuery.WithArgs(communityID)).Scan(&count)
 
 	if err != nil {
 		return nil, err
 	}
 
-	result := &CommunityDBResponse{
+	result := &CommunityTopicsDBResponse{
 		Community:        community,
 		Moderators:       moderators,
 		Authors:          authors,
@@ -254,57 +415,24 @@ func (db *DB) FetchBlogs(limit, offset uint32, sort string) (*BlogsDBResponse, e
 	var sortOption string
 	switch sort {
 	case "article":
-		sortOption = "b.topics_count"
+		sortOption = "topics_count"
 	case "subscriber":
-		sortOption = "b.subscriber_count"
+		sortOption = "subscriber_count"
 	default: // "update"
-		sortOption = "b.last_topic_date"
+		sortOption = "last_topic_date"
 	}
-
-	const blogsQuery = `
-	SELECT
-		b.blog_id,
-		u.user_id,
-		u.login,
-		IFNULL(u.fio, '') AS fio,
-		u.sex,
-		u.photo_number,
-		IFNULL(b.topics_count, 0) AS topics_count,
-		IFNULL(b.subscriber_count, 0) AS subscriber_count,
-		IFNULL(b.is_close, 0) AS is_close,
-		IFNULL(b.last_topic_date, '0000-00-00 00:00:00') AS last_topic_date,
-		IFNULL(b.last_topic_head, '') AS last_topic_head,
-		IFNULL(b.last_topic_id, 0) AS last_topic_id
-	FROM
-		b_blogs b
-	LEFT JOIN
-		users u ON u.user_id = b.user_id
-	WHERE
-		b.is_community = 0 AND b.topics_count > 0
-	ORDER BY
-		b.is_close, ? DESC
-	LIMIT ?
-	OFFSET ?`
 
 	var blogs []Blog
 
-	err := db.X.Select(&blogs, blogsQuery, sortOption, limit, offset)
+	err := db.engine.Read(blogsQuery.Format(sortOption).WithArgs(limit, offset)).Scan(&blogs)
 
 	if err != nil {
 		return nil, err
 	}
 
-	const countQuery = `
-	SELECT
-		COUNT(*)
-	FROM
-		b_blogs
-	WHERE
-		is_community = 0 AND topics_count > 0`
-
 	var count uint32
 
-	err = db.X.Get(&count, countQuery)
+	err = db.engine.Read(blogCountQuery).Scan(&count)
 
 	if err != nil {
 		return nil, err
@@ -318,66 +446,44 @@ func (db *DB) FetchBlogs(limit, offset uint32, sort string) (*BlogsDBResponse, e
 	return result, nil
 }
 
-func (db *DB) FetchBlog(blogID, limit, offset uint32) (*BlogDBResponse, error) {
-	const blogExistsQuery = `SELECT 1 FROM b_blogs WHERE blog_id = ? AND is_community = 0`
+func (db *DB) FetchBlog(blogId uint32) (*Blog, error) {
+	var blog Blog
 
-	var blogExists bool
-
-	err := db.X.Get(&blogExists, blogExistsQuery, blogID)
+	err := db.engine.Read(blogQuery.WithArgs(blogId)).Scan(&blog)
 
 	if err != nil {
 		return nil, err
 	}
 
-	const topicsQuery = `
-	SELECT
-		b.topic_id,
-		IFNULL(b.head_topic, '') AS head_topic,
-		b.date_of_add,
-		u.user_id,
-		u.login,
-		u.sex,
-		u.photo_number,
-		t.message_text,
-		IFNULL(b.tags, '') AS tags,
-		IFNULL(b.likes_count, 0) AS likes_count,
-		b.comments_count
-	FROM
-		b_topics b
-	JOIN
-		b_topics_text t ON t.message_id = b.topic_id
-	LEFT JOIN
-		users u ON u.user_id = b.user_id
-	WHERE
-		b.blog_id = ? AND b.is_opened = 1
-	ORDER BY
-		b.date_of_add DESC`
+	return &blog, nil
+}
+
+func (db *DB) FetchBlogTopics(blogID, limit, offset uint32) (*BlogTopicsDBResponse, error) {
+	var blogExists uint8
+
+	err := db.engine.Read(blogExistsQuery.WithArgs(blogID)).Scan(&blogExists)
+
+	if err != nil {
+		return nil, err
+	}
 
 	var topics []BlogTopic
 
-	err = db.X.Select(&topics, topicsQuery, blogID)
+	err = db.engine.Read(blogTopicsQuery.WithArgs(blogID)).Scan(&topics)
 
 	if err != nil {
 		return nil, err
 	}
-
-	const countQuery = `
-	SELECT
-		COUNT(*)
-	FROM
-		b_topics
-	WHERE
-		blog_id = ? AND is_opened = 1`
 
 	var count uint32
 
-	err = db.X.Get(&count, countQuery, blogID)
+	err = db.engine.Read(blogTopicCountQuery.WithArgs(blogID)).Scan(&count)
 
 	if err != nil {
 		return nil, err
 	}
 
-	response := &BlogDBResponse{
+	response := &BlogTopicsDBResponse{
 		Topics:           topics,
 		TotalTopicsCount: count,
 	}
@@ -386,140 +492,13 @@ func (db *DB) FetchBlog(blogID, limit, offset uint32) (*BlogDBResponse, error) {
 }
 
 func (db *DB) FetchBlogTopic(topicId uint32) (*BlogTopic, error) {
-	const topicQuery = `
-	SELECT
-		b.topic_id,
-		IFNULL(b.head_topic, '') AS head_topic,
-		b.date_of_add,
-		u.user_id,
-		u.login,
-		u.sex,
-		u.photo_number,
-		t.message_text,
-		IFNULL(b.tags, '') AS tags,
-		IFNULL(b.likes_count, 0) AS likes_count,
-		b.comments_count
-	FROM
-		b_topics b
-	JOIN
-		b_topics_text t ON t.message_id = b.topic_id
-	LEFT JOIN
-		users u ON u.user_id = b.user_id
-	WHERE
-		b.topic_id = ? AND b.is_opened > 0`
-
 	var topic BlogTopic
 
-	err := db.X.Get(&topic, topicQuery, topicId)
+	err := db.engine.Read(topicQuery.WithArgs(topicId)).Scan(&topic)
 
 	if err != nil {
 		return nil, err
 	}
 
 	return &topic, nil
-}
-
-func (db *DB) FetchBlogTopicCreatorId(topicId uint32) (uint32, error) {
-	const topicUserIdQuery = `
-	SELECT
-		user_id
-	FROM
-		b_topics
-	WHERE
-		topic_id = ? AND is_opened > 0`
-
-	var userId uint32
-
-	err := db.X.Get(&userId, topicUserIdQuery, topicId)
-
-	if err != nil {
-		return 0, err
-	}
-
-	return userId, nil
-}
-
-func (db *DB) FetchBlogTopicLikeCount(topicId uint32) (uint32, error) {
-	const topicLikeCountQuery = `
-	SELECT
-		IFNULL(likes_count, 0) AS likes_count
-	FROM
-		b_topics
-	WHERE
-		topic_id = ?`
-
-	var likeCount uint32
-
-	err := db.X.Get(&likeCount, topicLikeCountQuery, topicId)
-
-	if err != nil {
-		return 0, err
-	}
-
-	return likeCount, nil
-}
-
-func (db *DB) FetchBlogTopicLiked(topicId, userId uint32) (bool, error) {
-	const topicLikeExistsQuery = `SELECT 1 FROM b_topic_likes WHERE topic_id = ? AND user_id = ?`
-
-	var topicLikeExists bool
-
-	err := db.X.Get(&topicLikeExists, topicLikeExistsQuery, topicId, userId)
-
-	if err != nil {
-		return false, err
-	}
-
-	return true, nil
-}
-
-func (db *DB) UpdateBlogTopicLiked(topicId, userId uint32) error {
-	const topicLikeInsert = `
-	INSERT INTO
-		b_topic_likes
-		(topic_id, user_id, date_of_add)
-	VALUES
-		(?, ?, ?)`
-
-	_, err := db.X.Exec(topicLikeInsert, topicId, userId, time.Now())
-
-	if err != nil {
-		return err
-	}
-
-	err = db.UpdateTopicLikesCount(topicId)
-
-	return err
-}
-
-func (db *DB) UpdateBlogTopicDisliked(topicId, userId uint32) error {
-	const topicLikeDelete = `
-	DELETE FROM
-		b_topic_likes
-	WHERE
-		topic_id = ? AND user_id = ?`
-
-	_, err := db.X.Exec(topicLikeDelete, topicId, userId)
-
-	if err != nil {
-		return err
-	}
-
-	err = db.UpdateTopicLikesCount(topicId)
-
-	return err
-}
-
-func (db *DB) UpdateTopicLikesCount(topicId uint32) error {
-	const topicLikeUpdate = `
-	UPDATE
-		b_topics b
-	SET
-		b.likes_count = (SELECT COUNT(DISTINCT btl.user_id) FROM b_topic_likes btl WHERE btl.topic_id = b.topic_id)
-	WHERE
-		b.topic_id = ?`
-
-	_, err := db.X.Exec(topicLikeUpdate, topicId)
-
-	return err
 }
