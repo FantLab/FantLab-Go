@@ -1,9 +1,13 @@
 package db
 
 import (
-	"fantlab/sqlr"
+	"fantlab/dbtools/sqlr"
 )
 
 type DB struct {
-	R *sqlr.DB
+	engine sqlr.DB
+}
+
+func NewDB(engine sqlr.DB) *DB {
+	return &DB{engine: engine}
 }

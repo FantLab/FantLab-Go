@@ -2,15 +2,16 @@ package main
 
 import (
 	"database/sql"
-	"fantlab/logger"
+	"fantlab/dbtools/sqldb"
+	"fantlab/dbtools/sqlr"
 	"log"
 	"os"
 
 	"fantlab/cache"
 	"fantlab/db"
+	"fantlab/logger"
 	"fantlab/routing"
 	"fantlab/shared"
-	"fantlab/sqlr"
 
 	"github.com/bradfitz/gomemcache/memcache"
 	_ "github.com/go-sql-driver/mysql"
@@ -28,7 +29,7 @@ func main() {
 	services := &shared.Services{
 		Config: makeConfig(os.Getenv("IMAGES_BASE_URL")),
 		Cache:  &cache.MemCache{Client: mc},
-		DB:     &db.DB{R: sqlr.New(mysql, logger.Sqlr)},
+		DB:     db.NewDB(sqlr.Log(sqldb.New(mysql), logger.Sqlr)),
 	}
 
 	router := routing.SetupWith(services)

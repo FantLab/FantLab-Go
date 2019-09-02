@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"strconv"
 	"strings"
+	"time"
 
 	"fantlab/shared"
 	"fantlab/utils"
@@ -248,16 +249,16 @@ func (c *Controller) LikeArticle(ctx *gin.Context) {
 		return
 	}
 
-	isDbTopicLiked, err := c.services.DB.FetchBlogTopicLiked(uint32(articleId), uint32(userId))
+	ok, err := c.services.DB.IsBlogTopicLiked(uint32(articleId), uint32(userId))
 
-	if err != nil {
+	if err != nil && !utils.IsRecordNotFoundError(err) {
 		utils.ShowProto(ctx, http.StatusInternalServerError, &pb.Error_Response{
 			Status: pb.Error_SOMETHING_WENT_WRONG,
 		})
 		return
 	}
 
-	if isDbTopicLiked {
+	if ok {
 		utils.ShowProto(ctx, http.StatusUnauthorized, &pb.Error_Response{
 			Status:  pb.Error_ACTION_PERMITTED,
 			Context: "already liked",
@@ -265,7 +266,7 @@ func (c *Controller) LikeArticle(ctx *gin.Context) {
 		return
 	}
 
-	err = c.services.DB.UpdateBlogTopicLiked(uint32(articleId), uint32(userId))
+	_, err = c.services.DB.LikeBlogTopic(time.Now(), uint32(articleId), uint32(userId))
 
 	if err != nil {
 		utils.ShowProto(ctx, http.StatusInternalServerError, &pb.Error_Response{
@@ -325,16 +326,16 @@ func (c *Controller) DislikeArticle(ctx *gin.Context) {
 		return
 	}
 
-	isDbTopicLiked, err := c.services.DB.FetchBlogTopicLiked(uint32(articleId), uint32(userId))
+	ok, err := c.services.DB.IsBlogTopicLiked(uint32(articleId), uint32(userId))
 
-	if err != nil {
+	if err != nil && !utils.IsRecordNotFoundError(err) {
 		utils.ShowProto(ctx, http.StatusInternalServerError, &pb.Error_Response{
 			Status: pb.Error_SOMETHING_WENT_WRONG,
 		})
 		return
 	}
 
-	if !isDbTopicLiked {
+	if !ok {
 		utils.ShowProto(ctx, http.StatusUnauthorized, &pb.Error_Response{
 			Status:  pb.Error_ACTION_PERMITTED,
 			Context: "already disliked",
@@ -342,7 +343,7 @@ func (c *Controller) DislikeArticle(ctx *gin.Context) {
 		return
 	}
 
-	err = c.services.DB.UpdateBlogTopicDisliked(uint32(articleId), uint32(userId))
+	_, err = c.services.DB.DislikeBlogTopic(uint32(articleId), uint32(userId))
 
 	if err != nil {
 		utils.ShowProto(ctx, http.StatusInternalServerError, &pb.Error_Response{
@@ -351,7 +352,7 @@ func (c *Controller) DislikeArticle(ctx *gin.Context) {
 		return
 	}
 
-	dbTopicLikeCount, err := c.services.DB.FetchBlogTopicLikeCount(uint32(articleId))
+	likeCount, err := c.services.DB.FetchBlogTopicLikeCount(uint32(articleId))
 
 	if err != nil {
 		utils.ShowProto(ctx, http.StatusInternalServerError, &pb.Error_Response{
@@ -361,7 +362,351 @@ func (c *Controller) DislikeArticle(ctx *gin.Context) {
 	}
 
 	utils.ShowProto(ctx, http.StatusOK, &pb.Blog_BlogArticleLikeResponse{
-		LikeCount: dbTopicLikeCount,
+		LikeCount: likeCount,
+	})
+}
+
+func (c *Controller) SubscribeCommunity(ctx *gin.Context) {
+	userId := ctx.GetInt64(gin.AuthUserKey)
+
+	communityId, err := strconv.ParseUint(ctx.Param("id"), 10, 32)
+
+	if err != nil {
+		utils.ShowProto(ctx, http.StatusBadRequest, &pb.Error_Response{
+			Status:  pb.Error_INVALID_PARAMETER,
+			Context: "id",
+		})
+		return
+	}
+
+	_, err = c.services.DB.FetchCommunity(uint32(communityId))
+
+	if err != nil {
+		if utils.IsRecordNotFoundError(err) {
+			utils.ShowProto(ctx, http.StatusNotFound, &pb.Error_Response{
+				Status:  pb.Error_NOT_FOUND,
+				Context: strconv.FormatUint(communityId, 10),
+			})
+		} else {
+			utils.ShowProto(ctx, http.StatusInternalServerError, &pb.Error_Response{
+				Status: pb.Error_SOMETHING_WENT_WRONG,
+			})
+		}
+		return
+	}
+
+	isDbCommunitySubscribed, err := c.services.DB.FetchBlogSubscribed(uint32(communityId), uint32(userId))
+
+	if err != nil {
+		utils.ShowProto(ctx, http.StatusInternalServerError, &pb.Error_Response{
+			Status: pb.Error_SOMETHING_WENT_WRONG,
+		})
+		return
+	}
+
+	if isDbCommunitySubscribed {
+		utils.ShowProto(ctx, http.StatusUnauthorized, &pb.Error_Response{
+			Status:  pb.Error_ACTION_PERMITTED,
+			Context: "already subscribed",
+		})
+		return
+	}
+
+	_, err = c.services.DB.UpdateBlogSubscribed(uint32(communityId), uint32(userId))
+
+	if err != nil {
+		utils.ShowProto(ctx, http.StatusInternalServerError, &pb.Error_Response{
+			Status: pb.Error_SOMETHING_WENT_WRONG,
+		})
+		return
+	}
+
+	utils.ShowProto(ctx, http.StatusOK, &pb.Blog_BlogSubscriptionResponse{
+		IsSubscribed: true,
+	})
+}
+
+func (c *Controller) UnsubscribeCommunity(ctx *gin.Context) {
+	userId := ctx.GetInt64(gin.AuthUserKey)
+
+	communityId, err := strconv.ParseUint(ctx.Param("id"), 10, 32)
+
+	if err != nil {
+		utils.ShowProto(ctx, http.StatusBadRequest, &pb.Error_Response{
+			Status:  pb.Error_INVALID_PARAMETER,
+			Context: "id",
+		})
+		return
+	}
+
+	_, err = c.services.DB.FetchCommunity(uint32(communityId))
+
+	if err != nil {
+		if utils.IsRecordNotFoundError(err) {
+			utils.ShowProto(ctx, http.StatusNotFound, &pb.Error_Response{
+				Status:  pb.Error_NOT_FOUND,
+				Context: strconv.FormatUint(communityId, 10),
+			})
+		} else {
+			utils.ShowProto(ctx, http.StatusInternalServerError, &pb.Error_Response{
+				Status: pb.Error_SOMETHING_WENT_WRONG,
+			})
+		}
+		return
+	}
+
+	isDbCommunitySubscribed, err := c.services.DB.FetchBlogSubscribed(uint32(communityId), uint32(userId))
+
+	if err != nil {
+		utils.ShowProto(ctx, http.StatusInternalServerError, &pb.Error_Response{
+			Status: pb.Error_SOMETHING_WENT_WRONG,
+		})
+		return
+	}
+
+	if !isDbCommunitySubscribed {
+		utils.ShowProto(ctx, http.StatusUnauthorized, &pb.Error_Response{
+			Status:  pb.Error_ACTION_PERMITTED,
+			Context: "already unsubscribed",
+		})
+		return
+	}
+
+	_, err = c.services.DB.UpdateBlogUnsubscribed(uint32(communityId), uint32(userId))
+
+	if err != nil {
+		utils.ShowProto(ctx, http.StatusInternalServerError, &pb.Error_Response{
+			Status: pb.Error_SOMETHING_WENT_WRONG,
+		})
+		return
+	}
+
+	utils.ShowProto(ctx, http.StatusOK, &pb.Blog_BlogSubscriptionResponse{
+		IsSubscribed: false,
+	})
+}
+
+func (c *Controller) SubscribeBlog(ctx *gin.Context) {
+	userId := ctx.GetInt64(gin.AuthUserKey)
+
+	blogId, err := strconv.ParseUint(ctx.Param("id"), 10, 32)
+
+	if err != nil {
+		utils.ShowProto(ctx, http.StatusBadRequest, &pb.Error_Response{
+			Status:  pb.Error_INVALID_PARAMETER,
+			Context: "id",
+		})
+		return
+	}
+
+	dbBlog, err := c.services.DB.FetchBlog(uint32(blogId))
+
+	if err != nil {
+		if utils.IsRecordNotFoundError(err) {
+			utils.ShowProto(ctx, http.StatusNotFound, &pb.Error_Response{
+				Status:  pb.Error_NOT_FOUND,
+				Context: strconv.FormatUint(blogId, 10),
+			})
+		} else {
+			utils.ShowProto(ctx, http.StatusInternalServerError, &pb.Error_Response{
+				Status: pb.Error_SOMETHING_WENT_WRONG,
+			})
+		}
+		return
+	}
+
+	if dbBlog.UserId == uint32(userId) {
+		utils.ShowProto(ctx, http.StatusUnauthorized, &pb.Error_Response{
+			Status:  pb.Error_ACTION_PERMITTED,
+			Context: "your own blog",
+		})
+		return
+	}
+
+	isDbBlogSubscribed, err := c.services.DB.FetchBlogSubscribed(uint32(blogId), uint32(userId))
+
+	if err != nil {
+		utils.ShowProto(ctx, http.StatusInternalServerError, &pb.Error_Response{
+			Status: pb.Error_SOMETHING_WENT_WRONG,
+		})
+		return
+	}
+
+	if isDbBlogSubscribed {
+		utils.ShowProto(ctx, http.StatusUnauthorized, &pb.Error_Response{
+			Status:  pb.Error_ACTION_PERMITTED,
+			Context: "already subscribed",
+		})
+		return
+	}
+
+	_, err = c.services.DB.UpdateBlogSubscribed(uint32(blogId), uint32(userId))
+
+	if err != nil {
+		utils.ShowProto(ctx, http.StatusInternalServerError, &pb.Error_Response{
+			Status: pb.Error_SOMETHING_WENT_WRONG,
+		})
+		return
+	}
+
+	utils.ShowProto(ctx, http.StatusOK, &pb.Blog_BlogSubscriptionResponse{
+		IsSubscribed: true,
+	})
+}
+
+func (c *Controller) UnsubscribeBlog(ctx *gin.Context) {
+	userId := ctx.GetInt64(gin.AuthUserKey)
+
+	blogId, err := strconv.ParseUint(ctx.Param("id"), 10, 32)
+
+	if err != nil {
+		utils.ShowProto(ctx, http.StatusBadRequest, &pb.Error_Response{
+			Status:  pb.Error_INVALID_PARAMETER,
+			Context: "id",
+		})
+		return
+	}
+
+	dbBlog, err := c.services.DB.FetchBlog(uint32(blogId))
+
+	if err != nil {
+		if utils.IsRecordNotFoundError(err) {
+			utils.ShowProto(ctx, http.StatusNotFound, &pb.Error_Response{
+				Status:  pb.Error_NOT_FOUND,
+				Context: strconv.FormatUint(blogId, 10),
+			})
+		} else {
+			utils.ShowProto(ctx, http.StatusInternalServerError, &pb.Error_Response{
+				Status: pb.Error_SOMETHING_WENT_WRONG,
+			})
+		}
+		return
+	}
+
+	if dbBlog.UserId == uint32(userId) {
+		utils.ShowProto(ctx, http.StatusUnauthorized, &pb.Error_Response{
+			Status:  pb.Error_ACTION_PERMITTED,
+			Context: "your own blog",
+		})
+		return
+	}
+
+	isDbBlogSubscribed, err := c.services.DB.FetchBlogSubscribed(uint32(blogId), uint32(userId))
+
+	if err != nil {
+		utils.ShowProto(ctx, http.StatusInternalServerError, &pb.Error_Response{
+			Status: pb.Error_SOMETHING_WENT_WRONG,
+		})
+		return
+	}
+
+	if !isDbBlogSubscribed {
+		utils.ShowProto(ctx, http.StatusUnauthorized, &pb.Error_Response{
+			Status:  pb.Error_ACTION_PERMITTED,
+			Context: "already unsubscribed",
+		})
+		return
+	}
+
+	_, err = c.services.DB.UpdateBlogUnsubscribed(uint32(blogId), uint32(userId))
+
+	if err != nil {
+		utils.ShowProto(ctx, http.StatusInternalServerError, &pb.Error_Response{
+			Status: pb.Error_SOMETHING_WENT_WRONG,
+		})
+		return
+	}
+
+	utils.ShowProto(ctx, http.StatusOK, &pb.Blog_BlogSubscriptionResponse{
+		IsSubscribed: false,
+	})
+}
+
+func (c *Controller) SubscribeArticle(ctx *gin.Context) {
+	userId := ctx.GetInt64(gin.AuthUserKey)
+
+	articleId, err := strconv.ParseUint(ctx.Param("id"), 10, 32)
+
+	if err != nil {
+		utils.ShowProto(ctx, http.StatusBadRequest, &pb.Error_Response{
+			Status:  pb.Error_INVALID_PARAMETER,
+			Context: "id",
+		})
+		return
+	}
+
+	isDbTopicSubscribed, err := c.services.DB.FetchBlogTopicSubscribed(uint32(articleId), uint32(userId))
+
+	if err != nil {
+		utils.ShowProto(ctx, http.StatusInternalServerError, &pb.Error_Response{
+			Status: pb.Error_SOMETHING_WENT_WRONG,
+		})
+		return
+	}
+
+	if isDbTopicSubscribed {
+		utils.ShowProto(ctx, http.StatusUnauthorized, &pb.Error_Response{
+			Status:  pb.Error_ACTION_PERMITTED,
+			Context: "already subscribed",
+		})
+		return
+	}
+
+	_, err = c.services.DB.UpdateBlogTopicSubscribed(uint32(articleId), uint32(userId))
+
+	if err != nil {
+		utils.ShowProto(ctx, http.StatusInternalServerError, &pb.Error_Response{
+			Status: pb.Error_SOMETHING_WENT_WRONG,
+		})
+		return
+	}
+
+	utils.ShowProto(ctx, http.StatusOK, &pb.Blog_BlogSubscriptionResponse{
+		IsSubscribed: true,
+	})
+}
+
+func (c *Controller) UnsubscribeArticle(ctx *gin.Context) {
+	userId := ctx.GetInt64(gin.AuthUserKey)
+
+	articleId, err := strconv.ParseUint(ctx.Param("id"), 10, 32)
+
+	if err != nil {
+		utils.ShowProto(ctx, http.StatusBadRequest, &pb.Error_Response{
+			Status:  pb.Error_INVALID_PARAMETER,
+			Context: "id",
+		})
+		return
+	}
+
+	isDbTopicSubscribed, err := c.services.DB.FetchBlogTopicSubscribed(uint32(articleId), uint32(userId))
+
+	if err != nil {
+		utils.ShowProto(ctx, http.StatusInternalServerError, &pb.Error_Response{
+			Status: pb.Error_SOMETHING_WENT_WRONG,
+		})
+		return
+	}
+
+	if !isDbTopicSubscribed {
+		utils.ShowProto(ctx, http.StatusUnauthorized, &pb.Error_Response{
+			Status:  pb.Error_ACTION_PERMITTED,
+			Context: "already unsubscribed",
+		})
+		return
+	}
+
+	_, err = c.services.DB.UpdateBlogTopicUnsubscribed(uint32(articleId), uint32(userId))
+
+	if err != nil {
+		utils.ShowProto(ctx, http.StatusInternalServerError, &pb.Error_Response{
+			Status: pb.Error_SOMETHING_WENT_WRONG,
+		})
+		return
+	}
+
+	utils.ShowProto(ctx, http.StatusOK, &pb.Blog_BlogSubscriptionResponse{
+		IsSubscribed: false,
 	})
 }
 
