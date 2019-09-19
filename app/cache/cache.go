@@ -1,9 +1,13 @@
 package cache
 
-import "time"
+import (
+	"fantlab/caches"
+)
 
-type Protocol interface {
-	Set(key string, value string, expiration time.Time) error
-	Get(key string) string
-	Delete(key string)
+type Cache struct {
+	memcache caches.Protocol
+}
+
+func New(memcache caches.Protocol) *Cache {
+	return &Cache{memcache: memcache}
 }

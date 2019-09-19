@@ -7,6 +7,6 @@ import (
 
 type Services struct {
 	Config *AppConfig
-	Cache  cache.Protocol
+	Cache  *cache.Cache
 	DB     *db.DB
 }

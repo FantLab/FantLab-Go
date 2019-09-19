@@ -14,13 +14,13 @@ func DetectUser(services *shared.Services) gin.HandlerFunc {
 		sid := ctx.GetHeader(utils.SessionHeader)
 
 		if len(sid) > 0 {
-			uid, err := utils.GetUserIdBySessionFromCache(services.Cache, sid)
+			uid, err := services.Cache.GetUserIdBySession(sid)
 
 			if err != nil || uid == 0 {
 				dbSession, err := services.DB.FetchUserSessionInfo(sid)
 
 				if err == nil {
-					err = utils.PutSessionInCache(services.Cache, sid, dbSession.UserID, dbSession.DateOfCreate)
+					err = services.Cache.PutSession(sid, dbSession.UserID, dbSession.DateOfCreate)
 
 					if err == nil {
 						uid = dbSession.UserID

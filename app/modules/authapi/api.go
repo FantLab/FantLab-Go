@@ -66,7 +66,7 @@ func (c *Controller) Login(ctx *gin.Context) {
 		return
 	}
 
-	_ = utils.PutSessionInCache(c.services.Cache, sid, uint64(userData.UserID), dateOfCreate)
+	_ = c.services.Cache.PutSession(sid, uint64(userData.UserID), dateOfCreate)
 
 	utils.ShowProto(ctx, http.StatusOK, &pb.Auth_LoginResponse{
 		UserId:       userData.UserID,
@@ -86,7 +86,7 @@ func (c *Controller) Logout(ctx *gin.Context) {
 		return
 	}
 
-	utils.DeleteSessionFromCache(c.services.Cache, sid)
+	_ = c.services.Cache.DeleteSession(sid)
 
 	utils.ShowProto(ctx, http.StatusOK, &pb.Common_SuccessResponse{})
 }

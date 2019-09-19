@@ -2,6 +2,7 @@ package main
 
 import (
 	"database/sql"
+	"fantlab/caches"
 	"fantlab/dbtools/sqldb"
 	"fantlab/dbtools/sqlr"
 	"log"
@@ -28,7 +29,7 @@ func main() {
 
 	services := &shared.Services{
 		Config: makeConfig(os.Getenv("IMAGES_BASE_URL")),
-		Cache:  &cache.MemCache{Client: mc},
+		Cache:  cache.New(caches.NewMemcache(mc)),
 		DB:     db.NewDB(sqlr.Log(sqldb.New(mysql), logger.Sqlr)),
 	}
 
