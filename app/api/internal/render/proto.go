@@ -24,10 +24,6 @@ func writeJSON(w http.ResponseWriter, pb proto.Message) error {
 		OrigName: true,
 	}
 
-	// if isDebug {
-	// 	m.Indent = "  "
-	// }
-
 	return m.Marshal(w, pb)
 }
 
