@@ -2,23 +2,27 @@ package main
 
 import (
 	"database/sql"
+	"fantlab/api"
+	"fantlab/cache"
 	"fantlab/caches"
+	"fantlab/db"
 	"fantlab/dbtools/sqldb"
 	"fantlab/dbtools/sqlr"
-	"log"
-	"os"
-
-	"fantlab/cache"
-	"fantlab/db"
 	"fantlab/logger"
-	"fantlab/routing"
 	"fantlab/shared"
+	"log"
+	"net/http"
+	"os"
 
 	"github.com/bradfitz/gomemcache/memcache"
 	_ "github.com/go-sql-driver/mysql"
 )
 
 func main() {
+	startServer()
+}
+
+func startServer() {
 	mysql, err := sql.Open("mysql", os.Getenv("MYSQL_URL"))
 	if err != nil {
 		log.Fatal(err)
@@ -27,17 +31,16 @@ func main() {
 
 	mc := memcache.New(os.Getenv("MC_ADDRESS"))
 
-	services := &shared.Services{
-		Config: makeConfig(os.Getenv("IMAGES_BASE_URL")),
-		Cache:  cache.New(caches.NewMemcache(mc)),
-		DB:     db.NewDB(sqlr.Log(sqldb.New(mysql), logger.Sqlr)),
-	}
+	services := shared.MakeServices(
+		db.NewDB(sqlr.Log(sqldb.New(mysql), logger.DB)),
+		cache.New(caches.NewMemcache(mc)),
+	)
 
-	router := routing.SetupWith(services)
+	config := makeConfig(os.Getenv("IMAGES_BASE_URL"))
 
-	if err := router.Run(":" + os.Getenv("PORT")); err != nil {
-		log.Fatal(err)
-	}
+	handler := api.MakeRouter(config, services)
+
+	log.Fatal(http.ListenAndServe(":"+os.Getenv("PORT"), handler))
 }
 
 func makeConfig(imagesBaseURL string) *shared.AppConfig {

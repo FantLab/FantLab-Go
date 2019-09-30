@@ -114,7 +114,7 @@ func (db *DB) FetchGenreIds() (*WorkGenresDBResponse, error) {
 	return result, nil
 }
 
-func (db *DB) GenreVote(workId uint64, userId int64, genreIds []int32) error {
+func (db *DB) GenreVote(workId uint64, userId uint64, genreIds []int32) error {
 	// TODO:
 
 	return nil
