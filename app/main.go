@@ -27,7 +27,12 @@ func startServer() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	defer mysql.Close()
+	defer func() {
+		err := mysql.Close()
+		if err != nil {
+			log.Println(err)
+		}
+	}()
 
 	mc := memcache.New(os.Getenv("MC_ADDRESS"))
 
