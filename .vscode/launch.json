@@ -11,7 +11,7 @@
                 "MYSQL_URL": "root:pass@/fantlab?charset=utf8&parseTime=True&loc=Europe%2FMoscow",
                 "MC_ADDRESS": "localhost:11211",
                 "PORT": 4242,
-                "DEBUG": true,
+                "DEBUG": 1,
                 "IMAGES_BASE_URL": "https://data.fantlab.ru/images"
             },
             "args": [],
