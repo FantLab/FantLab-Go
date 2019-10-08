@@ -1,6 +1,7 @@
 package db
 
 import (
+	"context"
 	"testing"
 	"time"
 
@@ -39,7 +40,7 @@ func Test_FetchCommunities(t *testing.T) {
 	t.Run("positive", func(t *testing.T) {
 		db := NewDB(&dbstubs.StubDB{QueryTable: queryTable})
 
-		communities, err := db.FetchCommunities()
+		communities, err := db.FetchCommunities(context.Background())
 
 		tt.Assert(t, err == nil)
 		tt.AssertDeepEqual(t, communities, []Community{
@@ -68,7 +69,7 @@ func Test_FetchCommunities(t *testing.T) {
 
 		db := NewDB(&dbstubs.StubDB{QueryTable: queryTable})
 
-		communities, err := db.FetchCommunities()
+		communities, err := db.FetchCommunities(context.Background())
 
 		tt.Assert(t, len(communities) == 0)
 		tt.Assert(t, err == dbstubs.ErrSome)
@@ -103,7 +104,7 @@ func Test_FetchCommunity(t *testing.T) {
 	t.Run("positive", func(t *testing.T) {
 		db := NewDB(&dbstubs.StubDB{QueryTable: queryTable})
 
-		community, err := db.FetchCommunity(271)
+		community, err := db.FetchCommunity(context.Background(), 271)
 
 		tt.Assert(t, err == nil)
 		tt.AssertDeepEqual(t, community, &Community{
@@ -125,7 +126,7 @@ func Test_FetchCommunity(t *testing.T) {
 	t.Run("negative", func(t *testing.T) {
 		db := NewDB(&dbstubs.StubDB{QueryTable: queryTable})
 
-		community, err := db.FetchCommunity(1)
+		community, err := db.FetchCommunity(context.Background(), 1)
 
 		tt.Assert(t, community == nil)
 		tt.Assert(t, dbtools.IsNotFoundError(err))
@@ -208,7 +209,7 @@ func Test_FetchCommunityTopics(t *testing.T) {
 	t.Run("positive", func(t *testing.T) {
 		db := NewDB(&dbstubs.StubDB{QueryTable: queryTable})
 
-		communityTopicsDbResponse, err := db.FetchCommunityTopics(271, 3, 0)
+		communityTopicsDbResponse, err := db.FetchCommunityTopics(context.Background(), 271, 3, 0)
 
 		tt.Assert(t, err == nil)
 		tt.AssertDeepEqual(t, communityTopicsDbResponse, &CommunityTopicsDBResponse{
@@ -314,7 +315,7 @@ func Test_FetchCommunityTopics(t *testing.T) {
 	t.Run("negative", func(t *testing.T) {
 		db := NewDB(&dbstubs.StubDB{QueryTable: queryTable})
 
-		communityTopicsDbResponse, err := db.FetchCommunityTopics(1, 3, 0)
+		communityTopicsDbResponse, err := db.FetchCommunityTopics(context.Background(), 1, 3, 0)
 
 		tt.Assert(t, communityTopicsDbResponse == nil)
 		tt.Assert(t, dbtools.IsNotFoundError(err))
@@ -327,7 +328,7 @@ func Test_FetchCommunityTopics(t *testing.T) {
 
 		db := NewDB(&dbstubs.StubDB{QueryTable: queryTable})
 
-		communityTopicsDbResponse, err := db.FetchCommunityTopics(271, 3, 0)
+		communityTopicsDbResponse, err := db.FetchCommunityTopics(context.Background(), 271, 3, 0)
 
 		tt.Assert(t, communityTopicsDbResponse == nil)
 		tt.Assert(t, err == dbstubs.ErrSome)
@@ -340,7 +341,7 @@ func Test_FetchCommunityTopics(t *testing.T) {
 
 		db := NewDB(&dbstubs.StubDB{QueryTable: queryTable})
 
-		communityTopicsDbResponse, err := db.FetchCommunityTopics(271, 3, 0)
+		communityTopicsDbResponse, err := db.FetchCommunityTopics(context.Background(), 271, 3, 0)
 
 		tt.Assert(t, communityTopicsDbResponse == nil)
 		tt.Assert(t, err == dbstubs.ErrSome)
@@ -353,7 +354,7 @@ func Test_FetchCommunityTopics(t *testing.T) {
 
 		db := NewDB(&dbstubs.StubDB{QueryTable: queryTable})
 
-		communityTopicsDbResponse, err := db.FetchCommunityTopics(271, 3, 0)
+		communityTopicsDbResponse, err := db.FetchCommunityTopics(context.Background(), 271, 3, 0)
 
 		tt.Assert(t, communityTopicsDbResponse == nil)
 		tt.Assert(t, err == dbstubs.ErrSome)
@@ -366,7 +367,7 @@ func Test_FetchCommunityTopics(t *testing.T) {
 
 		db := NewDB(&dbstubs.StubDB{QueryTable: queryTable})
 
-		communityTopicsDbResponse, err := db.FetchCommunityTopics(271, 3, 0)
+		communityTopicsDbResponse, err := db.FetchCommunityTopics(context.Background(), 271, 3, 0)
 
 		tt.Assert(t, communityTopicsDbResponse == nil)
 		tt.Assert(t, err == dbstubs.ErrSome)
@@ -412,7 +413,7 @@ func Test_FetchBlogs(t *testing.T) {
 	t.Run("positive", func(t *testing.T) {
 		db := NewDB(&dbstubs.StubDB{QueryTable: queryTable})
 
-		blogsDbResponse, err := db.FetchBlogs(5, 0, "subscriber")
+		blogsDbResponse, err := db.FetchBlogs(context.Background(), 5, 0, "subscriber")
 
 		tt.Assert(t, err == nil)
 		tt.AssertDeepEqual(t, blogsDbResponse, &BlogsDBResponse{
@@ -495,7 +496,7 @@ func Test_FetchBlogs(t *testing.T) {
 	t.Run("negative", func(t *testing.T) {
 		db := NewDB(&dbstubs.StubDB{QueryTable: queryTable})
 
-		blogsDbResponse, err := db.FetchBlogs(5, 0, "update")
+		blogsDbResponse, err := db.FetchBlogs(context.Background(), 5, 0, "update")
 
 		tt.Assert(t, blogsDbResponse == nil)
 		tt.Assert(t, dbtools.IsNotFoundError(err))
@@ -508,7 +509,7 @@ func Test_FetchBlogs(t *testing.T) {
 
 		db := NewDB(&dbstubs.StubDB{QueryTable: queryTable})
 
-		blogsDbResponse, err := db.FetchBlogs(5, 0, "subscriber")
+		blogsDbResponse, err := db.FetchBlogs(context.Background(), 5, 0, "subscriber")
 
 		tt.Assert(t, blogsDbResponse == nil)
 		tt.Assert(t, err == dbstubs.ErrSome)
@@ -543,7 +544,7 @@ func Test_FetchBlog(t *testing.T) {
 	t.Run("positive", func(t *testing.T) {
 		db := NewDB(&dbstubs.StubDB{QueryTable: queryTable})
 
-		blog, err := db.FetchBlog(1)
+		blog, err := db.FetchBlog(context.Background(), 1)
 
 		tt.Assert(t, err == nil)
 		tt.AssertDeepEqual(t, blog, &Blog{
@@ -565,7 +566,7 @@ func Test_FetchBlog(t *testing.T) {
 	t.Run("positive", func(t *testing.T) {
 		db := NewDB(&dbstubs.StubDB{QueryTable: queryTable})
 
-		blog, err := db.FetchBlog(2)
+		blog, err := db.FetchBlog(context.Background(), 2)
 
 		tt.Assert(t, blog == nil)
 		tt.Assert(t, dbtools.IsNotFoundError(err))
@@ -612,7 +613,7 @@ func Test_FetchBlogTopics(t *testing.T) {
 	t.Run("positive", func(t *testing.T) {
 		db := NewDB(&dbstubs.StubDB{QueryTable: queryTable})
 
-		blogTopicsDBResponse, err := db.FetchBlogTopics(1, 1, 0)
+		blogTopicsDBResponse, err := db.FetchBlogTopics(context.Background(), 1, 1, 0)
 
 		tt.Assert(t, err == nil)
 		tt.AssertDeepEqual(t, blogTopicsDBResponse, &BlogTopicsDBResponse{
@@ -637,7 +638,7 @@ func Test_FetchBlogTopics(t *testing.T) {
 	t.Run("negative", func(t *testing.T) {
 		db := NewDB(&dbstubs.StubDB{QueryTable: queryTable})
 
-		blogTopicsDBResponse, err := db.FetchBlogTopics(2, 1, 0)
+		blogTopicsDBResponse, err := db.FetchBlogTopics(context.Background(), 2, 1, 0)
 
 		tt.Assert(t, blogTopicsDBResponse == nil)
 		tt.Assert(t, dbtools.IsNotFoundError(err))
@@ -650,7 +651,7 @@ func Test_FetchBlogTopics(t *testing.T) {
 
 		db := NewDB(&dbstubs.StubDB{QueryTable: queryTable})
 
-		blogTopicsDBResponse, err := db.FetchBlogTopics(1, 1, 0)
+		blogTopicsDBResponse, err := db.FetchBlogTopics(context.Background(), 1, 1, 0)
 
 		tt.Assert(t, blogTopicsDBResponse == nil)
 		tt.Assert(t, err == dbstubs.ErrSome)
@@ -663,7 +664,7 @@ func Test_FetchBlogTopics(t *testing.T) {
 
 		db := NewDB(&dbstubs.StubDB{QueryTable: queryTable})
 
-		blogTopicsDBResponse, err := db.FetchBlogTopics(1, 1, 0)
+		blogTopicsDBResponse, err := db.FetchBlogTopics(context.Background(), 1, 1, 0)
 
 		tt.Assert(t, blogTopicsDBResponse == nil)
 		tt.Assert(t, err == dbstubs.ErrSome)
@@ -696,7 +697,7 @@ func Test_FetchBlogTopic(t *testing.T) {
 	t.Run("positive", func(t *testing.T) {
 		db := NewDB(&dbstubs.StubDB{QueryTable: queryTable})
 
-		blogTopic, err := db.FetchBlogTopic(52)
+		blogTopic, err := db.FetchBlogTopic(context.Background(), 52)
 
 		tt.Assert(t, err == nil)
 		tt.AssertDeepEqual(t, blogTopic, &BlogTopic{
@@ -716,7 +717,7 @@ func Test_FetchBlogTopic(t *testing.T) {
 	t.Run("negative", func(t *testing.T) {
 		db := NewDB(&dbstubs.StubDB{QueryTable: queryTable})
 
-		blogTopic, err := db.FetchBlogTopic(1)
+		blogTopic, err := db.FetchBlogTopic(context.Background(), 1)
 
 		tt.Assert(t, blogTopic == nil)
 		tt.Assert(t, dbtools.IsNotFoundError(err))

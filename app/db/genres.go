@@ -1,6 +1,7 @@
 package db
 
 import (
+	"context"
 	"fantlab/dbtools/sqlr"
 )
 
@@ -64,10 +65,10 @@ var (
 	`)
 )
 
-func (db *DB) FetchGenres() (*WorkGenresDBResponse, error) {
+func (db *DB) FetchGenres(ctx context.Context) (*WorkGenresDBResponse, error) {
 	var genres []WorkGenre
 
-	err := db.engine.Read(fetchGenresQuery).Scan(&genres)
+	err := db.engine.Read(ctx, fetchGenresQuery).Scan(&genres)
 
 	if err != nil {
 		return nil, err
@@ -75,7 +76,7 @@ func (db *DB) FetchGenres() (*WorkGenresDBResponse, error) {
 
 	var genreGroups []WorkGenreGroup
 
-	err = db.engine.Read(fetchGenreGroupsQuery).Scan(&genreGroups)
+	err = db.engine.Read(ctx, fetchGenreGroupsQuery).Scan(&genreGroups)
 
 	if err != nil {
 		return nil, err
@@ -89,10 +90,10 @@ func (db *DB) FetchGenres() (*WorkGenresDBResponse, error) {
 	return result, nil
 }
 
-func (db *DB) FetchGenreIds() (*WorkGenresDBResponse, error) {
+func (db *DB) FetchGenreIds(ctx context.Context) (*WorkGenresDBResponse, error) {
 	var genres []WorkGenre
 
-	err := db.engine.Read(fetchGenreIdsQuery).Scan(&genres)
+	err := db.engine.Read(ctx, fetchGenreIdsQuery).Scan(&genres)
 
 	if err != nil {
 		return nil, err
@@ -100,7 +101,7 @@ func (db *DB) FetchGenreIds() (*WorkGenresDBResponse, error) {
 
 	var genreGroups []WorkGenreGroup
 
-	err = db.engine.Read(fetchGenreGroupIdsQuery).Scan(&genreGroups)
+	err = db.engine.Read(ctx, fetchGenreGroupIdsQuery).Scan(&genreGroups)
 
 	if err != nil {
 		return nil, err
@@ -114,7 +115,7 @@ func (db *DB) FetchGenreIds() (*WorkGenresDBResponse, error) {
 	return result, nil
 }
 
-func (db *DB) GenreVote(workId uint64, userId uint64, genreIds []int32) error {
+func (db *DB) GenreVote(ctx context.Context, workId uint64, userId uint64, genreIds []int32) error {
 	// TODO:
 
 	return nil

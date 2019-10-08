@@ -1,6 +1,7 @@
 package db
 
 import (
+	"context"
 	"fantlab/dbtools/dbstubs"
 	"fantlab/dbtools/scanr"
 	"fantlab/tt"
@@ -39,7 +40,7 @@ func Test_FetchGenres(t *testing.T) {
 	db := NewDB(&dbstubs.StubDB{QueryTable: queryTable})
 
 	t.Run("positive", func(t *testing.T) {
-		response, err := db.FetchGenres()
+		response, err := db.FetchGenres(context.Background())
 
 		tt.Assert(t, err == nil)
 		tt.AssertDeepEqual(t, response, &WorkGenresDBResponse{

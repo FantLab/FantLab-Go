@@ -1,5 +1,9 @@
 package sqlr
 
+import (
+	"context"
+)
+
 type Result struct {
 	Rows  int64
 	Error error
@@ -11,11 +15,11 @@ type Rows interface {
 }
 
 type Reader interface {
-	Read(q Query) Rows
+	Read(ctx context.Context, q Query) Rows
 }
 
 type Writer interface {
-	Write(q Query) Result
+	Write(ctx context.Context, q Query) Result
 }
 
 type ReaderWriter interface {

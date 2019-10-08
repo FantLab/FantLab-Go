@@ -1,6 +1,7 @@
 package dbstubs
 
 import (
+	"context"
 	"errors"
 	"fantlab/dbtools/scanr"
 	"fantlab/dbtools/sqlr"
@@ -21,11 +22,11 @@ func (db *StubDB) InTransaction(perform func(sqlr.ReaderWriter) error) error {
 	return perform(db)
 }
 
-func (db *StubDB) Write(q sqlr.Query) sqlr.Result {
+func (db *StubDB) Write(ctx context.Context, q sqlr.Query) sqlr.Result {
 	return db.ExecTable[q.String()]
 }
 
-func (db *StubDB) Read(q sqlr.Query) sqlr.Rows {
+func (db *StubDB) Read(ctx context.Context, q sqlr.Query) sqlr.Rows {
 	rows := db.QueryTable[q.String()]
 
 	if rows != nil {

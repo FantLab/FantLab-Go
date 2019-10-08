@@ -27,7 +27,7 @@ func (api *API) SetWorkGenres(r *http.Request) (int, proto.Message) {
 
 	// проверяем что ворк существует
 
-	_, err = api.services.DB().WorkExists(workId)
+	_, err = api.services.DB().WorkExists(r.Context(), workId)
 
 	{
 		if dbtools.IsNotFoundError(err) {
@@ -57,7 +57,7 @@ func (api *API) SetWorkGenres(r *http.Request) (int, proto.Message) {
 
 	// получаем все жанры из базы
 
-	dbResponse, err := api.services.DB().FetchGenreIds()
+	dbResponse, err := api.services.DB().FetchGenreIds(r.Context(), )
 
 	if err != nil {
 		return http.StatusInternalServerError, &pb.Error_Response{
@@ -86,7 +86,7 @@ func (api *API) SetWorkGenres(r *http.Request) (int, proto.Message) {
 
 	// сохраняем выбор в базе
 
-	err = api.services.DB().GenreVote(workId, userId, genreIdsWithParents)
+	err = api.services.DB().GenreVote(r.Context(), workId, userId, genreIdsWithParents)
 
 	if err != nil {
 		return http.StatusInternalServerError, &pb.Error_Response{

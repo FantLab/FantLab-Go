@@ -9,7 +9,7 @@ import (
 )
 
 func (api *API) ShowGenres(r *http.Request) (int, proto.Message) {
-	dbResponse, err := api.services.DB().FetchGenres()
+	dbResponse, err := api.services.DB().FetchGenres(r.Context())
 
 	if err != nil {
 		return http.StatusInternalServerError, &pb.Error_Response{

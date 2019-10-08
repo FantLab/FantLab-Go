@@ -1,6 +1,7 @@
 package db
 
 import (
+	"context"
 	"fantlab/dbtools/sqlr"
 	"time"
 )
@@ -222,10 +223,10 @@ var (
 	`)
 )
 
-func (db *DB) FetchForums(availableForums []uint16) ([]Forum, error) {
+func (db *DB) FetchForums(ctx context.Context, availableForums []uint16) ([]Forum, error) {
 	var forums []Forum
 
-	err := db.engine.Read(fetchForumsQuery.WithArgs(availableForums).Rebind()).Scan(&forums)
+	err := db.engine.Read(ctx, fetchForumsQuery.WithArgs(availableForums).Rebind()).Scan(&forums)
 
 	if err != nil {
 		return nil, err
@@ -234,10 +235,10 @@ func (db *DB) FetchForums(availableForums []uint16) ([]Forum, error) {
 	return forums, nil
 }
 
-func (db *DB) FetchModerators() (map[uint32][]ForumModerator, error) {
+func (db *DB) FetchModerators(ctx context.Context) (map[uint32][]ForumModerator, error) {
 	var moderators []ForumModerator
 
-	err := db.engine.Read(fetchModeratorsQuery).Scan(&moderators)
+	err := db.engine.Read(ctx, fetchModeratorsQuery).Scan(&moderators)
 
 	if err != nil {
 		return nil, err
@@ -252,10 +253,10 @@ func (db *DB) FetchModerators() (map[uint32][]ForumModerator, error) {
 	return moderatorsMap, nil
 }
 
-func (db *DB) FetchForumTopics(availableForums []uint16, forumID uint16, limit, offset uint32) (*ForumTopicsDBResponse, error) {
+func (db *DB) FetchForumTopics(ctx context.Context, availableForums []uint16, forumID uint16, limit, offset uint32) (*ForumTopicsDBResponse, error) {
 	var forumExists uint8
 
-	err := db.engine.Read(forumExistsQuery.WithArgs(forumID, availableForums).Rebind()).Scan(&forumExists)
+	err := db.engine.Read(ctx, forumExistsQuery.WithArgs(forumID, availableForums).Rebind()).Scan(&forumExists)
 
 	if err != nil {
 		return nil, err
@@ -263,7 +264,7 @@ func (db *DB) FetchForumTopics(availableForums []uint16, forumID uint16, limit, 
 
 	var topics []ForumTopic
 
-	err = db.engine.Read(fetchTopicsQuery.WithArgs(forumID, limit, offset)).Scan(&topics)
+	err = db.engine.Read(ctx, fetchTopicsQuery.WithArgs(forumID, limit, offset)).Scan(&topics)
 
 	if err != nil {
 		return nil, err
@@ -271,7 +272,7 @@ func (db *DB) FetchForumTopics(availableForums []uint16, forumID uint16, limit, 
 
 	var count uint32
 
-	err = db.engine.Read(topicsCountQuery.WithArgs(forumID)).Scan(&count)
+	err = db.engine.Read(ctx, topicsCountQuery.WithArgs(forumID)).Scan(&count)
 
 	if err != nil {
 		return nil, err
@@ -285,10 +286,10 @@ func (db *DB) FetchForumTopics(availableForums []uint16, forumID uint16, limit, 
 	return result, nil
 }
 
-func (db *DB) FetchTopicMessages(availableForums []uint16, topicID, limit, offset uint32, sortDirection string) (*ForumTopicMessagesDBResponse, error) {
+func (db *DB) FetchTopicMessages(ctx context.Context, availableForums []uint16, topicID, limit, offset uint32, sortDirection string) (*ForumTopicMessagesDBResponse, error) {
 	var shortTopic ShortForumTopic
 
-	err := db.engine.Read(shortTopicQuery.WithArgs(topicID, availableForums).Rebind()).Scan(&shortTopic)
+	err := db.engine.Read(ctx, shortTopicQuery.WithArgs(topicID, availableForums).Rebind()).Scan(&shortTopic)
 
 	if err != nil {
 		return nil, err
@@ -296,7 +297,7 @@ func (db *DB) FetchTopicMessages(availableForums []uint16, topicID, limit, offse
 
 	var count uint32
 
-	err = db.engine.Read(topicMessagesCountQuery.WithArgs(topicID)).Scan(&count)
+	err = db.engine.Read(ctx, topicMessagesCountQuery.WithArgs(topicID)).Scan(&count)
 
 	if err != nil {
 		return nil, err
@@ -309,7 +310,7 @@ func (db *DB) FetchTopicMessages(availableForums []uint16, topicID, limit, offse
 
 	var messages []ForumMessage
 
-	err = db.engine.Read(fetchTopicMessagesQuery.Format(sortDirection).WithArgs(topicID, finalOffset+1, finalOffset+int32(limit))).Scan(&messages)
+	err = db.engine.Read(ctx, fetchTopicMessagesQuery.Format(sortDirection).WithArgs(topicID, finalOffset+1, finalOffset+int32(limit))).Scan(&messages)
 
 	if err != nil {
 		return nil, err

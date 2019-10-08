@@ -1,6 +1,7 @@
 package db
 
 import (
+	"context"
 	"database/sql"
 	"time"
 
@@ -52,10 +53,10 @@ var (
 	`)
 )
 
-func (db *DB) FetchBlogSubscribed(blogId, userId uint32) (bool, error) {
+func (db *DB) FetchBlogSubscribed(ctx context.Context, blogId, userId uint32) (bool, error) {
 	var blogSubscriptionExists uint8
 
-	err := db.engine.Read(blogSubscriptionExistsQuery.WithArgs(blogId, userId)).Scan(&blogSubscriptionExists)
+	err := db.engine.Read(ctx, blogSubscriptionExistsQuery.WithArgs(blogId, userId)).Scan(&blogSubscriptionExists)
 
 	if err != nil {
 		if err == sql.ErrNoRows {
@@ -67,11 +68,11 @@ func (db *DB) FetchBlogSubscribed(blogId, userId uint32) (bool, error) {
 	return true, nil
 }
 
-func (db *DB) UpdateBlogSubscribed(blogId, userId uint32) (bool, error) {
+func (db *DB) UpdateBlogSubscribed(ctx context.Context, blogId, userId uint32) (bool, error) {
 	var ok bool
 
 	err := db.engine.InTransaction(func(rw sqlr.ReaderWriter) error {
-		result := rw.Write(blogSubscriptionInsert.WithArgs(userId, blogId, time.Now()))
+		result := rw.Write(ctx, blogSubscriptionInsert.WithArgs(userId, blogId, time.Now()))
 
 		if result.Error != nil {
 			return result.Error
@@ -79,17 +80,17 @@ func (db *DB) UpdateBlogSubscribed(blogId, userId uint32) (bool, error) {
 
 		ok = result.Rows == 1
 
-		return updateBlogSubscriberCount(rw, blogId)
+		return rw.Write(ctx, blogSubscriberUpdate.WithArgs(blogId)).Error
 	})
 
 	return ok, err
 }
 
-func (db *DB) UpdateBlogUnsubscribed(blogId, userId uint32) (bool, error) {
+func (db *DB) UpdateBlogUnsubscribed(ctx context.Context, blogId, userId uint32) (bool, error) {
 	var ok bool
 
 	err := db.engine.InTransaction(func(rw sqlr.ReaderWriter) error {
-		result := rw.Write(blogSubscriptionDelete.WithArgs(blogId, userId))
+		result := rw.Write(ctx, blogSubscriptionDelete.WithArgs(blogId, userId))
 
 		if result.Error != nil {
 			return result.Error
@@ -97,20 +98,16 @@ func (db *DB) UpdateBlogUnsubscribed(blogId, userId uint32) (bool, error) {
 
 		ok = result.Rows == 1
 
-		return updateBlogSubscriberCount(rw, blogId)
+		return rw.Write(ctx, blogSubscriberUpdate.WithArgs(blogId)).Error
 	})
 
 	return ok, err
 }
 
-func updateBlogSubscriberCount(rw sqlr.ReaderWriter, blogId uint32) error {
-	return rw.Write(blogSubscriberUpdate.WithArgs(blogId)).Error
-}
-
-func (db *DB) FetchBlogTopicSubscribed(topicId, userId uint32) (bool, error) {
+func (db *DB) FetchBlogTopicSubscribed(ctx context.Context, topicId, userId uint32) (bool, error) {
 	var topicSubscriptionExists uint8
 
-	err := db.engine.Read(topicSubscriptionExistsQuery.WithArgs(topicId, userId)).Scan(&topicSubscriptionExists)
+	err := db.engine.Read(ctx, topicSubscriptionExistsQuery.WithArgs(topicId, userId)).Scan(&topicSubscriptionExists)
 
 	if err != nil {
 		if err == sql.ErrNoRows {
@@ -122,10 +119,10 @@ func (db *DB) FetchBlogTopicSubscribed(topicId, userId uint32) (bool, error) {
 	return true, nil
 }
 
-func (db *DB) UpdateBlogTopicSubscribed(topicId, userId uint32) (bool, error) {
+func (db *DB) UpdateBlogTopicSubscribed(ctx context.Context, topicId, userId uint32) (bool, error) {
 	var ok bool
 
-	result := db.engine.Write(topicSubscriptionInsert.WithArgs(userId, topicId, time.Now()))
+	result := db.engine.Write(ctx, topicSubscriptionInsert.WithArgs(userId, topicId, time.Now()))
 
 	if result.Error != nil {
 		return false, result.Error
@@ -136,10 +133,10 @@ func (db *DB) UpdateBlogTopicSubscribed(topicId, userId uint32) (bool, error) {
 	return ok, nil
 }
 
-func (db *DB) UpdateBlogTopicUnsubscribed(topicId, userId uint32) (bool, error) {
+func (db *DB) UpdateBlogTopicUnsubscribed(ctx context.Context, topicId, userId uint32) (bool, error) {
 	var ok bool
 
-	result := db.engine.Write(topicSubscriptionDelete.WithArgs(topicId, userId))
+	result := db.engine.Write(ctx, topicSubscriptionDelete.WithArgs(topicId, userId))
 
 	if result.Error != nil {
 		return false, result.Error

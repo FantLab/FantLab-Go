@@ -1,6 +1,7 @@
 package db
 
 import (
+	"context"
 	"fantlab/dbtools"
 	"fantlab/dbtools/dbstubs"
 	"fantlab/dbtools/scanr"
@@ -21,14 +22,14 @@ func Test_WorkExists(t *testing.T) {
 	db := NewDB(&dbstubs.StubDB{QueryTable: queryTable})
 
 	t.Run("positive", func(t *testing.T) {
-		ok, err := db.WorkExists(1)
+		ok, err := db.WorkExists(context.Background(), 1)
 
 		tt.Assert(t, ok)
 		tt.Assert(t, err == nil)
 	})
 
 	t.Run("negative", func(t *testing.T) {
-		ok, err := db.WorkExists(2)
+		ok, err := db.WorkExists(context.Background(), 2)
 
 		tt.Assert(t, !ok)
 		tt.Assert(t, dbtools.IsNotFoundError(err))

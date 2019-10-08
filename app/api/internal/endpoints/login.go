@@ -14,7 +14,7 @@ func (api *API) Login(r *http.Request) (int, proto.Message) {
 	login := r.PostFormValue("login")
 	password := r.PostFormValue("password")
 
-	userData, err := api.services.DB().FetchUserPasswordHash(login)
+	userData, err := api.services.DB().FetchUserPasswordHash(r.Context(), login)
 
 	if err != nil {
 		if dbtools.IsNotFoundError(err) {
@@ -45,7 +45,7 @@ func (api *API) Login(r *http.Request) (int, proto.Message) {
 
 	dateOfCreate := time.Now()
 
-	ok, err := api.services.DB().InsertNewSession(dateOfCreate, sid, userData.UserID, r.RemoteAddr, r.UserAgent())
+	ok, err := api.services.DB().InsertNewSession(r.Context(), dateOfCreate, sid, userData.UserID, r.RemoteAddr, r.UserAgent())
 
 	if !ok || err != nil {
 		return http.StatusInternalServerError, &pb.Error_Response{

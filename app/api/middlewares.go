@@ -20,7 +20,7 @@ func (m *middlewares) getUserId(r *http.Request) uint64 {
 
 // *******************************************************
 
-func (m *middlewares) getUserIdFromSession(sid string) uint64 {
+func (m *middlewares) getUserIdFromSession(ctx context.Context, sid string) uint64 {
 	if len(sid) == 0 {
 		return 0
 	}
@@ -31,7 +31,7 @@ func (m *middlewares) getUserIdFromSession(sid string) uint64 {
 		return uid
 	}
 
-	dbSession, _ := m.services.DB().FetchUserSessionInfo(sid)
+	dbSession, _ := m.services.DB().FetchUserSessionInfo(ctx, sid)
 
 	if dbSession.UserID > 0 {
 		_ = m.services.Cache().PutSession(sid, dbSession.UserID, dbSession.DateOfCreate)
@@ -45,7 +45,7 @@ func (m *middlewares) getUserIdFromSession(sid string) uint64 {
 func (m *middlewares) detectUser(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		sid := r.Header.Get(consts.SessionHeader)
-		uid := m.getUserIdFromSession(sid)
+		uid := m.getUserIdFromSession(r.Context(), sid)
 		ctx := context.WithValue(r.Context(), consts.UserKey, uid)
 		next.ServeHTTP(w, r.WithContext(ctx))
 	})

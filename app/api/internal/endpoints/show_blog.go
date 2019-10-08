@@ -41,7 +41,7 @@ func (api *API) ShowBlog(r *http.Request) (int, proto.Message) {
 
 	offset := limit * (page - 1)
 
-	dbResponse, err := api.services.DB().FetchBlogTopics(uint32(blogID), uint32(limit), uint32(offset))
+	dbResponse, err := api.services.DB().FetchBlogTopics(r.Context(), uint32(blogID), uint32(limit), uint32(offset))
 
 	if err != nil {
 		if dbtools.IsNotFoundError(err) {

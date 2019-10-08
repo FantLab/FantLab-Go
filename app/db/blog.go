@@ -1,6 +1,7 @@
 package db
 
 import (
+	"context"
 	"time"
 
 	"fantlab/dbtools/sqlr"
@@ -335,10 +336,10 @@ var (
 	`)
 )
 
-func (db *DB) FetchCommunities() ([]Community, error) {
+func (db *DB) FetchCommunities(ctx context.Context) ([]Community, error) {
 	var communities []Community
 
-	err := db.engine.Read(communitiesQuery).Scan(&communities)
+	err := db.engine.Read(ctx, communitiesQuery).Scan(&communities)
 
 	if err != nil {
 		return nil, err
@@ -347,10 +348,10 @@ func (db *DB) FetchCommunities() ([]Community, error) {
 	return communities, nil
 }
 
-func (db *DB) FetchCommunity(communityID uint32) (*Community, error) {
+func (db *DB) FetchCommunity(ctx context.Context, communityID uint32) (*Community, error) {
 	var community Community
 
-	err := db.engine.Read(communityQuery.WithArgs(communityID)).Scan(&community)
+	err := db.engine.Read(ctx, communityQuery.WithArgs(communityID)).Scan(&community)
 
 	if err != nil {
 		return nil, err
@@ -359,10 +360,10 @@ func (db *DB) FetchCommunity(communityID uint32) (*Community, error) {
 	return &community, nil
 }
 
-func (db *DB) FetchCommunityTopics(communityID, limit, offset uint32) (*CommunityTopicsDBResponse, error) {
+func (db *DB) FetchCommunityTopics(ctx context.Context, communityID, limit, offset uint32) (*CommunityTopicsDBResponse, error) {
 	var community Community
 
-	err := db.engine.Read(shortCommunityQuery.WithArgs(communityID)).Scan(&community)
+	err := db.engine.Read(ctx, shortCommunityQuery.WithArgs(communityID)).Scan(&community)
 
 	if err != nil {
 		return nil, err
@@ -370,7 +371,7 @@ func (db *DB) FetchCommunityTopics(communityID, limit, offset uint32) (*Communit
 
 	var moderators []CommunityModerator
 
-	err = db.engine.Read(communityModeratorsQuery.WithArgs(communityID)).Scan(&moderators)
+	err = db.engine.Read(ctx, communityModeratorsQuery.WithArgs(communityID)).Scan(&moderators)
 
 	if err != nil {
 		return nil, err
@@ -378,7 +379,7 @@ func (db *DB) FetchCommunityTopics(communityID, limit, offset uint32) (*Communit
 
 	var authors []CommunityAuthor
 
-	err = db.engine.Read(communityAuthorsQuery.WithArgs(communityID)).Scan(&authors)
+	err = db.engine.Read(ctx, communityAuthorsQuery.WithArgs(communityID)).Scan(&authors)
 
 	if err != nil {
 		return nil, err
@@ -386,7 +387,7 @@ func (db *DB) FetchCommunityTopics(communityID, limit, offset uint32) (*Communit
 
 	var topics []BlogTopic
 
-	err = db.engine.Read(communityTopicsQuery.WithArgs(communityID)).Scan(&topics)
+	err = db.engine.Read(ctx, communityTopicsQuery.WithArgs(communityID)).Scan(&topics)
 
 	if err != nil {
 		return nil, err
@@ -394,7 +395,7 @@ func (db *DB) FetchCommunityTopics(communityID, limit, offset uint32) (*Communit
 
 	var count uint32
 
-	err = db.engine.Read(communityTopicCountQuery.WithArgs(communityID)).Scan(&count)
+	err = db.engine.Read(ctx, communityTopicCountQuery.WithArgs(communityID)).Scan(&count)
 
 	if err != nil {
 		return nil, err
@@ -411,7 +412,7 @@ func (db *DB) FetchCommunityTopics(communityID, limit, offset uint32) (*Communit
 	return result, nil
 }
 
-func (db *DB) FetchBlogs(limit, offset uint32, sort string) (*BlogsDBResponse, error) {
+func (db *DB) FetchBlogs(ctx context.Context, limit, offset uint32, sort string) (*BlogsDBResponse, error) {
 	var sortOption string
 	switch sort {
 	case "article":
@@ -424,7 +425,7 @@ func (db *DB) FetchBlogs(limit, offset uint32, sort string) (*BlogsDBResponse, e
 
 	var blogs []Blog
 
-	err := db.engine.Read(blogsQuery.Format(sortOption).WithArgs(limit, offset)).Scan(&blogs)
+	err := db.engine.Read(ctx, blogsQuery.Format(sortOption).WithArgs(limit, offset)).Scan(&blogs)
 
 	if err != nil {
 		return nil, err
@@ -432,7 +433,7 @@ func (db *DB) FetchBlogs(limit, offset uint32, sort string) (*BlogsDBResponse, e
 
 	var count uint32
 
-	err = db.engine.Read(blogCountQuery).Scan(&count)
+	err = db.engine.Read(ctx, blogCountQuery).Scan(&count)
 
 	if err != nil {
 		return nil, err
@@ -446,10 +447,10 @@ func (db *DB) FetchBlogs(limit, offset uint32, sort string) (*BlogsDBResponse, e
 	return result, nil
 }
 
-func (db *DB) FetchBlog(blogId uint32) (*Blog, error) {
+func (db *DB) FetchBlog(ctx context.Context, blogId uint32) (*Blog, error) {
 	var blog Blog
 
-	err := db.engine.Read(blogQuery.WithArgs(blogId)).Scan(&blog)
+	err := db.engine.Read(ctx, blogQuery.WithArgs(blogId)).Scan(&blog)
 
 	if err != nil {
 		return nil, err
@@ -458,10 +459,10 @@ func (db *DB) FetchBlog(blogId uint32) (*Blog, error) {
 	return &blog, nil
 }
 
-func (db *DB) FetchBlogTopics(blogID, limit, offset uint32) (*BlogTopicsDBResponse, error) {
+func (db *DB) FetchBlogTopics(ctx context.Context, blogID, limit, offset uint32) (*BlogTopicsDBResponse, error) {
 	var blogExists uint8
 
-	err := db.engine.Read(blogExistsQuery.WithArgs(blogID)).Scan(&blogExists)
+	err := db.engine.Read(ctx, blogExistsQuery.WithArgs(blogID)).Scan(&blogExists)
 
 	if err != nil {
 		return nil, err
@@ -469,7 +470,7 @@ func (db *DB) FetchBlogTopics(blogID, limit, offset uint32) (*BlogTopicsDBRespon
 
 	var topics []BlogTopic
 
-	err = db.engine.Read(blogTopicsQuery.WithArgs(blogID)).Scan(&topics)
+	err = db.engine.Read(ctx, blogTopicsQuery.WithArgs(blogID)).Scan(&topics)
 
 	if err != nil {
 		return nil, err
@@ -477,7 +478,7 @@ func (db *DB) FetchBlogTopics(blogID, limit, offset uint32) (*BlogTopicsDBRespon
 
 	var count uint32
 
-	err = db.engine.Read(blogTopicCountQuery.WithArgs(blogID)).Scan(&count)
+	err = db.engine.Read(ctx, blogTopicCountQuery.WithArgs(blogID)).Scan(&count)
 
 	if err != nil {
 		return nil, err
@@ -491,10 +492,10 @@ func (db *DB) FetchBlogTopics(blogID, limit, offset uint32) (*BlogTopicsDBRespon
 	return response, nil
 }
 
-func (db *DB) FetchBlogTopic(topicId uint32) (*BlogTopic, error) {
+func (db *DB) FetchBlogTopic(ctx context.Context, topicId uint32) (*BlogTopic, error) {
 	var topic BlogTopic
 
-	err := db.engine.Read(topicQuery.WithArgs(topicId)).Scan(&topic)
+	err := db.engine.Read(ctx, topicQuery.WithArgs(topicId)).Scan(&topic)
 
 	if err != nil {
 		return nil, err

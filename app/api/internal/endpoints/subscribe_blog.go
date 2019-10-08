@@ -21,7 +21,7 @@ func (api *API) SubscribeBlog(r *http.Request) (int, proto.Message) {
 		}
 	}
 
-	dbBlog, err := api.services.DB().FetchBlog(uint32(blogId))
+	dbBlog, err := api.services.DB().FetchBlog(r.Context(), uint32(blogId))
 
 	if err != nil {
 		if dbtools.IsNotFoundError(err) {
@@ -43,7 +43,7 @@ func (api *API) SubscribeBlog(r *http.Request) (int, proto.Message) {
 		}
 	}
 
-	isDbBlogSubscribed, err := api.services.DB().FetchBlogSubscribed(uint32(blogId), uint32(userId))
+	isDbBlogSubscribed, err := api.services.DB().FetchBlogSubscribed(r.Context(), uint32(blogId), uint32(userId))
 
 	if err != nil {
 		return http.StatusInternalServerError, &pb.Error_Response{
@@ -58,7 +58,7 @@ func (api *API) SubscribeBlog(r *http.Request) (int, proto.Message) {
 		}
 	}
 
-	_, err = api.services.DB().UpdateBlogSubscribed(uint32(blogId), uint32(userId))
+	_, err = api.services.DB().UpdateBlogSubscribed(r.Context(), uint32(blogId), uint32(userId))
 
 	if err != nil {
 		return http.StatusInternalServerError, &pb.Error_Response{
