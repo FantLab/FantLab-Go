@@ -38,7 +38,7 @@ func startServer() {
 
 	services := shared.MakeServices(
 		db.NewDB(sqlr.Log(sqldb.New(mysql), logger.DB)),
-		cache.New(caches.NewMemcache(mc)),
+		cache.New(caches.Log("Memcached", caches.NewMemcache(mc), logger.Cache)),
 	)
 
 	config := makeConfig(os.Getenv("IMAGES_BASE_URL"))

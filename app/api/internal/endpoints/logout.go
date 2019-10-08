@@ -18,7 +18,7 @@ func (api *API) Logout(r *http.Request) (int, proto.Message) {
 		}
 	}
 
-	_ = api.services.Cache().DeleteSession(sid)
+	_ = api.services.Cache().DeleteSession(r.Context(), sid)
 
 	return http.StatusOK, &pb.Common_SuccessResponse{}
 }

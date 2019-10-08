@@ -53,7 +53,7 @@ func (api *API) Login(r *http.Request) (int, proto.Message) {
 		}
 	}
 
-	_ = api.services.Cache().PutSession(sid, uint64(userData.UserID), dateOfCreate)
+	_ = api.services.Cache().PutSession(r.Context(), sid, uint64(userData.UserID), dateOfCreate)
 
 	return http.StatusOK, &pb.Auth_LoginResponse{
 		UserId:       userData.UserID,

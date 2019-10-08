@@ -1,6 +1,7 @@
 package caches
 
 import (
+	"context"
 	"time"
 
 	"github.com/bradfitz/gomemcache/memcache"
@@ -14,7 +15,7 @@ func NewMemcache(client *memcache.Client) Protocol {
 	return &Memcache{client: client}
 }
 
-func (mc *Memcache) Set(key string, value string, expiration time.Time) error {
+func (mc *Memcache) Set(ctx context.Context, key string, value string, expiration time.Time) error {
 	return mc.client.Set(&memcache.Item{
 		Key:        key,
 		Value:      []byte(value),
@@ -22,7 +23,7 @@ func (mc *Memcache) Set(key string, value string, expiration time.Time) error {
 	})
 }
 
-func (mc *Memcache) Get(key string) (string, error) {
+func (mc *Memcache) Get(ctx context.Context, key string) (string, error) {
 	item, err := mc.client.Get(key)
 
 	var value string
@@ -34,6 +35,6 @@ func (mc *Memcache) Get(key string) (string, error) {
 	return value, err
 }
 
-func (mc *Memcache) Delete(key string) error {
+func (mc *Memcache) Delete(ctx context.Context, key string) error {
 	return mc.client.Delete(key)
 }

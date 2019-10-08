@@ -1,7 +1,7 @@
 package endpoints
 
 import (
-	"fantlab/api/internal/consts"
+	"fantlab/keys"
 	"fantlab/shared"
 	"net/http"
 	"strconv"
@@ -22,11 +22,11 @@ func MakeAPI(config *shared.AppConfig, services *shared.Services) *API {
 // *******************************************************
 
 func (api *API) getSession(r *http.Request) string {
-	return r.Header.Get(consts.SessionHeader)
+	return r.Header.Get(keys.SessionIdHeader)
 }
 
 func (api *API) getUserId(r *http.Request) uint64 {
-	return r.Context().Value(consts.UserKey).(uint64)
+	return r.Context().Value(keys.UserIdCtxKey).(uint64)
 }
 
 func (api *API) generateSessionId() string {

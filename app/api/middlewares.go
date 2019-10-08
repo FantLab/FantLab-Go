@@ -2,7 +2,7 @@ package api
 
 import (
 	"context"
-	"fantlab/api/internal/consts"
+	"fantlab/keys"
 	"fantlab/pb"
 	"fantlab/shared"
 	"net/http"
@@ -15,7 +15,7 @@ type middlewares struct {
 }
 
 func (m *middlewares) getUserId(r *http.Request) uint64 {
-	return r.Context().Value(consts.UserKey).(uint64)
+	return r.Context().Value(keys.UserIdCtxKey).(uint64)
 }
 
 // *******************************************************
@@ -25,7 +25,7 @@ func (m *middlewares) getUserIdFromSession(ctx context.Context, sid string) uint
 		return 0
 	}
 
-	uid, _ := m.services.Cache().GetUserIdBySession(sid)
+	uid, _ := m.services.Cache().GetUserIdBySession(ctx, sid)
 
 	if uid > 0 {
 		return uid
@@ -34,7 +34,7 @@ func (m *middlewares) getUserIdFromSession(ctx context.Context, sid string) uint
 	dbSession, _ := m.services.DB().FetchUserSessionInfo(ctx, sid)
 
 	if dbSession.UserID > 0 {
-		_ = m.services.Cache().PutSession(sid, dbSession.UserID, dbSession.DateOfCreate)
+		_ = m.services.Cache().PutSession(ctx, sid, dbSession.UserID, dbSession.DateOfCreate)
 
 		return dbSession.UserID
 	}
@@ -44,9 +44,9 @@ func (m *middlewares) getUserIdFromSession(ctx context.Context, sid string) uint
 
 func (m *middlewares) detectUser(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		sid := r.Header.Get(consts.SessionHeader)
+		sid := r.Header.Get(keys.SessionIdHeader)
 		uid := m.getUserIdFromSession(r.Context(), sid)
-		ctx := context.WithValue(r.Context(), consts.UserKey, uid)
+		ctx := context.WithValue(r.Context(), keys.UserIdCtxKey, uid)
 		next.ServeHTTP(w, r.WithContext(ctx))
 	})
 }
