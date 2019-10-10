@@ -1,6 +1,7 @@
 package sqldb
 
 import (
+	"context"
 	"database/sql"
 	"fantlab/dbtools/sqlr"
 )
@@ -32,27 +33,27 @@ func (db sqlDB) InTransaction(perform func(sqlr.ReaderWriter) error) error {
 	return err
 }
 
-func (db sqlDB) Write(q sqlr.Query) sqlr.Result {
-	return readerWriter{db.sql}.Write(q)
+func (db sqlDB) Write(ctx context.Context, q sqlr.Query) sqlr.Result {
+	return readerWriter{db.sql}.Write(ctx, q)
 }
 
-func (db sqlDB) Read(q sqlr.Query) sqlr.Rows {
-	return readerWriter{db.sql}.Read(q)
+func (db sqlDB) Read(ctx context.Context, q sqlr.Query) sqlr.Rows {
+	return readerWriter{db.sql}.Read(ctx, q)
 }
 
 // *******************************************************
 
 type sqlReaderWriter interface {
-	Exec(query string, args ...interface{}) (sql.Result, error)
-	Query(query string, args ...interface{}) (*sql.Rows, error)
+	ExecContext(ctx context.Context, query string, args ...interface{}) (sql.Result, error)
+	QueryContext(ctx context.Context, query string, args ...interface{}) (*sql.Rows, error)
 }
 
 type readerWriter struct {
 	sql sqlReaderWriter
 }
 
-func (rw readerWriter) Write(q sqlr.Query) sqlr.Result {
-	r, err := rw.sql.Exec(q.Text(), q.Args()...)
+func (rw readerWriter) Write(ctx context.Context, q sqlr.Query) sqlr.Result {
+	r, err := rw.sql.ExecContext(ctx, q.Text(), q.Args()...)
 
 	n, _ := r.RowsAffected()
 
@@ -62,8 +63,8 @@ func (rw readerWriter) Write(q sqlr.Query) sqlr.Result {
 	}
 }
 
-func (rw readerWriter) Read(q sqlr.Query) sqlr.Rows {
-	r, err := rw.sql.Query(q.Text(), q.Args()...)
+func (rw readerWriter) Read(ctx context.Context, q sqlr.Query) sqlr.Rows {
+	r, err := rw.sql.QueryContext(ctx, q.Text(), q.Args()...)
 
 	return sqlRows{
 		data:           r,

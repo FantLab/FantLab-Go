@@ -1,8 +1,19 @@
 package sqlr
 
-import "time"
+import (
+	"context"
+	"time"
+)
 
-type LogFunc func(query string, rows int64, time time.Time, duration time.Duration)
+type LogEntry struct {
+	Query    string
+	Rows     int64
+	Err      error
+	Time     time.Time
+	Duration time.Duration
+}
+
+type LogFunc func(context.Context, LogEntry)
 
 func Log(db DB, f LogFunc) DB {
 	return &logDB{db: db, f: f}
@@ -15,12 +26,12 @@ type logDB struct {
 	f  LogFunc
 }
 
-func (l logDB) Write(q Query) Result {
-	return logRW{rw: l.db, f: l.f}.Write(q)
+func (l logDB) Write(ctx context.Context, q Query) Result {
+	return logRW{rw: l.db, f: l.f}.Write(ctx, q)
 }
 
-func (l logDB) Read(q Query) Rows {
-	return logRW{rw: l.db, f: l.f}.Read(q)
+func (l logDB) Read(ctx context.Context, q Query) Rows {
+	return logRW{rw: l.db, f: l.f}.Read(ctx, q)
 }
 
 func (l logDB) InTransaction(perform func(ReaderWriter) error) error {
@@ -36,16 +47,28 @@ type logRW struct {
 	f  LogFunc
 }
 
-func (l logRW) Write(q Query) Result {
+func (l logRW) Write(ctx context.Context, q Query) Result {
 	t := time.Now()
-	result := l.rw.Write(q)
-	l.f(q.String(), result.Rows, t, time.Since(t))
+	result := l.rw.Write(ctx, q)
+	l.f(ctx, LogEntry{
+		Query:    q.String(),
+		Rows:     result.Rows,
+		Err:      result.Error,
+		Time:     t,
+		Duration: time.Since(t),
+	})
 	return result
 }
 
-func (l logRW) Read(q Query) Rows {
+func (l logRW) Read(ctx context.Context, q Query) Rows {
 	t := time.Now()
-	rows := l.rw.Read(q)
-	l.f(q.String(), -1, t, time.Since(t))
+	rows := l.rw.Read(ctx, q)
+	l.f(ctx, LogEntry{
+		Query:    q.String(),
+		Rows:     -1,
+		Err:      rows.Error(),
+		Time:     t,
+		Duration: time.Since(t),
+	})
 	return rows
 }

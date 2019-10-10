@@ -1,6 +1,7 @@
 package db
 
 import (
+	"context"
 	"fantlab/dbtools/sqlr"
 	"time"
 )
@@ -28,26 +29,26 @@ var (
 	deleteSessionQuery         = sqlr.NewQuery("DELETE FROM " + sessionsTable + " WHERE code = ?")
 )
 
-func (db *DB) FetchUserSessionInfo(sid string) (UserSessionInfo, error) {
+func (db *DB) FetchUserSessionInfo(ctx context.Context, sid string) (UserSessionInfo, error) {
 	var info UserSessionInfo
-	err := db.engine.Read(fetchUserSessionInfoQuery.WithArgs(sid)).Scan(&info)
+	err := db.engine.Read(ctx, fetchUserSessionInfoQuery.WithArgs(sid)).Scan(&info)
 	return info, err
 }
 
-func (db *DB) FetchUserPasswordHash(login string) (UserPasswordHash, error) {
+func (db *DB) FetchUserPasswordHash(ctx context.Context, login string) (UserPasswordHash, error) {
 	var data UserPasswordHash
-	err := db.engine.Read(fetchUserPasswordHashQuery.WithArgs(login)).Scan(&data)
+	err := db.engine.Read(ctx, fetchUserPasswordHashQuery.WithArgs(login)).Scan(&data)
 	return data, err
 }
 
-func (db *DB) InsertNewSession(t time.Time, code string, userID uint32, userIP string, userAgent string) (bool, error) {
-	result := db.engine.Write(insertNewSessionQuery.WithArgs(code, userID, userIP, userAgent, t, t, 0))
+func (db *DB) InsertNewSession(ctx context.Context, t time.Time, code string, userID uint32, userIP string, userAgent string) (bool, error) {
+	result := db.engine.Write(ctx, insertNewSessionQuery.WithArgs(code, userID, userIP, userAgent, t, t, 0))
 
 	return result.Rows == 1, result.Error
 }
 
-func (db *DB) DeleteSession(code string) (bool, error) {
-	result := db.engine.Write(deleteSessionQuery.WithArgs(code))
+func (db *DB) DeleteSession(ctx context.Context, code string) (bool, error) {
+	result := db.engine.Write(ctx, deleteSessionQuery.WithArgs(code))
 
 	return result.Rows > 0, result.Error
 }

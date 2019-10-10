@@ -1,9 +1,12 @@
 package caches
 
-import "time"
+import (
+	"context"
+	"time"
+)
 
 type Protocol interface {
-	Set(key string, value string, expiration time.Time) error
-	Get(key string) (string, error)
-	Delete(key string) error
+	Set(ctx context.Context, key string, value string, expiration time.Time) error
+	Get(ctx context.Context, key string) (string, error)
+	Delete(ctx context.Context, key string) error
 }

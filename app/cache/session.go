@@ -1,6 +1,7 @@
 package cache
 
 import (
+	"context"
 	"errors"
 	"strconv"
 	"time"
@@ -15,8 +16,8 @@ func sessionCacheKey(sid string) string {
 	return "sessions:code=" + sid
 }
 
-func (c *Cache) GetUserIdBySession(sid string) (uint64, error) {
-	value, err := c.memcache.Get(sessionCacheKey(sid))
+func (c *Cache) GetUserIdBySession(ctx context.Context, sid string) (uint64, error) {
+	value, err := c.memcache.Get(ctx, sessionCacheKey(sid))
 
 	if err != nil {
 		return 0, err
@@ -25,11 +26,11 @@ func (c *Cache) GetUserIdBySession(sid string) (uint64, error) {
 	return strconv.ParseUint(value, 10, 32)
 }
 
-func (c *Cache) DeleteSession(sid string) error {
-	return c.memcache.Delete(sessionCacheKey(sid))
+func (c *Cache) DeleteSession(ctx context.Context, sid string) error {
+	return c.memcache.Delete(ctx, sessionCacheKey(sid))
 }
 
-func (c *Cache) PutSession(sid string, uid uint64, dateOfCreate time.Time) error {
+func (c *Cache) PutSession(ctx context.Context, sid string, uid uint64, dateOfCreate time.Time) error {
 	if uid == 0 {
 		return ErrZeroUser
 	}
@@ -41,6 +42,7 @@ func (c *Cache) PutSession(sid string, uid uint64, dateOfCreate time.Time) error
 	}
 
 	return c.memcache.Set(
+		ctx,
 		sessionCacheKey(sid),
 		strconv.FormatUint(uid, 10),
 		expirationDate,

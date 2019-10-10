@@ -19,7 +19,7 @@ func (api *API) SubscribeArticle(r *http.Request) (int, proto.Message) {
 		}
 	}
 
-	isDbTopicSubscribed, err := api.services.DB().FetchBlogTopicSubscribed(uint32(articleId), uint32(userId))
+	isDbTopicSubscribed, err := api.services.DB().FetchBlogTopicSubscribed(r.Context(), uint32(articleId), uint32(userId))
 
 	if err != nil {
 		return http.StatusInternalServerError, &pb.Error_Response{
@@ -34,7 +34,7 @@ func (api *API) SubscribeArticle(r *http.Request) (int, proto.Message) {
 		}
 	}
 
-	_, err = api.services.DB().UpdateBlogTopicSubscribed(uint32(articleId), uint32(userId))
+	_, err = api.services.DB().UpdateBlogTopicSubscribed(r.Context(), uint32(articleId), uint32(userId))
 
 	if err != nil {
 		return http.StatusInternalServerError, &pb.Error_Response{

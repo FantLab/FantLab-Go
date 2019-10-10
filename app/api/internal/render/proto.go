@@ -28,19 +28,25 @@ func writeJSON(w http.ResponseWriter, pb proto.Message) error {
 }
 
 func Proto(w http.ResponseWriter, r *http.Request, code int, pb proto.Message) {
-	var err error
+	acceptProto := r.Header.Get("Accept") == protoContentType
 
-	if r.Header.Get("Accept") == protoContentType {
+	if acceptProto {
 		w.Header().Set("Content-Type", protoContentType)
-		err = writePB(w, pb)
 	} else {
 		w.Header().Set("Content-Type", "application/json; charset=utf-8")
+	}
+
+	w.WriteHeader(code)
+
+	var err error
+
+	if acceptProto {
+		err = writePB(w, pb)
+	} else {
 		err = writeJSON(w, pb)
 	}
 
-	if err == nil {
-		w.WriteHeader(code)
-	} else {
-		w.WriteHeader(http.StatusInternalServerError)
+	if err != nil {
+		panic(err)
 	}
 }

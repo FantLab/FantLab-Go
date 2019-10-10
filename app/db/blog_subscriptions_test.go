@@ -1,6 +1,7 @@
 package db
 
 import (
+	"context"
 	"database/sql"
 	"testing"
 	"time"
@@ -25,7 +26,7 @@ func Test_FetchBlogSubscribed(t *testing.T) {
 	t.Run("positive", func(t *testing.T) {
 		db := NewDB(&dbstubs.StubDB{QueryTable: queryTable})
 
-		subscribed, err := db.FetchBlogSubscribed(1, 2)
+		subscribed, err := db.FetchBlogSubscribed(context.Background(), 1, 2)
 
 		tt.Assert(t, subscribed)
 		tt.Assert(t, err == nil)
@@ -34,7 +35,7 @@ func Test_FetchBlogSubscribed(t *testing.T) {
 	t.Run("negative", func(t *testing.T) {
 		db := NewDB(&dbstubs.StubDB{QueryTable: queryTable})
 
-		subscribed, err := db.FetchBlogSubscribed(1, 1)
+		subscribed, err := db.FetchBlogSubscribed(context.Background(), 1, 1)
 
 		tt.Assert(t, !subscribed)
 		tt.Assert(t, dbtools.IsNotFoundError(err))
@@ -47,7 +48,7 @@ func Test_FetchBlogSubscribed(t *testing.T) {
 
 		db := NewDB(&dbstubs.StubDB{QueryTable: queryTable})
 
-		subscribed, err := db.FetchBlogSubscribed(1, 2)
+		subscribed, err := db.FetchBlogSubscribed(context.Background(), 1, 2)
 
 		tt.Assert(t, !subscribed)
 		tt.Assert(t, err == nil)
@@ -66,7 +67,7 @@ func Test_UpdateBlogSubscribed(t *testing.T) {
 	t.Run("positive", func(t *testing.T) {
 		db := NewDB(&dbstubs.StubDB{ExecTable: execTable})
 
-		ok, err := db.UpdateBlogSubscribed(1, 2)
+		ok, err := db.UpdateBlogSubscribed(context.Background(), 1, 2)
 
 		tt.Assert(t, ok)
 		tt.Assert(t, err == nil)
@@ -79,7 +80,7 @@ func Test_UpdateBlogSubscribed(t *testing.T) {
 
 		db := NewDB(&dbstubs.StubDB{ExecTable: execTable})
 
-		ok, err := db.UpdateBlogSubscribed(1, 2)
+		ok, err := db.UpdateBlogSubscribed(context.Background(), 1, 2)
 
 		tt.Assert(t, !ok)
 		tt.Assert(t, err == dbstubs.ErrSome)
@@ -96,7 +97,7 @@ func Test_UpdateBlogUnsubscribed(t *testing.T) {
 	t.Run("positive", func(t *testing.T) {
 		db := NewDB(&dbstubs.StubDB{ExecTable: execTable})
 
-		ok, err := db.UpdateBlogUnsubscribed(1, 2)
+		ok, err := db.UpdateBlogUnsubscribed(context.Background(), 1, 2)
 
 		tt.Assert(t, ok)
 		tt.Assert(t, err == nil)
@@ -109,7 +110,7 @@ func Test_UpdateBlogUnsubscribed(t *testing.T) {
 
 		db := NewDB(&dbstubs.StubDB{ExecTable: execTable})
 
-		ok, err := db.UpdateBlogUnsubscribed(1, 2)
+		ok, err := db.UpdateBlogUnsubscribed(context.Background(), 1, 2)
 
 		tt.Assert(t, !ok)
 		tt.Assert(t, err == dbstubs.ErrSome)
@@ -129,7 +130,7 @@ func Test_FetchBlogTopicSubscribed(t *testing.T) {
 	t.Run("positive", func(t *testing.T) {
 		db := NewDB(&dbstubs.StubDB{QueryTable: queryTable})
 
-		subscribed, err := db.FetchBlogTopicSubscribed(1, 2)
+		subscribed, err := db.FetchBlogTopicSubscribed(context.Background(), 1, 2)
 
 		tt.Assert(t, subscribed)
 		tt.Assert(t, err == nil)
@@ -138,7 +139,7 @@ func Test_FetchBlogTopicSubscribed(t *testing.T) {
 	t.Run("negative", func(t *testing.T) {
 		db := NewDB(&dbstubs.StubDB{QueryTable: queryTable})
 
-		subscribed, err := db.FetchBlogTopicSubscribed(1, 1)
+		subscribed, err := db.FetchBlogTopicSubscribed(context.Background(), 1, 1)
 
 		tt.Assert(t, !subscribed)
 		tt.Assert(t, dbtools.IsNotFoundError(err))
@@ -151,7 +152,7 @@ func Test_FetchBlogTopicSubscribed(t *testing.T) {
 
 		db := NewDB(&dbstubs.StubDB{QueryTable: queryTable})
 
-		subscribed, err := db.FetchBlogTopicSubscribed(1, 2)
+		subscribed, err := db.FetchBlogTopicSubscribed(context.Background(), 1, 2)
 
 		tt.Assert(t, !subscribed)
 		tt.Assert(t, err == nil)
@@ -170,7 +171,7 @@ func Test_UpdateBlogTopicSubscribed(t *testing.T) {
 	t.Run("positive", func(t *testing.T) {
 		db := NewDB(&dbstubs.StubDB{ExecTable: execTable})
 
-		ok, err := db.UpdateBlogTopicSubscribed(1, 2)
+		ok, err := db.UpdateBlogTopicSubscribed(context.Background(), 1, 2)
 
 		tt.Assert(t, ok)
 		tt.Assert(t, err == nil)
@@ -183,7 +184,7 @@ func Test_UpdateBlogTopicSubscribed(t *testing.T) {
 
 		db := NewDB(&dbstubs.StubDB{ExecTable: execTable})
 
-		ok, err := db.UpdateBlogTopicSubscribed(1, 2)
+		ok, err := db.UpdateBlogTopicSubscribed(context.Background(), 1, 2)
 
 		tt.Assert(t, !ok)
 		tt.Assert(t, err == dbstubs.ErrSome)
@@ -200,7 +201,7 @@ func Test_UpdateBlogTopicUnsubscribed(t *testing.T) {
 	t.Run("positive", func(t *testing.T) {
 		db := NewDB(&dbstubs.StubDB{ExecTable: execTable})
 
-		ok, err := db.UpdateBlogTopicUnsubscribed(1, 2)
+		ok, err := db.UpdateBlogTopicUnsubscribed(context.Background(), 1, 2)
 
 		tt.Assert(t, ok)
 		tt.Assert(t, err == nil)
@@ -213,7 +214,7 @@ func Test_UpdateBlogTopicUnsubscribed(t *testing.T) {
 
 		db := NewDB(&dbstubs.StubDB{ExecTable: execTable})
 
-		ok, err := db.UpdateBlogTopicUnsubscribed(1, 2)
+		ok, err := db.UpdateBlogTopicUnsubscribed(context.Background(), 1, 2)
 
 		tt.Assert(t, !ok)
 		tt.Assert(t, err == dbstubs.ErrSome)

@@ -1,6 +1,7 @@
 package db
 
 import (
+	"context"
 	"fantlab/dbtools/dbstubs"
 	"fantlab/dbtools/scanr"
 	"fantlab/dbtools/sqlr"
@@ -33,7 +34,7 @@ func Test_LikeDislike(t *testing.T) {
 			}
 		}
 
-		likesCount, err := db.FetchBlogTopicLikeCount(1)
+		likesCount, err := db.FetchBlogTopicLikeCount(context.Background(), 1)
 
 		tt.Assert(t, likesCount == 1)
 		tt.Assert(t, err == nil)
@@ -51,12 +52,12 @@ func Test_LikeDislike(t *testing.T) {
 			}
 		}
 
-		ok, err := db.DislikeBlogTopic(1, 1)
+		ok, err := db.DislikeBlogTopic(context.Background(), 1, 1)
 
 		tt.Assert(t, ok)
 		tt.Assert(t, err == nil)
 
-		likesCount, err = db.FetchBlogTopicLikeCount(1)
+		likesCount, err = db.FetchBlogTopicLikeCount(context.Background(), 1)
 
 		tt.Assert(t, err == nil)
 		tt.Assert(t, likesCount == 0)
@@ -81,17 +82,17 @@ func Test_LikeDislike(t *testing.T) {
 			}
 		}
 
-		ok, err = db.LikeBlogTopic(time.Date(2019, 8, 19, 17, 40, 03, 0, time.UTC), 1, 1)
+		ok, err = db.LikeBlogTopic(context.Background(), time.Date(2019, 8, 19, 17, 40, 03, 0, time.UTC), 1, 1)
 
 		tt.Assert(t, ok)
 		tt.Assert(t, err == nil)
 
-		likesCount, err = db.FetchBlogTopicLikeCount(1)
+		likesCount, err = db.FetchBlogTopicLikeCount(context.Background(), 1)
 
 		tt.Assert(t, err == nil)
 		tt.Assert(t, likesCount == 1)
 
-		isLiked, err := db.IsBlogTopicLiked(1, 1)
+		isLiked, err := db.IsBlogTopicLiked(context.Background(), 1, 1)
 
 		tt.Assert(t, err == nil)
 		tt.Assert(t, isLiked)

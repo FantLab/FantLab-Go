@@ -1,6 +1,7 @@
 package db
 
 import (
+	"context"
 	"fantlab/dbtools/sqlr"
 	"time"
 )
@@ -20,23 +21,23 @@ var (
 	`)
 )
 
-func (db *DB) FetchBlogTopicLikeCount(topicId uint32) (uint32, error) {
+func (db *DB) FetchBlogTopicLikeCount(ctx context.Context, topicId uint32) (uint32, error) {
 	var likeCount uint32
-	err := db.engine.Read(fetchBlogTopicLikeCountQuery.WithArgs(topicId)).Scan(&likeCount)
+	err := db.engine.Read(ctx, fetchBlogTopicLikeCountQuery.WithArgs(topicId)).Scan(&likeCount)
 	return likeCount, err
 }
 
-func (db *DB) IsBlogTopicLiked(topicId, userId uint32) (bool, error) {
+func (db *DB) IsBlogTopicLiked(ctx context.Context, topicId, userId uint32) (bool, error) {
 	var topicLikeExists uint8
-	err := db.engine.Read(isBlogTopicLikedQuery.WithArgs(topicId, userId)).Scan(&topicLikeExists)
+	err := db.engine.Read(ctx, isBlogTopicLikedQuery.WithArgs(topicId, userId)).Scan(&topicLikeExists)
 	return topicLikeExists > 0, err
 }
 
-func (db *DB) LikeBlogTopic(t time.Time, topicId, userId uint32) (bool, error) {
+func (db *DB) LikeBlogTopic(ctx context.Context, t time.Time, topicId, userId uint32) (bool, error) {
 	var ok bool
 
 	err := db.engine.InTransaction(func(rw sqlr.ReaderWriter) error {
-		result := rw.Write(likeBlogTopicQuery.WithArgs(topicId, userId, t))
+		result := rw.Write(ctx, likeBlogTopicQuery.WithArgs(topicId, userId, t))
 
 		if result.Error != nil {
 			return result.Error
@@ -44,17 +45,17 @@ func (db *DB) LikeBlogTopic(t time.Time, topicId, userId uint32) (bool, error) {
 
 		ok = result.Rows == 1
 
-		return rw.Write(updateTopicLikesCountQuery.WithArgs(topicId)).Error
+		return rw.Write(ctx, updateTopicLikesCountQuery.WithArgs(topicId)).Error
 	})
 
 	return ok, err
 }
 
-func (db *DB) DislikeBlogTopic(topicId, userId uint32) (bool, error) {
+func (db *DB) DislikeBlogTopic(ctx context.Context, topicId, userId uint32) (bool, error) {
 	var ok bool
 
 	err := db.engine.InTransaction(func(rw sqlr.ReaderWriter) error {
-		result := rw.Write(dislikeBlogTopicQuery.WithArgs(topicId, userId))
+		result := rw.Write(ctx, dislikeBlogTopicQuery.WithArgs(topicId, userId))
 
 		if result.Error != nil {
 			return result.Error
@@ -62,7 +63,7 @@ func (db *DB) DislikeBlogTopic(topicId, userId uint32) (bool, error) {
 
 		ok = result.Rows == 1
 
-		return rw.Write(updateTopicLikesCountQuery.WithArgs(topicId)).Error
+		return rw.Write(ctx, updateTopicLikesCountQuery.WithArgs(topicId)).Error
 	})
 
 	return ok, err

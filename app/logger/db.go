@@ -1,23 +1,24 @@
 package logger
 
 import (
+	"context"
+	"fantlab/dbtools/sqlr"
 	"fmt"
-	"time"
 )
 
-func DB(query string, rowsAffected int64, time time.Time, duration time.Duration) {
-	if rowsAffected >= 0 {
+func DB(ctx context.Context, entry sqlr.LogEntry) {
+	if entry.Rows >= 0 {
 		fmt.Printf("%s  %s  %s  %s\n",
-			formatTime(time),
-			formatDuration(duration),
-			formatRowsCount(rowsAffected),
-			query,
+			formatTime(entry.Time),
+			formatDuration(entry.Duration),
+			formatRowsCount(entry.Rows),
+			entry.Query,
 		)
 	} else {
 		fmt.Printf("%s  %s  %s\n",
-			formatTime(time),
-			formatDuration(duration),
-			query,
+			formatTime(entry.Time),
+			formatDuration(entry.Duration),
+			entry.Query,
 		)
 	}
 }

@@ -41,7 +41,7 @@ func (api *API) ShowCommunity(r *http.Request) (int, proto.Message) {
 
 	offset := limit * (page - 1)
 
-	dbResponse, err := api.services.DB().FetchCommunityTopics(uint32(communityId), uint32(limit), uint32(offset))
+	dbResponse, err := api.services.DB().FetchCommunityTopics(r.Context(), uint32(communityId), uint32(limit), uint32(offset))
 
 	if err != nil {
 		if dbtools.IsNotFoundError(err) {

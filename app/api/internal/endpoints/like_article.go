@@ -22,7 +22,7 @@ func (api *API) LikeArticle(r *http.Request) (int, proto.Message) {
 		}
 	}
 
-	dbTopic, err := api.services.DB().FetchBlogTopic(uint32(articleId))
+	dbTopic, err := api.services.DB().FetchBlogTopic(r.Context(), uint32(articleId))
 
 	if err != nil {
 		if dbtools.IsNotFoundError(err) {
@@ -44,7 +44,7 @@ func (api *API) LikeArticle(r *http.Request) (int, proto.Message) {
 		}
 	}
 
-	ok, err := api.services.DB().IsBlogTopicLiked(uint32(articleId), uint32(userId))
+	ok, err := api.services.DB().IsBlogTopicLiked(r.Context(), uint32(articleId), uint32(userId))
 
 	if err != nil && !dbtools.IsNotFoundError(err) {
 		return http.StatusInternalServerError, &pb.Error_Response{
@@ -59,7 +59,7 @@ func (api *API) LikeArticle(r *http.Request) (int, proto.Message) {
 		}
 	}
 
-	_, err = api.services.DB().LikeBlogTopic(time.Now(), uint32(articleId), uint32(userId))
+	_, err = api.services.DB().LikeBlogTopic(r.Context(), time.Now(), uint32(articleId), uint32(userId))
 
 	if err != nil {
 		return http.StatusInternalServerError, &pb.Error_Response{
@@ -67,7 +67,7 @@ func (api *API) LikeArticle(r *http.Request) (int, proto.Message) {
 		}
 	}
 
-	dbTopicLikeCount, err := api.services.DB().FetchBlogTopicLikeCount(uint32(articleId))
+	dbTopicLikeCount, err := api.services.DB().FetchBlogTopicLikeCount(r.Context(), uint32(articleId))
 
 	if err != nil {
 		return http.StatusInternalServerError, &pb.Error_Response{

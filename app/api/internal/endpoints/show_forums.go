@@ -9,7 +9,7 @@ import (
 )
 
 func (api *API) ShowForums(r *http.Request) (int, proto.Message) {
-	dbForums, err := api.services.DB().FetchForums(api.config.DefaultAccessToForums)
+	dbForums, err := api.services.DB().FetchForums(r.Context(), api.config.DefaultAccessToForums)
 
 	if err != nil {
 		return http.StatusInternalServerError, &pb.Error_Response{
@@ -17,7 +17,7 @@ func (api *API) ShowForums(r *http.Request) (int, proto.Message) {
 		}
 	}
 
-	dbModerators, err := api.services.DB().FetchModerators()
+	dbModerators, err := api.services.DB().FetchModerators(r.Context(), )
 
 	if err != nil {
 		return http.StatusInternalServerError, &pb.Error_Response{

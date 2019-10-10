@@ -20,7 +20,7 @@ func (api *API) ShowArticle(r *http.Request) (int, proto.Message) {
 		}
 	}
 
-	dbTopic, err := api.services.DB().FetchBlogTopic(uint32(articleId))
+	dbTopic, err := api.services.DB().FetchBlogTopic(r.Context(), uint32(articleId))
 
 	if err != nil {
 		if dbtools.IsNotFoundError(err) {

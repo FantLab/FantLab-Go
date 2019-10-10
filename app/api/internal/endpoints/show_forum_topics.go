@@ -41,7 +41,7 @@ func (api *API) ShowForumTopics(r *http.Request) (int, proto.Message) {
 
 	offset := limit * (page - 1)
 
-	dbResponse, err := api.services.DB().FetchForumTopics(
+	dbResponse, err := api.services.DB().FetchForumTopics(r.Context(), 
 		api.config.DefaultAccessToForums,
 		uint16(forumID),
 		uint32(limit),

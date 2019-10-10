@@ -48,6 +48,7 @@ func (api *API) ShowTopicMessages(r *http.Request) (int, proto.Message) {
 	offset := limit * (page - 1)
 
 	dbResponse, err := api.services.DB().FetchTopicMessages(
+		r.Context(),
 		api.config.DefaultAccessToForums,
 		uint32(topicID),
 		uint32(limit),

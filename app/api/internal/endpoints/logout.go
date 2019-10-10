@@ -10,7 +10,7 @@ import (
 func (api *API) Logout(r *http.Request) (int, proto.Message) {
 	sid := api.getSession(r)
 
-	_, err := api.services.DB().DeleteSession(sid)
+	_, err := api.services.DB().DeleteSession(r.Context(), sid)
 
 	if err != nil {
 		return http.StatusInternalServerError, &pb.Error_Response{
@@ -18,7 +18,7 @@ func (api *API) Logout(r *http.Request) (int, proto.Message) {
 		}
 	}
 
-	_ = api.services.Cache().DeleteSession(sid)
+	_ = api.services.Cache().DeleteSession(r.Context(), sid)
 
 	return http.StatusOK, &pb.Common_SuccessResponse{}
 }
