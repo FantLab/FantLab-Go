@@ -340,8 +340,8 @@ func Test_FetchTopicMessages(t *testing.T) {
 
 	queryTable[fetchTopicMessagesQuery.Format("ASC").WithArgs(25, 1, 20).String()] = &dbstubs.StubRows{
 		Values: [][]interface{}{
-			{216, now, 1, "creator", 1, 19, 3, "", "Ну, что скажете? По поводу сайта, естественно", 0, 0, 0, 0},
-			{224, now, 41, "Rol0c", 1, 0, 2, "", "Приветик ;-)", 0, 0, 0, 0},
+			{216, now, 1, "creator", 1, 19, 3, "", "Ну, что скажете? По поводу сайта, естественно", 0, 0, 0},
+			{224, now, 41, "Rol0c", 1, 0, 2, "", "Приветик ;-)", 0, 0, 0},
 		},
 		Columns: []scanr.Column{
 			dbstubs.StubColumn("message_id"),
@@ -354,7 +354,6 @@ func Test_FetchTopicMessages(t *testing.T) {
 			dbstubs.StubColumn("sign"),
 			dbstubs.StubColumn("message_text"),
 			dbstubs.StubColumn("is_censored"),
-			dbstubs.StubColumn("is_red"),
 			dbstubs.StubColumn("vote_plus"),
 			dbstubs.StubColumn("vote_minus"),
 		},
@@ -385,7 +384,6 @@ func Test_FetchTopicMessages(t *testing.T) {
 					Sign:        "",
 					MessageText: "Ну, что скажете? По поводу сайта, естественно",
 					IsCensored:  0,
-					IsRed:       0,
 					VotePlus:    0,
 					VoteMinus:   0,
 				},
@@ -400,7 +398,6 @@ func Test_FetchTopicMessages(t *testing.T) {
 					Sign:        "",
 					MessageText: "Приветик ;-)",
 					IsCensored:  0,
-					IsRed:       0,
 					VotePlus:    0,
 					VoteMinus:   0,
 				},

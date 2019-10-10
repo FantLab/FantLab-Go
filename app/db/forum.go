@@ -65,7 +65,6 @@ type ForumMessage struct {
 	Sign        string    `db:"sign"`
 	MessageText string    `db:"message_text"`
 	IsCensored  uint8     `db:"is_censored"`
-	IsRed       uint8     `db:"is_red"`
 	VotePlus    uint32    `db:"vote_plus"`
 	VoteMinus   uint32    `db:"vote_minus"`
 }
@@ -207,7 +206,6 @@ var (
 			u.sign,
 			m.message_text,
 			f.is_censored,
-			f.is_red,
 			f.vote_plus,
 			ABS(f.vote_minus) as vote_minus
 		FROM

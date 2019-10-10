@@ -7,4 +7,5 @@ type AppConfig struct {
 	ForumTopicsInPage     uint64
 	ForumMessagesInPage   uint64
 	DefaultAccessToForums []uint16
+	CensorshipText        string
 }
