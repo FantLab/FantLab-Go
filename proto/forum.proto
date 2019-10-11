@@ -30,8 +30,7 @@ message Forum {
         Common.Creation creation = 2;
         string text = 3;
         bool is_censored = 4;
-        bool is_moder_tag_works = 5;
-        Stats stats = 6;
+        Stats stats = 5;
     }
 
     message Topic {

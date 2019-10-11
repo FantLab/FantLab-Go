@@ -165,7 +165,7 @@ func GetTopic(dbResponse *db.ForumTopicMessagesDBResponse, page, limit uint32, c
 		text := dbMessage.MessageText
 
 		if dbMessage.IsCensored != 0 {
-			text = ""
+			text = cfg.CensorshipText
 		}
 
 		gender := helpers.GetGender(dbMessage.UserID, dbMessage.Sex)
@@ -184,9 +184,8 @@ func GetTopic(dbResponse *db.ForumTopicMessagesDBResponse, page, limit uint32, c
 				},
 				Date: helpers.TimestampProto(dbMessage.DateOfAdd),
 			},
-			Text:            text,
-			IsCensored:      dbMessage.IsCensored != 0,
-			IsModerTagWorks: dbMessage.IsRed != 0,
+			Text:       text,
+			IsCensored: dbMessage.IsCensored != 0,
 			Stats: &pb.Forum_TopicMessage_Stats{
 				Rating: int32(dbMessage.VotePlus - dbMessage.VoteMinus),
 			},

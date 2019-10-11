@@ -56,5 +56,7 @@ func makeConfig(imagesBaseURL string) *shared.AppConfig {
 		ForumTopicsInPage:     20,
 		ForumMessagesInPage:   20,
 		DefaultAccessToForums: []uint16{1, 2, 3, 5, 6, 7, 8, 10, 12, 13, 14, 15, 16, 17, 20, 22},
+		// https://github.com/parserpro/fantlab/blob/ce769f66c5eacd59f487de840eb4bf62cac733a2/config/misc.cfg#L71
+		CensorshipText: "Сообщение изъято модератором",
 	}
 }
