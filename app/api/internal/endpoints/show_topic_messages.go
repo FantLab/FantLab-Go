@@ -45,11 +45,33 @@ func (api *API) ShowTopicMessages(r *http.Request) (int, proto.Message) {
 		sortDirection = "ASC"
 	}
 
+	availableForums := api.config.DefaultAccessToForums
+
+	userId := api.getUserId(r)
+
+	if userId > 0 {
+		availableForumsString, err := api.services.DB().FetchAvailableForums(r.Context(), userId)
+
+		if err != nil {
+			return http.StatusInternalServerError, &pb.Error_Response{
+				Status: pb.Error_SOMETHING_WENT_WRONG,
+			}
+		}
+
+		availableForums, err = helpers.ParseUints(strings.Split(availableForumsString, ","), 10, 32)
+
+		if err != nil {
+			return http.StatusInternalServerError, &pb.Error_Response{
+				Status: pb.Error_SOMETHING_WENT_WRONG,
+			}
+		}
+	}
+
 	offset := limit * (page - 1)
 
 	dbResponse, err := api.services.DB().FetchTopicMessages(
 		r.Context(),
-		api.config.DefaultAccessToForums,
+		availableForums,
 		uint32(topicID),
 		uint32(limit),
 		uint32(offset),
