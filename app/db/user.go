@@ -17,6 +17,12 @@ type UserSessionInfo struct {
 	DateOfCreate time.Time `db:"date_of_create"`
 }
 
+type UserBlockInfo struct {
+	Blocked         uint8     `db:"block"`
+	DateOfBlockEnd  time.Time `db:"date_of_block_end"`
+	BlockReason     string    `db:"block_reason"`
+}
+
 const (
 	sessionsTable = "sessions2" // sessions https://github.com/parserpro/fantlab/issues/908
 	usersTable    = "users"     // users2
@@ -25,6 +31,7 @@ const (
 var (
 	fetchUserSessionInfoQuery  = sqlr.NewQuery("SELECT user_id, date_of_create FROM " + sessionsTable + " WHERE code = ? LIMIT 1")
 	fetchUserPasswordHashQuery = sqlr.NewQuery("SELECT user_id, password_hash, new_password_hash FROM " + usersTable + " WHERE login = ? LIMIT 1")
+	fetchUserBlockInfoQuery    = sqlr.NewQuery("SELECT block, date_of_block_end, block_reason FROM " + usersTable + " WHERE user_id = ? LIMIT 1")
 	insertNewSessionQuery      = sqlr.NewQuery("INSERT INTO " + sessionsTable + " (code, user_id, user_ip, user_agent, date_of_create, date_of_last_action, hits) VALUES (?, ?, ?, ?, ?, ?, ?)")
 	deleteSessionQuery         = sqlr.NewQuery("DELETE FROM " + sessionsTable + " WHERE code = ?")
 )
@@ -38,6 +45,12 @@ func (db *DB) FetchUserSessionInfo(ctx context.Context, sid string) (UserSession
 func (db *DB) FetchUserPasswordHash(ctx context.Context, login string) (UserPasswordHash, error) {
 	var data UserPasswordHash
 	err := db.engine.Read(ctx, fetchUserPasswordHashQuery.WithArgs(login)).Scan(&data)
+	return data, err
+}
+
+func (db *DB) FetchUserBlockInfo(ctx context.Context, userID uint64) (UserBlockInfo, error) {
+	var data UserBlockInfo
+	err := db.engine.Read(ctx, fetchUserBlockInfoQuery.WithArgs(userID)).Scan(&data)
 	return data, err
 }
 

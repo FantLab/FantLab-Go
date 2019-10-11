@@ -134,3 +134,40 @@ func Test_FetchUserSessionInfo(t *testing.T) {
 		tt.AssertDeepEqual(t, data, UserSessionInfo{})
 	})
 }
+
+func Test_FetchUserBlockInfo(t *testing.T) {
+	timeTo := time.Now()
+	reason := "Тестовая причина"
+
+	queryTable := make(dbstubs.StubQueryTable)
+
+	queryTable[fetchUserBlockInfoQuery.WithArgs(1).String()] = &dbstubs.StubRows{
+		Values: [][]interface{}{{1, 1, timeTo, reason}},
+		Columns: []scanr.Column{
+			dbstubs.StubColumn("user_id"),
+			dbstubs.StubColumn("block"),
+			dbstubs.StubColumn("date_of_block_end"),
+			dbstubs.StubColumn("block_reason"),
+		},
+	}
+
+	db := NewDB(&dbstubs.StubDB{QueryTable: queryTable})
+
+	t.Run("positive", func(t *testing.T) {
+		data, err := db.FetchUserBlockInfo(context.Background(), 1)
+
+		tt.Assert(t, err == nil)
+		tt.AssertDeepEqual(t, data, UserBlockInfo{
+			Blocked: 1,
+			DateOfBlockEnd: timeTo,
+			BlockReason: reason,
+		})
+	})
+
+	t.Run("negative", func(t *testing.T) {
+		data, err := db.FetchUserBlockInfo(context.Background(), 2)
+
+		tt.Assert(t, dbtools.IsNotFoundError(err))
+		tt.AssertDeepEqual(t, data, UserBlockInfo{})
+	})
+}

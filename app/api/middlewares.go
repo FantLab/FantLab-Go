@@ -2,10 +2,12 @@ package api
 
 import (
 	"context"
+	"fantlab/db"
 	"fantlab/keys"
 	"fantlab/pb"
 	"fantlab/shared"
 	"net/http"
+	"time"
 
 	"github.com/golang/protobuf/proto"
 )
@@ -85,6 +87,44 @@ func (m *middlewares) anonymousIsRequired(next http.Handler) http.Handler {
 
 		if uid > 0 {
 			httpHandler(logoutFirst).ServeHTTP(w, r)
+		} else {
+			next.ServeHTTP(w, r)
+		}
+	})
+}
+
+// *******************************************************
+
+func bannedHandler(r *http.Request, info interface{}) (int, proto.Message) {
+	return http.StatusForbidden, &pb.Error_Response{
+		Status: pb.Error_USER_IS_BANNED,
+		Context: info.(db.UserBlockInfo).BlockReason,
+	}
+}
+
+func errorHandler(r *http.Request) (int, proto.Message) {
+	return http.StatusInternalServerError, &pb.Error_Response{
+		Status: pb.Error_SOMETHING_WENT_WRONG,
+	}
+}
+
+func (m *middlewares) checkUserIsBanned(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		uid := m.getUserId(r)
+		var nilTime time.Time
+
+		if uid > 0 {
+			banData, err := m.services.DB().FetchUserBlockInfo(r.Context(), uid)
+			if err != nil {
+				httpHandler(errorHandler).ServeHTTP(w, r)
+			} else {
+				if banData.Blocked > 0 && (banData.DateOfBlockEnd.Equal(nilTime) || time.Now().Before(banData.DateOfBlockEnd)) {
+					httpHandlerWithContext(bannedHandler, banData).ServeHTTP(w, r)
+				} else {
+					next.ServeHTTP(w, r)
+				}
+			}
+
 		} else {
 			next.ServeHTTP(w, r)
 		}

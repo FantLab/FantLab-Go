@@ -45,11 +45,17 @@ func MakeRouter(config *shared.AppConfig, services *shared.Services) http.Handle
 			r.Post("/login", httpHandler(api.Login))
 		})
 
-		// Требуется авторизация
 		r.Group(func(r chi.Router) {
 			r.Use(m.authorizedUserIsRequired)
 
 			r.Delete("/logout", httpHandler(api.Logout))
+		})
+
+		// Требуется авторизация и проверка на бан
+		r.Group(func(r chi.Router) {
+			r.Use(m.authorizedUserIsRequired)
+			r.Use(m.checkUserIsBanned)
+
 			r.Post("/communities/{id}/subscription", httpHandler(api.SubscribeCommunity))
 			r.Delete("/communities/{id}/subscription", httpHandler(api.UnsubscribeCommunity))
 			r.Post("/blogs/{id}/subscription", httpHandler(api.SubscribeBlog))

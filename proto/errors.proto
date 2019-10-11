@@ -20,5 +20,6 @@ message Error {
         INVALID_SESSION = 6;
         ACTION_PERMITTED = 7;
         VALIDATION_FAILED = 8;
+        USER_IS_BANNED = 9;
     }
 }
