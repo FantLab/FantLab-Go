@@ -89,6 +89,17 @@ type ForumTopicMessagesDBResponse struct {
 }
 
 var (
+	fetchAvailableForumsQuery = sqlr.NewQuery(`
+		SELECT
+			g.access_to_forums
+		FROM
+			user_groups g
+		JOIN
+			users u ON u.user_group_id = g.user_group_id
+		WHERE
+			u.user_id = ?
+	`)
+
 	fetchForumsQuery = sqlr.NewQuery(`
 		SELECT
 			f.forum_id,
@@ -221,7 +232,19 @@ var (
 	`)
 )
 
-func (db *DB) FetchForums(ctx context.Context, availableForums []uint16) ([]Forum, error) {
+func (db *DB) FetchAvailableForums(ctx context.Context, userId uint64) (string, error) {
+	var availableForums string
+
+	err := db.engine.Read(ctx, fetchAvailableForumsQuery.WithArgs(userId)).Scan(&availableForums)
+
+	if err != nil {
+		return "", err
+	}
+
+	return availableForums, nil
+}
+
+func (db *DB) FetchForums(ctx context.Context, availableForums []uint64) ([]Forum, error) {
 	var forums []Forum
 
 	err := db.engine.Read(ctx, fetchForumsQuery.WithArgs(availableForums).Rebind()).Scan(&forums)
@@ -251,7 +274,7 @@ func (db *DB) FetchModerators(ctx context.Context) (map[uint32][]ForumModerator,
 	return moderatorsMap, nil
 }
 
-func (db *DB) FetchForumTopics(ctx context.Context, availableForums []uint16, forumID uint16, limit, offset uint32) (*ForumTopicsDBResponse, error) {
+func (db *DB) FetchForumTopics(ctx context.Context, availableForums []uint64, forumID uint16, limit, offset uint32) (*ForumTopicsDBResponse, error) {
 	var forumExists uint8
 
 	err := db.engine.Read(ctx, forumExistsQuery.WithArgs(forumID, availableForums).Rebind()).Scan(&forumExists)
@@ -284,7 +307,7 @@ func (db *DB) FetchForumTopics(ctx context.Context, availableForums []uint16, fo
 	return result, nil
 }
 
-func (db *DB) FetchTopicMessages(ctx context.Context, availableForums []uint16, topicID, limit, offset uint32, sortDirection string) (*ForumTopicMessagesDBResponse, error) {
+func (db *DB) FetchTopicMessages(ctx context.Context, availableForums []uint64, topicID, limit, offset uint32, sortDirection string) (*ForumTopicMessagesDBResponse, error) {
 	var shortTopic ShortForumTopic
 
 	err := db.engine.Read(ctx, shortTopicQuery.WithArgs(topicID, availableForums).Rebind()).Scan(&shortTopic)

@@ -1,15 +1,40 @@
 package endpoints
 
 import (
-	"fantlab/api/internal/endpoints/internal/datahelpers"
-	"fantlab/pb"
 	"net/http"
+	"strings"
+
+	"fantlab/api/internal/endpoints/internal/datahelpers"
+	"fantlab/helpers"
+	"fantlab/pb"
 
 	"github.com/golang/protobuf/proto"
 )
 
 func (api *API) ShowForums(r *http.Request) (int, proto.Message) {
-	dbForums, err := api.services.DB().FetchForums(r.Context(), api.config.DefaultAccessToForums)
+	availableForums := api.config.DefaultAccessToForums
+
+	userId := api.getUserId(r)
+
+	if userId > 0 {
+		availableForumsString, err := api.services.DB().FetchAvailableForums(r.Context(), userId)
+
+		if err != nil {
+			return http.StatusInternalServerError, &pb.Error_Response{
+				Status: pb.Error_SOMETHING_WENT_WRONG,
+			}
+		}
+
+		availableForums, err = helpers.ParseUints(strings.Split(availableForumsString, ","), 10, 32)
+
+		if err != nil {
+			return http.StatusInternalServerError, &pb.Error_Response{
+				Status: pb.Error_SOMETHING_WENT_WRONG,
+			}
+		}
+	}
+
+	dbForums, err := api.services.DB().FetchForums(r.Context(), availableForums)
 
 	if err != nil {
 		return http.StatusInternalServerError, &pb.Error_Response{
@@ -17,7 +42,7 @@ func (api *API) ShowForums(r *http.Request) (int, proto.Message) {
 		}
 	}
 
-	dbModerators, err := api.services.DB().FetchModerators(r.Context(), )
+	dbModerators, err := api.services.DB().FetchModerators(r.Context())
 
 	if err != nil {
 		return http.StatusInternalServerError, &pb.Error_Response{
