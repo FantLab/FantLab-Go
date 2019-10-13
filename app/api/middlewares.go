@@ -6,10 +6,8 @@ import (
 	"fantlab/keys"
 	"fantlab/pb"
 	"fantlab/shared"
-	"net/http"
-	"time"
-
 	"github.com/golang/protobuf/proto"
+	"net/http"
 )
 
 type middlewares struct {
@@ -111,14 +109,13 @@ func errorHandler(r *http.Request) (int, proto.Message) {
 func (m *middlewares) checkUserIsBanned(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		uid := m.getUserId(r)
-		var nilTime time.Time
 
 		if uid > 0 {
 			banData, err := m.services.DB().FetchUserBlockInfo(r.Context(), uid)
 			if err != nil {
 				httpHandler(errorHandler).ServeHTTP(w, r)
 			} else {
-				if banData.Blocked > 0 && (banData.DateOfBlockEnd.Equal(nilTime) || time.Now().Before(banData.DateOfBlockEnd)) {
+				if banData.Blocked > 0 {
 					httpHandlerWithContext(bannedHandler, banData).ServeHTTP(w, r)
 				} else {
 					next.ServeHTTP(w, r)
