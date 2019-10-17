@@ -1,4 +1,4 @@
-package render
+package protobuf
 
 import (
 	"net/http"
@@ -27,7 +27,7 @@ func writeJSON(w http.ResponseWriter, pb proto.Message) error {
 	return m.Marshal(w, pb)
 }
 
-func Proto(w http.ResponseWriter, r *http.Request, code int, pb proto.Message) {
+func render(w http.ResponseWriter, r *http.Request, code int, pb proto.Message) {
 	acceptProto := r.Header.Get("Accept") == protoContentType
 
 	if acceptProto {

@@ -2,69 +2,69 @@ package api
 
 import (
 	"fantlab/api/internal/endpoints"
+	"fantlab/api/internal/middlewares"
+	"fantlab/logs"
+	"fantlab/logs/logger"
+	"fantlab/protobuf"
 	"fantlab/shared"
 	"net/http"
-	"time"
 
 	"github.com/go-chi/chi"
 	"github.com/go-chi/chi/middleware"
 )
 
-func MakeRouter(config *shared.AppConfig, services *shared.Services) http.Handler {
+func MakeRouter(config *shared.AppConfig, services *shared.Services, logFunc logger.StrFunc) http.Handler {
 	r := chi.NewRouter()
 
-	r.Use(middleware.RequestID)
 	r.Use(middleware.RealIP)
-	r.Use(middleware.Logger)
-	r.Use(middleware.Recoverer)
-	r.Use(middleware.Timeout(60 * time.Second))
+	r.Use(logs.HTTP(logFunc))
 
 	api := endpoints.MakeAPI(config, services)
-	m := &middlewares{services: services}
 
 	r.Route("/v1", func(r chi.Router) {
-		r.Use(m.detectUser)
+		r.Use(middlewares.DetectUser(services))
 
 		// Доступно всем
 		r.Group(func(r chi.Router) {
-			r.Get("/forums", httpHandler(api.ShowForums))
-			r.Get("/forums/{id}", httpHandler(api.ShowForumTopics))
-			r.Get("/topics/{id}", httpHandler(api.ShowTopicMessages))
-			r.Get("/communities", httpHandler(api.ShowCommunities))
-			r.Get("/communities/{id}", httpHandler(api.ShowCommunity))
-			r.Get("/blogs", httpHandler(api.ShowBlogs))
-			r.Get("/blogs/{id}", httpHandler(api.ShowBlog))
-			r.Get("/blog_articles/{id}", httpHandler(api.ShowArticle))
-			r.Get("/allgenres", httpHandler(api.ShowGenres))
+			r.Get("/forums", protobuf.Handle(api.ShowForums))
+			r.Get("/forums/{id}", protobuf.Handle(api.ShowForumTopics))
+			r.Get("/topics/{id}", protobuf.Handle(api.ShowTopicMessages))
+			r.Get("/communities", protobuf.Handle(api.ShowCommunities))
+			r.Get("/communities/{id}", protobuf.Handle(api.ShowCommunity))
+			r.Get("/blogs", protobuf.Handle(api.ShowBlogs))
+			r.Get("/blogs/{id}", protobuf.Handle(api.ShowBlog))
+			r.Get("/blog_articles/{id}", protobuf.Handle(api.ShowArticle))
+			r.Get("/allgenres", protobuf.Handle(api.ShowGenres))
 		})
 
 		// Доступно только анонимам
 		r.Group(func(r chi.Router) {
-			r.Use(m.anonymousIsRequired)
+			r.Use(middlewares.RequireAnon)
 
-			r.Post("/login", httpHandler(api.Login))
+			r.Post("/login", protobuf.Handle(api.Login))
 		})
 
+		// Требуется авторизация
 		r.Group(func(r chi.Router) {
-			r.Use(m.authorizedUserIsRequired)
+			r.Use(middlewares.RequireAuth)
 
-			r.Delete("/logout", httpHandler(api.Logout))
+			r.Delete("/logout", protobuf.Handle(api.Logout))
 		})
 
 		// Требуется авторизация и проверка на бан
 		r.Group(func(r chi.Router) {
-			r.Use(m.authorizedUserIsRequired)
-			r.Use(m.checkUserIsBanned)
+			r.Use(middlewares.RequireAuth)
+			r.Use(middlewares.CheckBan(services))
 
-			r.Post("/communities/{id}/subscription", httpHandler(api.SubscribeCommunity))
-			r.Delete("/communities/{id}/subscription", httpHandler(api.UnsubscribeCommunity))
-			r.Post("/blogs/{id}/subscription", httpHandler(api.SubscribeBlog))
-			r.Delete("/blogs/{id}/subscription", httpHandler(api.UnsubscribeBlog))
-			r.Post("/blog_articles/{id}/subscription", httpHandler(api.SubscribeArticle))
-			r.Delete("/blog_articles/{id}/subscription", httpHandler(api.UnsubscribeArticle))
-			r.Post("/blog_articles/{id}/like", httpHandler(api.LikeArticle))
-			r.Delete("/blog_articles/{id}/like", httpHandler(api.DislikeArticle))
-			r.Put("/work/{id}/genres", httpHandler(api.SetWorkGenres))
+			r.Post("/communities/{id}/subscription", protobuf.Handle(api.SubscribeCommunity))
+			r.Delete("/communities/{id}/subscription", protobuf.Handle(api.UnsubscribeCommunity))
+			r.Post("/blogs/{id}/subscription", protobuf.Handle(api.SubscribeBlog))
+			r.Delete("/blogs/{id}/subscription", protobuf.Handle(api.UnsubscribeBlog))
+			r.Post("/blog_articles/{id}/subscription", protobuf.Handle(api.SubscribeArticle))
+			r.Delete("/blog_articles/{id}/subscription", protobuf.Handle(api.UnsubscribeArticle))
+			r.Post("/blog_articles/{id}/like", protobuf.Handle(api.LikeArticle))
+			r.Delete("/blog_articles/{id}/like", protobuf.Handle(api.DislikeArticle))
+			r.Put("/work/{id}/genres", protobuf.Handle(api.SetWorkGenres))
 		})
 	})
 
