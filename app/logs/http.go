@@ -43,7 +43,7 @@ func (r *responseWriter) WriteHeader(statusCode int) {
 
 // *******************************************************
 
-func HTTP(strFunc logger.StrFunc) func(http.Handler) http.Handler {
+func HTTP(toString logger.ToString) func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			rid := fmt.Sprintf("%s-%d", launchId, nextRequestId())
@@ -60,34 +60,34 @@ func HTTP(strFunc logger.StrFunc) func(http.Handler) http.Handler {
 			defer func() {
 				d := time.Since(t)
 
-				if err := recover(); err != nil {
+				err := recover()
+
+				if err != nil {
 					buf.append(logger.Entry{
-						Date:    time.Now(),
 						Message: string(debug.Stack()),
 						Err:     fmt.Errorf("Panic: %v", err),
+						Time:    time.Now(),
 					})
+				}
 
-					log.Print(strFunc(logger.HTTPData{
-						Id:         rid,
-						Request:    request,
-						StatusCode: http.StatusInternalServerError,
-						Time:       t,
-						Duration:   d,
-					}, buf.entries))
+				log.Println(toString(logger.Request{
+					Id:       rid,
+					Host:     request.Host,
+					Method:   request.Method,
+					URI:      request.RequestURI,
+					IP:       request.RemoteAddr,
+					Status:   writer.statusCode,
+					Entries:  buf.entries,
+					Time:     t,
+					Duration: d,
+				}))
 
+				if err != nil {
 					protobuf.Handle(func(r *http.Request) (int, proto.Message) {
 						return http.StatusInternalServerError, &pb.Error_Response{
 							Status: pb.Error_SOMETHING_WENT_WRONG,
 						}
 					}).ServeHTTP(w, r)
-				} else {
-					log.Print(strFunc(logger.HTTPData{
-						Id:         rid,
-						Request:    request,
-						StatusCode: writer.statusCode,
-						Time:       t,
-						Duration:   d,
-					}, buf.entries))
 				}
 			}()
 
