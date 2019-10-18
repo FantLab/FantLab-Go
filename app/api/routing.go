@@ -13,7 +13,7 @@ import (
 	"github.com/go-chi/chi/middleware"
 )
 
-func MakeRouter(config *shared.AppConfig, services *shared.Services, logFunc logger.StrFunc) http.Handler {
+func MakeRouter(config *shared.AppConfig, services *shared.Services, logFunc logger.ToString) http.Handler {
 	r := chi.NewRouter()
 
 	r.Use(middleware.RealIP)

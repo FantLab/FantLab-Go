@@ -43,27 +43,27 @@ func statusCodeColor(statusCode int) int {
 	}
 }
 
-func DebugString(httpData HTTPData, entries []Entry) string {
+func Console(request Request) string {
 	var sb strings.Builder
 
-	sb.WriteString(colorize(httpData.Time.Format("15:04:05"), colorDarkGray))
+	sb.WriteString(colorize(request.Time.Format("15:04:05"), colorDarkGray))
 	sb.WriteRune(' ')
 
-	sb.WriteString(colorize(httpData.Request.Method, colorCyan))
+	sb.WriteString(colorize(request.Method, colorCyan))
 	sb.WriteRune(' ')
 
-	sb.WriteString(colorize(httpData.Request.RequestURI, colorBold))
+	sb.WriteString(colorize(request.URI, colorBold))
 	sb.WriteRune(' ')
 
-	if httpData.StatusCode > 0 {
-		sb.WriteString(colorize(strconv.Itoa(httpData.StatusCode), statusCodeColor(httpData.StatusCode)))
+	if request.Status > 0 {
+		sb.WriteString(colorize(strconv.Itoa(request.Status), statusCodeColor(request.Status)))
 		sb.WriteRune(' ')
 	}
 
-	sb.WriteString(colorize(formatDuration(httpData.Duration), colorMagenta))
+	sb.WriteString(colorize(formatDuration(request.Duration), colorMagenta))
 	sb.WriteRune('\n')
 
-	for i, entry := range entries {
+	for i, entry := range request.Entries {
 		sb.WriteString(colorize(strconv.Itoa(i+1)+") ", colorYellow))
 
 		if "" != entry.Message {
@@ -90,8 +90,6 @@ func DebugString(httpData HTTPData, entries []Entry) string {
 
 		sb.WriteRune('\n')
 	}
-
-	sb.WriteRune('\n')
 
 	return sb.String()
 }

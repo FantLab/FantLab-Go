@@ -17,10 +17,10 @@ func DB(ctx context.Context, entry sqlr.LogEntry) {
 	}
 
 	getBuffer(ctx).append(logger.Entry{
-		Date:     entry.Time,
-		Duration: entry.Duration,
 		Message:  entry.Query,
 		Err:      entry.Err,
 		More:     m,
+		Time:     entry.Time,
+		Duration: entry.Duration,
 	})
 }

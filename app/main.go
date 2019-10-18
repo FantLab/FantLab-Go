@@ -21,6 +21,8 @@ import (
 
 func main() {
 	log.SetFlags(0)
+	log.SetPrefix("$ ")
+
 	startServer()
 }
 
@@ -45,9 +47,16 @@ func startServer() {
 
 	config := makeConfig(os.Getenv("IMAGES_BASE_URL"))
 
-	handler := api.MakeRouter(config, services, logger.DebugString)
+	handler := api.MakeRouter(config, services, logFunc(os.Getenv("DEBUG") == "1"))
 
 	log.Fatal(http.ListenAndServe(":"+os.Getenv("PORT"), handler))
+}
+
+func logFunc(isDebug bool) logger.ToString {
+	if isDebug {
+		return logger.Console
+	}
+	return logger.JSON
 }
 
 func makeConfig(imagesBaseURL string) *shared.AppConfig {
