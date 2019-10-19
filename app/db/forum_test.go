@@ -8,7 +8,7 @@ import (
 	"fantlab/dbtools"
 	"fantlab/dbtools/dbstubs"
 	"fantlab/dbtools/scanr"
-	"fantlab/tt"
+	"fantlab/assert"
 )
 
 func Test_FetchAvailableForums(t *testing.T) {
@@ -28,8 +28,8 @@ func Test_FetchAvailableForums(t *testing.T) {
 
 		availableForums, err := db.FetchAvailableForums(context.Background(), 1)
 
-		tt.Assert(t, err == nil)
-		tt.Assert(t, availableForums == "1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,19,22")
+		assert.True(t, err == nil)
+		assert.True(t, availableForums == "1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,19,22")
 	})
 
 	t.Run("negative", func(t *testing.T) {
@@ -41,8 +41,8 @@ func Test_FetchAvailableForums(t *testing.T) {
 
 		availableForums, err := db.FetchAvailableForums(context.Background(), 1)
 
-		tt.Assert(t, availableForums == "")
-		tt.Assert(t, err == dbstubs.ErrSome)
+		assert.True(t, availableForums == "")
+		assert.True(t, err == dbstubs.ErrSome)
 	})
 }
 
@@ -97,8 +97,8 @@ func Test_FetchForums(t *testing.T) {
 
 		forums, err := db.FetchForums(context.Background(), []uint64{1})
 
-		tt.Assert(t, err == nil)
-		tt.AssertDeepEqual(t, forums, []Forum{
+		assert.True(t, err == nil)
+		assert.DeepEqual(t, forums, []Forum{
 			{
 				ForumID:         1,
 				Name:            "Другие окололитературные темы",
@@ -129,8 +129,8 @@ func Test_FetchForums(t *testing.T) {
 
 		forums, err := db.FetchForums(context.Background(), []uint64{1})
 
-		tt.Assert(t, len(forums) == 0)
-		tt.Assert(t, err == dbstubs.ErrSome)
+		assert.True(t, len(forums) == 0)
+		assert.True(t, err == dbstubs.ErrSome)
 	})
 }
 
@@ -159,8 +159,8 @@ func Test_FetchModerators(t *testing.T) {
 
 		moderators, err := db.FetchModerators(context.Background())
 
-		tt.Assert(t, err == nil)
-		tt.AssertDeepEqual(t, moderators, map[uint32][]ForumModerator{
+		assert.True(t, err == nil)
+		assert.DeepEqual(t, moderators, map[uint32][]ForumModerator{
 			2: {
 				{
 					UserID:      1,
@@ -214,8 +214,8 @@ func Test_FetchModerators(t *testing.T) {
 
 		moderators, err := db.FetchModerators(context.Background())
 
-		tt.Assert(t, len(moderators) == 0)
-		tt.Assert(t, err == dbstubs.ErrSome)
+		assert.True(t, len(moderators) == 0)
+		assert.True(t, err == dbstubs.ErrSome)
 	})
 }
 
@@ -269,8 +269,8 @@ func Test_FetchForumTopics(t *testing.T) {
 
 		topics, err := db.FetchForumTopics(context.Background(), []uint64{1, 2}, 2, 20, 0)
 
-		tt.Assert(t, err == nil)
-		tt.AssertDeepEqual(t, topics, &ForumTopicsDBResponse{
+		assert.True(t, err == nil)
+		assert.DeepEqual(t, topics, &ForumTopicsDBResponse{
 			Topics: []ForumTopic{
 				{
 					TopicID:         327,
@@ -320,8 +320,8 @@ func Test_FetchForumTopics(t *testing.T) {
 
 		topics, err := db.FetchForumTopics(context.Background(), []uint64{1, 2}, 3, 20, 0)
 
-		tt.Assert(t, topics == nil)
-		tt.Assert(t, dbtools.IsNotFoundError(err))
+		assert.True(t, topics == nil)
+		assert.True(t, dbtools.IsNotFoundError(err))
 	})
 
 	t.Run("negative_2", func(t *testing.T) {
@@ -333,8 +333,8 @@ func Test_FetchForumTopics(t *testing.T) {
 
 		topics, err := db.FetchForumTopics(context.Background(), []uint64{1, 2}, 2, 20, 0)
 
-		tt.Assert(t, topics == nil)
-		tt.Assert(t, err == dbstubs.ErrSome)
+		assert.True(t, topics == nil)
+		assert.True(t, err == dbstubs.ErrSome)
 	})
 
 	t.Run("negative_3", func(t *testing.T) {
@@ -346,8 +346,8 @@ func Test_FetchForumTopics(t *testing.T) {
 
 		topics, err := db.FetchForumTopics(context.Background(), []uint64{1, 2}, 2, 20, 0)
 
-		tt.Assert(t, topics == nil)
-		tt.Assert(t, err == dbstubs.ErrSome)
+		assert.True(t, topics == nil)
+		assert.True(t, err == dbstubs.ErrSome)
 	})
 }
 
@@ -399,8 +399,8 @@ func Test_FetchTopicMessages(t *testing.T) {
 
 		topics, err := db.FetchTopicMessages(context.Background(), []uint64{1, 2}, 25, 20, 0, "ASC")
 
-		tt.Assert(t, err == nil)
-		tt.AssertDeepEqual(t, topics, &ForumTopicMessagesDBResponse{
+		assert.True(t, err == nil)
+		assert.DeepEqual(t, topics, &ForumTopicMessagesDBResponse{
 			Topic: ShortForumTopic{
 				TopicID:   25,
 				TopicName: "Я вас слушаю!",
@@ -446,8 +446,8 @@ func Test_FetchTopicMessages(t *testing.T) {
 
 		topics, err := db.FetchTopicMessages(context.Background(), []uint64{1, 2}, 1, 20, 0, "ASC")
 
-		tt.Assert(t, topics == nil)
-		tt.Assert(t, dbtools.IsNotFoundError(err))
+		assert.True(t, topics == nil)
+		assert.True(t, dbtools.IsNotFoundError(err))
 	})
 
 	t.Run("negative_2", func(t *testing.T) {
@@ -459,8 +459,8 @@ func Test_FetchTopicMessages(t *testing.T) {
 
 		topics, err := db.FetchTopicMessages(context.Background(), []uint64{1, 2}, 25, 20, 0, "ASC")
 
-		tt.Assert(t, topics == nil)
-		tt.Assert(t, err == dbstubs.ErrSome)
+		assert.True(t, topics == nil)
+		assert.True(t, err == dbstubs.ErrSome)
 	})
 
 	t.Run("negative_3", func(t *testing.T) {
@@ -472,7 +472,7 @@ func Test_FetchTopicMessages(t *testing.T) {
 
 		topics, err := db.FetchTopicMessages(context.Background(), []uint64{1, 2}, 25, 20, 0, "ASC")
 
-		tt.Assert(t, topics == nil)
-		tt.Assert(t, err == dbstubs.ErrSome)
+		assert.True(t, topics == nil)
+		assert.True(t, err == dbstubs.ErrSome)
 	})
 }

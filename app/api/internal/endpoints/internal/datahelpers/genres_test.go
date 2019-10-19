@@ -1,7 +1,7 @@
 package datahelpers
 
 import (
-	"fantlab/tt"
+	"fantlab/assert"
 	"testing"
 )
 
@@ -61,7 +61,7 @@ func Test_selectGenreIdsWithParents(t *testing.T) {
 	t.Run("positive", func(t *testing.T) {
 		x := SelectGenreIdsWithParents([]uint64{2, 4, 6, 8}, testTree)
 
-		tt.AssertDeepEqual(t, x, []int32{2, 1, 4, 3, 6, 5, 8, 7})
+		assert.DeepEqual(t, x, []int32{2, 1, 4, 3, 6, 5, 8, 7})
 	})
 }
 
@@ -69,12 +69,12 @@ func Test_checkRequiredGroupsForGenreIds(t *testing.T) {
 	t.Run("positive", func(t *testing.T) {
 		err := CheckRequiredGroupsForGenreIds([]uint64{2, 4, 6, 8}, testTree)
 
-		tt.Assert(t, err == nil)
+		assert.True(t, err == nil)
 	})
 
 	t.Run("negative", func(t *testing.T) {
 		err := CheckRequiredGroupsForGenreIds([]uint64{2, 4, 6}, testTree)
 
-		tt.Assert(t, err != nil)
+		assert.True(t, err != nil)
 	})
 }
