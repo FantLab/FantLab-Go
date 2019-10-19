@@ -22,8 +22,6 @@ func (api *API) SubscribeForumTopic(r *http.Request) (int, proto.Message) {
 		}
 	}
 
-	availableForums := api.config.DefaultAccessToForums
-
 	userId := api.getUserId(r)
 
 	availableForumsString, err := api.services.DB().FetchAvailableForums(r.Context(), userId)
@@ -34,7 +32,7 @@ func (api *API) SubscribeForumTopic(r *http.Request) (int, proto.Message) {
 		}
 	}
 
-	availableForums, err = helpers.ParseUints(strings.Split(availableForumsString, ","), 10, 64)
+	availableForums, err := helpers.ParseUints(strings.Split(availableForumsString, ","), 10, 64)
 
 	if err != nil {
 		return http.StatusInternalServerError, &pb.Error_Response{
