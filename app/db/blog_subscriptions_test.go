@@ -10,7 +10,7 @@ import (
 	"fantlab/dbtools/dbstubs"
 	"fantlab/dbtools/scanr"
 	"fantlab/dbtools/sqlr"
-	"fantlab/tt"
+	"fantlab/assert"
 )
 
 func Test_FetchBlogSubscribed(t *testing.T) {
@@ -28,8 +28,8 @@ func Test_FetchBlogSubscribed(t *testing.T) {
 
 		subscribed, err := db.FetchBlogSubscribed(context.Background(), 1, 2)
 
-		tt.Assert(t, subscribed)
-		tt.Assert(t, err == nil)
+		assert.True(t, subscribed)
+		assert.True(t, err == nil)
 	})
 
 	t.Run("negative", func(t *testing.T) {
@@ -37,8 +37,8 @@ func Test_FetchBlogSubscribed(t *testing.T) {
 
 		subscribed, err := db.FetchBlogSubscribed(context.Background(), 1, 1)
 
-		tt.Assert(t, !subscribed)
-		tt.Assert(t, dbtools.IsNotFoundError(err))
+		assert.True(t, !subscribed)
+		assert.True(t, dbtools.IsNotFoundError(err))
 	})
 
 	t.Run("negative_2", func(t *testing.T) {
@@ -50,8 +50,8 @@ func Test_FetchBlogSubscribed(t *testing.T) {
 
 		subscribed, err := db.FetchBlogSubscribed(context.Background(), 1, 2)
 
-		tt.Assert(t, !subscribed)
-		tt.Assert(t, err == nil)
+		assert.True(t, !subscribed)
+		assert.True(t, err == nil)
 	})
 }
 
@@ -69,8 +69,8 @@ func Test_UpdateBlogSubscribed(t *testing.T) {
 
 		ok, err := db.UpdateBlogSubscribed(context.Background(), 1, 2)
 
-		tt.Assert(t, ok)
-		tt.Assert(t, err == nil)
+		assert.True(t, ok)
+		assert.True(t, err == nil)
 	})
 
 	t.Run("negative", func(t *testing.T) {
@@ -82,8 +82,8 @@ func Test_UpdateBlogSubscribed(t *testing.T) {
 
 		ok, err := db.UpdateBlogSubscribed(context.Background(), 1, 2)
 
-		tt.Assert(t, !ok)
-		tt.Assert(t, err == dbstubs.ErrSome)
+		assert.True(t, !ok)
+		assert.True(t, err == dbstubs.ErrSome)
 	})
 }
 
@@ -99,8 +99,8 @@ func Test_UpdateBlogUnsubscribed(t *testing.T) {
 
 		ok, err := db.UpdateBlogUnsubscribed(context.Background(), 1, 2)
 
-		tt.Assert(t, ok)
-		tt.Assert(t, err == nil)
+		assert.True(t, ok)
+		assert.True(t, err == nil)
 	})
 
 	t.Run("negative", func(t *testing.T) {
@@ -112,8 +112,8 @@ func Test_UpdateBlogUnsubscribed(t *testing.T) {
 
 		ok, err := db.UpdateBlogUnsubscribed(context.Background(), 1, 2)
 
-		tt.Assert(t, !ok)
-		tt.Assert(t, err == dbstubs.ErrSome)
+		assert.True(t, !ok)
+		assert.True(t, err == dbstubs.ErrSome)
 	})
 }
 
@@ -132,8 +132,8 @@ func Test_FetchBlogTopicSubscribed(t *testing.T) {
 
 		subscribed, err := db.FetchBlogTopicSubscribed(context.Background(), 1, 2)
 
-		tt.Assert(t, subscribed)
-		tt.Assert(t, err == nil)
+		assert.True(t, subscribed)
+		assert.True(t, err == nil)
 	})
 
 	t.Run("negative", func(t *testing.T) {
@@ -141,8 +141,8 @@ func Test_FetchBlogTopicSubscribed(t *testing.T) {
 
 		subscribed, err := db.FetchBlogTopicSubscribed(context.Background(), 1, 1)
 
-		tt.Assert(t, !subscribed)
-		tt.Assert(t, dbtools.IsNotFoundError(err))
+		assert.True(t, !subscribed)
+		assert.True(t, dbtools.IsNotFoundError(err))
 	})
 
 	t.Run("negative_2", func(t *testing.T) {
@@ -154,8 +154,8 @@ func Test_FetchBlogTopicSubscribed(t *testing.T) {
 
 		subscribed, err := db.FetchBlogTopicSubscribed(context.Background(), 1, 2)
 
-		tt.Assert(t, !subscribed)
-		tt.Assert(t, err == nil)
+		assert.True(t, !subscribed)
+		assert.True(t, err == nil)
 	})
 }
 
@@ -173,8 +173,8 @@ func Test_UpdateBlogTopicSubscribed(t *testing.T) {
 
 		ok, err := db.UpdateBlogTopicSubscribed(context.Background(), 1, 2)
 
-		tt.Assert(t, ok)
-		tt.Assert(t, err == nil)
+		assert.True(t, ok)
+		assert.True(t, err == nil)
 	})
 
 	t.Run("negative", func(t *testing.T) {
@@ -186,8 +186,8 @@ func Test_UpdateBlogTopicSubscribed(t *testing.T) {
 
 		ok, err := db.UpdateBlogTopicSubscribed(context.Background(), 1, 2)
 
-		tt.Assert(t, !ok)
-		tt.Assert(t, err == dbstubs.ErrSome)
+		assert.True(t, !ok)
+		assert.True(t, err == dbstubs.ErrSome)
 	})
 }
 
@@ -203,8 +203,8 @@ func Test_UpdateBlogTopicUnsubscribed(t *testing.T) {
 
 		ok, err := db.UpdateBlogTopicUnsubscribed(context.Background(), 1, 2)
 
-		tt.Assert(t, ok)
-		tt.Assert(t, err == nil)
+		assert.True(t, ok)
+		assert.True(t, err == nil)
 	})
 
 	t.Run("negative", func(t *testing.T) {
@@ -216,7 +216,7 @@ func Test_UpdateBlogTopicUnsubscribed(t *testing.T) {
 
 		ok, err := db.UpdateBlogTopicUnsubscribed(context.Background(), 1, 2)
 
-		tt.Assert(t, !ok)
-		tt.Assert(t, err == dbstubs.ErrSome)
+		assert.True(t, !ok)
+		assert.True(t, err == dbstubs.ErrSome)
 	})
 }

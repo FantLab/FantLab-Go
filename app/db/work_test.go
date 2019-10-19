@@ -5,7 +5,7 @@ import (
 	"fantlab/dbtools"
 	"fantlab/dbtools/dbstubs"
 	"fantlab/dbtools/scanr"
-	"fantlab/tt"
+	"fantlab/assert"
 	"testing"
 )
 
@@ -24,14 +24,14 @@ func Test_WorkExists(t *testing.T) {
 	t.Run("positive", func(t *testing.T) {
 		ok, err := db.WorkExists(context.Background(), 1)
 
-		tt.Assert(t, ok)
-		tt.Assert(t, err == nil)
+		assert.True(t, ok)
+		assert.True(t, err == nil)
 	})
 
 	t.Run("negative", func(t *testing.T) {
 		ok, err := db.WorkExists(context.Background(), 2)
 
-		tt.Assert(t, !ok)
-		tt.Assert(t, dbtools.IsNotFoundError(err))
+		assert.True(t, !ok)
+		assert.True(t, dbtools.IsNotFoundError(err))
 	})
 }
