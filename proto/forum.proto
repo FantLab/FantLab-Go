@@ -9,12 +9,12 @@ import "google/protobuf/timestamp.proto";
 
 message Forum {
     message TopicLink {
-        uint32 id = 1;
+        uint64 id = 1;
         string title = 2;
     }
 
     message LastMessage {
-        uint32 id = 1;
+        uint64 id = 1;
         TopicLink topic = 2;
         Common.UserLink user = 3;
         string text = 4;
@@ -23,10 +23,10 @@ message Forum {
 
     message TopicMessage {
         message Stats {
-            int32 rating = 1;
+            int64 rating = 1;
         }
 
-        uint32 id = 1;
+        uint64 id = 1;
         Common.Creation creation = 2;
         string text = 3;
         bool is_censored = 4;
@@ -41,11 +41,11 @@ message Forum {
         }
 
         message Stats {
-            uint32 message_count = 1;
-            uint32 view_count = 2;
+            uint64 message_count = 1;
+            uint64 view_count = 2;
         }
 
-        uint32 id = 1;
+        uint64 id = 1;
         string title = 2;
         Type topic_type = 3;
         Common.Creation creation = 4;
@@ -57,11 +57,11 @@ message Forum {
 
     message Forum {
         message Stats {
-            uint32 topic_count = 1;
-            uint32 message_count = 2;
+            uint64 topic_count = 1;
+            uint64 message_count = 2;
         }
 
-        uint32 id = 1;
+        uint64 id = 1;
         string title = 2;
         string forum_description = 3;
         repeated Common.UserLink moderators = 4;
@@ -70,7 +70,7 @@ message Forum {
     }
 
     message ForumBlock {
-        uint32 id = 1;
+        uint64 id = 1;
         string title = 2;
         repeated Forum forums = 3;
     }
@@ -84,10 +84,14 @@ message Forum {
         Common.Pages pages = 2;
     }
 
-    message TopicResponse {
+    message ForumTopicResponse {
         Topic topic = 1;
         Forum forum = 2;
         repeated TopicMessage messages = 3;
         Common.Pages pages = 4;
+    }
+
+    message ForumTopicSubscriptionResponse {
+        bool is_subscribed = 1;
     }
 }

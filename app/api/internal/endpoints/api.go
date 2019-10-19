@@ -3,11 +3,11 @@ package endpoints
 import (
 	"fantlab/keys"
 	"fantlab/shared"
+	"fantlab/uuid"
 	"net/http"
 	"strconv"
 
 	"github.com/go-chi/chi"
-	"github.com/segmentio/ksuid"
 )
 
 type API struct {
@@ -22,15 +22,15 @@ func MakeAPI(config *shared.AppConfig, services *shared.Services) *API {
 // *******************************************************
 
 func (api *API) getSession(r *http.Request) string {
-	return r.Header.Get(keys.SessionIdHeader)
+	return r.Header.Get(keys.HeaderSessionId)
 }
 
 func (api *API) getUserId(r *http.Request) uint64 {
-	return r.Context().Value(keys.UserIdCtxKey).(uint64)
+	return keys.GetUserId(r.Context())
 }
 
 func (api *API) generateSessionId() string {
-	return ksuid.New().String()
+	return uuid.GenerateNow()
 }
 
 // *******************************************************

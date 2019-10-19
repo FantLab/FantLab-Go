@@ -2,11 +2,11 @@ package db
 
 import (
 	"context"
+	"fantlab/assert"
 	"fantlab/dbtools"
 	"fantlab/dbtools/dbstubs"
 	"fantlab/dbtools/scanr"
 	"fantlab/dbtools/sqlr"
-	"fantlab/tt"
 	"testing"
 	"time"
 )
@@ -21,15 +21,15 @@ func Test_DeleteSession(t *testing.T) {
 	db := NewDB(&dbstubs.StubDB{ExecTable: execTable})
 
 	t.Run("positive", func(t *testing.T) {
-		ok, _ := db.DeleteSession(context.Background(), "1234")
+		err := db.DeleteSession(context.Background(), "1234")
 
-		tt.Assert(t, ok)
+		assert.True(t, err == nil)
 	})
 
 	t.Run("negative", func(t *testing.T) {
-		ok, _ := db.DeleteSession(context.Background(), "4321")
+		err := db.DeleteSession(context.Background(), "4321")
 
-		tt.Assert(t, !ok)
+		assert.True(t, err == ErrWrite)
 	})
 }
 
@@ -45,10 +45,9 @@ func Test_InsertNewSession(t *testing.T) {
 
 		db := NewDB(&dbstubs.StubDB{ExecTable: execTable})
 
-		ok, err := db.InsertNewSession(context.Background(), time, "1234", 1, "::1", "User Agent")
+		err := db.InsertNewSession(context.Background(), time, "1234", 1, "::1", "User Agent")
 
-		tt.Assert(t, ok)
-		tt.Assert(t, err == nil)
+		assert.True(t, err == nil)
 	})
 
 	t.Run("negative", func(t *testing.T) {
@@ -62,10 +61,9 @@ func Test_InsertNewSession(t *testing.T) {
 
 		db := NewDB(&dbstubs.StubDB{ExecTable: execTable})
 
-		ok, err := db.InsertNewSession(context.Background(), time, "1234", 1, "::1", "User Agent")
+		err := db.InsertNewSession(context.Background(), time, "1234", 1, "::1", "User Agent")
 
-		tt.Assert(t, !ok)
-		tt.Assert(t, err == nil)
+		assert.True(t, err == ErrWrite)
 	})
 }
 
@@ -86,8 +84,8 @@ func Test_FetchUserPasswordHash(t *testing.T) {
 	t.Run("positive", func(t *testing.T) {
 		data, err := db.FetchUserPasswordHash(context.Background(), "user")
 
-		tt.Assert(t, err == nil)
-		tt.AssertDeepEqual(t, data, UserPasswordHash{
+		assert.True(t, err == nil)
+		assert.DeepEqual(t, data, UserPasswordHash{
 			UserID:  1,
 			OldHash: "abc",
 			NewHash: "xyz",
@@ -97,8 +95,8 @@ func Test_FetchUserPasswordHash(t *testing.T) {
 	t.Run("negative", func(t *testing.T) {
 		data, err := db.FetchUserPasswordHash(context.Background(), "resu")
 
-		tt.Assert(t, dbtools.IsNotFoundError(err))
-		tt.AssertDeepEqual(t, data, UserPasswordHash{})
+		assert.True(t, dbtools.IsNotFoundError(err))
+		assert.DeepEqual(t, data, UserPasswordHash{})
 	})
 }
 
@@ -120,8 +118,8 @@ func Test_FetchUserSessionInfo(t *testing.T) {
 	t.Run("positive", func(t *testing.T) {
 		data, err := db.FetchUserSessionInfo(context.Background(), "1234")
 
-		tt.Assert(t, err == nil)
-		tt.AssertDeepEqual(t, data, UserSessionInfo{
+		assert.True(t, err == nil)
+		assert.DeepEqual(t, data, UserSessionInfo{
 			UserID:       1,
 			DateOfCreate: time,
 		})
@@ -130,8 +128,8 @@ func Test_FetchUserSessionInfo(t *testing.T) {
 	t.Run("negative", func(t *testing.T) {
 		data, err := db.FetchUserSessionInfo(context.Background(), "4321")
 
-		tt.Assert(t, dbtools.IsNotFoundError(err))
-		tt.AssertDeepEqual(t, data, UserSessionInfo{})
+		assert.True(t, dbtools.IsNotFoundError(err))
+		assert.DeepEqual(t, data, UserSessionInfo{})
 	})
 }
 
@@ -156,18 +154,18 @@ func Test_FetchUserBlockInfo(t *testing.T) {
 	t.Run("positive", func(t *testing.T) {
 		data, err := db.FetchUserBlockInfo(context.Background(), 1)
 
-		tt.Assert(t, err == nil)
-		tt.AssertDeepEqual(t, data, UserBlockInfo{
-			Blocked: 1,
+		assert.True(t, err == nil)
+		assert.DeepEqual(t, data, UserBlockInfo{
+			Blocked:        1,
 			DateOfBlockEnd: timeTo,
-			BlockReason: reason,
+			BlockReason:    reason,
 		})
 	})
 
 	t.Run("negative", func(t *testing.T) {
 		data, err := db.FetchUserBlockInfo(context.Background(), 2)
 
-		tt.Assert(t, dbtools.IsNotFoundError(err))
-		tt.AssertDeepEqual(t, data, UserBlockInfo{})
+		assert.True(t, dbtools.IsNotFoundError(err))
+		assert.DeepEqual(t, data, UserBlockInfo{})
 	})
 }

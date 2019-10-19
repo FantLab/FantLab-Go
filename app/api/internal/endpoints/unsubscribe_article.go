@@ -19,7 +19,7 @@ func (api *API) UnsubscribeArticle(r *http.Request) (int, proto.Message) {
 		}
 	}
 
-	isDbTopicSubscribed, err := api.services.DB().FetchBlogTopicSubscribed(r.Context(), uint32(articleId), uint32(userId))
+	isDbTopicSubscribed, err := api.services.DB().FetchBlogTopicSubscribed(r.Context(), articleId, userId)
 
 	if err != nil {
 		return http.StatusInternalServerError, &pb.Error_Response{
@@ -28,13 +28,13 @@ func (api *API) UnsubscribeArticle(r *http.Request) (int, proto.Message) {
 	}
 
 	if !isDbTopicSubscribed {
-		return http.StatusUnauthorized, &pb.Error_Response{
+		return http.StatusForbidden, &pb.Error_Response{
 			Status:  pb.Error_ACTION_PERMITTED,
 			Context: "already unsubscribed",
 		}
 	}
 
-	_, err = api.services.DB().UpdateBlogTopicUnsubscribed(r.Context(), uint32(articleId), uint32(userId))
+	err = api.services.DB().UpdateBlogTopicUnsubscribed(r.Context(), articleId, userId)
 
 	if err != nil {
 		return http.StatusInternalServerError, &pb.Error_Response{

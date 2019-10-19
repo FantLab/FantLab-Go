@@ -6,16 +6,16 @@ import (
 )
 
 type WorkGenre struct {
-	Id        uint16 `db:"work_genre_id"`
-	ParentId  uint16 `db:"parent_work_genre_id"`
-	GroupId   uint16 `db:"work_genre_group_id"`
+	Id        uint64 `db:"work_genre_id"`
+	ParentId  uint64 `db:"parent_work_genre_id"`
+	GroupId   uint64 `db:"work_genre_group_id"`
 	Name      string `db:"name"`
 	Info      string `db:"description"`
-	WorkCount uint32 `db:"work_count_voting_finished"`
+	WorkCount uint64 `db:"work_count_voting_finished"`
 }
 
 type WorkGenreGroup struct {
-	Id   uint16 `db:"work_genre_group_id"`
+	Id   uint64 `db:"work_genre_group_id"`
 	Name string `db:"name"`
 }
 
@@ -115,7 +115,7 @@ func (db *DB) FetchGenreIds(ctx context.Context) (*WorkGenresDBResponse, error) 
 	return result, nil
 }
 
-func (db *DB) GenreVote(ctx context.Context, workId uint64, userId uint64, genreIds []int32) error {
+func (db *DB) GenreVote(ctx context.Context, workId, userId uint64, genreIds []int64) error {
 	// TODO:
 
 	return nil

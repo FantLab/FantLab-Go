@@ -25,7 +25,7 @@ func (api *API) ShowForums(r *http.Request) (int, proto.Message) {
 			}
 		}
 
-		availableForums, err = helpers.ParseUints(strings.Split(availableForumsString, ","), 10, 32)
+		availableForums, err = helpers.ParseUints(strings.Split(availableForumsString, ","), 10, 64)
 
 		if err != nil {
 			return http.StatusInternalServerError, &pb.Error_Response{

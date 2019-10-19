@@ -2,10 +2,10 @@ package db
 
 import (
 	"context"
+	"fantlab/assert"
 	"fantlab/dbtools/dbstubs"
 	"fantlab/dbtools/scanr"
 	"fantlab/dbtools/sqlr"
-	"fantlab/tt"
 	"testing"
 	"time"
 )
@@ -36,8 +36,8 @@ func Test_LikeDislike(t *testing.T) {
 
 		likesCount, err := db.FetchBlogTopicLikeCount(context.Background(), 1)
 
-		tt.Assert(t, likesCount == 1)
-		tt.Assert(t, err == nil)
+		assert.True(t, likesCount == 1)
+		assert.True(t, err == nil)
 
 		{
 			stubDB.QueryTable[fetchBlogTopicLikeCountQuery.WithArgs(1).String()] = &dbstubs.StubRows{
@@ -52,15 +52,14 @@ func Test_LikeDislike(t *testing.T) {
 			}
 		}
 
-		ok, err := db.DislikeBlogTopic(context.Background(), 1, 1)
+		err = db.DislikeBlogTopic(context.Background(), 1, 1)
 
-		tt.Assert(t, ok)
-		tt.Assert(t, err == nil)
+		assert.True(t, err == nil)
 
 		likesCount, err = db.FetchBlogTopicLikeCount(context.Background(), 1)
 
-		tt.Assert(t, err == nil)
-		tt.Assert(t, likesCount == 0)
+		assert.True(t, err == nil)
+		assert.True(t, likesCount == 0)
 
 		{
 			stubDB.QueryTable[fetchBlogTopicLikeCountQuery.WithArgs(1).String()] = &dbstubs.StubRows{
@@ -74,6 +73,10 @@ func Test_LikeDislike(t *testing.T) {
 				Rows: 1,
 			}
 
+			stubDB.ExecTable[updateTopicLikesCountQuery.WithArgs(1).String()] = sqlr.Result{
+				Rows: 1,
+			}
+
 			stubDB.QueryTable[isBlogTopicLikedQuery.WithArgs(1, 1).String()] = &dbstubs.StubRows{
 				Values: [][]interface{}{{1}},
 				Columns: []scanr.Column{
@@ -82,19 +85,18 @@ func Test_LikeDislike(t *testing.T) {
 			}
 		}
 
-		ok, err = db.LikeBlogTopic(context.Background(), time.Date(2019, 8, 19, 17, 40, 03, 0, time.UTC), 1, 1)
+		err = db.LikeBlogTopic(context.Background(), time.Date(2019, 8, 19, 17, 40, 03, 0, time.UTC), 1, 1)
 
-		tt.Assert(t, ok)
-		tt.Assert(t, err == nil)
+		assert.True(t, err == nil)
 
 		likesCount, err = db.FetchBlogTopicLikeCount(context.Background(), 1)
 
-		tt.Assert(t, err == nil)
-		tt.Assert(t, likesCount == 1)
+		assert.True(t, err == nil)
+		assert.True(t, likesCount == 1)
 
 		isLiked, err := db.IsBlogTopicLiked(context.Background(), 1, 1)
 
-		tt.Assert(t, err == nil)
-		tt.Assert(t, isLiked)
+		assert.True(t, err == nil)
+		assert.True(t, isLiked)
 	})
 }

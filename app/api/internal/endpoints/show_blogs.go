@@ -32,7 +32,7 @@ func (api *API) ShowBlogs(r *http.Request) (int, proto.Message) {
 	sort := strings.ToLower(queryParam(r, "sort", "update"))
 	offset := limit * (page - 1)
 
-	dbResponse, err := api.services.DB().FetchBlogs(r.Context(), uint32(limit), uint32(offset), sort)
+	dbResponse, err := api.services.DB().FetchBlogs(r.Context(), limit, offset, sort)
 
 	if err != nil {
 		return http.StatusInternalServerError, &pb.Error_Response{
@@ -40,6 +40,6 @@ func (api *API) ShowBlogs(r *http.Request) (int, proto.Message) {
 		}
 	}
 
-	blogs := datahelpers.GetBlogs(dbResponse, uint32(page), uint32(limit), api.config)
+	blogs := datahelpers.GetBlogs(dbResponse, page, limit, api.config)
 	return http.StatusOK, blogs
 }

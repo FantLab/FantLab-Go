@@ -21,7 +21,7 @@ func (api *API) UnsubscribeBlog(r *http.Request) (int, proto.Message) {
 		}
 	}
 
-	dbBlog, err := api.services.DB().FetchBlog(r.Context(), uint32(blogId))
+	dbBlog, err := api.services.DB().FetchBlog(r.Context(), blogId)
 
 	if err != nil {
 		if dbtools.IsNotFoundError(err) {
@@ -36,14 +36,14 @@ func (api *API) UnsubscribeBlog(r *http.Request) (int, proto.Message) {
 		}
 	}
 
-	if dbBlog.UserId == uint32(userId) {
-		return http.StatusUnauthorized, &pb.Error_Response{
+	if dbBlog.UserId == userId {
+		return http.StatusForbidden, &pb.Error_Response{
 			Status:  pb.Error_ACTION_PERMITTED,
 			Context: "your own blog",
 		}
 	}
 
-	isDbBlogSubscribed, err := api.services.DB().FetchBlogSubscribed(r.Context(), uint32(blogId), uint32(userId))
+	isDbBlogSubscribed, err := api.services.DB().FetchBlogSubscribed(r.Context(), blogId, userId)
 
 	if err != nil {
 		return http.StatusInternalServerError, &pb.Error_Response{
@@ -52,13 +52,13 @@ func (api *API) UnsubscribeBlog(r *http.Request) (int, proto.Message) {
 	}
 
 	if !isDbBlogSubscribed {
-		return http.StatusUnauthorized, &pb.Error_Response{
+		return http.StatusForbidden, &pb.Error_Response{
 			Status:  pb.Error_ACTION_PERMITTED,
 			Context: "already unsubscribed",
 		}
 	}
 
-	_, err = api.services.DB().UpdateBlogUnsubscribed(r.Context(), uint32(blogId), uint32(userId))
+	err = api.services.DB().UpdateBlogUnsubscribed(r.Context(), blogId, userId)
 
 	if err != nil {
 		return http.StatusInternalServerError, &pb.Error_Response{

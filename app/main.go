@@ -8,7 +8,8 @@ import (
 	"fantlab/db"
 	"fantlab/dbtools/sqldb"
 	"fantlab/dbtools/sqlr"
-	"fantlab/logger"
+	"fantlab/logs"
+	"fantlab/logs/logger"
 	"fantlab/shared"
 	"log"
 	"net/http"
@@ -19,6 +20,9 @@ import (
 )
 
 func main() {
+	log.SetFlags(0)
+	log.SetPrefix("$ ")
+
 	startServer()
 }
 
@@ -37,15 +41,22 @@ func startServer() {
 	mc := memcache.New(os.Getenv("MC_ADDRESS"))
 
 	services := shared.MakeServices(
-		db.NewDB(sqlr.Log(sqldb.New(mysql), logger.DB)),
-		cache.New(caches.Log("Memcached", caches.NewMemcache(mc), logger.Cache)),
+		db.NewDB(sqlr.Log(sqldb.New(mysql), logs.DB)),
+		cache.New(caches.Log("Memcached", caches.NewMemcache(mc), logs.Cache)),
 	)
 
 	config := makeConfig(os.Getenv("IMAGES_BASE_URL"))
 
-	handler := api.MakeRouter(config, services)
+	handler := api.MakeRouter(config, services, logFunc(os.Getenv("DEBUG") == "1"))
 
 	log.Fatal(http.ListenAndServe(":"+os.Getenv("PORT"), handler))
+}
+
+func logFunc(isDebug bool) logger.ToString {
+	if isDebug {
+		return logger.Console
+	}
+	return logger.JSON
 }
 
 func makeConfig(imagesBaseURL string) *shared.AppConfig {

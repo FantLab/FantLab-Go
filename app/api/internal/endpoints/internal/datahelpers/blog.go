@@ -51,7 +51,7 @@ func GetCommunities(dbCommunities []db.Community, cfg *shared.AppConfig) *pb.Blo
 	}
 }
 
-func GetCommunity(dbResponse *db.CommunityTopicsDBResponse, page, limit uint32, cfg *shared.AppConfig) *pb.Blog_CommunityResponse {
+func GetCommunity(dbResponse *db.CommunityTopicsDBResponse, page, limit uint64, cfg *shared.AppConfig) *pb.Blog_CommunityResponse {
 	communityAvatar := helpers.GetCommunityAvatarUrl(cfg.ImagesBaseURL, dbResponse.Community.BlogId)
 
 	community := &pb.Blog_Community{
@@ -98,7 +98,7 @@ func GetCommunity(dbResponse *db.CommunityTopicsDBResponse, page, limit uint32, 
 
 	for _, dbTopic := range dbResponse.Topics {
 		gender := helpers.GetGender(dbTopic.UserId, dbTopic.Sex)
-		avatar := helpers.GetUserAvatarUrl(cfg.ImagesBaseURL, dbTopic.UserId, uint32(dbTopic.PhotoNumber))
+		avatar := helpers.GetUserAvatarUrl(cfg.ImagesBaseURL, dbTopic.UserId, dbTopic.PhotoNumber)
 
 		article := &pb.Blog_Article{
 			Id:    dbTopic.TopicId,
@@ -138,7 +138,7 @@ func GetCommunity(dbResponse *db.CommunityTopicsDBResponse, page, limit uint32, 
 	}
 }
 
-func GetBlogs(dbResponse *db.BlogsDBResponse, page, limit uint32, cfg *shared.AppConfig) *pb.Blog_BlogsResponse {
+func GetBlogs(dbResponse *db.BlogsDBResponse, page, limit uint64, cfg *shared.AppConfig) *pb.Blog_BlogsResponse {
 	//noinspection GoPreferNilSlice
 	var blogs = []*pb.Blog_Blog{}
 
@@ -181,13 +181,13 @@ func GetBlogs(dbResponse *db.BlogsDBResponse, page, limit uint32, cfg *shared.Ap
 	}
 }
 
-func GetBlog(dbResponse *db.BlogTopicsDBResponse, page, limit uint32, cfg *shared.AppConfig) *pb.Blog_BlogResponse {
+func GetBlog(dbResponse *db.BlogTopicsDBResponse, page, limit uint64, cfg *shared.AppConfig) *pb.Blog_BlogResponse {
 	//noinspection GoPreferNilSlice
 	var articles = []*pb.Blog_Article{}
 
 	for _, dbBlogTopic := range dbResponse.Topics {
 		gender := helpers.GetGender(dbBlogTopic.UserId, dbBlogTopic.Sex)
-		avatar := helpers.GetUserAvatarUrl(cfg.ImagesBaseURL, dbBlogTopic.UserId, uint32(dbBlogTopic.PhotoNumber))
+		avatar := helpers.GetUserAvatarUrl(cfg.ImagesBaseURL, dbBlogTopic.UserId, dbBlogTopic.PhotoNumber)
 
 		article := &pb.Blog_Article{
 			Id:    dbBlogTopic.TopicId,
@@ -226,7 +226,7 @@ func GetBlog(dbResponse *db.BlogTopicsDBResponse, page, limit uint32, cfg *share
 
 func GetArticle(dbBlogTopic *db.BlogTopic, cfg *shared.AppConfig) *pb.Blog_BlogArticleResponse {
 	gender := helpers.GetGender(dbBlogTopic.UserId, dbBlogTopic.Sex)
-	avatar := helpers.GetUserAvatarUrl(cfg.ImagesBaseURL, dbBlogTopic.UserId, uint32(dbBlogTopic.PhotoNumber))
+	avatar := helpers.GetUserAvatarUrl(cfg.ImagesBaseURL, dbBlogTopic.UserId, dbBlogTopic.PhotoNumber)
 
 	article := &pb.Blog_Article{
 		Id:    dbBlogTopic.TopicId,

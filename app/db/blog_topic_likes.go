@@ -21,50 +21,66 @@ var (
 	`)
 )
 
-func (db *DB) FetchBlogTopicLikeCount(ctx context.Context, topicId uint32) (uint32, error) {
-	var likeCount uint32
+func (db *DB) FetchBlogTopicLikeCount(ctx context.Context, topicId uint64) (uint64, error) {
+	var likeCount uint64
 	err := db.engine.Read(ctx, fetchBlogTopicLikeCountQuery.WithArgs(topicId)).Scan(&likeCount)
 	return likeCount, err
 }
 
-func (db *DB) IsBlogTopicLiked(ctx context.Context, topicId, userId uint32) (bool, error) {
+func (db *DB) IsBlogTopicLiked(ctx context.Context, topicId, userId uint64) (bool, error) {
 	var topicLikeExists uint8
 	err := db.engine.Read(ctx, isBlogTopicLikedQuery.WithArgs(topicId, userId)).Scan(&topicLikeExists)
 	return topicLikeExists > 0, err
 }
 
-func (db *DB) LikeBlogTopic(ctx context.Context, t time.Time, topicId, userId uint32) (bool, error) {
-	var ok bool
-
-	err := db.engine.InTransaction(func(rw sqlr.ReaderWriter) error {
+func (db *DB) LikeBlogTopic(ctx context.Context, t time.Time, topicId, userId uint64) error {
+	return db.engine.InTransaction(func(rw sqlr.ReaderWriter) error {
 		result := rw.Write(ctx, likeBlogTopicQuery.WithArgs(topicId, userId, t))
 
 		if result.Error != nil {
 			return result.Error
 		}
 
-		ok = result.Rows == 1
+		if result.Rows != 1 {
+			return ErrWrite
+		}
 
-		return rw.Write(ctx, updateTopicLikesCountQuery.WithArgs(topicId)).Error
+		result = rw.Write(ctx, updateTopicLikesCountQuery.WithArgs(topicId))
+
+		if result.Error != nil {
+			return result.Error
+		}
+
+		if result.Rows != 1 {
+			return ErrWrite
+		}
+
+		return nil
 	})
-
-	return ok, err
 }
 
-func (db *DB) DislikeBlogTopic(ctx context.Context, topicId, userId uint32) (bool, error) {
-	var ok bool
-
-	err := db.engine.InTransaction(func(rw sqlr.ReaderWriter) error {
+func (db *DB) DislikeBlogTopic(ctx context.Context, topicId, userId uint64) error {
+	return db.engine.InTransaction(func(rw sqlr.ReaderWriter) error {
 		result := rw.Write(ctx, dislikeBlogTopicQuery.WithArgs(topicId, userId))
 
 		if result.Error != nil {
 			return result.Error
 		}
 
-		ok = result.Rows == 1
+		if result.Rows != 1 {
+			return ErrWrite
+		}
 
-		return rw.Write(ctx, updateTopicLikesCountQuery.WithArgs(topicId)).Error
+		result = rw.Write(ctx, updateTopicLikesCountQuery.WithArgs(topicId))
+
+		if result.Error != nil {
+			return result.Error
+		}
+
+		if result.Rows != 1 {
+			return ErrWrite
+		}
+
+		return nil
 	})
-
-	return ok, err
 }

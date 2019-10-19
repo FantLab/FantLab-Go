@@ -1,7 +1,7 @@
 package scanr
 
 import (
-	"fantlab/tt"
+	"fantlab/assert"
 	"reflect"
 	"testing"
 )
@@ -51,7 +51,7 @@ func Test_Scan(t *testing.T) {
 
 		err := Scan(x, rows)
 
-		tt.Assert(t, err == ErrIsNil)
+		assert.True(t, err == ErrIsNil)
 	})
 
 	t.Run("negative_output_not_a_ptr", func(t *testing.T) {
@@ -61,7 +61,7 @@ func Test_Scan(t *testing.T) {
 
 		err := Scan(x, rows)
 
-		tt.Assert(t, err == ErrNotAPtr)
+		assert.True(t, err == ErrNotAPtr)
 	})
 
 	t.Run("negative_output_not_a_struct_slice", func(t *testing.T) {
@@ -71,7 +71,7 @@ func Test_Scan(t *testing.T) {
 
 		err := Scan(&x, rows)
 
-		tt.Assert(t, err == ErrNotAStruct)
+		assert.True(t, err == ErrNotAStruct)
 	})
 
 	t.Run("positive_single_value_1", func(t *testing.T) {
@@ -86,8 +86,8 @@ func Test_Scan(t *testing.T) {
 
 		err := Scan(&x, rows)
 
-		tt.Assert(t, err == nil)
-		tt.Assert(t, x == 1)
+		assert.True(t, err == nil)
+		assert.True(t, x == 1)
 	})
 
 	t.Run("positive_single_value_2", func(t *testing.T) {
@@ -102,8 +102,8 @@ func Test_Scan(t *testing.T) {
 
 		err := Scan(&x, rows)
 
-		tt.Assert(t, err == nil)
-		tt.Assert(t, x == "hello")
+		assert.True(t, err == nil)
+		assert.True(t, x == "hello")
 	})
 
 	t.Run("negative_single_value_multi_columns", func(t *testing.T) {
@@ -119,8 +119,8 @@ func Test_Scan(t *testing.T) {
 
 		err := Scan(&x, rows)
 
-		tt.Assert(t, err == ErrMultiColumns)
-		tt.Assert(t, x == "")
+		assert.True(t, err == ErrMultiColumns)
+		assert.True(t, x == "")
 	})
 
 	t.Run("negative_single_value_no_rows", func(t *testing.T) {
@@ -135,8 +135,8 @@ func Test_Scan(t *testing.T) {
 
 		err := Scan(&x, rows)
 
-		tt.Assert(t, err == ErrNoRows)
-		tt.Assert(t, x == "")
+		assert.True(t, err == ErrNoRows)
+		assert.True(t, x == "")
 	})
 
 	t.Run("negative_single_value_multi_rows", func(t *testing.T) {
@@ -151,8 +151,8 @@ func Test_Scan(t *testing.T) {
 
 		err := Scan(&x, rows)
 
-		tt.Assert(t, err == ErrMultiRows)
-		tt.Assert(t, x == "")
+		assert.True(t, err == ErrMultiRows)
+		assert.True(t, x == "")
 	})
 
 	t.Run("positive_single_struct_field_name", func(t *testing.T) {
@@ -171,9 +171,9 @@ func Test_Scan(t *testing.T) {
 
 		err := Scan(&x, rows)
 
-		tt.Assert(t, err == nil)
-		tt.Assert(t, x.FirstName == "a")
-		tt.Assert(t, x.LastName == "b")
+		assert.True(t, err == nil)
+		assert.True(t, x.FirstName == "a")
+		assert.True(t, x.LastName == "b")
 	})
 
 	t.Run("positive_single_struct_alt_name", func(t *testing.T) {
@@ -192,9 +192,9 @@ func Test_Scan(t *testing.T) {
 
 		err := Scan(&x, rows)
 
-		tt.Assert(t, err == nil)
-		tt.Assert(t, x.FirstName == "a")
-		tt.Assert(t, x.LastName == "b")
+		assert.True(t, err == nil)
+		assert.True(t, x.FirstName == "a")
+		assert.True(t, x.LastName == "b")
 	})
 
 	t.Run("negative_single_struct_no_rows", func(t *testing.T) {
@@ -213,9 +213,9 @@ func Test_Scan(t *testing.T) {
 
 		err := Scan(&x, rows)
 
-		tt.Assert(t, err == ErrNoRows)
-		tt.Assert(t, x.FirstName == "")
-		tt.Assert(t, x.LastName == "")
+		assert.True(t, err == ErrNoRows)
+		assert.True(t, x.FirstName == "")
+		assert.True(t, x.LastName == "")
 	})
 
 	t.Run("negative_single_value_multi_rows", func(t *testing.T) {
@@ -234,9 +234,9 @@ func Test_Scan(t *testing.T) {
 
 		err := Scan(&x, rows)
 
-		tt.Assert(t, err == ErrMultiRows)
-		tt.Assert(t, x.FirstName == "")
-		tt.Assert(t, x.LastName == "")
+		assert.True(t, err == ErrMultiRows)
+		assert.True(t, x.FirstName == "")
+		assert.True(t, x.LastName == "")
 	})
 
 	t.Run("positive_slice_alt_name", func(t *testing.T) {
@@ -255,11 +255,11 @@ func Test_Scan(t *testing.T) {
 
 		err := Scan(&x, rows)
 
-		tt.Assert(t, err == nil)
-		tt.Assert(t, x[0].FirstName == "a")
-		tt.Assert(t, x[0].LastName == "b")
-		tt.Assert(t, x[1].FirstName == "c")
-		tt.Assert(t, x[1].LastName == "d")
+		assert.True(t, err == nil)
+		assert.True(t, x[0].FirstName == "a")
+		assert.True(t, x[0].LastName == "b")
+		assert.True(t, x[1].FirstName == "c")
+		assert.True(t, x[1].LastName == "d")
 	})
 
 	t.Run("positive_slice_mix_names", func(t *testing.T) {
@@ -278,11 +278,11 @@ func Test_Scan(t *testing.T) {
 
 		err := Scan(&x, rows)
 
-		tt.Assert(t, err == nil)
-		tt.Assert(t, x[0].FirstName == "a")
-		tt.Assert(t, x[0].LastName == "b")
-		tt.Assert(t, x[1].FirstName == "c")
-		tt.Assert(t, x[1].LastName == "d")
+		assert.True(t, err == nil)
+		assert.True(t, x[0].FirstName == "a")
+		assert.True(t, x[0].LastName == "b")
+		assert.True(t, x[1].FirstName == "c")
+		assert.True(t, x[1].LastName == "d")
 	})
 
 	t.Run("positive_complex_slice", func(t *testing.T) {
@@ -314,8 +314,8 @@ func Test_Scan(t *testing.T) {
 
 		err := Scan(&x, rows)
 
-		tt.Assert(t, err == nil)
-		tt.AssertDeepEqual(t, x[0], testData{
+		assert.True(t, err == nil)
+		assert.DeepEqual(t, x[0], testData{
 			FirstName: "a",
 			LastName:  "b",
 			Id1:       1,
@@ -323,7 +323,7 @@ func Test_Scan(t *testing.T) {
 			IsClosed:  true,
 			Coef:      2.8,
 		})
-		tt.AssertDeepEqual(t, x[1], testData{
+		assert.DeepEqual(t, x[1], testData{
 			FirstName: "c",
 			LastName:  "d",
 			Id1:       3,

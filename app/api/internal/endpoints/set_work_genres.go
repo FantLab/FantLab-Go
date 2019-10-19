@@ -57,7 +57,7 @@ func (api *API) SetWorkGenres(r *http.Request) (int, proto.Message) {
 
 	// получаем все жанры из базы
 
-	dbResponse, err := api.services.DB().FetchGenreIds(r.Context(), )
+	dbResponse, err := api.services.DB().FetchGenreIds(r.Context())
 
 	if err != nil {
 		return http.StatusInternalServerError, &pb.Error_Response{

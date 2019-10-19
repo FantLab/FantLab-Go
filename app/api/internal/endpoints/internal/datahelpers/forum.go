@@ -7,10 +7,10 @@ import (
 	"fantlab/shared"
 )
 
-func GetForumBlocks(dbForums []db.Forum, dbModerators map[uint32][]db.ForumModerator, cfg *shared.AppConfig) *pb.Forum_ForumBlocksResponse {
+func GetForumBlocks(dbForums []db.Forum, dbModerators map[uint64][]db.ForumModerator, cfg *shared.AppConfig) *pb.Forum_ForumBlocksResponse {
 	var forumBlocks []*pb.Forum_ForumBlock
 
-	currentForumBlockID := uint32(0) // f_forum_block.id начинаются с 1
+	currentForumBlockID := uint64(0) // f_forum_block.id начинаются с 1
 
 	for _, dbForum := range dbForums {
 		if dbForum.ForumBlockID != currentForumBlockID {
@@ -83,7 +83,7 @@ func GetForumBlocks(dbForums []db.Forum, dbModerators map[uint32][]db.ForumModer
 	}
 }
 
-func GetForumTopics(dbResponse *db.ForumTopicsDBResponse, page, limit uint32, cfg *shared.AppConfig) *pb.Forum_ForumTopicsResponse {
+func GetForumTopics(dbResponse *db.ForumTopicsDBResponse, page, limit uint64, cfg *shared.AppConfig) *pb.Forum_ForumTopicsResponse {
 	//noinspection GoPreferNilSlice
 	topics := []*pb.Forum_Topic{}
 
@@ -147,7 +147,7 @@ func GetForumTopics(dbResponse *db.ForumTopicsDBResponse, page, limit uint32, cf
 	}
 }
 
-func GetTopic(dbResponse *db.ForumTopicMessagesDBResponse, page, limit uint32, cfg *shared.AppConfig) *pb.Forum_TopicResponse {
+func GetTopic(dbResponse *db.ForumTopicMessagesDBResponse, page, limit uint64, cfg *shared.AppConfig) *pb.Forum_ForumTopicResponse {
 	topic := &pb.Forum_Topic{
 		Id:    dbResponse.Topic.TopicID,
 		Title: dbResponse.Topic.TopicName,
@@ -179,7 +179,7 @@ func GetTopic(dbResponse *db.ForumTopicMessagesDBResponse, page, limit uint32, c
 					Login:  dbMessage.Login,
 					Gender: gender,
 					Avatar: avatar,
-					Class:  uint32(dbMessage.UserClass),
+					Class:  dbMessage.UserClass,
 					Sign:   dbMessage.Sign,
 				},
 				Date: helpers.TimestampProto(dbMessage.DateOfAdd),
@@ -187,7 +187,7 @@ func GetTopic(dbResponse *db.ForumTopicMessagesDBResponse, page, limit uint32, c
 			Text:       text,
 			IsCensored: dbMessage.IsCensored != 0,
 			Stats: &pb.Forum_TopicMessage_Stats{
-				Rating: int32(dbMessage.VotePlus - dbMessage.VoteMinus),
+				Rating: int64(dbMessage.VotePlus - dbMessage.VoteMinus),
 			},
 		}
 
@@ -196,7 +196,7 @@ func GetTopic(dbResponse *db.ForumTopicMessagesDBResponse, page, limit uint32, c
 
 	pageCount := helpers.CalculatePageCount(dbResponse.TotalMessagesCount, limit)
 
-	return &pb.Forum_TopicResponse{
+	return &pb.Forum_ForumTopicResponse{
 		Topic:    topic,
 		Forum:    forum,
 		Messages: messages,

@@ -54,7 +54,7 @@ func (api *API) ShowForumTopics(r *http.Request) (int, proto.Message) {
 			}
 		}
 
-		availableForums, err = helpers.ParseUints(strings.Split(availableForumsString, ","), 10, 32)
+		availableForums, err = helpers.ParseUints(strings.Split(availableForumsString, ","), 10, 64)
 
 		if err != nil {
 			return http.StatusInternalServerError, &pb.Error_Response{
@@ -68,9 +68,9 @@ func (api *API) ShowForumTopics(r *http.Request) (int, proto.Message) {
 	dbResponse, err := api.services.DB().FetchForumTopics(
 		r.Context(),
 		availableForums,
-		uint16(forumID),
-		uint32(limit),
-		uint32(offset),
+		forumID,
+		limit,
+		offset,
 	)
 
 	if err != nil {
@@ -86,6 +86,6 @@ func (api *API) ShowForumTopics(r *http.Request) (int, proto.Message) {
 		}
 	}
 
-	forumTopics := datahelpers.GetForumTopics(dbResponse, uint32(page), uint32(limit), api.config)
+	forumTopics := datahelpers.GetForumTopics(dbResponse, page, limit, api.config)
 	return http.StatusOK, forumTopics
 }
