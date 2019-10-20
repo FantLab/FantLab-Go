@@ -2,10 +2,10 @@ package db
 
 import (
 	"context"
+	"fantlab/assert"
 	"fantlab/dbtools/dbstubs"
 	"fantlab/dbtools/scanr"
 	"fantlab/dbtools/sqlr"
-	"fantlab/assert"
 	"testing"
 	"time"
 )
@@ -52,9 +52,8 @@ func Test_LikeDislike(t *testing.T) {
 			}
 		}
 
-		ok, err := db.DislikeBlogTopic(context.Background(), 1, 1)
+		err = db.DislikeBlogTopic(context.Background(), 1, 1)
 
-		assert.True(t, ok)
 		assert.True(t, err == nil)
 
 		likesCount, err = db.FetchBlogTopicLikeCount(context.Background(), 1)
@@ -74,6 +73,10 @@ func Test_LikeDislike(t *testing.T) {
 				Rows: 1,
 			}
 
+			stubDB.ExecTable[updateTopicLikesCountQuery.WithArgs(1).String()] = sqlr.Result{
+				Rows: 1,
+			}
+
 			stubDB.QueryTable[isBlogTopicLikedQuery.WithArgs(1, 1).String()] = &dbstubs.StubRows{
 				Values: [][]interface{}{{1}},
 				Columns: []scanr.Column{
@@ -82,9 +85,8 @@ func Test_LikeDislike(t *testing.T) {
 			}
 		}
 
-		ok, err = db.LikeBlogTopic(context.Background(), time.Date(2019, 8, 19, 17, 40, 03, 0, time.UTC), 1, 1)
+		err = db.LikeBlogTopic(context.Background(), time.Date(2019, 8, 19, 17, 40, 03, 0, time.UTC), 1, 1)
 
-		assert.True(t, ok)
 		assert.True(t, err == nil)
 
 		likesCount, err = db.FetchBlogTopicLikeCount(context.Background(), 1)

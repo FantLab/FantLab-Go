@@ -9,7 +9,7 @@ import (
 )
 
 func (api *API) ShowCommunities(r *http.Request) (int, proto.Message) {
-	dbCommunities, err := api.services.DB().FetchCommunities(r.Context(), )
+	dbCommunities, err := api.services.DB().FetchCommunities(r.Context())
 
 	if err != nil {
 		return http.StatusInternalServerError, &pb.Error_Response{

@@ -23,7 +23,7 @@ func (c *Cache) GetUserIdBySession(ctx context.Context, sid string) (uint64, err
 		return 0, err
 	}
 
-	return strconv.ParseUint(value, 10, 32)
+	return strconv.ParseUint(value, 10, 64)
 }
 
 func (c *Cache) DeleteSession(ctx context.Context, sid string) error {

@@ -7,85 +7,85 @@ import (
 )
 
 type Forum struct {
-	ForumID         uint32    `db:"forum_id"`
+	ForumID         uint64    `db:"forum_id"`
 	Name            string    `db:"name"`
 	Description     string    `db:"description"`
-	TopicCount      uint32    `db:"topic_count"`
-	MessageCount    uint32    `db:"message_count"`
-	LastTopicID     uint32    `db:"last_topic_id"`
+	TopicCount      uint64    `db:"topic_count"`
+	MessageCount    uint64    `db:"message_count"`
+	LastTopicID     uint64    `db:"last_topic_id"`
 	LastTopicName   string    `db:"last_topic_name"`
-	UserID          uint32    `db:"user_id"`
+	UserID          uint64    `db:"user_id"`
 	Login           string    `db:"login"`
 	Sex             uint8     `db:"sex"`
-	PhotoNumber     uint32    `db:"photo_number"`
-	LastMessageID   uint32    `db:"last_message_id"`
+	PhotoNumber     uint64    `db:"photo_number"`
+	LastMessageID   uint64    `db:"last_message_id"`
 	LastMessageText string    `db:"last_message_text"`
 	LastMessageDate time.Time `db:"last_message_date"`
-	ForumBlockID    uint32    `db:"forum_block_id"`
+	ForumBlockID    uint64    `db:"forum_block_id"`
 	ForumBlockName  string    `db:"forum_block_name"`
 }
 
 type ForumTopic struct {
-	TopicID         uint32    `db:"topic_id"`
+	TopicID         uint64    `db:"topic_id"`
 	Name            string    `db:"name"`
 	DateOfAdd       time.Time `db:"date_of_add"`
-	Views           uint32    `db:"views"`
-	UserID          uint32    `db:"user_id"`
+	Views           uint64    `db:"views"`
+	UserID          uint64    `db:"user_id"`
 	Login           string    `db:"login"`
 	Sex             uint8     `db:"sex"`
-	PhotoNumber     uint32    `db:"photo_number"`
-	TopicTypeID     uint32    `db:"topic_type_id"`
+	PhotoNumber     uint64    `db:"photo_number"`
+	TopicTypeID     uint64    `db:"topic_type_id"`
 	IsClosed        uint8     `db:"is_closed"`
 	IsPinned        uint8     `db:"is_pinned"`
-	MessageCount    uint32    `db:"message_count"`
-	LastMessageID   uint32    `db:"last_message_id"`
-	LastUserID      uint32    `db:"last_user_id"`
+	MessageCount    uint64    `db:"message_count"`
+	LastMessageID   uint64    `db:"last_message_id"`
+	LastUserID      uint64    `db:"last_user_id"`
 	LastLogin       string    `db:"last_login"`
 	LastSex         uint8     `db:"last_sex"`
-	LastPhotoNumber uint32    `db:"last_photo_number"`
+	LastPhotoNumber uint64    `db:"last_photo_number"`
 	LastMessageText string    `db:"last_message_text"`
 	LastMessageDate time.Time `db:"last_message_date"`
 }
 
 type ShortForumTopic struct {
-	TopicID   uint32 `db:"topic_id"`
+	TopicID   uint64 `db:"topic_id"`
 	TopicName string `db:"topic_name"`
-	ForumID   uint32 `db:"forum_id"`
+	ForumID   uint64 `db:"forum_id"`
 	ForumName string `db:"forum_name"`
 }
 
 type ForumMessage struct {
-	MessageID   uint32    `db:"message_id"`
+	MessageID   uint64    `db:"message_id"`
 	DateOfAdd   time.Time `db:"date_of_add"`
-	UserID      uint32    `db:"user_id"`
+	UserID      uint64    `db:"user_id"`
 	Login       string    `db:"login"`
 	Sex         uint8     `db:"sex"`
-	PhotoNumber uint32    `db:"photo_number"`
-	UserClass   uint8     `db:"user_class"`
+	PhotoNumber uint64    `db:"photo_number"`
+	UserClass   uint64    `db:"user_class"`
 	Sign        string    `db:"sign"`
 	MessageText string    `db:"message_text"`
 	IsCensored  uint8     `db:"is_censored"`
-	VotePlus    uint32    `db:"vote_plus"`
-	VoteMinus   uint32    `db:"vote_minus"`
+	VotePlus    uint64    `db:"vote_plus"`
+	VoteMinus   uint64    `db:"vote_minus"`
 }
 
 type ForumModerator struct {
-	UserID      uint32 `db:"user_id"`
+	UserID      uint64 `db:"user_id"`
 	Login       string `db:"login"`
 	Sex         uint8  `db:"sex"`
-	PhotoNumber uint32 `db:"photo_number"`
-	ForumID     uint32 `db:"forum_id"`
+	PhotoNumber uint64 `db:"photo_number"`
+	ForumID     uint64 `db:"forum_id"`
 }
 
 type ForumTopicsDBResponse struct {
 	Topics           []ForumTopic
-	TotalTopicsCount uint32
+	TotalTopicsCount uint64
 }
 
 type ForumTopicMessagesDBResponse struct {
 	Topic              ShortForumTopic
 	Messages           []ForumMessage
-	TotalMessagesCount uint32
+	TotalMessagesCount uint64
 }
 
 var (
@@ -184,6 +184,39 @@ var (
 		OFFSET ?
 	`)
 
+	fetchTopicQuery = sqlr.NewQuery(`
+		SELECT
+			t.topic_id,
+			t.name,
+			t.date_of_add,
+			t.views,
+			u.user_id,
+			u.login,
+			u.sex,
+			u.photo_number,
+			t.topic_type_id,
+			t.is_closed,
+			t.is_pinned,
+			t.message_count,
+			t.last_message_id,
+			u2.user_id AS last_user_id,
+			u2.photo_number AS last_photo_number,
+			m.message_text AS last_message_text,
+			t.last_message_date
+		FROM
+			f_topics t
+		LEFT JOIN
+			users u ON u.user_id = t.user_id
+		LEFT JOIN
+			users u2 ON u2.user_id = t.last_user_id
+		JOIN
+			f_forums f ON f.forum_id = t.forum_id
+		JOIN
+			f_messages_text m ON m.message_id = t.last_message_id
+		WHERE
+			t.topic_id = ? AND f.forum_id IN (?)
+	`)
+
 	topicsCountQuery = sqlr.NewQuery("SELECT COUNT(*) FROM f_topics WHERE forum_id = ?")
 
 	shortTopicQuery = sqlr.NewQuery(`
@@ -256,7 +289,7 @@ func (db *DB) FetchForums(ctx context.Context, availableForums []uint64) ([]Foru
 	return forums, nil
 }
 
-func (db *DB) FetchModerators(ctx context.Context) (map[uint32][]ForumModerator, error) {
+func (db *DB) FetchModerators(ctx context.Context) (map[uint64][]ForumModerator, error) {
 	var moderators []ForumModerator
 
 	err := db.engine.Read(ctx, fetchModeratorsQuery).Scan(&moderators)
@@ -265,7 +298,7 @@ func (db *DB) FetchModerators(ctx context.Context) (map[uint32][]ForumModerator,
 		return nil, err
 	}
 
-	moderatorsMap := map[uint32][]ForumModerator{}
+	moderatorsMap := map[uint64][]ForumModerator{}
 
 	for _, moderator := range moderators {
 		moderatorsMap[moderator.ForumID] = append(moderatorsMap[moderator.ForumID], moderator)
@@ -274,7 +307,7 @@ func (db *DB) FetchModerators(ctx context.Context) (map[uint32][]ForumModerator,
 	return moderatorsMap, nil
 }
 
-func (db *DB) FetchForumTopics(ctx context.Context, availableForums []uint64, forumID uint16, limit, offset uint32) (*ForumTopicsDBResponse, error) {
+func (db *DB) FetchForumTopics(ctx context.Context, availableForums []uint64, forumID, limit, offset uint64) (*ForumTopicsDBResponse, error) {
 	var forumExists uint8
 
 	err := db.engine.Read(ctx, forumExistsQuery.WithArgs(forumID, availableForums).Rebind()).Scan(&forumExists)
@@ -291,7 +324,7 @@ func (db *DB) FetchForumTopics(ctx context.Context, availableForums []uint64, fo
 		return nil, err
 	}
 
-	var count uint32
+	var count uint64
 
 	err = db.engine.Read(ctx, topicsCountQuery.WithArgs(forumID)).Scan(&count)
 
@@ -307,7 +340,19 @@ func (db *DB) FetchForumTopics(ctx context.Context, availableForums []uint64, fo
 	return result, nil
 }
 
-func (db *DB) FetchTopicMessages(ctx context.Context, availableForums []uint64, topicID, limit, offset uint32, sortDirection string) (*ForumTopicMessagesDBResponse, error) {
+func (db *DB) FetchForumTopic(ctx context.Context, availableForums []uint64, topicID uint64) (*ForumTopic, error) {
+	var topic ForumTopic
+
+	err := db.engine.Read(ctx, fetchTopicQuery.WithArgs(topicID, availableForums).Rebind()).Scan(&topic)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return &topic, nil
+}
+
+func (db *DB) FetchTopicMessages(ctx context.Context, availableForums []uint64, topicID, limit, offset uint64, sortDirection string) (*ForumTopicMessagesDBResponse, error) {
 	var shortTopic ShortForumTopic
 
 	err := db.engine.Read(ctx, shortTopicQuery.WithArgs(topicID, availableForums).Rebind()).Scan(&shortTopic)
@@ -316,7 +361,7 @@ func (db *DB) FetchTopicMessages(ctx context.Context, availableForums []uint64, 
 		return nil, err
 	}
 
-	var count uint32
+	var count uint64
 
 	err = db.engine.Read(ctx, topicMessagesCountQuery.WithArgs(topicID)).Scan(&count)
 
@@ -324,14 +369,14 @@ func (db *DB) FetchTopicMessages(ctx context.Context, availableForums []uint64, 
 		return nil, err
 	}
 
-	finalOffset := int32(offset)
+	finalOffset := int64(offset)
 	if sortDirection == "DESC" {
-		finalOffset = int32(count) - int32(offset) - int32(limit)
+		finalOffset = int64(count) - int64(offset) - int64(limit)
 	}
 
 	var messages []ForumMessage
 
-	err = db.engine.Read(ctx, fetchTopicMessagesQuery.Format(sortDirection).WithArgs(topicID, finalOffset+1, finalOffset+int32(limit))).Scan(&messages)
+	err = db.engine.Read(ctx, fetchTopicMessagesQuery.Format(sortDirection).WithArgs(topicID, finalOffset+1, finalOffset+int64(limit))).Scan(&messages)
 
 	if err != nil {
 		return nil, err

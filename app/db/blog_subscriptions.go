@@ -2,9 +2,9 @@ package db
 
 import (
 	"context"
-	"database/sql"
 	"time"
 
+	"fantlab/dbtools"
 	"fantlab/dbtools/sqlr"
 )
 
@@ -53,13 +53,13 @@ var (
 	`)
 )
 
-func (db *DB) FetchBlogSubscribed(ctx context.Context, blogId, userId uint32) (bool, error) {
+func (db *DB) FetchBlogSubscribed(ctx context.Context, blogId, userId uint64) (bool, error) {
 	var blogSubscriptionExists uint8
 
 	err := db.engine.Read(ctx, blogSubscriptionExistsQuery.WithArgs(blogId, userId)).Scan(&blogSubscriptionExists)
 
 	if err != nil {
-		if err == sql.ErrNoRows {
+		if dbtools.IsNotFoundError(err) {
 			return false, nil
 		}
 		return false, err
@@ -68,49 +68,65 @@ func (db *DB) FetchBlogSubscribed(ctx context.Context, blogId, userId uint32) (b
 	return true, nil
 }
 
-func (db *DB) UpdateBlogSubscribed(ctx context.Context, blogId, userId uint32) (bool, error) {
-	var ok bool
-
-	err := db.engine.InTransaction(func(rw sqlr.ReaderWriter) error {
+func (db *DB) UpdateBlogSubscribed(ctx context.Context, blogId, userId uint64) error {
+	return db.engine.InTransaction(func(rw sqlr.ReaderWriter) error {
 		result := rw.Write(ctx, blogSubscriptionInsert.WithArgs(userId, blogId, time.Now()))
 
 		if result.Error != nil {
 			return result.Error
 		}
 
-		ok = result.Rows == 1
+		if result.Rows != 1 {
+			return ErrWrite
+		}
 
-		return rw.Write(ctx, blogSubscriberUpdate.WithArgs(blogId)).Error
+		result = rw.Write(ctx, blogSubscriberUpdate.WithArgs(blogId))
+
+		if result.Error != nil {
+			return result.Error
+		}
+
+		if result.Rows != 1 {
+			return ErrWrite
+		}
+
+		return nil
 	})
-
-	return ok, err
 }
 
-func (db *DB) UpdateBlogUnsubscribed(ctx context.Context, blogId, userId uint32) (bool, error) {
-	var ok bool
-
-	err := db.engine.InTransaction(func(rw sqlr.ReaderWriter) error {
+func (db *DB) UpdateBlogUnsubscribed(ctx context.Context, blogId, userId uint64) error {
+	return db.engine.InTransaction(func(rw sqlr.ReaderWriter) error {
 		result := rw.Write(ctx, blogSubscriptionDelete.WithArgs(blogId, userId))
 
 		if result.Error != nil {
 			return result.Error
 		}
 
-		ok = result.Rows == 1
+		if result.Rows != 1 {
+			return ErrWrite
+		}
 
-		return rw.Write(ctx, blogSubscriberUpdate.WithArgs(blogId)).Error
+		result = rw.Write(ctx, blogSubscriberUpdate.WithArgs(blogId))
+
+		if result.Error != nil {
+			return result.Error
+		}
+
+		if result.Rows != 1 {
+			return ErrWrite
+		}
+
+		return nil
 	})
-
-	return ok, err
 }
 
-func (db *DB) FetchBlogTopicSubscribed(ctx context.Context, topicId, userId uint32) (bool, error) {
+func (db *DB) FetchBlogTopicSubscribed(ctx context.Context, topicId, userId uint64) (bool, error) {
 	var topicSubscriptionExists uint8
 
 	err := db.engine.Read(ctx, topicSubscriptionExistsQuery.WithArgs(topicId, userId)).Scan(&topicSubscriptionExists)
 
 	if err != nil {
-		if err == sql.ErrNoRows {
+		if dbtools.IsNotFoundError(err) {
 			return false, nil
 		}
 		return false, err
@@ -119,30 +135,30 @@ func (db *DB) FetchBlogTopicSubscribed(ctx context.Context, topicId, userId uint
 	return true, nil
 }
 
-func (db *DB) UpdateBlogTopicSubscribed(ctx context.Context, topicId, userId uint32) (bool, error) {
-	var ok bool
-
+func (db *DB) UpdateBlogTopicSubscribed(ctx context.Context, topicId, userId uint64) error {
 	result := db.engine.Write(ctx, topicSubscriptionInsert.WithArgs(userId, topicId, time.Now()))
 
 	if result.Error != nil {
-		return false, result.Error
+		return result.Error
 	}
 
-	ok = result.Rows == 1
+	if result.Rows != 1 {
+		return ErrWrite
+	}
 
-	return ok, nil
+	return nil
 }
 
-func (db *DB) UpdateBlogTopicUnsubscribed(ctx context.Context, topicId, userId uint32) (bool, error) {
-	var ok bool
-
+func (db *DB) UpdateBlogTopicUnsubscribed(ctx context.Context, topicId, userId uint64) error {
 	result := db.engine.Write(ctx, topicSubscriptionDelete.WithArgs(topicId, userId))
 
 	if result.Error != nil {
-		return false, result.Error
+		return result.Error
 	}
 
-	ok = result.Rows == 1
+	if result.Rows != 1 {
+		return ErrWrite
+	}
 
-	return ok, nil
+	return nil
 }

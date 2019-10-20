@@ -45,15 +45,15 @@ func (api *API) Login(r *http.Request) (int, proto.Message) {
 
 	dateOfCreate := time.Now()
 
-	ok, err := api.services.DB().InsertNewSession(r.Context(), dateOfCreate, sid, userData.UserID, r.RemoteAddr, r.UserAgent())
+	err = api.services.DB().InsertNewSession(r.Context(), dateOfCreate, sid, userData.UserID, r.RemoteAddr, r.UserAgent())
 
-	if !ok || err != nil {
+	if err != nil {
 		return http.StatusInternalServerError, &pb.Error_Response{
 			Status: pb.Error_SOMETHING_WENT_WRONG,
 		}
 	}
 
-	_ = api.services.Cache().PutSession(r.Context(), sid, uint64(userData.UserID), dateOfCreate)
+	_ = api.services.Cache().PutSession(r.Context(), sid, userData.UserID, dateOfCreate)
 
 	return http.StatusOK, &pb.Auth_LoginResponse{
 		UserId:       userData.UserID,

@@ -53,7 +53,7 @@ func (m *Blog) XXX_DiscardUnknown() {
 var xxx_messageInfo_Blog proto.InternalMessageInfo
 
 type Blog_LastArticle struct {
-	Id                   uint32               `protobuf:"varint,1,opt,name=id,proto3" json:"id,omitempty"`
+	Id                   uint64               `protobuf:"varint,1,opt,name=id,proto3" json:"id,omitempty"`
 	Title                string               `protobuf:"bytes,2,opt,name=title,proto3" json:"title,omitempty"`
 	User                 *Common_UserLink     `protobuf:"bytes,3,opt,name=user,proto3" json:"user,omitempty"`
 	Date                 *timestamp.Timestamp `protobuf:"bytes,4,opt,name=date,proto3" json:"date,omitempty"`
@@ -87,7 +87,7 @@ func (m *Blog_LastArticle) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_Blog_LastArticle proto.InternalMessageInfo
 
-func (m *Blog_LastArticle) GetId() uint32 {
+func (m *Blog_LastArticle) GetId() uint64 {
 	if m != nil {
 		return m.Id
 	}
@@ -116,7 +116,7 @@ func (m *Blog_LastArticle) GetDate() *timestamp.Timestamp {
 }
 
 type Blog_Community struct {
-	Id                   uint32                `protobuf:"varint,1,opt,name=id,proto3" json:"id,omitempty"`
+	Id                   uint64                `protobuf:"varint,1,opt,name=id,proto3" json:"id,omitempty"`
 	Title                string                `protobuf:"bytes,2,opt,name=title,proto3" json:"title,omitempty"`
 	CommunityDescription string                `protobuf:"bytes,3,opt,name=community_description,json=communityDescription,proto3" json:"community_description,omitempty"`
 	Rules                string                `protobuf:"bytes,4,opt,name=rules,proto3" json:"rules,omitempty"`
@@ -153,7 +153,7 @@ func (m *Blog_Community) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_Blog_Community proto.InternalMessageInfo
 
-func (m *Blog_Community) GetId() uint32 {
+func (m *Blog_Community) GetId() uint64 {
 	if m != nil {
 		return m.Id
 	}
@@ -203,8 +203,8 @@ func (m *Blog_Community) GetLastArticle() *Blog_LastArticle {
 }
 
 type Blog_Community_Stats struct {
-	ArticleCount         uint32   `protobuf:"varint,1,opt,name=article_count,json=articleCount,proto3" json:"article_count,omitempty"`
-	SubscriberCount      uint32   `protobuf:"varint,2,opt,name=subscriber_count,json=subscriberCount,proto3" json:"subscriber_count,omitempty"`
+	ArticleCount         uint64   `protobuf:"varint,1,opt,name=article_count,json=articleCount,proto3" json:"article_count,omitempty"`
+	SubscriberCount      uint64   `protobuf:"varint,2,opt,name=subscriber_count,json=subscriberCount,proto3" json:"subscriber_count,omitempty"`
 	XXX_NoUnkeyedLiteral struct{} `json:"-"`
 	XXX_unrecognized     []byte   `json:"-"`
 	XXX_sizecache        int32    `json:"-"`
@@ -235,14 +235,14 @@ func (m *Blog_Community_Stats) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_Blog_Community_Stats proto.InternalMessageInfo
 
-func (m *Blog_Community_Stats) GetArticleCount() uint32 {
+func (m *Blog_Community_Stats) GetArticleCount() uint64 {
 	if m != nil {
 		return m.ArticleCount
 	}
 	return 0
 }
 
-func (m *Blog_Community_Stats) GetSubscriberCount() uint32 {
+func (m *Blog_Community_Stats) GetSubscriberCount() uint64 {
 	if m != nil {
 		return m.SubscriberCount
 	}
@@ -250,7 +250,7 @@ func (m *Blog_Community_Stats) GetSubscriberCount() uint32 {
 }
 
 type Blog_Article struct {
-	Id                   uint32              `protobuf:"varint,1,opt,name=id,proto3" json:"id,omitempty"`
+	Id                   uint64              `protobuf:"varint,1,opt,name=id,proto3" json:"id,omitempty"`
 	Title                string              `protobuf:"bytes,2,opt,name=title,proto3" json:"title,omitempty"`
 	Creation             *Common_Creation    `protobuf:"bytes,3,opt,name=creation,proto3" json:"creation,omitempty"`
 	Text                 string              `protobuf:"bytes,4,opt,name=text,proto3" json:"text,omitempty"`
@@ -286,7 +286,7 @@ func (m *Blog_Article) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_Blog_Article proto.InternalMessageInfo
 
-func (m *Blog_Article) GetId() uint32 {
+func (m *Blog_Article) GetId() uint64 {
 	if m != nil {
 		return m.Id
 	}
@@ -329,9 +329,9 @@ func (m *Blog_Article) GetStats() *Blog_Article_Stats {
 }
 
 type Blog_Article_Stats struct {
-	LikeCount            uint32   `protobuf:"varint,1,opt,name=like_count,json=likeCount,proto3" json:"like_count,omitempty"`
-	ViewCount            uint32   `protobuf:"varint,2,opt,name=view_count,json=viewCount,proto3" json:"view_count,omitempty"`
-	CommentCount         uint32   `protobuf:"varint,3,opt,name=comment_count,json=commentCount,proto3" json:"comment_count,omitempty"`
+	LikeCount            uint64   `protobuf:"varint,1,opt,name=like_count,json=likeCount,proto3" json:"like_count,omitempty"`
+	ViewCount            uint64   `protobuf:"varint,2,opt,name=view_count,json=viewCount,proto3" json:"view_count,omitempty"`
+	CommentCount         uint64   `protobuf:"varint,3,opt,name=comment_count,json=commentCount,proto3" json:"comment_count,omitempty"`
 	XXX_NoUnkeyedLiteral struct{} `json:"-"`
 	XXX_unrecognized     []byte   `json:"-"`
 	XXX_sizecache        int32    `json:"-"`
@@ -362,21 +362,21 @@ func (m *Blog_Article_Stats) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_Blog_Article_Stats proto.InternalMessageInfo
 
-func (m *Blog_Article_Stats) GetLikeCount() uint32 {
+func (m *Blog_Article_Stats) GetLikeCount() uint64 {
 	if m != nil {
 		return m.LikeCount
 	}
 	return 0
 }
 
-func (m *Blog_Article_Stats) GetViewCount() uint32 {
+func (m *Blog_Article_Stats) GetViewCount() uint64 {
 	if m != nil {
 		return m.ViewCount
 	}
 	return 0
 }
 
-func (m *Blog_Article_Stats) GetCommentCount() uint32 {
+func (m *Blog_Article_Stats) GetCommentCount() uint64 {
 	if m != nil {
 		return m.CommentCount
 	}
@@ -384,7 +384,7 @@ func (m *Blog_Article_Stats) GetCommentCount() uint32 {
 }
 
 type Blog_Blog struct {
-	Id                   uint32            `protobuf:"varint,1,opt,name=id,proto3" json:"id,omitempty"`
+	Id                   uint64            `protobuf:"varint,1,opt,name=id,proto3" json:"id,omitempty"`
 	User                 *Common_UserLink  `protobuf:"bytes,2,opt,name=user,proto3" json:"user,omitempty"`
 	IsClosed             bool              `protobuf:"varint,3,opt,name=is_closed,json=isClosed,proto3" json:"is_closed,omitempty"`
 	Stats                *Blog_Blog_Stats  `protobuf:"bytes,4,opt,name=stats,proto3" json:"stats,omitempty"`
@@ -419,7 +419,7 @@ func (m *Blog_Blog) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_Blog_Blog proto.InternalMessageInfo
 
-func (m *Blog_Blog) GetId() uint32 {
+func (m *Blog_Blog) GetId() uint64 {
 	if m != nil {
 		return m.Id
 	}
@@ -455,8 +455,8 @@ func (m *Blog_Blog) GetLastArticle() *Blog_LastArticle {
 }
 
 type Blog_Blog_Stats struct {
-	ArticleCount         uint32   `protobuf:"varint,1,opt,name=article_count,json=articleCount,proto3" json:"article_count,omitempty"`
-	SubscriberCount      uint32   `protobuf:"varint,2,opt,name=subscriber_count,json=subscriberCount,proto3" json:"subscriber_count,omitempty"`
+	ArticleCount         uint64   `protobuf:"varint,1,opt,name=article_count,json=articleCount,proto3" json:"article_count,omitempty"`
+	SubscriberCount      uint64   `protobuf:"varint,2,opt,name=subscriber_count,json=subscriberCount,proto3" json:"subscriber_count,omitempty"`
 	XXX_NoUnkeyedLiteral struct{} `json:"-"`
 	XXX_unrecognized     []byte   `json:"-"`
 	XXX_sizecache        int32    `json:"-"`
@@ -487,14 +487,14 @@ func (m *Blog_Blog_Stats) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_Blog_Blog_Stats proto.InternalMessageInfo
 
-func (m *Blog_Blog_Stats) GetArticleCount() uint32 {
+func (m *Blog_Blog_Stats) GetArticleCount() uint64 {
 	if m != nil {
 		return m.ArticleCount
 	}
 	return 0
 }
 
-func (m *Blog_Blog_Stats) GetSubscriberCount() uint32 {
+func (m *Blog_Blog_Stats) GetSubscriberCount() uint64 {
 	if m != nil {
 		return m.SubscriberCount
 	}
@@ -792,7 +792,7 @@ func (m *Blog_BlogSubscriptionResponse) GetIsSubscribed() bool {
 }
 
 type Blog_BlogArticleLikeResponse struct {
-	LikeCount            uint32   `protobuf:"varint,1,opt,name=like_count,json=likeCount,proto3" json:"like_count,omitempty"`
+	LikeCount            uint64   `protobuf:"varint,1,opt,name=like_count,json=likeCount,proto3" json:"like_count,omitempty"`
 	XXX_NoUnkeyedLiteral struct{} `json:"-"`
 	XXX_unrecognized     []byte   `json:"-"`
 	XXX_sizecache        int32    `json:"-"`
@@ -823,7 +823,7 @@ func (m *Blog_BlogArticleLikeResponse) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_Blog_BlogArticleLikeResponse proto.InternalMessageInfo
 
-func (m *Blog_BlogArticleLikeResponse) GetLikeCount() uint32 {
+func (m *Blog_BlogArticleLikeResponse) GetLikeCount() uint64 {
 	if m != nil {
 		return m.LikeCount
 	}
@@ -862,7 +862,7 @@ var fileDescriptor_fc5203cdc85000bc = []byte{
 	0x3c, 0x99, 0xc4, 0x91, 0x46, 0x78, 0xf7, 0x46, 0x71, 0x3c, 0x0a, 0x69, 0x57, 0x9d, 0x06, 0xd3,
 	0x8b, 0xae, 0x60, 0x13, 0xca, 0x05, 0x99, 0x24, 0x1a, 0xb0, 0xfb, 0x63, 0x0d, 0xca, 0xa7, 0x32,
 	0xfa, 0x8b, 0x05, 0x8d, 0x33, 0xc2, 0xc5, 0x49, 0x2a, 0xd8, 0x30, 0xa4, 0xe8, 0x06, 0xd8, 0x2c,
-	0x70, 0xad, 0xb6, 0xd5, 0x69, 0x61, 0x9b, 0x05, 0x68, 0x13, 0x2a, 0x82, 0x89, 0x90, 0xba, 0x76,
+	0x70, 0xad, 0xb6, 0xd5, 0x29, 0x63, 0x9b, 0x05, 0x68, 0x13, 0x2a, 0x82, 0x89, 0x90, 0xba, 0x76,
 	0xdb, 0xea, 0x38, 0x58, 0x1f, 0xd0, 0x43, 0x28, 0x4f, 0x39, 0x4d, 0xdd, 0x52, 0xdb, 0xea, 0x34,
 	0xf6, 0x5d, 0x3f, 0x23, 0xd4, 0xd3, 0x24, 0x5e, 0x73, 0x9a, 0x9e, 0xb1, 0x68, 0x8c, 0x15, 0x0a,
 	0xf9, 0x50, 0x0e, 0x88, 0xa0, 0x6e, 0x59, 0xa1, 0x3d, 0x5f, 0x93, 0xf3, 0x33, 0x72, 0xfe, 0xab,
@@ -898,6 +898,6 @@ var fileDescriptor_fc5203cdc85000bc = []byte{
 	0xbd, 0x67, 0xe0, 0x4a, 0xc7, 0xb9, 0x1e, 0x79, 0xf5, 0x71, 0xc9, 0x33, 0xee, 0x41, 0x8b, 0xf1,
 	0x7e, 0xbe, 0x0d, 0xfa, 0xb9, 0xa8, 0xe3, 0x26, 0xe3, 0xe7, 0xb9, 0xcd, 0x3b, 0x86, 0xed, 0x19,
 	0x36, 0x67, 0x6c, 0x5c, 0x30, 0xba, 0xfa, 0x3d, 0x3b, 0xad, 0xbf, 0xad, 0x92, 0x24, 0xe9, 0x26,
-	0x83, 0x41, 0x55, 0x7d, 0x50, 0x0f, 0x7e, 0x05, 0x00, 0x00, 0xff, 0xff, 0x29, 0x5f, 0xea, 0x7f,
+	0x83, 0x41, 0x55, 0x7d, 0x50, 0x0f, 0x7e, 0x05, 0x00, 0x00, 0xff, 0xff, 0x4e, 0xd8, 0xb2, 0x6b,
 	0x31, 0x08, 0x00, 0x00,
 }

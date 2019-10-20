@@ -1,8 +1,12 @@
 package db
 
 import (
+	"errors"
+
 	"fantlab/dbtools/sqlr"
 )
+
+var ErrWrite = errors.New("db: write failed")
 
 type DB struct {
 	engine sqlr.DB

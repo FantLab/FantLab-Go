@@ -41,7 +41,7 @@ func (api *API) ShowCommunity(r *http.Request) (int, proto.Message) {
 
 	offset := limit * (page - 1)
 
-	dbResponse, err := api.services.DB().FetchCommunityTopics(r.Context(), uint32(communityId), uint32(limit), uint32(offset))
+	dbResponse, err := api.services.DB().FetchCommunityTopics(r.Context(), communityId, limit, offset)
 
 	if err != nil {
 		if dbtools.IsNotFoundError(err) {
@@ -56,6 +56,6 @@ func (api *API) ShowCommunity(r *http.Request) (int, proto.Message) {
 		}
 	}
 
-	community := datahelpers.GetCommunity(dbResponse, uint32(page), uint32(limit), api.config)
+	community := datahelpers.GetCommunity(dbResponse, page, limit, api.config)
 	return http.StatusOK, community
 }
