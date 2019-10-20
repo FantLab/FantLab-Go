@@ -58,7 +58,7 @@ func (api *API) ShowTopicMessages(r *http.Request) (int, proto.Message) {
 			}
 		}
 
-		availableForums, err = helpers.ParseUints(strings.Split(availableForumsString, ","), 10, 32)
+		availableForums, err = helpers.ParseUints(strings.Split(availableForumsString, ","), 10, 64)
 
 		if err != nil {
 			return http.StatusInternalServerError, &pb.Error_Response{
@@ -72,9 +72,9 @@ func (api *API) ShowTopicMessages(r *http.Request) (int, proto.Message) {
 	dbResponse, err := api.services.DB().FetchTopicMessages(
 		r.Context(),
 		availableForums,
-		uint32(topicID),
-		uint32(limit),
-		uint32(offset),
+		topicID,
+		limit,
+		offset,
 		sortDirection,
 	)
 
@@ -91,6 +91,6 @@ func (api *API) ShowTopicMessages(r *http.Request) (int, proto.Message) {
 		}
 	}
 
-	topicMessages := datahelpers.GetTopic(dbResponse, uint32(page), uint32(limit), api.config)
+	topicMessages := datahelpers.GetTopic(dbResponse, page, limit, api.config)
 	return http.StatusOK, topicMessages
 }

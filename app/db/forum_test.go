@@ -5,10 +5,10 @@ import (
 	"testing"
 	"time"
 
+	"fantlab/assert"
 	"fantlab/dbtools"
 	"fantlab/dbtools/dbstubs"
 	"fantlab/dbtools/scanr"
-	"fantlab/assert"
 )
 
 func Test_FetchAvailableForums(t *testing.T) {
@@ -160,7 +160,7 @@ func Test_FetchModerators(t *testing.T) {
 		moderators, err := db.FetchModerators(context.Background())
 
 		assert.True(t, err == nil)
-		assert.DeepEqual(t, moderators, map[uint32][]ForumModerator{
+		assert.DeepEqual(t, moderators, map[uint64][]ForumModerator{
 			2: {
 				{
 					UserID:      1,

@@ -14,12 +14,12 @@ message Common {
     }
 
     message UserLink {
-        uint32 id = 1;
+        uint64 id = 1;
         string login = 2;
         string name = 3;
         Gender gender = 4;
         string avatar = 5;
-        uint32 class = 6;
+        uint64 class = 6;
         string sign = 7;
     }
 
@@ -29,8 +29,8 @@ message Common {
     }
 
     message Pages {
-        uint32 current = 1;
-        uint32 count = 2;
+        uint64 current = 1;
+        uint64 count = 2;
     }
 
     message SuccessResponse {}

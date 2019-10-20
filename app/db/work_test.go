@@ -2,10 +2,10 @@ package db
 
 import (
 	"context"
+	"fantlab/assert"
 	"fantlab/dbtools"
 	"fantlab/dbtools/dbstubs"
 	"fantlab/dbtools/scanr"
-	"fantlab/assert"
 	"testing"
 )
 

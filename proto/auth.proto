@@ -6,7 +6,7 @@ option go_package = "app/pb";
 
 message Auth {
     message LoginResponse {
-        uint32 user_id = 1;
+        uint64 user_id = 1;
         string session_token = 2;
     }
 }

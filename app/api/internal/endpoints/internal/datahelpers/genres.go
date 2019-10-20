@@ -8,7 +8,7 @@ import (
 )
 
 type GenreIdNode struct {
-	id       int32
+	id       int64
 	children []*GenreIdNode
 	parent   *GenreIdNode
 }
@@ -21,22 +21,22 @@ func (node *GenreIdNode) append(child *GenreIdNode) *GenreIdNode {
 
 type GenreTree struct {
 	root  *GenreIdNode
-	table map[int32]*GenreIdNode
+	table map[int64]*GenreIdNode
 }
 
 func GetGenres(dbResponse *db.WorkGenresDBResponse) *pb.Genre_Response {
-	genresTable := make(map[uint16]*pb.Genre_Genre, len(dbResponse.Genres))
+	genresTable := make(map[uint64]*pb.Genre_Genre, len(dbResponse.Genres))
 
 	for _, dbGenre := range dbResponse.Genres {
 		genresTable[dbGenre.Id] = &pb.Genre_Genre{
-			Id:        uint32(dbGenre.Id),
+			Id:        dbGenre.Id,
 			Name:      dbGenre.Name,
 			Info:      dbGenre.Info,
 			WorkCount: dbGenre.WorkCount,
 		}
 	}
 
-	groupsTable := make(map[uint16]*pb.Genre_Genre)
+	groupsTable := make(map[uint64]*pb.Genre_Genre)
 
 	for _, dbGenre := range dbResponse.Genres {
 		root := groupsTable[dbGenre.GroupId]
@@ -67,7 +67,7 @@ func GetGenres(dbResponse *db.WorkGenresDBResponse) *pb.Genre_Response {
 		}
 
 		group := &pb.Genre_Group{
-			Id:     uint32(dbGroup.Id),
+			Id:     dbGroup.Id,
 			Name:   dbGroup.Name,
 			Genres: rootGenre.Subgenres,
 		}
@@ -83,30 +83,30 @@ func GetGenres(dbResponse *db.WorkGenresDBResponse) *pb.Genre_Response {
 func MakeGenreTree(dbResponse *db.WorkGenresDBResponse) *GenreTree {
 	root := &GenreIdNode{}
 
-	genresTable := make(map[int32]*GenreIdNode, len(dbResponse.Genres)+len(dbResponse.GenreGroups))
+	genresTable := make(map[int64]*GenreIdNode, len(dbResponse.Genres)+len(dbResponse.GenreGroups))
 
 	// для удобства, группы жанров - тоже жанры, но с отрицательными идентификаторами
 
 	for _, dbGroup := range dbResponse.GenreGroups {
-		groupNode := &GenreIdNode{id: -int32(dbGroup.Id)}
+		groupNode := &GenreIdNode{id: -int64(dbGroup.Id)}
 		genresTable[groupNode.id] = groupNode
 		root.append(groupNode)
 	}
 
 	for _, dbGenre := range dbResponse.Genres {
-		nodeId := int32(dbGenre.Id)
+		nodeId := int64(dbGenre.Id)
 		genresTable[nodeId] = &GenreIdNode{id: nodeId}
 	}
 
 	for _, dbGenre := range dbResponse.Genres {
-		genre := genresTable[int32(dbGenre.Id)]
+		genre := genresTable[int64(dbGenre.Id)]
 
-		parentGenre := genresTable[int32(dbGenre.ParentId)]
+		parentGenre := genresTable[int64(dbGenre.ParentId)]
 
 		if parentGenre != nil {
 			parentGenre.append(genre)
 		} else {
-			groupNode := genresTable[-int32(dbGenre.GroupId)]
+			groupNode := genresTable[-int64(dbGenre.GroupId)]
 
 			if groupNode != nil {
 				groupNode.append(genre)
@@ -123,7 +123,7 @@ func MakeGenreTree(dbResponse *db.WorkGenresDBResponse) *GenreTree {
 }
 
 func CheckRequiredGroupsForGenreIds(genreIds []uint64, tree *GenreTree) error {
-	var requiredGenreGroups = map[int32]string{
+	var requiredGenreGroups = map[int64]string{
 		-1: "Жанры/поджанры",
 		-3: "Место действия",
 		-4: "Время действия",
@@ -131,7 +131,7 @@ func CheckRequiredGroupsForGenreIds(genreIds []uint64, tree *GenreTree) error {
 	}
 
 	for _, genreId := range genreIds {
-		node := tree.table[int32(genreId)]
+		node := tree.table[int64(genreId)]
 
 		for {
 			if node == nil {
@@ -160,11 +160,11 @@ func CheckRequiredGroupsForGenreIds(genreIds []uint64, tree *GenreTree) error {
 	return errors.New("Выберите характеристики из следующих групп: " + strings.Join(groupNames, ", "))
 }
 
-func SelectGenreIdsWithParents(genreIds []uint64, tree *GenreTree) []int32 {
-	var result []int32
+func SelectGenreIdsWithParents(genreIds []uint64, tree *GenreTree) []int64 {
+	var result []int64
 
 	for _, genreId := range genreIds {
-		node := tree.table[int32(genreId)]
+		node := tree.table[int64(genreId)]
 
 		for node != nil {
 			if node.id > 0 {

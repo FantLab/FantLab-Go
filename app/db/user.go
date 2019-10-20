@@ -7,7 +7,7 @@ import (
 )
 
 type UserPasswordHash struct {
-	UserID  uint32 `db:"user_id"`
+	UserID  uint64 `db:"user_id"`
 	OldHash string `db:"password_hash"`
 	NewHash string `db:"new_password_hash"`
 }
@@ -18,9 +18,9 @@ type UserSessionInfo struct {
 }
 
 type UserBlockInfo struct {
-	Blocked         uint8     `db:"block"`
-	DateOfBlockEnd  time.Time `db:"date_of_block_end"`
-	BlockReason     string    `db:"block_reason"`
+	Blocked        uint8     `db:"block"`
+	DateOfBlockEnd time.Time `db:"date_of_block_end"`
+	BlockReason    string    `db:"block_reason"`
 }
 
 const (
@@ -54,14 +54,30 @@ func (db *DB) FetchUserBlockInfo(ctx context.Context, userID uint64) (UserBlockI
 	return data, err
 }
 
-func (db *DB) InsertNewSession(ctx context.Context, t time.Time, code string, userID uint32, userIP string, userAgent string) (bool, error) {
+func (db *DB) InsertNewSession(ctx context.Context, t time.Time, code string, userID uint64, userIP string, userAgent string) error {
 	result := db.engine.Write(ctx, insertNewSessionQuery.WithArgs(code, userID, userIP, userAgent, t, t, 0))
 
-	return result.Rows == 1, result.Error
+	if result.Error != nil {
+		return result.Error
+	}
+
+	if result.Rows != 1 {
+		return ErrWrite
+	}
+
+	return nil
 }
 
-func (db *DB) DeleteSession(ctx context.Context, code string) (bool, error) {
+func (db *DB) DeleteSession(ctx context.Context, code string) error {
 	result := db.engine.Write(ctx, deleteSessionQuery.WithArgs(code))
 
-	return result.Rows > 0, result.Error
+	if result.Error != nil {
+		return result.Error
+	}
+
+	if result.Rows != 1 {
+		return ErrWrite
+	}
+
+	return nil
 }

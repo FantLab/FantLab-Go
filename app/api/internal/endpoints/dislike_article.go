@@ -21,7 +21,7 @@ func (api *API) DislikeArticle(r *http.Request) (int, proto.Message) {
 		}
 	}
 
-	dbTopic, err := api.services.DB().FetchBlogTopic(r.Context(), uint32(articleId))
+	dbTopic, err := api.services.DB().FetchBlogTopic(r.Context(), articleId)
 
 	if err != nil {
 		if dbtools.IsNotFoundError(err) {
@@ -36,14 +36,14 @@ func (api *API) DislikeArticle(r *http.Request) (int, proto.Message) {
 		}
 	}
 
-	if dbTopic.UserId == uint32(userId) {
+	if dbTopic.UserId == userId {
 		return http.StatusUnauthorized, &pb.Error_Response{
 			Status:  pb.Error_ACTION_PERMITTED,
 			Context: "your own article",
 		}
 	}
 
-	ok, err := api.services.DB().IsBlogTopicLiked(r.Context(), uint32(articleId), uint32(userId))
+	ok, err := api.services.DB().IsBlogTopicLiked(r.Context(), articleId, userId)
 
 	if err != nil && !dbtools.IsNotFoundError(err) {
 		return http.StatusInternalServerError, &pb.Error_Response{
@@ -58,7 +58,7 @@ func (api *API) DislikeArticle(r *http.Request) (int, proto.Message) {
 		}
 	}
 
-	_, err = api.services.DB().DislikeBlogTopic(r.Context(), uint32(articleId), uint32(userId))
+	err = api.services.DB().DislikeBlogTopic(r.Context(), articleId, userId)
 
 	if err != nil {
 		return http.StatusInternalServerError, &pb.Error_Response{
@@ -66,7 +66,7 @@ func (api *API) DislikeArticle(r *http.Request) (int, proto.Message) {
 		}
 	}
 
-	likeCount, err := api.services.DB().FetchBlogTopicLikeCount(r.Context(), uint32(articleId))
+	likeCount, err := api.services.DB().FetchBlogTopicLikeCount(r.Context(), articleId)
 
 	if err != nil {
 		return http.StatusInternalServerError, &pb.Error_Response{

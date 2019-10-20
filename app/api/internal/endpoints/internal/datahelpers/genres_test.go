@@ -36,7 +36,7 @@ func init() {
 			append(g7.
 				append(g8)))
 
-	var table = map[int32]*GenreIdNode{
+	var table = map[int64]*GenreIdNode{
 		-1: gg1,
 		-3: gg2,
 		-4: gg3,
@@ -61,7 +61,7 @@ func Test_selectGenreIdsWithParents(t *testing.T) {
 	t.Run("positive", func(t *testing.T) {
 		x := SelectGenreIdsWithParents([]uint64{2, 4, 6, 8}, testTree)
 
-		assert.DeepEqual(t, x, []int32{2, 1, 4, 3, 6, 5, 8, 7})
+		assert.DeepEqual(t, x, []int64{2, 1, 4, 3, 6, 5, 8, 7})
 	})
 }
 

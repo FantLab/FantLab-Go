@@ -8,71 +8,71 @@ import (
 )
 
 type Community struct {
-	BlogId          uint32    `db:"blog_id"`
+	BlogId          uint64    `db:"blog_id"`
 	Name            string    `db:"name"`
 	Description     string    `db:"description"`
 	Rules           string    `db:"rules"`
-	TopicsCount     uint32    `db:"topics_count"`
+	TopicsCount     uint64    `db:"topics_count"`
 	IsPublic        uint8     `db:"is_public"`
 	LastTopicDate   time.Time `db:"last_topic_date"`
 	LastTopicHead   string    `db:"last_topic_head"`
-	LastTopicId     uint32    `db:"last_topic_id"`
-	SubscriberCount uint32    `db:"subscriber_count"`
-	LastUserId      uint32    `db:"last_user_id"`
+	LastTopicId     uint64    `db:"last_topic_id"`
+	SubscriberCount uint64    `db:"subscriber_count"`
+	LastUserId      uint64    `db:"last_user_id"`
 	LastLogin       string    `db:"last_login"`
 	LastSex         uint8     `db:"last_sex"`
-	LastPhotoNumber uint32    `db:"last_photo_number"`
+	LastPhotoNumber uint64    `db:"last_photo_number"`
 }
 
 type CommunityModerator struct {
-	UserID      uint32 `db:"user_id"`
+	UserID      uint64 `db:"user_id"`
 	Login       string `db:"login"`
 	Sex         uint8  `db:"sex"`
-	PhotoNumber uint32 `db:"photo_number"`
+	PhotoNumber uint64 `db:"photo_number"`
 }
 
 type CommunityAuthor struct {
-	UserID      uint32    `db:"user_id"`
+	UserID      uint64    `db:"user_id"`
 	DateOfAdd   time.Time `db:"date_of_add"`
 	Login       string    `db:"login"`
 	Sex         uint8     `db:"sex"`
-	PhotoNumber uint32    `db:"photo_number"`
+	PhotoNumber uint64    `db:"photo_number"`
 }
 
 type Blog struct {
-	BlogId          uint32    `db:"blog_id"`
-	UserId          uint32    `db:"user_id"`
+	BlogId          uint64    `db:"blog_id"`
+	UserId          uint64    `db:"user_id"`
 	Login           string    `db:"login"`
 	Fio             string    `db:"fio"`
 	Sex             uint8     `db:"sex"`
-	PhotoNumber     uint32    `db:"photo_number"`
-	TopicsCount     uint32    `db:"topics_count"`
-	SubscriberCount uint32    `db:"subscriber_count"`
+	PhotoNumber     uint64    `db:"photo_number"`
+	TopicsCount     uint64    `db:"topics_count"`
+	SubscriberCount uint64    `db:"subscriber_count"`
 	IsClose         uint8     `db:"is_close"`
 	LastTopicDate   time.Time `db:"last_topic_date"`
 	LastTopicHead   string    `db:"last_topic_head"`
-	LastTopicId     uint32    `db:"last_topic_id"`
+	LastTopicId     uint64    `db:"last_topic_id"`
 }
 
 type BlogTopic struct {
-	TopicId       uint32    `db:"topic_id"`
+	TopicId       uint64    `db:"topic_id"`
 	HeadTopic     string    `db:"head_topic"`
 	DateOfAdd     time.Time `db:"date_of_add"`
-	UserId        uint32    `db:"user_id"`
+	UserId        uint64    `db:"user_id"`
 	Login         string    `db:"login"`
 	Sex           uint8     `db:"sex"`
-	PhotoNumber   uint16    `db:"photo_number"`
+	PhotoNumber   uint64    `db:"photo_number"`
 	MessageText   string    `db:"message_text"`
 	Tags          string    `db:"tags"`
-	LikesCount    uint32    `db:"likes_count"`
-	Views         uint32    `db:"views"`
-	CommentsCount uint32    `db:"comments_count"`
+	LikesCount    uint64    `db:"likes_count"`
+	Views         uint64    `db:"views"`
+	CommentsCount uint64    `db:"comments_count"`
 }
 
 type BlogTopicLike struct {
-	TopicLikeId uint32    `db:"topic_like_id"`
-	TopicId     uint32    `db:"topic_id"`
-	UserId      uint32    `db:"user_id"`
+	TopicLikeId uint64    `db:"topic_like_id"`
+	TopicId     uint64    `db:"topic_id"`
+	UserId      uint64    `db:"user_id"`
 	DateOfAdd   time.Time `db:"date_of_add"`
 }
 
@@ -81,17 +81,17 @@ type CommunityTopicsDBResponse struct {
 	Moderators       []CommunityModerator
 	Authors          []CommunityAuthor
 	Topics           []BlogTopic
-	TotalTopicsCount uint32
+	TotalTopicsCount uint64
 }
 
 type BlogsDBResponse struct {
 	Blogs      []Blog
-	TotalCount uint32
+	TotalCount uint64
 }
 
 type BlogTopicsDBResponse struct {
 	Topics           []BlogTopic
-	TotalTopicsCount uint32
+	TotalTopicsCount uint64
 }
 
 var (
@@ -348,7 +348,7 @@ func (db *DB) FetchCommunities(ctx context.Context) ([]Community, error) {
 	return communities, nil
 }
 
-func (db *DB) FetchCommunity(ctx context.Context, communityID uint32) (*Community, error) {
+func (db *DB) FetchCommunity(ctx context.Context, communityID uint64) (*Community, error) {
 	var community Community
 
 	err := db.engine.Read(ctx, communityQuery.WithArgs(communityID)).Scan(&community)
@@ -360,7 +360,7 @@ func (db *DB) FetchCommunity(ctx context.Context, communityID uint32) (*Communit
 	return &community, nil
 }
 
-func (db *DB) FetchCommunityTopics(ctx context.Context, communityID, limit, offset uint32) (*CommunityTopicsDBResponse, error) {
+func (db *DB) FetchCommunityTopics(ctx context.Context, communityID, limit, offset uint64) (*CommunityTopicsDBResponse, error) {
 	var community Community
 
 	err := db.engine.Read(ctx, shortCommunityQuery.WithArgs(communityID)).Scan(&community)
@@ -393,7 +393,7 @@ func (db *DB) FetchCommunityTopics(ctx context.Context, communityID, limit, offs
 		return nil, err
 	}
 
-	var count uint32
+	var count uint64
 
 	err = db.engine.Read(ctx, communityTopicCountQuery.WithArgs(communityID)).Scan(&count)
 
@@ -412,7 +412,7 @@ func (db *DB) FetchCommunityTopics(ctx context.Context, communityID, limit, offs
 	return result, nil
 }
 
-func (db *DB) FetchBlogs(ctx context.Context, limit, offset uint32, sort string) (*BlogsDBResponse, error) {
+func (db *DB) FetchBlogs(ctx context.Context, limit, offset uint64, sort string) (*BlogsDBResponse, error) {
 	var sortOption string
 	switch sort {
 	case "article":
@@ -431,7 +431,7 @@ func (db *DB) FetchBlogs(ctx context.Context, limit, offset uint32, sort string)
 		return nil, err
 	}
 
-	var count uint32
+	var count uint64
 
 	err = db.engine.Read(ctx, blogCountQuery).Scan(&count)
 
@@ -447,7 +447,7 @@ func (db *DB) FetchBlogs(ctx context.Context, limit, offset uint32, sort string)
 	return result, nil
 }
 
-func (db *DB) FetchBlog(ctx context.Context, blogId uint32) (*Blog, error) {
+func (db *DB) FetchBlog(ctx context.Context, blogId uint64) (*Blog, error) {
 	var blog Blog
 
 	err := db.engine.Read(ctx, blogQuery.WithArgs(blogId)).Scan(&blog)
@@ -459,7 +459,7 @@ func (db *DB) FetchBlog(ctx context.Context, blogId uint32) (*Blog, error) {
 	return &blog, nil
 }
 
-func (db *DB) FetchBlogTopics(ctx context.Context, blogID, limit, offset uint32) (*BlogTopicsDBResponse, error) {
+func (db *DB) FetchBlogTopics(ctx context.Context, blogID, limit, offset uint64) (*BlogTopicsDBResponse, error) {
 	var blogExists uint8
 
 	err := db.engine.Read(ctx, blogExistsQuery.WithArgs(blogID)).Scan(&blogExists)
@@ -476,7 +476,7 @@ func (db *DB) FetchBlogTopics(ctx context.Context, blogID, limit, offset uint32)
 		return nil, err
 	}
 
-	var count uint32
+	var count uint64
 
 	err = db.engine.Read(ctx, blogTopicCountQuery.WithArgs(blogID)).Scan(&count)
 
@@ -492,7 +492,7 @@ func (db *DB) FetchBlogTopics(ctx context.Context, blogID, limit, offset uint32)
 	return response, nil
 }
 
-func (db *DB) FetchBlogTopic(ctx context.Context, topicId uint32) (*BlogTopic, error) {
+func (db *DB) FetchBlogTopic(ctx context.Context, topicId uint64) (*BlogTopic, error) {
 	var topic BlogTopic
 
 	err := db.engine.Read(ctx, topicQuery.WithArgs(topicId)).Scan(&topic)

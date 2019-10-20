@@ -2,11 +2,11 @@ package db
 
 import (
 	"context"
+	"fantlab/assert"
 	"fantlab/dbtools"
 	"fantlab/dbtools/dbstubs"
 	"fantlab/dbtools/scanr"
 	"fantlab/dbtools/sqlr"
-	"fantlab/assert"
 	"testing"
 	"time"
 )
@@ -21,15 +21,15 @@ func Test_DeleteSession(t *testing.T) {
 	db := NewDB(&dbstubs.StubDB{ExecTable: execTable})
 
 	t.Run("positive", func(t *testing.T) {
-		ok, _ := db.DeleteSession(context.Background(), "1234")
+		err := db.DeleteSession(context.Background(), "1234")
 
-		assert.True(t, ok)
+		assert.True(t, err == nil)
 	})
 
 	t.Run("negative", func(t *testing.T) {
-		ok, _ := db.DeleteSession(context.Background(), "4321")
+		err := db.DeleteSession(context.Background(), "4321")
 
-		assert.True(t, !ok)
+		assert.True(t, err == ErrWrite)
 	})
 }
 
@@ -45,9 +45,8 @@ func Test_InsertNewSession(t *testing.T) {
 
 		db := NewDB(&dbstubs.StubDB{ExecTable: execTable})
 
-		ok, err := db.InsertNewSession(context.Background(), time, "1234", 1, "::1", "User Agent")
+		err := db.InsertNewSession(context.Background(), time, "1234", 1, "::1", "User Agent")
 
-		assert.True(t, ok)
 		assert.True(t, err == nil)
 	})
 
@@ -62,10 +61,9 @@ func Test_InsertNewSession(t *testing.T) {
 
 		db := NewDB(&dbstubs.StubDB{ExecTable: execTable})
 
-		ok, err := db.InsertNewSession(context.Background(), time, "1234", 1, "::1", "User Agent")
+		err := db.InsertNewSession(context.Background(), time, "1234", 1, "::1", "User Agent")
 
-		assert.True(t, !ok)
-		assert.True(t, err == nil)
+		assert.True(t, err == ErrWrite)
 	})
 }
 
@@ -158,9 +156,9 @@ func Test_FetchUserBlockInfo(t *testing.T) {
 
 		assert.True(t, err == nil)
 		assert.DeepEqual(t, data, UserBlockInfo{
-			Blocked: 1,
+			Blocked:        1,
 			DateOfBlockEnd: timeTo,
-			BlockReason: reason,
+			BlockReason:    reason,
 		})
 	})
 

@@ -21,7 +21,7 @@ func (api *API) SubscribeCommunity(r *http.Request) (int, proto.Message) {
 		}
 	}
 
-	_, err = api.services.DB().FetchCommunity(r.Context(), uint32(communityId))
+	_, err = api.services.DB().FetchCommunity(r.Context(), communityId)
 
 	if err != nil {
 		if dbtools.IsNotFoundError(err) {
@@ -36,7 +36,7 @@ func (api *API) SubscribeCommunity(r *http.Request) (int, proto.Message) {
 		}
 	}
 
-	isDbCommunitySubscribed, err := api.services.DB().FetchBlogSubscribed(r.Context(), uint32(communityId), uint32(userId))
+	isDbCommunitySubscribed, err := api.services.DB().FetchBlogSubscribed(r.Context(), communityId, userId)
 
 	if err != nil {
 		return http.StatusInternalServerError, &pb.Error_Response{
@@ -45,13 +45,13 @@ func (api *API) SubscribeCommunity(r *http.Request) (int, proto.Message) {
 	}
 
 	if isDbCommunitySubscribed {
-		return http.StatusUnauthorized, &pb.Error_Response{
+		return http.StatusForbidden, &pb.Error_Response{
 			Status:  pb.Error_ACTION_PERMITTED,
 			Context: "already subscribed",
 		}
 	}
 
-	_, err = api.services.DB().UpdateBlogSubscribed(r.Context(), uint32(communityId), uint32(userId))
+	err = api.services.DB().UpdateBlogSubscribed(r.Context(), communityId, userId)
 
 	if err != nil {
 		return http.StatusInternalServerError, &pb.Error_Response{

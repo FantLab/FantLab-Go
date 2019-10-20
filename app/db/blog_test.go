@@ -5,10 +5,10 @@ import (
 	"testing"
 	"time"
 
+	"fantlab/assert"
 	"fantlab/dbtools"
 	"fantlab/dbtools/dbstubs"
 	"fantlab/dbtools/scanr"
-	"fantlab/assert"
 )
 
 func Test_FetchCommunities(t *testing.T) {

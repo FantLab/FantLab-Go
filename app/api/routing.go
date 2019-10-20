@@ -56,6 +56,8 @@ func MakeRouter(config *shared.AppConfig, services *shared.Services, logFunc log
 			r.Use(middlewares.RequireAuth)
 			r.Use(middlewares.CheckBan(services))
 
+			r.Post("/topics/{id}/subscription", protobuf.Handle(api.SubscribeForumTopic))
+			r.Delete("/topics/{id}/subscription", protobuf.Handle(api.UnsubscribeForumTopic))
 			r.Post("/communities/{id}/subscription", protobuf.Handle(api.SubscribeCommunity))
 			r.Delete("/communities/{id}/subscription", protobuf.Handle(api.UnsubscribeCommunity))
 			r.Post("/blogs/{id}/subscription", protobuf.Handle(api.SubscribeBlog))

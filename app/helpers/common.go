@@ -1,8 +1,6 @@
 package helpers
 
-import (
-	"strconv"
-)
+import "strconv"
 
 func ParseUints(ss []string, base int, bitSize int) ([]uint64, error) {
 	n := len(ss)
