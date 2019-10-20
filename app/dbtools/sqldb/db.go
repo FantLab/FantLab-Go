@@ -23,12 +23,11 @@ func (db sqlDB) InTransaction(perform func(sqlr.ReaderWriter) error) error {
 
 	err = perform(readerWriter{tx})
 
-	switch err {
-	case nil:
-		err = tx.Commit()
-	default:
-		err = tx.Rollback()
+	if err == nil {
+		return tx.Commit()
 	}
+
+	_ = tx.Rollback()
 
 	return err
 }
