@@ -10,6 +10,9 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
+// Создает новую сессию пользователя.
+// Параметры (form) - **login** и **password**.
+// В случае успеха в ответе придёт токен свежесозданной сессии.
 func (api *API) Login(r *http.Request) (int, proto.Message) {
 	login := r.PostFormValue("login")
 	password := r.PostFormValue("password")

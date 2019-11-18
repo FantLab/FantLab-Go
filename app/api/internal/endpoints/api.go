@@ -6,17 +6,22 @@ import (
 	"fantlab/uuid"
 	"net/http"
 	"strconv"
-
-	"github.com/go-chi/chi"
 )
 
+type URLParamGetter = func(r *http.Request, key string) string
+
 type API struct {
-	config   *shared.AppConfig
-	services *shared.Services
+	config         *shared.AppConfig
+	services       *shared.Services
+	urlParamGetter URLParamGetter
 }
 
-func MakeAPI(config *shared.AppConfig, services *shared.Services) *API {
-	return &API{config: config, services: services}
+func MakeAPI(config *shared.AppConfig, services *shared.Services, urlParamGetter URLParamGetter) *API {
+	return &API{
+		config:         config,
+		services:       services,
+		urlParamGetter: urlParamGetter,
+	}
 }
 
 // *******************************************************
@@ -35,15 +40,15 @@ func (api *API) generateSessionId() string {
 
 // *******************************************************
 
-func urlParam(r *http.Request, key string) string {
-	return chi.URLParam(r, key)
+func (api *API) urlParam(r *http.Request, key string) string {
+	return api.urlParamGetter(r, key)
 }
 
-func uintURLParam(r *http.Request, key string) (uint64, error) {
-	return strconv.ParseUint(urlParam(r, key), 10, 32)
+func (api *API) uintURLParam(r *http.Request, key string) (uint64, error) {
+	return strconv.ParseUint(api.urlParam(r, key), 10, 32)
 }
 
-func queryParam(r *http.Request, key string, defaultValue string) string {
+func (api *API) queryParam(r *http.Request, key string, defaultValue string) string {
 	value := r.URL.Query().Get(key)
 
 	if len(value) > 0 {
@@ -53,6 +58,6 @@ func queryParam(r *http.Request, key string, defaultValue string) string {
 	return defaultValue
 }
 
-func uintQueryParam(r *http.Request, key string, defaultValue uint64) (uint64, error) {
-	return strconv.ParseUint(queryParam(r, key, strconv.FormatUint(defaultValue, 10)), 10, 32)
+func (api *API) uintQueryParam(r *http.Request, key string, defaultValue uint64) (uint64, error) {
+	return strconv.ParseUint(api.queryParam(r, key, strconv.FormatUint(defaultValue, 10)), 10, 32)
 }

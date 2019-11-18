@@ -12,7 +12,7 @@ import (
 func (api *API) SubscribeBlog(r *http.Request) (int, proto.Message) {
 	userId := api.getUserId(r)
 
-	blogId, err := uintURLParam(r, "id")
+	blogId, err := api.uintURLParam(r, "id")
 
 	if err != nil {
 		return http.StatusBadRequest, &pb.Error_Response{

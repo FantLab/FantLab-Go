@@ -16,7 +16,7 @@ func (api *API) SetWorkGenres(r *http.Request) (int, proto.Message) {
 
 	// валидируем идентификатор ворка
 
-	workId, err := uintURLParam(r, "id")
+	workId, err := api.uintURLParam(r, "id")
 
 	if err != nil {
 		return http.StatusBadRequest, &pb.Error_Response{

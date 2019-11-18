@@ -11,7 +11,7 @@ import (
 )
 
 func (api *API) ShowBlogs(r *http.Request) (int, proto.Message) {
-	page, err := uintQueryParam(r, "page", 1)
+	page, err := api.uintQueryParam(r, "page", 1)
 
 	if err != nil {
 		return http.StatusBadRequest, &pb.Error_Response{
@@ -20,7 +20,7 @@ func (api *API) ShowBlogs(r *http.Request) (int, proto.Message) {
 		}
 	}
 
-	limit, err := uintQueryParam(r, "limit", api.config.BlogsInPage)
+	limit, err := api.uintQueryParam(r, "limit", api.config.BlogsInPage)
 
 	if err != nil || !helpers.IsValidLimit(limit) {
 		return http.StatusBadRequest, &pb.Error_Response{
@@ -29,7 +29,7 @@ func (api *API) ShowBlogs(r *http.Request) (int, proto.Message) {
 		}
 	}
 
-	sort := strings.ToLower(queryParam(r, "sort", "update"))
+	sort := strings.ToLower(api.queryParam(r, "sort", "update"))
 	offset := limit * (page - 1)
 
 	dbResponse, err := api.services.DB().FetchBlogs(r.Context(), limit, offset, sort)

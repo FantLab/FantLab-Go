@@ -13,7 +13,7 @@ import (
 func (api *API) LikeArticle(r *http.Request) (int, proto.Message) {
 	userId := api.getUserId(r)
 
-	articleId, err := uintURLParam(r, "id")
+	articleId, err := api.uintURLParam(r, "id")
 
 	if err != nil {
 		return http.StatusBadRequest, &pb.Error_Response{

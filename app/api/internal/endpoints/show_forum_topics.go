@@ -14,7 +14,7 @@ import (
 )
 
 func (api *API) ShowForumTopics(r *http.Request) (int, proto.Message) {
-	forumID, err := uintURLParam(r, "id")
+	forumID, err := api.uintURLParam(r, "id")
 
 	if err != nil {
 		return http.StatusBadRequest, &pb.Error_Response{
@@ -23,7 +23,7 @@ func (api *API) ShowForumTopics(r *http.Request) (int, proto.Message) {
 		}
 	}
 
-	page, err := uintQueryParam(r, "page", 1)
+	page, err := api.uintQueryParam(r, "page", 1)
 
 	if err != nil {
 		return http.StatusBadRequest, &pb.Error_Response{
@@ -32,7 +32,7 @@ func (api *API) ShowForumTopics(r *http.Request) (int, proto.Message) {
 		}
 	}
 
-	limit, err := uintQueryParam(r, "limit", api.config.ForumTopicsInPage)
+	limit, err := api.uintQueryParam(r, "limit", api.config.ForumTopicsInPage)
 
 	if err != nil || !helpers.IsValidLimit(limit) {
 		return http.StatusBadRequest, &pb.Error_Response{

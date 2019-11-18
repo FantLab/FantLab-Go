@@ -12,7 +12,7 @@ import (
 )
 
 func (api *API) ShowCommunity(r *http.Request) (int, proto.Message) {
-	communityId, err := uintURLParam(r, "id")
+	communityId, err := api.uintURLParam(r, "id")
 
 	if err != nil {
 		return http.StatusBadRequest, &pb.Error_Response{
@@ -21,7 +21,7 @@ func (api *API) ShowCommunity(r *http.Request) (int, proto.Message) {
 		}
 	}
 
-	page, err := uintQueryParam(r, "page", 1)
+	page, err := api.uintQueryParam(r, "page", 1)
 
 	if err != nil {
 		return http.StatusBadRequest, &pb.Error_Response{
@@ -30,7 +30,7 @@ func (api *API) ShowCommunity(r *http.Request) (int, proto.Message) {
 		}
 	}
 
-	limit, err := uintQueryParam(r, "limit", api.config.BlogTopicsInPage)
+	limit, err := api.uintQueryParam(r, "limit", api.config.BlogTopicsInPage)
 
 	if err != nil || !helpers.IsValidLimit(limit) {
 		return http.StatusBadRequest, &pb.Error_Response{
