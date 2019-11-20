@@ -24,24 +24,26 @@ func getTemplateDataFromRoutes() (result []t_group) {
 
 		g := t_group{Info: group.Info()}
 
-		for _, endpoint := range endpoints {
-			info := getHandlerInfo(endpoint.Handler())
+		getEndpointsInfo(endpoints)
 
-			text := info.comment
-			if text == "" {
-				text = "Нет описания"
-			}
+		// for _, endpoint := range endpoints {
+		// 	info := getHandlerInfo(endpoint.Handler())
 
-			e := t_endpoint{
-				Summary: endpoint.Info(),
-				Method:  endpoint.Method(),
-				Path:    routing.BasePath + endpoint.Path(),
-				File:    relativePathToFile(info.file, info.line),
-				Text:    text,
-			}
+		// 	text := info.comment
+		// 	if text == "" {
+		// 		text = "Нет описания"
+		// 	}
 
-			g.Endpoints = append(g.Endpoints, e)
-		}
+		// 	e := t_endpoint{
+		// 		Summary: endpoint.Info(),
+		// 		Method:  endpoint.Method(),
+		// 		Path:    routing.BasePath + endpoint.Path(),
+		// 		File:    relativePathToFile(info.file, info.line),
+		// 		Text:    text,
+		// 	}
+
+		// 	g.Endpoints = append(g.Endpoints, e)
+		// }
 
 		result = append(result, g)
 	})

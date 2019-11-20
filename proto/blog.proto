@@ -1,7 +1,5 @@
 syntax = "proto3";
 
-package fantlab.blog;
-
 option go_package = "app/pb";
 
 import "proto/common.proto";

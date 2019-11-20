@@ -1,7 +1,5 @@
 syntax = "proto3";
 
-package fantlab.genres;
-
 option go_package = "app/pb";
 
 message Genre {
