@@ -3,24 +3,23 @@ package docs
 import (
 	"fantlab/api/internal/routing"
 	"fantlab/pb"
-	"fmt"
 	"go/ast"
-	"go/token"
-	"path/filepath"
 	"reflect"
-	"runtime"
 	"strconv"
 	"strings"
 
 	"github.com/golang/protobuf/proto"
 
 	"golang.org/x/tools/go/packages"
-
-	_ "fantlab/pb"
 )
 
 func getEndpointsInfo(endpoints []routing.Endpoint) (result []string) {
-	var pkg *packages.Package
+	endpointsPackage := loadPackage("fantlab/api/internal/endpoints")
+	pbPackage := loadPackage("fantlab/pb")
+
+	modelComments := makeModelCommentsTable(pbPackage, func(f *ast.Field) bool {
+		return !strings.HasPrefix(f.Names[0].Name, "XXX")
+	})
 
 	for _, endpoint := range endpoints {
 		frame := getCallerFrame(endpoint.Handler())
@@ -28,17 +27,12 @@ func getEndpointsInfo(endpoints []routing.Endpoint) (result []string) {
 			continue
 		}
 
-		dir := filepath.Dir(frame.File)
-		if pkg == nil {
-			pkg = loadPackage(dir)
-		}
-
-		for _, f := range pkg.Syntax {
+		for _, f := range endpointsPackage.Syntax {
 			ast.Inspect(f, func(node ast.Node) bool {
 				if funcDecl, ok := node.(*ast.FuncDecl); ok {
 					if strings.Contains(frame.Function, funcDecl.Name.Name) {
-						comment := getFuncComment(f, pkg.Fset, frame.Line)
-						scheme := getEndpointResponseScheme(funcDecl, pkg)
+						comment := getFuncComment(f, endpointsPackage.Fset, frame.Line)
+						scheme := getEndpointResponseScheme(funcDecl, endpointsPackage, modelComments)
 						result = append(result, comment+"\n\n"+scheme+"\n\n")
 						return false
 					}
@@ -50,7 +44,7 @@ func getEndpointsInfo(endpoints []routing.Endpoint) (result []string) {
 	return
 }
 
-func getEndpointResponseScheme(funcDecl *ast.FuncDecl, pkg *packages.Package) (result string) {
+func getEndpointResponseScheme(funcDecl *ast.FuncDecl, pkg *packages.Package, modelComments commentsTable) (result string) {
 	ast.Inspect(funcDecl, func(node ast.Node) bool {
 		if returnStmt, ok := node.(*ast.ReturnStmt); ok {
 			var statusCode int
@@ -71,12 +65,22 @@ func getEndpointResponseScheme(funcDecl *ast.FuncDecl, pkg *packages.Package) (r
 			}
 
 			if statusCode > 0 && messageType != nil && messageType != reflect.TypeOf((*pb.Error_Response)(nil)) {
-				fr := getCallerFrame(reflect.New(messageType.Elem()).Interface())
-
-				if fr != nil {
-					fmt.Println(fr.File)
+				sb := &schemeBuilder{
+					indent: "  ",
+					getComment: func(t reflect.Type, fieldName string) string {
+						typeName := t.String()
+						dotIndex := strings.LastIndex(typeName, ".") + 1
+						if dotIndex > 0 {
+							typeName = typeName[dotIndex:]
+						}
+						return modelComments[typeName][fieldName]
+					},
+					isValidField: func(f reflect.StructField) bool {
+						return !strings.HasPrefix(f.Name, "XXX")
+					},
 				}
-				result = getScheme(messageType, "  ")
+
+				result = sb.make(messageType)
 			}
 
 			return false
@@ -90,42 +94,4 @@ func getEndpointResponseScheme(funcDecl *ast.FuncDecl, pkg *packages.Package) (r
 func getProtoNameFromTypeName(typeName string) string {
 	typeName = typeName[(strings.Index(typeName, ".") + 1):]
 	return strings.ReplaceAll(typeName, "_", ".")
-}
-
-func loadPackage(dir string) *packages.Package {
-	cfg := &packages.Config{
-		Mode: packages.NeedSyntax | packages.NeedTypes | packages.NeedTypesInfo,
-	}
-
-	pkgs, err := packages.Load(cfg, dir)
-
-	if err != nil {
-		return nil
-	}
-	return pkgs[0]
-}
-
-func getCallerFrame(i interface{}) *runtime.Frame {
-	pc := reflect.ValueOf(i).Pointer()
-	frames := runtime.CallersFrames([]uintptr{pc})
-
-	if frames == nil {
-		return nil
-	}
-
-	frame, _ := frames.Next()
-
-	if frame.Entry == 0 {
-		return nil
-	}
-	return &frame
-}
-
-func getFuncComment(file *ast.File, fset *token.FileSet, line int) string {
-	for _, cmt := range file.Comments {
-		if fset.Position(cmt.End()).Line+1 == line {
-			return cmt.Text()
-		}
-	}
-	return ""
 }

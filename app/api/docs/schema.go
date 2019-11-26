@@ -5,20 +5,19 @@ import (
 	"strings"
 )
 
-func getScheme(t reflect.Type, indent string) string {
+type schemeBuilder struct {
+	indent       string
+	getComment   func(t reflect.Type, fieldName string) string
+	isValidField func(f reflect.StructField) bool
+}
+
+func (b *schemeBuilder) make(t reflect.Type) string {
 	sb := new(strings.Builder)
-	walkType(sb, indent, nil, unptr(t))
+	b.walkType(sb, nil, unptr(t))
 	return sb.String()
 }
 
-func unptr(t reflect.Type) reflect.Type {
-	if t.Kind() == reflect.Ptr {
-		return t.Elem()
-	}
-	return t
-}
-
-func walkType(sb *strings.Builder, indent string, superTypes []string, t reflect.Type) {
+func (b *schemeBuilder) walkType(sb *strings.Builder, superTypes []string, t reflect.Type) {
 	switch t.Kind() {
 	case reflect.Struct:
 		for _, st := range superTypes {
@@ -36,19 +35,24 @@ func walkType(sb *strings.Builder, indent string, superTypes []string, t reflect
 
 			for i := 0; i < t.NumField(); i++ {
 				f := t.Field(i)
-				if strings.HasPrefix(f.Name, "XXX") {
+				if b.isValidField != nil && !b.isValidField(f) {
 					continue
 				}
 
 				sb.WriteRune('\n')
 				for i := 0; i <= d; i++ {
-					sb.WriteString(indent)
+					sb.WriteString(b.indent)
 				}
-				sb.WriteString(strings.Split(f.Tag.Get("json"), ",")[0])
-				sb.WriteRune(':')
-				sb.WriteRune(' ')
+				sb.WriteString(strings.Split(f.Tag.Get("json"), ",")[0] + ": ")
 
-				walkType(sb, indent, append(superTypes, t.String()), unptr(f.Type))
+				b.walkType(sb, append(superTypes, t.String()), unptr(f.Type))
+
+				if b.getComment != nil {
+					comment := b.getComment(t, f.Name)
+					if "" != comment {
+						sb.WriteString(" # " + comment)
+					}
+				}
 
 				hasFields = true
 			}
@@ -56,16 +60,14 @@ func walkType(sb *strings.Builder, indent string, superTypes []string, t reflect
 			if hasFields {
 				sb.WriteRune('\n')
 				for i := 0; i < d; i++ {
-					sb.WriteString(indent)
+					sb.WriteString(b.indent)
 				}
 			}
 		}
 		sb.WriteRune('}')
 	case reflect.Slice:
 		sb.WriteRune('[')
-		{
-			walkType(sb, indent, superTypes, unptr(t.Elem()))
-		}
+		b.walkType(sb, superTypes, unptr(t.Elem()))
 		sb.WriteRune(']')
 	case
 		reflect.Bool,

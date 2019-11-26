@@ -19,7 +19,7 @@ func Test_getScheme(t *testing.T) {
 			Text string `json:"text,omitempty"`
 		}
 
-		s := getScheme(reflect.TypeOf(new(x)), "")
+		s := new(schemeBuilder).make(reflect.TypeOf(new(x)))
 
 		assert.True(t, isSchemeEquals(s, `
 		{
@@ -38,7 +38,7 @@ func Test_getScheme(t *testing.T) {
 			} `json:"text,omitempty"`
 		}
 
-		s := getScheme(reflect.TypeOf(new(x)), "")
+		s := new(schemeBuilder).make(reflect.TypeOf(new(x)))
 
 		assert.True(t, isSchemeEquals(s, `
 		{
@@ -57,7 +57,7 @@ func Test_getScheme(t *testing.T) {
 			Children []x `json:"children,omitempty"`
 		}
 
-		s := getScheme(reflect.TypeOf(new(x)), "")
+		s := new(schemeBuilder).make(reflect.TypeOf(new(x)))
 
 		assert.True(t, isSchemeEquals(s, `
 		{
@@ -80,7 +80,7 @@ func Test_getScheme(t *testing.T) {
 			Children []x `json:"children,omitempty"`
 		}
 
-		s := getScheme(reflect.TypeOf(new(x)), "")
+		s := new(schemeBuilder).make(reflect.TypeOf(new(x)))
 
 		assert.True(t, isSchemeEquals(s, `
 		{
