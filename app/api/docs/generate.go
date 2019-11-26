@@ -2,6 +2,7 @@ package docs
 
 import (
 	"fantlab/api/internal/routing"
+	"fmt"
 	"io"
 	"strconv"
 	"strings"
@@ -24,7 +25,9 @@ func getTemplateDataFromRoutes() (result []t_group) {
 
 		g := t_group{Info: group.Info()}
 
-		getEndpointsInfo(endpoints)
+		for _, s := range getEndpointsInfo(endpoints) {
+			fmt.Println(s)
+		}
 
 		// for _, endpoint := range endpoints {
 		// 	info := getHandlerInfo(endpoint.Handler())

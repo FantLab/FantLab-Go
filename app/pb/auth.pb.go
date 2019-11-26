@@ -52,7 +52,9 @@ func (m *Auth) XXX_DiscardUnknown() {
 var xxx_messageInfo_Auth proto.InternalMessageInfo
 
 type Auth_LoginResponse struct {
-	UserId               uint64   `protobuf:"varint,1,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
+	// id пользователя, с которым связана созданная сессия
+	UserId uint64 `protobuf:"varint,1,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
+	// токен сессии -> X-Session
 	SessionToken         string   `protobuf:"bytes,2,opt,name=session_token,json=sessionToken,proto3" json:"session_token,omitempty"`
 	XXX_NoUnkeyedLiteral struct{} `json:"-"`
 	XXX_unrecognized     []byte   `json:"-"`

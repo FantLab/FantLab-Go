@@ -28,7 +28,7 @@ $ go run . -gendocs > ../docs/generated.md
 
 ## Полезная информация
 
-### Protobuf
+### [Protobuf](https://github.com/golang/protobuf)
 
 Для перегенерации моделей выполните следующий скрипт (в *vscode* уже настроен экшн для расширения **saveAndRun**):
 
