@@ -4,20 +4,31 @@ option go_package = "app/pb";
 
 message Error {
     message Response {
+        // статус
         Status status = 1;
+        // контекст ошибки
         string context = 2;
     }
 
     enum Status {
         UNKNOWN_STATUS = 0;
+        // неизвестная ошибка
         SOMETHING_WENT_WRONG = 1;
+        // невалидный параметр
         INVALID_PARAMETER = 2;
+        // не найдено
         NOT_FOUND = 3;
+        // неправильный пароль
         INVALID_PASSWORD = 4;
+        // сначала разлогиньтесь
         LOG_OUT_FIRST = 5;
+        // невалидная сессия
         INVALID_SESSION = 6;
+        // действие запрещено
         ACTION_PERMITTED = 7;
+        // ошибка валидации
         VALIDATION_FAILED = 8;
+        // пользователь забанен
         USER_IS_BANNED = 9;
     }
 }
