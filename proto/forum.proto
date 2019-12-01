@@ -131,9 +131,4 @@ message Forum {
         // страницы
         Common.Pages pages = 4;
     }
-
-    message ForumTopicSubscriptionResponse {
-        // подписан на тему?
-        bool is_subscribed = 1;
-    }
 }

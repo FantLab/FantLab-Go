@@ -80,7 +80,5 @@ func (api *API) UnsubscribeForumTopic(r *http.Request) (int, proto.Message) {
 		}
 	}
 
-	return http.StatusOK, &pb.Forum_ForumTopicSubscriptionResponse{
-		IsSubscribed: false,
-	}
+	return http.StatusOK, &pb.Common_SuccessResponse{}
 }

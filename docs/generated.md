@@ -491,13 +491,13 @@
 Параметры запроса:
 
 
-* **id** (path, uint64) - айди блога
-
-
 * **page** (query, uint64) - номер страницы (по умолчанию - 1)
 
 
-* **limit** (query, uint64) - кол-во записей на странице (по умолчанию - 20)
+* **limit** (query, uint64) - кол-во записей на странице (по умолчанию - 5)
+
+
+* **sort** (query, string) - сортировать по (кол-ву тем в блоге - article, кол-ву подписчиков - subscriber, дате обновления - update (по умолчанию))
 
 
 
@@ -506,35 +506,43 @@
 
 ```
 {
-  articles: [{               # статьи
-    id: uint64               # id статьи
-    title: string            # название
-    creation: {              # данные о создании
-      user: {                # пользователь
-        id: uint64           # id пользователя
-        login: string        # логин
-        name: string         # имя
-        gender: int32        # пол
-        avatar: string       # аватар
-        class: uint64        # класс
-        sign: string         # подпись на форуме
+  blogs: [{                     # блоги
+    id: uint64                  # id блога
+    user: {                     # автор
+      id: uint64                # id пользователя
+      login: string             # логин
+      name: string              # имя
+      gender: int32             # пол
+      avatar: string            # аватар
+      class: uint64             # класс
+      sign: string              # подпись на форуме
+    }
+    is_closed: bool             # блог закрыт?
+    stats: {                    # статистика
+      article_count: uint64     # количество статей
+      subscriber_count: uint64  # количество подписчиков
+    }
+    last_article: {             # последняя статья
+      id: uint64                # id статьи
+      title: string             # название
+      user: {                   # автор
+        id: uint64              # id пользователя
+        login: string           # логин
+        name: string            # имя
+        gender: int32           # пол
+        avatar: string          # аватар
+        class: uint64           # класс
+        sign: string            # подпись на форуме
       }
-      date: {                # дата создания
+      date: {                   # дата создания
         seconds: int64
         nanos: int32
       }
     }
-    text: string             # текст
-    tags: string             # теги
-    stats: {                 # статистика
-      like_count: uint64     # количество лайков
-      view_count: uint64     # количество просмотров
-      comment_count: uint64  # количество комментариев
-    }
   }]
-  pages: {                   # страницы
-    current: uint64          # текущая
-    count: uint64            # количество
+  pages: {                      # страницы
+    current: uint64             # текущая
+    count: uint64               # количество
   }
 }
 ```
@@ -768,9 +776,7 @@
 Схема ответа:
 
 ```
-{
-  is_subscribed: bool  # подписан на тему?
-}
+{}
 ```
 ---
 
@@ -795,9 +801,7 @@
 Схема ответа:
 
 ```
-{
-  is_subscribed: bool  # подписан на тему?
-}
+{}
 ```
 ---
 
@@ -822,9 +826,7 @@
 Схема ответа:
 
 ```
-{
-  is_subscribed: bool  # подписан на блог?
-}
+{}
 ```
 ---
 
@@ -849,9 +851,7 @@
 Схема ответа:
 
 ```
-{
-  is_subscribed: bool  # подписан на блог?
-}
+{}
 ```
 ---
 
@@ -876,9 +876,7 @@
 Схема ответа:
 
 ```
-{
-  is_subscribed: bool  # подписан на блог?
-}
+{}
 ```
 ---
 
@@ -903,9 +901,7 @@
 Схема ответа:
 
 ```
-{
-  is_subscribed: bool  # подписан на блог?
-}
+{}
 ```
 ---
 
@@ -930,9 +926,7 @@
 Схема ответа:
 
 ```
-{
-  is_subscribed: bool  # подписан на блог?
-}
+{}
 ```
 ---
 
@@ -957,9 +951,7 @@
 Схема ответа:
 
 ```
-{
-  is_subscribed: bool  # подписан на блог?
-}
+{}
 ```
 ---
 

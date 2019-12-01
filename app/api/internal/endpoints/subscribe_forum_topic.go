@@ -80,7 +80,5 @@ func (api *API) SubscribeForumTopic(r *http.Request) (int, proto.Message) {
 		}
 	}
 
-	return http.StatusOK, &pb.Forum_ForumTopicSubscriptionResponse{
-		IsSubscribed: true,
-	}
+	return http.StatusOK, &pb.Common_SuccessResponse{}
 }

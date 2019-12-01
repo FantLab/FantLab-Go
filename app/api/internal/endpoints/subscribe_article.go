@@ -44,7 +44,5 @@ func (api *API) SubscribeArticle(r *http.Request) (int, proto.Message) {
 		}
 	}
 
-	return http.StatusOK, &pb.Blog_BlogSubscriptionResponse{
-		IsSubscribed: true,
-	}
+	return http.StatusOK, &pb.Common_SuccessResponse{}
 }

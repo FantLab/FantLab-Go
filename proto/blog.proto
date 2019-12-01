@@ -124,11 +124,6 @@ message Blog {
         Article article = 1;
     }
 
-    message BlogSubscriptionResponse {
-        // подписан на блог?
-        bool is_subscribed = 1;
-    }
-
     message BlogArticleLikeResponse {
         // количество лайков
         uint64 like_count = 1;

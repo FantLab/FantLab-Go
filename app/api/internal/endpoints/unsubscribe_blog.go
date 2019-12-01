@@ -68,7 +68,5 @@ func (api *API) UnsubscribeBlog(r *http.Request) (int, proto.Message) {
 		}
 	}
 
-	return http.StatusOK, &pb.Blog_BlogSubscriptionResponse{
-		IsSubscribed: false,
-	}
+	return http.StatusOK, &pb.Common_SuccessResponse{}
 }
