@@ -25,9 +25,9 @@ func (api *API) ShowForums(r *http.Request) (int, proto.Message) {
 			}
 		}
 
-		availableForums, err = helpers.ParseUints(strings.Split(availableForumsString, ","), 10, 64)
+		availableForums = helpers.ParseUints(strings.Split(availableForumsString, ","))
 
-		if err != nil {
+		if availableForums == nil {
 			return http.StatusInternalServerError, &pb.Error_Response{
 				Status: pb.Error_SOMETHING_WENT_WRONG,
 			}

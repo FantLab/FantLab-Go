@@ -10,24 +10,24 @@ import (
 )
 
 func (api *API) SubscribeBlog(r *http.Request) (int, proto.Message) {
-	userId := api.getUserId(r)
-
-	blogId, err := uintURLParam(r, "id")
-
-	if err != nil {
-		return http.StatusBadRequest, &pb.Error_Response{
-			Status:  pb.Error_INVALID_PARAMETER,
-			Context: "id",
-		}
+	var params struct {
+		// айди блога
+		BlogId uint64 `http:"id,path"`
 	}
 
-	dbBlog, err := api.services.DB().FetchBlog(r.Context(), blogId)
+	api.bindParams(&params, r)
+
+	if params.BlogId == 0 {
+		return api.badParam("id")
+	}
+
+	dbBlog, err := api.services.DB().FetchBlog(r.Context(), params.BlogId)
 
 	if err != nil {
 		if dbtools.IsNotFoundError(err) {
 			return http.StatusNotFound, &pb.Error_Response{
 				Status:  pb.Error_NOT_FOUND,
-				Context: strconv.FormatUint(blogId, 10),
+				Context: strconv.FormatUint(params.BlogId, 10),
 			}
 		}
 
@@ -36,6 +36,8 @@ func (api *API) SubscribeBlog(r *http.Request) (int, proto.Message) {
 		}
 	}
 
+	userId := api.getUserId(r)
+
 	if dbBlog.UserId == userId {
 		return http.StatusForbidden, &pb.Error_Response{
 			Status:  pb.Error_ACTION_PERMITTED,
@@ -43,7 +45,7 @@ func (api *API) SubscribeBlog(r *http.Request) (int, proto.Message) {
 		}
 	}
 
-	isDbBlogSubscribed, err := api.services.DB().FetchBlogSubscribed(r.Context(), blogId, userId)
+	isDbBlogSubscribed, err := api.services.DB().FetchBlogSubscribed(r.Context(), params.BlogId, userId)
 
 	if err != nil {
 		return http.StatusInternalServerError, &pb.Error_Response{
@@ -58,7 +60,7 @@ func (api *API) SubscribeBlog(r *http.Request) (int, proto.Message) {
 		}
 	}
 
-	err = api.services.DB().UpdateBlogSubscribed(r.Context(), blogId, userId)
+	err = api.services.DB().UpdateBlogSubscribed(r.Context(), params.BlogId, userId)
 
 	if err != nil {
 		return http.StatusInternalServerError, &pb.Error_Response{

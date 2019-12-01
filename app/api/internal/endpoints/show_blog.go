@@ -12,42 +12,39 @@ import (
 )
 
 func (api *API) ShowBlog(r *http.Request) (int, proto.Message) {
-	blogID, err := uintURLParam(r, "id")
-
-	if err != nil {
-		return http.StatusBadRequest, &pb.Error_Response{
-			Status:  pb.Error_INVALID_PARAMETER,
-			Context: "id",
-		}
+	params := struct {
+		// айди блога
+		BlogId uint64 `http:"id,path"`
+		// номер страницы (по умолчанию - 1)
+		Page uint64 `http:"page,query"`
+		// кол-во записей на странице (по умолчанию - 20)
+		Limit uint64 `http:"limit,query"`
+	}{
+		Page:  1,
+		Limit: api.config.BlogTopicsInPage,
 	}
 
-	page, err := uintQueryParam(r, "page", 1)
+	api.bindParams(&params, r)
 
-	if err != nil {
-		return http.StatusBadRequest, &pb.Error_Response{
-			Status:  pb.Error_INVALID_PARAMETER,
-			Context: "page",
-		}
+	if params.BlogId == 0 {
+		return api.badParam("id")
+	}
+	if params.Page == 0 {
+		return api.badParam("page")
+	}
+	if !helpers.IsValidLimit(params.Limit) {
+		return api.badParam("limit")
 	}
 
-	limit, err := uintQueryParam(r, "limit", api.config.BlogTopicsInPage)
+	offset := params.Limit * (params.Page - 1)
 
-	if err != nil || !helpers.IsValidLimit(limit) {
-		return http.StatusBadRequest, &pb.Error_Response{
-			Status:  pb.Error_INVALID_PARAMETER,
-			Context: "limit",
-		}
-	}
-
-	offset := limit * (page - 1)
-
-	dbResponse, err := api.services.DB().FetchBlogTopics(r.Context(), blogID, limit, offset)
+	dbResponse, err := api.services.DB().FetchBlogTopics(r.Context(), params.BlogId, params.Limit, offset)
 
 	if err != nil {
 		if dbtools.IsNotFoundError(err) {
 			return http.StatusNotFound, &pb.Error_Response{
 				Status:  pb.Error_NOT_FOUND,
-				Context: strconv.FormatUint(blogID, 10),
+				Context: strconv.FormatUint(params.BlogId, 10),
 			}
 		}
 
@@ -56,6 +53,6 @@ func (api *API) ShowBlog(r *http.Request) (int, proto.Message) {
 		}
 	}
 
-	blog := datahelpers.GetBlog(dbResponse, page, limit, api.config)
+	blog := datahelpers.GetBlog(dbResponse, params.Page, params.Limit, api.config)
 	return http.StatusOK, blog
 }

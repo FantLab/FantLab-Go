@@ -7,33 +7,40 @@ import (
 	"fantlab/pb"
 	"net/http"
 	"strconv"
+	"strings"
 
 	"github.com/golang/protobuf/proto"
 )
 
 func (api *API) SetWorkGenres(r *http.Request) (int, proto.Message) {
-	userId := api.getUserId(r)
+	var params struct {
+		// айди произведения
+		WorkId uint64 `http:"id,path"`
+		// айди жанров, разделённые запятыми
+		GenredIds string `http:"genres,form"`
+	}
 
-	// валидируем идентификатор ворка
+	api.bindParams(&params, r)
 
-	workId, err := uintURLParam(r, "id")
+	if params.WorkId == 0 {
+		return api.badParam("id")
+	}
 
-	if err != nil {
-		return http.StatusBadRequest, &pb.Error_Response{
-			Status:  pb.Error_INVALID_PARAMETER,
-			Context: "id",
-		}
+	genreIds := helpers.ParseUints(strings.Split(params.GenredIds, ","))
+
+	if genreIds == nil {
+		return api.badParam("genres")
 	}
 
 	// проверяем что ворк существует
 
-	_, err = api.services.DB().WorkExists(r.Context(), workId)
+	_, err := api.services.DB().WorkExists(r.Context(), params.WorkId)
 
 	{
 		if dbtools.IsNotFoundError(err) {
 			return http.StatusNotFound, &pb.Error_Response{
 				Status:  pb.Error_NOT_FOUND,
-				Context: strconv.FormatUint(workId, 10),
+				Context: strconv.FormatUint(params.WorkId, 10),
 			}
 		}
 
@@ -41,17 +48,6 @@ func (api *API) SetWorkGenres(r *http.Request) (int, proto.Message) {
 			return http.StatusInternalServerError, &pb.Error_Response{
 				Status: pb.Error_SOMETHING_WENT_WRONG,
 			}
-		}
-	}
-
-	// валидируем идентификаторы жанров
-
-	genreIds, err := helpers.ParseUints(r.PostForm["genres"], 10, 32)
-
-	if err != nil || len(genreIds) == 0 {
-		return http.StatusBadRequest, &pb.Error_Response{
-			Status:  pb.Error_INVALID_PARAMETER,
-			Context: "genres",
 		}
 	}
 
@@ -86,7 +82,9 @@ func (api *API) SetWorkGenres(r *http.Request) (int, proto.Message) {
 
 	// сохраняем выбор в базе
 
-	err = api.services.DB().GenreVote(r.Context(), workId, userId, genreIdsWithParents)
+	userId := api.getUserId(r)
+
+	err = api.services.DB().GenreVote(r.Context(), params.WorkId, userId, genreIdsWithParents)
 
 	if err != nil {
 		return http.StatusInternalServerError, &pb.Error_Response{

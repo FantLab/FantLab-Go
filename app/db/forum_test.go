@@ -397,7 +397,7 @@ func Test_FetchTopicMessages(t *testing.T) {
 	t.Run("positive", func(t *testing.T) {
 		db := NewDB(&dbstubs.StubDB{QueryTable: queryTable})
 
-		topics, err := db.FetchTopicMessages(context.Background(), []uint64{1, 2}, 25, 20, 0, "ASC")
+		topics, err := db.FetchTopicMessages(context.Background(), []uint64{1, 2}, 25, 20, 0, true)
 
 		assert.True(t, err == nil)
 		assert.DeepEqual(t, topics, &ForumTopicMessagesDBResponse{
@@ -444,7 +444,7 @@ func Test_FetchTopicMessages(t *testing.T) {
 	t.Run("negative", func(t *testing.T) {
 		db := NewDB(&dbstubs.StubDB{QueryTable: queryTable})
 
-		topics, err := db.FetchTopicMessages(context.Background(), []uint64{1, 2}, 1, 20, 0, "ASC")
+		topics, err := db.FetchTopicMessages(context.Background(), []uint64{1, 2}, 1, 20, 0, true)
 
 		assert.True(t, topics == nil)
 		assert.True(t, dbtools.IsNotFoundError(err))
@@ -457,7 +457,7 @@ func Test_FetchTopicMessages(t *testing.T) {
 
 		db := NewDB(&dbstubs.StubDB{QueryTable: queryTable})
 
-		topics, err := db.FetchTopicMessages(context.Background(), []uint64{1, 2}, 25, 20, 0, "ASC")
+		topics, err := db.FetchTopicMessages(context.Background(), []uint64{1, 2}, 25, 20, 0, true)
 
 		assert.True(t, topics == nil)
 		assert.True(t, err == dbstubs.ErrSome)
@@ -470,7 +470,7 @@ func Test_FetchTopicMessages(t *testing.T) {
 
 		db := NewDB(&dbstubs.StubDB{QueryTable: queryTable})
 
-		topics, err := db.FetchTopicMessages(context.Background(), []uint64{1, 2}, 25, 20, 0, "ASC")
+		topics, err := db.FetchTopicMessages(context.Background(), []uint64{1, 2}, 25, 20, 0, true)
 
 		assert.True(t, topics == nil)
 		assert.True(t, err == dbstubs.ErrSome)

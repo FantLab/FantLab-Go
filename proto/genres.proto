@@ -1,25 +1,32 @@
 syntax = "proto3";
 
-package fantlab.genres;
-
 option go_package = "app/pb";
 
 message Genre {
     message Genre {
+        // id жанра
         uint64 id = 1;
+        // название
         string name = 2;
+        // информация
         string info = 3;
+        // коичество произведений
         uint64 work_count = 4;
+        // поджанры
         repeated Genre subgenres = 5;
     }
 
     message Group {
+        // id группы жанров
         uint64 id = 1;
+        // название
         string name = 2;
+        // жанры
         repeated Genre genres = 5;
     }
 
     message Response {
+        // группы жанров
         repeated Group groups = 1;
     }
 }

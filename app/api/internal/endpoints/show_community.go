@@ -12,42 +12,42 @@ import (
 )
 
 func (api *API) ShowCommunity(r *http.Request) (int, proto.Message) {
-	communityId, err := uintURLParam(r, "id")
-
-	if err != nil {
-		return http.StatusBadRequest, &pb.Error_Response{
-			Status:  pb.Error_INVALID_PARAMETER,
-			Context: "id",
-		}
+	params := struct {
+		// айди сообщества
+		CommunityId uint64 `http:"id,path"`
+		// номер страницы (по умолчанию - 1)
+		Page uint64 `http:"page,query"`
+		// кол-во записей на странице (по умолчанию - 5)
+		Limit uint64 `http:"limit,query"`
+	}{
+		Page:  1,
+		Limit: api.config.BlogTopicsInPage,
 	}
 
-	page, err := uintQueryParam(r, "page", 1)
+	api.bindParams(&params, r)
 
-	if err != nil {
-		return http.StatusBadRequest, &pb.Error_Response{
-			Status:  pb.Error_INVALID_PARAMETER,
-			Context: "page",
-		}
+	if params.CommunityId == 0 {
+		return api.badParam("id")
+	}
+	if params.Page == 0 {
+		return api.badParam("page")
+	}
+	if !helpers.IsValidLimit(params.Limit) {
+		return api.badParam("limit")
 	}
 
-	limit, err := uintQueryParam(r, "limit", api.config.BlogTopicsInPage)
-
-	if err != nil || !helpers.IsValidLimit(limit) {
-		return http.StatusBadRequest, &pb.Error_Response{
-			Status:  pb.Error_INVALID_PARAMETER,
-			Context: "limit",
-		}
-	}
-
-	offset := limit * (page - 1)
-
-	dbResponse, err := api.services.DB().FetchCommunityTopics(r.Context(), communityId, limit, offset)
+	dbResponse, err := api.services.DB().FetchCommunityTopics(
+		r.Context(),
+		params.CommunityId,
+		params.Limit,
+		params.Limit*(params.Page-1),
+	)
 
 	if err != nil {
 		if dbtools.IsNotFoundError(err) {
 			return http.StatusNotFound, &pb.Error_Response{
 				Status:  pb.Error_NOT_FOUND,
-				Context: strconv.FormatUint(communityId, 10),
+				Context: strconv.FormatUint(params.CommunityId, 10),
 			}
 		}
 
@@ -56,6 +56,6 @@ func (api *API) ShowCommunity(r *http.Request) (int, proto.Message) {
 		}
 	}
 
-	community := datahelpers.GetCommunity(dbResponse, page, limit, api.config)
+	community := datahelpers.GetCommunity(dbResponse, params.Page, params.Limit, api.config)
 	return http.StatusOK, community
 }

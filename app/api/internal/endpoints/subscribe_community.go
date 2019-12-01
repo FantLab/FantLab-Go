@@ -10,24 +10,24 @@ import (
 )
 
 func (api *API) SubscribeCommunity(r *http.Request) (int, proto.Message) {
-	userId := api.getUserId(r)
-
-	communityId, err := uintURLParam(r, "id")
-
-	if err != nil {
-		return http.StatusBadRequest, &pb.Error_Response{
-			Status:  pb.Error_INVALID_PARAMETER,
-			Context: "id",
-		}
+	var params struct {
+		// айди сообщества
+		CommunityId uint64 `http:"id,path"`
 	}
 
-	_, err = api.services.DB().FetchCommunity(r.Context(), communityId)
+	api.bindParams(&params, r)
+
+	if params.CommunityId == 0 {
+		return api.badParam("id")
+	}
+
+	_, err := api.services.DB().FetchCommunity(r.Context(), params.CommunityId)
 
 	if err != nil {
 		if dbtools.IsNotFoundError(err) {
 			return http.StatusNotFound, &pb.Error_Response{
 				Status:  pb.Error_NOT_FOUND,
-				Context: strconv.FormatUint(communityId, 10),
+				Context: strconv.FormatUint(params.CommunityId, 10),
 			}
 		}
 
@@ -36,7 +36,9 @@ func (api *API) SubscribeCommunity(r *http.Request) (int, proto.Message) {
 		}
 	}
 
-	isDbCommunitySubscribed, err := api.services.DB().FetchBlogSubscribed(r.Context(), communityId, userId)
+	userId := api.getUserId(r)
+
+	isDbCommunitySubscribed, err := api.services.DB().FetchBlogSubscribed(r.Context(), params.CommunityId, userId)
 
 	if err != nil {
 		return http.StatusInternalServerError, &pb.Error_Response{
@@ -51,7 +53,7 @@ func (api *API) SubscribeCommunity(r *http.Request) (int, proto.Message) {
 		}
 	}
 
-	err = api.services.DB().UpdateBlogSubscribed(r.Context(), communityId, userId)
+	err = api.services.DB().UpdateBlogSubscribed(r.Context(), params.CommunityId, userId)
 
 	if err != nil {
 		return http.StatusInternalServerError, &pb.Error_Response{

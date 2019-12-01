@@ -1,7 +1,5 @@
 syntax = "proto3";
 
-package fantlab;
-
 option go_package = "app/pb";
 
 import "google/protobuf/timestamp.proto";
@@ -9,27 +7,40 @@ import "google/protobuf/timestamp.proto";
 message Common {
     enum Gender {
         UNKNOWN_GENDER = 0;
+        // мужчина
         MALE = 1;
+        // женщина
         FEMALE = 2;
     }
 
     message UserLink {
+        // id пользователя
         uint64 id = 1;
+        // логин
         string login = 2;
+        // имя
         string name = 3;
+        // пол
         Gender gender = 4;
+        // аватар
         string avatar = 5;
+        // класс
         uint64 class = 6;
+        // подпись на форуме
         string sign = 7;
     }
 
     message Creation {
+        // пользователь
         UserLink user = 1;
+        // дата создания
         google.protobuf.Timestamp date = 2;
     }
 
     message Pages {
+        // текущая
         uint64 current = 1;
+        // количество
         uint64 count = 2;
     }
 

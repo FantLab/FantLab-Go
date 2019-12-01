@@ -2,6 +2,7 @@ package db
 
 import (
 	"context"
+	"strings"
 	"time"
 
 	"fantlab/dbtools/sqlr"
@@ -414,7 +415,7 @@ func (db *DB) FetchCommunityTopics(ctx context.Context, communityID, limit, offs
 
 func (db *DB) FetchBlogs(ctx context.Context, limit, offset uint64, sort string) (*BlogsDBResponse, error) {
 	var sortOption string
-	switch sort {
+	switch strings.ToLower(sort) {
 	case "article":
 		sortOption = "topics_count"
 	case "subscriber":
