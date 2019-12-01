@@ -9,11 +9,6 @@ import (
 	"text/template"
 )
 
-const (
-	endpointsPackagePath   = "fantlab/api/internal/endpoints"
-	protoModelsPackagePath = "fantlab/pb"
-)
-
 func Generate(w io.Writer) error {
 	t := template.Must(template.New("markdown").Parse(markdownTemplate))
 	data := getTemplateDataFromRoutes()
@@ -31,7 +26,7 @@ func getTemplateDataFromRoutes() []t_group {
 
 		g := t_group{Info: group.Info()}
 
-		infoTable := analysis.AnalyzeEndpoints(endpoints, endpointsPackagePath, protoModelsPackagePath, "```\n", "\n```")
+		infoTable := analysis.AnalyzeEndpoints(endpoints, "```\n", "\n```")
 
 		for _, endpoint := range endpoints {
 			info := infoTable[endpoint.Path()]

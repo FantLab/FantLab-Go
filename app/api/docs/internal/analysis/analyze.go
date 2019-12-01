@@ -29,18 +29,30 @@ type EndpointInfo struct {
 	ResponseModelScheme string
 }
 
-func AnalyzeEndpoints(endpoints []routing.Endpoint, endpointsPackagePath, protoModelsPackagePath string, schemePrefix, schemePostfix string) map[string]*EndpointInfo {
-	table := make(map[string]*EndpointInfo)
+const (
+	endpointsPackagePath   = "fantlab/api/internal/endpoints"
+	protoModelsPackagePath = "fantlab/pb"
+)
 
-	endpointsPackage := loadPackage(endpointsPackagePath)
-	protoModelsPackage := loadPackage(protoModelsPackagePath)
+var (
+	endpointsPackage   *packages.Package
+	protoModelsPackage *packages.Package
+)
+
+func AnalyzeEndpoints(endpoints []routing.Endpoint, schemePrefix, schemePostfix string) map[string]*EndpointInfo {
+	if endpointsPackage == nil {
+		endpointsPackage = loadPackage(endpointsPackagePath)
+	}
+	if protoModelsPackage == nil {
+		protoModelsPackage = loadPackage(protoModelsPackagePath)
+	}
+
+	table := make(map[string]*EndpointInfo)
 
 	modelComments := makeModelCommentsTable(protoModelsPackage, func(f *ast.Field) bool {
 		return !strings.HasPrefix(f.Names[0].Name, protoModelSystemFieldPrefix)
 	})
-
 	schemeBuilder := makeSchemeBuilder(modelComments)
-
 	funcDecls := collectFuncDecls(endpointsPackage)
 
 	for _, endpoint := range endpoints {
