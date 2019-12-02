@@ -13,13 +13,15 @@ import (
 )
 
 func (api *API) UnsubscribeForumTopic(r *http.Request) (int, proto.Message) {
-	topicId, err := uintURLParam(r, "id")
+	var params struct {
+		// айди темы
+		TopicId uint64 `http:"id,path"`
+	}
 
-	if err != nil {
-		return http.StatusBadRequest, &pb.Error_Response{
-			Status:  pb.Error_INVALID_PARAMETER,
-			Context: "id",
-		}
+	api.bindParams(&params, r)
+
+	if params.TopicId == 0 {
+		return api.badParam("id")
 	}
 
 	userId := api.getUserId(r)
@@ -32,21 +34,21 @@ func (api *API) UnsubscribeForumTopic(r *http.Request) (int, proto.Message) {
 		}
 	}
 
-	availableForums, err := helpers.ParseUints(strings.Split(availableForumsString, ","), 10, 64)
+	availableForums := helpers.ParseUints(strings.Split(availableForumsString, ","))
 
-	if err != nil {
+	if availableForums == nil {
 		return http.StatusInternalServerError, &pb.Error_Response{
 			Status: pb.Error_SOMETHING_WENT_WRONG,
 		}
 	}
 
-	_, err = api.services.DB().FetchForumTopic(r.Context(), availableForums, topicId)
+	_, err = api.services.DB().FetchForumTopic(r.Context(), availableForums, params.TopicId)
 
 	if err != nil {
 		if dbtools.IsNotFoundError(err) {
 			return http.StatusNotFound, &pb.Error_Response{
 				Status:  pb.Error_NOT_FOUND,
-				Context: strconv.FormatUint(topicId, 10),
+				Context: strconv.FormatUint(params.TopicId, 10),
 			}
 		}
 
@@ -55,7 +57,7 @@ func (api *API) UnsubscribeForumTopic(r *http.Request) (int, proto.Message) {
 		}
 	}
 
-	isDbTopicSubscribed, err := api.services.DB().FetchForumTopicSubscribed(r.Context(), topicId, userId)
+	isDbTopicSubscribed, err := api.services.DB().FetchForumTopicSubscribed(r.Context(), params.TopicId, userId)
 
 	if err != nil {
 		return http.StatusInternalServerError, &pb.Error_Response{
@@ -70,7 +72,7 @@ func (api *API) UnsubscribeForumTopic(r *http.Request) (int, proto.Message) {
 		}
 	}
 
-	err = api.services.DB().UpdateForumTopicUnsubscribed(r.Context(), topicId, userId)
+	err = api.services.DB().UpdateForumTopicUnsubscribed(r.Context(), params.TopicId, userId)
 
 	if err != nil {
 		return http.StatusInternalServerError, &pb.Error_Response{
@@ -78,7 +80,5 @@ func (api *API) UnsubscribeForumTopic(r *http.Request) (int, proto.Message) {
 		}
 	}
 
-	return http.StatusOK, &pb.Forum_ForumTopicSubscriptionResponse{
-		IsSubscribed: false,
-	}
+	return http.StatusOK, &pb.Common_SuccessResponse{}
 }

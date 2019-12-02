@@ -13,36 +13,31 @@ import (
 )
 
 func (api *API) ShowTopicMessages(r *http.Request) (int, proto.Message) {
-	topicID, err := uintURLParam(r, "id")
-
-	if err != nil {
-		return http.StatusBadRequest, &pb.Error_Response{
-			Status:  pb.Error_INVALID_PARAMETER,
-			Context: "id",
-		}
+	params := struct {
+		// айди темы
+		TopicId uint64 `http:"id,path"`
+		// номер страницы (по умолчанию - 1)
+		Page uint64 `http:"page,query"`
+		// кол-во записей на странице (по умолчанию - 20)
+		Limit uint64 `http:"limit,query"`
+		// порядок выдачи (asc - по умолчанию, desc)
+		Order string `http:"order,query"`
+	}{
+		Page:  1,
+		Limit: api.config.ForumMessagesInPage,
+		Order: "asc",
 	}
 
-	page, err := uintQueryParam(r, "page", 1)
+	api.bindParams(&params, r)
 
-	if err != nil {
-		return http.StatusBadRequest, &pb.Error_Response{
-			Status:  pb.Error_INVALID_PARAMETER,
-			Context: "page",
-		}
+	if params.TopicId == 0 {
+		return api.badParam("id")
 	}
-
-	limit, err := uintQueryParam(r, "limit", api.config.ForumMessagesInPage)
-
-	if err != nil || !helpers.IsValidLimit(limit) {
-		return http.StatusBadRequest, &pb.Error_Response{
-			Status:  pb.Error_INVALID_PARAMETER,
-			Context: "limit",
-		}
+	if params.Page == 0 {
+		return api.badParam("page")
 	}
-
-	sortDirection := strings.ToUpper(queryParam(r, "order", "asc"))
-	if sortDirection != "DESC" {
-		sortDirection = "ASC"
+	if !helpers.IsValidLimit(params.Limit) {
+		return api.badParam("limit")
 	}
 
 	availableForums := api.config.DefaultAccessToForums
@@ -58,31 +53,29 @@ func (api *API) ShowTopicMessages(r *http.Request) (int, proto.Message) {
 			}
 		}
 
-		availableForums, err = helpers.ParseUints(strings.Split(availableForumsString, ","), 10, 64)
+		availableForums = helpers.ParseUints(strings.Split(availableForumsString, ","))
 
-		if err != nil {
+		if availableForums == nil {
 			return http.StatusInternalServerError, &pb.Error_Response{
 				Status: pb.Error_SOMETHING_WENT_WRONG,
 			}
 		}
 	}
 
-	offset := limit * (page - 1)
-
 	dbResponse, err := api.services.DB().FetchTopicMessages(
 		r.Context(),
 		availableForums,
-		topicID,
-		limit,
-		offset,
-		sortDirection,
+		params.TopicId,
+		params.Limit,
+		params.Limit*(params.Page-1),
+		strings.ToUpper(params.Order) == "ASC",
 	)
 
 	if err != nil {
 		if dbtools.IsNotFoundError(err) {
 			return http.StatusNotFound, &pb.Error_Response{
 				Status:  pb.Error_NOT_FOUND,
-				Context: strconv.FormatUint(topicID, 10),
+				Context: strconv.FormatUint(params.TopicId, 10),
 			}
 		}
 
@@ -91,6 +84,6 @@ func (api *API) ShowTopicMessages(r *http.Request) (int, proto.Message) {
 		}
 	}
 
-	topicMessages := datahelpers.GetTopic(dbResponse, page, limit, api.config)
+	topicMessages := datahelpers.GetTopic(dbResponse, params.Page, params.Limit, api.config)
 	return http.StatusOK, topicMessages
 }

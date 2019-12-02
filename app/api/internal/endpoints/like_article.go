@@ -11,24 +11,24 @@ import (
 )
 
 func (api *API) LikeArticle(r *http.Request) (int, proto.Message) {
-	userId := api.getUserId(r)
-
-	articleId, err := uintURLParam(r, "id")
-
-	if err != nil {
-		return http.StatusBadRequest, &pb.Error_Response{
-			Status:  pb.Error_INVALID_PARAMETER,
-			Context: "id",
-		}
+	var params struct {
+		// айди статьи
+		ArticleId uint64 `http:"id,path"`
 	}
 
-	dbTopic, err := api.services.DB().FetchBlogTopic(r.Context(), articleId)
+	api.bindParams(&params, r)
+
+	if params.ArticleId == 0 {
+		return api.badParam("id")
+	}
+
+	dbTopic, err := api.services.DB().FetchBlogTopic(r.Context(), params.ArticleId)
 
 	if err != nil {
 		if dbtools.IsNotFoundError(err) {
 			return http.StatusNotFound, &pb.Error_Response{
 				Status:  pb.Error_NOT_FOUND,
-				Context: strconv.FormatUint(articleId, 10),
+				Context: strconv.FormatUint(params.ArticleId, 10),
 			}
 		}
 
@@ -37,6 +37,8 @@ func (api *API) LikeArticle(r *http.Request) (int, proto.Message) {
 		}
 	}
 
+	userId := api.getUserId(r)
+
 	if dbTopic.UserId == userId {
 		return http.StatusUnauthorized, &pb.Error_Response{
 			Status:  pb.Error_ACTION_PERMITTED,
@@ -44,7 +46,7 @@ func (api *API) LikeArticle(r *http.Request) (int, proto.Message) {
 		}
 	}
 
-	ok, err := api.services.DB().IsBlogTopicLiked(r.Context(), articleId, userId)
+	ok, err := api.services.DB().IsBlogTopicLiked(r.Context(), params.ArticleId, userId)
 
 	if err != nil && !dbtools.IsNotFoundError(err) {
 		return http.StatusInternalServerError, &pb.Error_Response{
@@ -59,7 +61,7 @@ func (api *API) LikeArticle(r *http.Request) (int, proto.Message) {
 		}
 	}
 
-	err = api.services.DB().LikeBlogTopic(r.Context(), time.Now(), articleId, userId)
+	err = api.services.DB().LikeBlogTopic(r.Context(), time.Now(), params.ArticleId, userId)
 
 	if err != nil {
 		return http.StatusInternalServerError, &pb.Error_Response{
@@ -67,7 +69,7 @@ func (api *API) LikeArticle(r *http.Request) (int, proto.Message) {
 		}
 	}
 
-	dbTopicLikeCount, err := api.services.DB().FetchBlogTopicLikeCount(r.Context(), articleId)
+	dbTopicLikeCount, err := api.services.DB().FetchBlogTopicLikeCount(r.Context(), params.ArticleId)
 
 	if err != nil {
 		return http.StatusInternalServerError, &pb.Error_Response{

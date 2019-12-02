@@ -8,18 +8,20 @@ import (
 )
 
 func (api *API) UnsubscribeArticle(r *http.Request) (int, proto.Message) {
-	userId := api.getUserId(r)
-
-	articleId, err := uintURLParam(r, "id")
-
-	if err != nil {
-		return http.StatusBadRequest, &pb.Error_Response{
-			Status:  pb.Error_INVALID_PARAMETER,
-			Context: "id",
-		}
+	var params struct {
+		// айди статьи
+		ArticleId uint64 `http:"id,path"`
 	}
 
-	isDbTopicSubscribed, err := api.services.DB().FetchBlogTopicSubscribed(r.Context(), articleId, userId)
+	api.bindParams(&params, r)
+
+	if params.ArticleId == 0 {
+		return api.badParam("id")
+	}
+
+	userId := api.getUserId(r)
+
+	isDbTopicSubscribed, err := api.services.DB().FetchBlogTopicSubscribed(r.Context(), params.ArticleId, userId)
 
 	if err != nil {
 		return http.StatusInternalServerError, &pb.Error_Response{
@@ -34,7 +36,7 @@ func (api *API) UnsubscribeArticle(r *http.Request) (int, proto.Message) {
 		}
 	}
 
-	err = api.services.DB().UpdateBlogTopicUnsubscribed(r.Context(), articleId, userId)
+	err = api.services.DB().UpdateBlogTopicUnsubscribed(r.Context(), params.ArticleId, userId)
 
 	if err != nil {
 		return http.StatusInternalServerError, &pb.Error_Response{
@@ -42,7 +44,5 @@ func (api *API) UnsubscribeArticle(r *http.Request) (int, proto.Message) {
 		}
 	}
 
-	return http.StatusOK, &pb.Blog_BlogSubscriptionResponse{
-		IsSubscribed: false,
-	}
+	return http.StatusOK, &pb.Common_SuccessResponse{}
 }

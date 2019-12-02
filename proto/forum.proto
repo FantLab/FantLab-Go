@@ -1,7 +1,5 @@
 syntax = "proto3";
 
-package fantlab.forum;
-
 option go_package = "app/pb";
 
 import "proto/common.proto";
@@ -9,89 +7,128 @@ import "google/protobuf/timestamp.proto";
 
 message Forum {
     message TopicLink {
+        // id темы
         uint64 id = 1;
+        // название
         string title = 2;
     }
 
     message LastMessage {
+        // id сообщения
         uint64 id = 1;
+        // тема, в которую входит сообщение
         TopicLink topic = 2;
+        // автор
         Common.UserLink user = 3;
+        // текст
         string text = 4;
+        // дата и время создания
         google.protobuf.Timestamp date = 5;
     }
 
     message TopicMessage {
         message Stats {
+            // рейтинг
             int64 rating = 1;
         }
 
+        // id сообщения
         uint64 id = 1;
+        // данные о создании
         Common.Creation creation = 2;
+        // текст
         string text = 3;
+        // текст изъят модератором?
         bool is_censored = 4;
+        // статистика
         Stats stats = 5;
     }
 
     message Topic {
         enum Type {
             UNKNOWN_TYPE = 0;
+            // тема
             TOPIC = 1;
+            // опрос
             POLL = 2;
         }
 
         message Stats {
+            // количество сообщений
             uint64 message_count = 1;
+            // количество просмотров
             uint64 view_count = 2;
         }
 
+        // id темы
         uint64 id = 1;
+        // название
         string title = 2;
+        // тип
         Type topic_type = 3;
+        // данные о создании
         Common.Creation creation = 4;
+        // тема закрыта?
         bool is_closed = 5;
+        // тема закреплена?
         bool is_pinned = 6;
+        // статистика
         Stats stats = 7;
+        // последнее сообщение
         LastMessage last_message = 8;
     }
 
     message Forum {
         message Stats {
+            // количество тем
             uint64 topic_count = 1;
+            // количество сообщений
             uint64 message_count = 2;
         }
 
+        // id форума
         uint64 id = 1;
+        // название
         string title = 2;
+        // описание
         string forum_description = 3;
+        // модераторы
         repeated Common.UserLink moderators = 4;
+        // статистика
         Stats stats = 5;
+        // последнее сообщение
         LastMessage last_message = 6;
     }
 
     message ForumBlock {
+        // id блока форумов
         uint64 id = 1;
+        // название
         string title = 2;
+        // форумы
         repeated Forum forums = 3;
     }
 
     message ForumBlocksResponse {
+        // список блоков форумов
         repeated ForumBlock forum_blocks = 1;
     }
 
     message ForumTopicsResponse {
+        // список тем
         repeated Topic topics = 1;
+        // страницы
         Common.Pages pages = 2;
     }
 
     message ForumTopicResponse {
+        // тема
         Topic topic = 1;
+        // форум, в который входит тема
         Forum forum = 2;
+        // сообщения
         repeated TopicMessage messages = 3;
+        // страницы
         Common.Pages pages = 4;
-    }
-
-    message ForumTopicSubscriptionResponse {
-        bool is_subscribed = 1;
     }
 }

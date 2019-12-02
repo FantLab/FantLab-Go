@@ -1,12 +1,12 @@
 syntax = "proto3";
 
-package fantlab;
-
 option go_package = "app/pb";
 
 message Auth {
     message LoginResponse {
+        // id пользователя, с которым связана созданная сессия
         uint64 user_id = 1;
+        // токен сессии -> X-Session
         string session_token = 2;
     }
 }

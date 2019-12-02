@@ -1,7 +1,5 @@
 syntax = "proto3";
 
-package fantlab.blog;
-
 option go_package = "app/pb";
 
 import "proto/common.proto";
@@ -9,87 +7,125 @@ import "google/protobuf/timestamp.proto";
 
 message Blog {
     message LastArticle {
+        // id статьи
         uint64 id = 1;
+        // название
         string title = 2;
+        // автор
         Common.UserLink user = 3;
+        // дата создания
         google.protobuf.Timestamp date = 4;
     }
 
     message Community {
         message Stats {
+            // количество статей
             uint64 article_count = 1;
+            // количество подписчиков
             uint64 subscriber_count = 2;
         }
 
+        // id рубрики
         uint64 id = 1;
+        // название
         string title = 2;
+        // описание
         string community_description = 3;
+        // правила
         string rules = 4;
+        // аватар
         string avatar = 5;
+        // статистика
         Stats stats = 6;
+        // последняя статья
         LastArticle last_article = 7;
     }
 
     message Article {
         message Stats {
+            // количество лайков
             uint64 like_count = 1;
+            // количество просмотров
             uint64 view_count = 2;
+            // количество комментариев
             uint64 comment_count = 3;
         }
 
+        // id статьи
         uint64 id = 1;
+        // название
         string title = 2;
+        // данные о создании
         Common.Creation creation = 3;
+        // текст
         string text = 4;
+        // теги
         string tags = 5;
+        // статистика
         Stats stats = 6;
     }
 
     message Blog {
         message Stats {
+            // количество статей
             uint64 article_count = 1;
+            // количество подписчиков
             uint64 subscriber_count = 2;
         }
 
+        // id блога
         uint64 id = 1;
+        // автор
         Common.UserLink user = 2;
+        // блог закрыт?
         bool is_closed = 3;
+        // статистика
         Stats stats = 4;
+        // последняя статья
         LastArticle last_article = 5;
     }
 
     message CommunitiesResponse {
+        // основные рубрики
         repeated Community main = 1;
+        // дополнительные рубрики
         repeated Community additional = 2;
     }
 
     message CommunityResponse {
+        // рубрика
         Community community = 1;
+        // модераторы
         repeated Common.UserLink moderators = 2;
+        // авторы
         repeated Common.UserLink authors = 3;
+        // статьи
         repeated Article articles = 4;
+        // страницы
         Common.Pages pages = 5;
     }
 
     message BlogsResponse {
+        // блоги
         repeated Blog blogs = 1;
+        // страницы
         Common.Pages pages = 2;
     }
 
     message BlogResponse {
+        // статьи
         repeated Article articles = 1;
+        // страницы
         Common.Pages pages = 2;
     }
 
     message BlogArticleResponse {
+        // статья
         Article article = 1;
     }
 
-    message BlogSubscriptionResponse {
-        bool is_subscribed = 1;
-    }
-
     message BlogArticleLikeResponse {
+        // количество лайков
         uint64 like_count = 1;
     }
 }

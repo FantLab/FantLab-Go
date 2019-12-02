@@ -1,25 +1,33 @@
 package endpoints
 
 import (
+	"fantlab/bindr"
 	"fantlab/keys"
+	"fantlab/pb"
 	"fantlab/shared"
 	"fantlab/uuid"
 	"net/http"
-	"strconv"
+	"reflect"
+	"strings"
 
-	"github.com/go-chi/chi"
+	"github.com/golang/protobuf/proto"
 )
 
+type PathParamGetter = func(r *http.Request, key string) string
+
 type API struct {
-	config   *shared.AppConfig
-	services *shared.Services
+	config          *shared.AppConfig
+	services        *shared.Services
+	pathParamGetter PathParamGetter
 }
 
-func MakeAPI(config *shared.AppConfig, services *shared.Services) *API {
-	return &API{config: config, services: services}
+func MakeAPI(config *shared.AppConfig, services *shared.Services, pathParamGetter PathParamGetter) *API {
+	return &API{
+		config:          config,
+		services:        services,
+		pathParamGetter: pathParamGetter,
+	}
 }
-
-// *******************************************************
 
 func (api *API) getSession(r *http.Request) string {
 	return r.Header.Get(keys.HeaderSessionId)
@@ -33,26 +41,36 @@ func (api *API) generateSessionId() string {
 	return uuid.GenerateNow()
 }
 
+func (api *API) badParam(name string) (int, proto.Message) {
+	return http.StatusBadRequest, &pb.Error_Response{
+		Status:  pb.Error_INVALID_PARAMETER,
+		Context: name,
+	}
+}
+
+func (api *API) bindParams(output interface{}, r *http.Request) {
+	_ = bindr.BindStruct(output, func(f reflect.StructField) string {
+		return getParamValue(r, f, api.pathParamGetter)
+	})
+}
+
 // *******************************************************
 
-func urlParam(r *http.Request, key string) string {
-	return chi.URLParam(r, key)
-}
-
-func uintURLParam(r *http.Request, key string) (uint64, error) {
-	return strconv.ParseUint(urlParam(r, key), 10, 32)
-}
-
-func queryParam(r *http.Request, key string, defaultValue string) string {
-	value := r.URL.Query().Get(key)
-
-	if len(value) > 0 {
-		return value
+func getParamValue(r *http.Request, f reflect.StructField, pathParamGetter PathParamGetter) string {
+	s := strings.Split(f.Tag.Get("http"), ",")
+	if len(s) != 2 {
+		return ""
 	}
 
-	return defaultValue
-}
+	name, source := s[0], s[1]
 
-func uintQueryParam(r *http.Request, key string, defaultValue uint64) (uint64, error) {
-	return strconv.ParseUint(queryParam(r, key, strconv.FormatUint(defaultValue, 10)), 10, 32)
+	switch source {
+	case "path":
+		return pathParamGetter(r, name)
+	case "form":
+		return r.PostFormValue(name)
+	case "query":
+		return r.URL.Query().Get(name)
+	}
+	return ""
 }

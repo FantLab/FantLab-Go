@@ -352,7 +352,7 @@ func (db *DB) FetchForumTopic(ctx context.Context, availableForums []uint64, top
 	return &topic, nil
 }
 
-func (db *DB) FetchTopicMessages(ctx context.Context, availableForums []uint64, topicID, limit, offset uint64, sortDirection string) (*ForumTopicMessagesDBResponse, error) {
+func (db *DB) FetchTopicMessages(ctx context.Context, availableForums []uint64, topicID, limit, offset uint64, asc bool) (*ForumTopicMessagesDBResponse, error) {
 	var shortTopic ShortForumTopic
 
 	err := db.engine.Read(ctx, shortTopicQuery.WithArgs(topicID, availableForums).Rebind()).Scan(&shortTopic)
@@ -370,11 +370,18 @@ func (db *DB) FetchTopicMessages(ctx context.Context, availableForums []uint64, 
 	}
 
 	finalOffset := int64(offset)
-	if sortDirection == "DESC" {
+	if !asc {
 		finalOffset = int64(count) - int64(offset) - int64(limit)
 	}
 
 	var messages []ForumMessage
+
+	var sortDirection string
+	if asc {
+		sortDirection = "ASC"
+	} else {
+		sortDirection = "DESC"
+	}
 
 	err = db.engine.Read(ctx, fetchTopicMessagesQuery.Format(sortDirection).WithArgs(topicID, finalOffset+1, finalOffset+int64(limit))).Scan(&messages)
 

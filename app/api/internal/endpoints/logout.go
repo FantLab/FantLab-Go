@@ -7,6 +7,7 @@ import (
 	"github.com/golang/protobuf/proto"
 )
 
+// Удаляет текущую сессию пользователя
 func (api *API) Logout(r *http.Request) (int, proto.Message) {
 	sid := api.getSession(r)
 
