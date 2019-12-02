@@ -39,7 +39,7 @@ var (
 	protoModelsPackage *packages.Package
 )
 
-func AnalyzeEndpoints(endpoints []routing.Endpoint, schemePrefix, schemePostfix string) map[string]*EndpointInfo {
+func AnalyzeEndpoints(endpoints []routing.Endpoint, schemePrefix, schemePostfix string) map[int]*EndpointInfo {
 	if endpointsPackage == nil {
 		endpointsPackage = loadPackage(endpointsPackagePath)
 	}
@@ -47,7 +47,7 @@ func AnalyzeEndpoints(endpoints []routing.Endpoint, schemePrefix, schemePostfix 
 		protoModelsPackage = loadPackage(protoModelsPackagePath)
 	}
 
-	table := make(map[string]*EndpointInfo)
+	table := make(map[int]*EndpointInfo)
 
 	modelComments := makeModelCommentsTable(protoModelsPackage, func(f *ast.Field) bool {
 		return !strings.HasPrefix(f.Names[0].Name, protoModelSystemFieldPrefix)
@@ -55,14 +55,14 @@ func AnalyzeEndpoints(endpoints []routing.Endpoint, schemePrefix, schemePostfix 
 	schemeBuilder := makeSchemeBuilder(modelComments)
 	funcDecls := collectFuncDecls(endpointsPackage)
 
-	for _, endpoint := range endpoints {
+	for index, endpoint := range endpoints {
 		frame := getCallerFrame(endpoint.Handler())
 		if frame == nil {
 			continue
 		}
 
 		for funcName, funcDecl := range funcDecls {
-			if !strings.Contains(frame.Function, funcName) {
+			if !strings.Contains(frame.Function, "."+funcName+"-") {
 				continue
 			}
 
@@ -74,7 +74,7 @@ func AnalyzeEndpoints(endpoints []routing.Endpoint, schemePrefix, schemePostfix 
 			params := getRequestParams(funcDecl, endpointsPackage)
 			scheme := schemeBuilder.Make(responseType, schemePrefix, schemePostfix)
 
-			table[endpoint.Path()] = &EndpointInfo{
+			table[index] = &EndpointInfo{
 				FilePath:            frame.File,
 				Line:                frame.Line,
 				Description:         funcDecl.Doc.Text(),
