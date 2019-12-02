@@ -112,7 +112,7 @@ func nameOfType(t types.Type) string {
 
 func getNameAndSource(tag string) (name string, source string) {
 	n := len(tag)
-	if n < 11 {
+	if n < 12 { // тег не должен быть короче, чем `http:"x:y"`
 		return
 	}
 
