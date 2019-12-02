@@ -28,8 +28,8 @@ func getTemplateDataFromRoutes() []t_group {
 
 		infoTable := analysis.AnalyzeEndpoints(endpoints, "```\n", "\n```")
 
-		for _, endpoint := range endpoints {
-			info := infoTable[endpoint.Path()]
+		for index, endpoint := range endpoints {
+			info := infoTable[index]
 			if info == nil {
 				continue
 			}

@@ -763,7 +763,7 @@
 
 
 
-**POST** [/v1/topics/{id}/subscription](../app/api/internal/endpoints/unsubscribe_forum_topic.go#L15)
+**POST** [/v1/topics/{id}/subscription](../app/api/internal/endpoints/subscribe_forum_topic.go#L15)
 
 Параметры запроса:
 
@@ -813,7 +813,7 @@
 
 
 
-**POST** [/v1/communities/{id}/subscription](../app/api/internal/endpoints/unsubscribe_community.go#L12)
+**POST** [/v1/communities/{id}/subscription](../app/api/internal/endpoints/subscribe_community.go#L12)
 
 Параметры запроса:
 
@@ -863,7 +863,7 @@
 
 
 
-**POST** [/v1/blogs/{id}/subscription](../app/api/internal/endpoints/unsubscribe_blog.go#L12)
+**POST** [/v1/blogs/{id}/subscription](../app/api/internal/endpoints/subscribe_blog.go#L12)
 
 Параметры запроса:
 
@@ -913,7 +913,7 @@
 
 
 
-**POST** [/v1/blog_articles/{id}/subscription](../app/api/internal/endpoints/unsubscribe_article.go#L10)
+**POST** [/v1/blog_articles/{id}/subscription](../app/api/internal/endpoints/subscribe_article.go#L10)
 
 Параметры запроса:
 
@@ -963,7 +963,7 @@
 
 
 
-**POST** [/v1/blog_articles/{id}/like](../app/api/internal/endpoints/dislike_article.go#L12)
+**POST** [/v1/blog_articles/{id}/like](../app/api/internal/endpoints/like_article.go#L13)
 
 Параметры запроса:
 
