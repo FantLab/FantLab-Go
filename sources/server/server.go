@@ -21,7 +21,7 @@ import (
 )
 
 func GenerateDocs() {
-	docs.Generate(os.Stdout)
+	_ = docs.Generate(os.Stdout)
 }
 
 func Start() {
