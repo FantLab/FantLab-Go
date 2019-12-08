@@ -28,7 +28,7 @@ services:
   web:
     build:
       context: ..
-    restart: always
+    restart: unless-stopped
     depends_on:
       - db
       - mc
