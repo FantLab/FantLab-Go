@@ -1,5 +1,5 @@
 #!/bin/bash
 
-rm -rf app/pb
-mkdir -p app/pb
+rm -rf sources/server/internal/pb
+mkdir -p sources/server/internal/pb
 protoc --go_out=. proto/*.proto

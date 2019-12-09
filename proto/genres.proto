@@ -1,6 +1,6 @@
 syntax = "proto3";
 
-option go_package = "app/pb";
+option go_package = "sources/server/internal/pb";
 
 message Genre {
     message Genre {

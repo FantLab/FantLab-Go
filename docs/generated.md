@@ -10,7 +10,7 @@
 
 
 
-**GET** [/v1/forums](../app/api/internal/endpoints/show_forums.go#L14)
+**GET** [/v1/forums](../sources/server/internal/endpoints/show_forums.go#L13)
 
 
 Схема ответа:
@@ -72,7 +72,7 @@
 
 
 
-**GET** [/v1/forums/{id}](../app/api/internal/endpoints/show_forum_topics.go#L16)
+**GET** [/v1/forums/{id}](../sources/server/internal/endpoints/show_forum_topics.go#L15)
 
 Параметры запроса:
 
@@ -155,7 +155,7 @@
 
 
 
-**GET** [/v1/topics/{id}](../app/api/internal/endpoints/show_topic_messages.go#L15)
+**GET** [/v1/topics/{id}](../sources/server/internal/endpoints/show_topic_messages.go#L15)
 
 Параметры запроса:
 
@@ -303,7 +303,7 @@
 
 
 
-**GET** [/v1/communities](../app/api/internal/endpoints/show_communities.go#L11)
+**GET** [/v1/communities](../sources/server/internal/endpoints/show_communities.go#L11)
 
 
 Схема ответа:
@@ -378,7 +378,7 @@
 
 
 
-**GET** [/v1/communities/{id}](../app/api/internal/endpoints/show_community.go#L14)
+**GET** [/v1/communities/{id}](../sources/server/internal/endpoints/show_community.go#L14)
 
 Параметры запроса:
 
@@ -486,7 +486,7 @@
 
 
 
-**GET** [/v1/blogs](../app/api/internal/endpoints/show_blogs.go#L12)
+**GET** [/v1/blogs](../sources/server/internal/endpoints/show_blogs.go#L12)
 
 Параметры запроса:
 
@@ -556,7 +556,7 @@
 
 
 
-**GET** [/v1/blogs/{id}](../app/api/internal/endpoints/show_blog.go#L14)
+**GET** [/v1/blogs/{id}](../sources/server/internal/endpoints/show_blog.go#L14)
 
 Параметры запроса:
 
@@ -618,7 +618,7 @@
 
 
 
-**GET** [/v1/blog_articles/{id}](../app/api/internal/endpoints/show_article.go#L13)
+**GET** [/v1/blog_articles/{id}](../sources/server/internal/endpoints/show_article.go#L13)
 
 Параметры запроса:
 
@@ -670,7 +670,7 @@
 
 
 
-**GET** [/v1/allgenres](../app/api/internal/endpoints/show_genres.go#L11)
+**GET** [/v1/allgenres](../sources/server/internal/endpoints/show_genres.go#L11)
 
 
 Схема ответа:
@@ -705,7 +705,7 @@
 Создает новую сессию пользователя
 
 
-**POST** [/v1/login](../app/api/internal/endpoints/login.go#L14)
+**POST** [/v1/login](../sources/server/internal/endpoints/login.go#L14)
 
 Параметры запроса:
 
@@ -741,7 +741,7 @@
 Удаляет текущую сессию пользователя
 
 
-**DELETE** [/v1/logout](../app/api/internal/endpoints/logout.go#L11)
+**DELETE** [/v1/logout](../sources/server/internal/endpoints/logout.go#L11)
 
 
 Схема ответа:
@@ -763,7 +763,7 @@
 
 
 
-**POST** [/v1/topics/{id}/subscription](../app/api/internal/endpoints/subscribe_forum_topic.go#L15)
+**POST** [/v1/topics/{id}/subscription](../sources/server/internal/endpoints/subscribe_forum_topic.go#L14)
 
 Параметры запроса:
 
@@ -788,7 +788,7 @@
 
 
 
-**DELETE** [/v1/topics/{id}/subscription](../app/api/internal/endpoints/unsubscribe_forum_topic.go#L15)
+**DELETE** [/v1/topics/{id}/subscription](../sources/server/internal/endpoints/unsubscribe_forum_topic.go#L14)
 
 Параметры запроса:
 
@@ -813,7 +813,7 @@
 
 
 
-**POST** [/v1/communities/{id}/subscription](../app/api/internal/endpoints/subscribe_community.go#L12)
+**POST** [/v1/communities/{id}/subscription](../sources/server/internal/endpoints/subscribe_community.go#L12)
 
 Параметры запроса:
 
@@ -838,7 +838,7 @@
 
 
 
-**DELETE** [/v1/communities/{id}/subscription](../app/api/internal/endpoints/unsubscribe_community.go#L12)
+**DELETE** [/v1/communities/{id}/subscription](../sources/server/internal/endpoints/unsubscribe_community.go#L12)
 
 Параметры запроса:
 
@@ -863,7 +863,7 @@
 
 
 
-**POST** [/v1/blogs/{id}/subscription](../app/api/internal/endpoints/subscribe_blog.go#L12)
+**POST** [/v1/blogs/{id}/subscription](../sources/server/internal/endpoints/subscribe_blog.go#L12)
 
 Параметры запроса:
 
@@ -888,7 +888,7 @@
 
 
 
-**DELETE** [/v1/blogs/{id}/subscription](../app/api/internal/endpoints/unsubscribe_blog.go#L12)
+**DELETE** [/v1/blogs/{id}/subscription](../sources/server/internal/endpoints/unsubscribe_blog.go#L12)
 
 Параметры запроса:
 
@@ -913,7 +913,7 @@
 
 
 
-**POST** [/v1/blog_articles/{id}/subscription](../app/api/internal/endpoints/subscribe_article.go#L10)
+**POST** [/v1/blog_articles/{id}/subscription](../sources/server/internal/endpoints/subscribe_article.go#L10)
 
 Параметры запроса:
 
@@ -938,7 +938,7 @@
 
 
 
-**DELETE** [/v1/blog_articles/{id}/subscription](../app/api/internal/endpoints/unsubscribe_article.go#L10)
+**DELETE** [/v1/blog_articles/{id}/subscription](../sources/server/internal/endpoints/unsubscribe_article.go#L10)
 
 Параметры запроса:
 
@@ -963,7 +963,7 @@
 
 
 
-**POST** [/v1/blog_articles/{id}/like](../app/api/internal/endpoints/like_article.go#L13)
+**POST** [/v1/blog_articles/{id}/like](../sources/server/internal/endpoints/like_article.go#L13)
 
 Параметры запроса:
 
@@ -990,7 +990,7 @@
 
 
 
-**DELETE** [/v1/blog_articles/{id}/like](../app/api/internal/endpoints/dislike_article.go#L12)
+**DELETE** [/v1/blog_articles/{id}/like](../sources/server/internal/endpoints/dislike_article.go#L12)
 
 Параметры запроса:
 
@@ -1017,7 +1017,7 @@
 
 
 
-**PUT** [/v1/work/{id}/genres](../app/api/internal/endpoints/set_work_genres.go#L15)
+**PUT** [/v1/work/{id}/genres](../sources/server/internal/endpoints/set_work_genres.go#L15)
 
 Параметры запроса:
 
