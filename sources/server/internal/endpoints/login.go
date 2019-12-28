@@ -2,7 +2,7 @@ package endpoints
 
 import (
 	"fantlab/base/dbtools"
-	"fantlab/server/internal/pb"
+	"fantlab/pb"
 	"net/http"
 	"time"
 
@@ -21,6 +21,8 @@ func (api *API) Login(r *http.Request) (int, proto.Message) {
 
 	api.bindParams(&params, r)
 
+	// ищем юзера в базе
+
 	userData, err := api.services.DB().FetchUserPasswordHash(r.Context(), params.Login)
 
 	if err != nil {
@@ -36,6 +38,8 @@ func (api *API) Login(r *http.Request) (int, proto.Message) {
 		}
 	}
 
+	// проверяем пароль
+
 	err = bcrypt.CompareHashAndPassword([]byte(userData.OldHash), []byte(params.Password))
 
 	if err != nil {
@@ -47,6 +51,8 @@ func (api *API) Login(r *http.Request) (int, proto.Message) {
 			Status: pb.Error_INVALID_PASSWORD,
 		}
 	}
+
+	// создаем новую сессию
 
 	sid := api.generateSessionId()
 
@@ -60,7 +66,7 @@ func (api *API) Login(r *http.Request) (int, proto.Message) {
 		}
 	}
 
-	_ = api.services.Cache().PutSession(r.Context(), sid, userData.UserID, dateOfCreate)
+	// успех
 
 	return http.StatusOK, &pb.Auth_LoginResponse{
 		UserId:       userData.UserID,

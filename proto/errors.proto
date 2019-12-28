@@ -1,6 +1,6 @@
 syntax = "proto3";
 
-option go_package = "sources/server/internal/pb";
+option go_package = "sources/pb";
 
 message Error {
     message Response {

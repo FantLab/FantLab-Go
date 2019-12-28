@@ -2,8 +2,8 @@ package endpoints
 
 import (
 	"fantlab/base/dbtools"
-	"fantlab/server/internal/convers"
-	"fantlab/server/internal/pb"
+	"fantlab/pb"
+	"fantlab/server/internal/converters"
 	"net/http"
 	"strconv"
 
@@ -37,6 +37,6 @@ func (api *API) ShowArticle(r *http.Request) (int, proto.Message) {
 		}
 	}
 
-	article := convers.GetArticle(dbTopic, api.config)
+	article := converters.GetArticle(dbTopic, api.config)
 	return http.StatusOK, article
 }

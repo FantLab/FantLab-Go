@@ -3,10 +3,9 @@ package endpoints
 import (
 	"fantlab/base/dbtools"
 	"fantlab/base/utils"
-	"fantlab/server/internal/convers"
-	"fantlab/server/internal/pb"
+	"fantlab/pb"
+	"fmt"
 	"net/http"
-	"strconv"
 	"strings"
 
 	"github.com/golang/protobuf/proto"
@@ -32,17 +31,75 @@ func (api *API) SetWorkGenres(r *http.Request) (int, proto.Message) {
 		return api.badParam("genres")
 	}
 
-	// проверяем что ворк существует
+	userId := api.getUserId(r)
 
-	_, err := api.services.DB().WorkExists(r.Context(), params.WorkId)
-
+	// проверяем что произведение существует
 	{
-		if dbtools.IsNotFoundError(err) {
-			return http.StatusNotFound, &pb.Error_Response{
-				Status:  pb.Error_NOT_FOUND,
-				Context: strconv.FormatUint(params.WorkId, 10),
+		workExists, err := api.services.DB().WorkExists(r.Context(), params.WorkId)
+		if err != nil && !dbtools.IsNotFoundError(err) {
+			return http.StatusInternalServerError, &pb.Error_Response{
+				Status: pb.Error_SOMETHING_WENT_WRONG,
 			}
 		}
+		if !workExists {
+			return http.StatusNotFound, &pb.Error_Response{
+				Status:  pb.Error_NOT_FOUND,
+				Context: fmt.Sprintf("Произведение с идентификатором %d не найдено", params.WorkId),
+			}
+		}
+	}
+
+	// проверяем что пользователь выставил оценку произведению
+	{
+		mark, err := api.services.DB().GetWorkUserMark(r.Context(), params.WorkId, userId)
+		if err != nil && !dbtools.IsNotFoundError(err) {
+			return http.StatusInternalServerError, &pb.Error_Response{
+				Status: pb.Error_SOMETHING_WENT_WRONG,
+			}
+		}
+		if mark == 0 {
+			return http.StatusForbidden, &pb.Error_Response{
+				Status:  pb.Error_ACTION_PERMITTED,
+				Context: "Вы еще не оценили это произведение",
+			}
+		}
+	}
+
+	// получаем дерево жанры
+
+	genreTree := api.services.GetGenreTree(r.Context())
+
+	if genreTree == nil {
+		return http.StatusInternalServerError, &pb.Error_Response{
+			Status: pb.Error_SOMETHING_WENT_WRONG,
+		}
+	}
+
+	// проверяем что выбраны жанры из обязательных групп
+	{
+		err := genreTree.CheckRequiredGroupsForGenreIds(genreIds)
+
+		if err != nil {
+			return http.StatusInternalServerError, &pb.Error_Response{
+				Status:  pb.Error_VALIDATION_FAILED,
+				Context: err.Error(),
+			}
+		}
+	}
+
+	// получаем идентификаторы всех выбранных жанров + родительские
+
+	genreIdTable := genreTree.SelectGenreIdsWithParents(genreIds)
+
+	// сохраняем выбор в базе
+	{
+		genreIds = nil
+
+		for id := range genreIdTable {
+			genreIds = append(genreIds, id)
+		}
+
+		err := api.services.DB().GenreVote(r.Context(), params.WorkId, userId, genreIds)
 
 		if err != nil {
 			return http.StatusInternalServerError, &pb.Error_Response{
@@ -51,48 +108,11 @@ func (api *API) SetWorkGenres(r *http.Request) (int, proto.Message) {
 		}
 	}
 
-	// получаем все жанры из базы
+	// сбрасываем кэш юзера (для перла)
 
-	dbResponse, err := api.services.DB().FetchGenreIds(r.Context())
+	api.services.InvalidateUserCache(r.Context(), userId)
 
-	if err != nil {
-		return http.StatusInternalServerError, &pb.Error_Response{
-			Status: pb.Error_SOMETHING_WENT_WRONG,
-		}
-	}
-
-	// создаем дерево жанров
-
-	genreTree := convers.MakeGenreTree(dbResponse)
-
-	// проверяем что выбраны жанры из обязательных групп
-
-	err = convers.CheckRequiredGroupsForGenreIds(genreIds, genreTree)
-
-	if err != nil {
-		return http.StatusInternalServerError, &pb.Error_Response{
-			Status:  pb.Error_VALIDATION_FAILED,
-			Context: err.Error(),
-		}
-	}
-
-	// получаем идентификаторы всех выбранных жанров + родительские
-
-	genreIdsWithParents := convers.SelectGenreIdsWithParents(genreIds, genreTree)
-
-	// сохраняем выбор в базе
-
-	userId := api.getUserId(r)
-
-	err = api.services.DB().GenreVote(r.Context(), params.WorkId, userId, genreIdsWithParents)
-
-	if err != nil {
-		return http.StatusInternalServerError, &pb.Error_Response{
-			Status: pb.Error_SOMETHING_WENT_WRONG,
-		}
-	}
-
-	// возвращаем OK
+	// успех
 
 	return http.StatusOK, &pb.Common_SuccessResponse{}
 }

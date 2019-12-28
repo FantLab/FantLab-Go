@@ -2,9 +2,9 @@ package endpoints
 
 import (
 	"fantlab/base/dbtools"
-	"fantlab/server/internal/convers"
+	"fantlab/pb"
+	"fantlab/server/internal/converters"
 	"fantlab/server/internal/helpers"
-	"fantlab/server/internal/pb"
 	"net/http"
 	"strconv"
 
@@ -56,6 +56,6 @@ func (api *API) ShowCommunity(r *http.Request) (int, proto.Message) {
 		}
 	}
 
-	community := convers.GetCommunity(dbResponse, params.Page, params.Limit, api.config)
+	community := converters.GetCommunity(dbResponse, params.Page, params.Limit, api.config)
 	return http.StatusOK, community
 }

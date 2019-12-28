@@ -15,21 +15,9 @@ type sqlDB struct {
 }
 
 func (db sqlDB) InTransaction(perform func(sqlr.ReaderWriter) error) error {
-	tx, err := db.sql.Begin()
-
-	if err != nil {
-		return err
-	}
-
-	err = perform(readerWriter{tx})
-
-	if err == nil {
-		return tx.Commit()
-	}
-
-	_ = tx.Rollback()
-
-	return err
+	return inTransaction(db.sql, func(tx *sql.Tx) error {
+		return perform(readerWriter{tx})
+	})
 }
 
 func (db sqlDB) Write(ctx context.Context, q sqlr.Query) sqlr.Result {
@@ -70,4 +58,30 @@ func (rw readerWriter) Read(ctx context.Context, q sqlr.Query) sqlr.Rows {
 		err:            err,
 		allowNullTypes: false,
 	}
+}
+
+// *******************************************************
+
+func inTransaction(db *sql.DB, fn func(*sql.Tx) error) (err error) {
+	tx, err := db.Begin()
+
+	if err != nil {
+		return
+	}
+
+	defer func() {
+		if p := recover(); p != nil {
+			_ = tx.Rollback()
+
+			panic(p)
+		} else if err != nil {
+			_ = tx.Rollback()
+		} else {
+			err = tx.Commit()
+		}
+	}()
+
+	err = fn(tx)
+
+	return
 }

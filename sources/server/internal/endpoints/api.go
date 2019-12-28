@@ -3,9 +3,9 @@ package endpoints
 import (
 	"fantlab/base/bindr"
 	"fantlab/base/uuid"
-	"fantlab/server/internal/keys"
-	"fantlab/server/internal/pb"
-	"fantlab/server/internal/shared"
+	"fantlab/pb"
+	"fantlab/server/internal/app"
+	"fantlab/server/internal/config"
 	"net/http"
 	"reflect"
 	"strings"
@@ -16,12 +16,12 @@ import (
 type PathParamGetter = func(r *http.Request, key string) string
 
 type API struct {
-	config          *shared.AppConfig
-	services        *shared.Services
+	config          *config.AppConfig
+	services        *app.Services
 	pathParamGetter PathParamGetter
 }
 
-func MakeAPI(config *shared.AppConfig, services *shared.Services, pathParamGetter PathParamGetter) *API {
+func MakeAPI(config *config.AppConfig, services *app.Services, pathParamGetter PathParamGetter) *API {
 	return &API{
 		config:          config,
 		services:        services,
@@ -30,11 +30,11 @@ func MakeAPI(config *shared.AppConfig, services *shared.Services, pathParamGette
 }
 
 func (api *API) getSession(r *http.Request) string {
-	return r.Header.Get(keys.HeaderSessionId)
+	return r.Header.Get(app.SessionHeader)
 }
 
 func (api *API) getUserId(r *http.Request) uint64 {
-	return keys.GetUserId(r.Context())
+	return app.GetUserId(r.Context())
 }
 
 func (api *API) generateSessionId() string {
@@ -44,7 +44,7 @@ func (api *API) generateSessionId() string {
 func (api *API) badParam(name string) (int, proto.Message) {
 	return http.StatusBadRequest, &pb.Error_Response{
 		Status:  pb.Error_INVALID_PARAMETER,
-		Context: name,
+		Context: "Некорректный параметр: " + name,
 	}
 }
 

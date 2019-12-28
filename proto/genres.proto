@@ -1,6 +1,6 @@
 syntax = "proto3";
 
-option go_package = "sources/server/internal/pb";
+option go_package = "sources/pb";
 
 message Genre {
     message Genre {
@@ -10,10 +10,12 @@ message Genre {
         string name = 2;
         // информация
         string info = 3;
-        // коичество произведений
-        uint64 work_count = 4;
         // поджанры
-        repeated Genre subgenres = 5;
+        repeated Genre subgenres = 4;
+        // количество произведений (опционально)
+        uint64 work_count = 5;
+        // количество голосов (опционально)
+        uint64 vote_count = 6;   
     }
 
     message Group {
@@ -25,8 +27,15 @@ message Genre {
         repeated Genre genres = 5;
     }
 
-    message Response {
+    message GenresResponse {
         // группы жанров
         repeated Group groups = 1;
+    }
+
+    message ClassificationResponse {
+        // группы жанров
+        repeated Group groups = 1;
+        // сколько раз пользователи классифицировали произведение
+        uint64 classification_count = 2;
     }
 }

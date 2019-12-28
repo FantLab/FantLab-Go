@@ -1,7 +1,7 @@
 package endpoints
 
 import (
-	"fantlab/server/internal/pb"
+	"fantlab/pb"
 	"net/http"
 
 	"github.com/golang/protobuf/proto"

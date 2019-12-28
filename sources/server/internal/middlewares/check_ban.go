@@ -2,18 +2,17 @@ package middlewares
 
 import (
 	"fantlab/base/protobuf"
-	"fantlab/server/internal/keys"
-	"fantlab/server/internal/pb"
-	"fantlab/server/internal/shared"
+	"fantlab/pb"
+	"fantlab/server/internal/app"
 	"net/http"
 
 	"github.com/golang/protobuf/proto"
 )
 
-func CheckBan(services *shared.Services) func(http.Handler) http.Handler {
+func CheckBan(services *app.Services) func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			uid := keys.GetUserId(r.Context())
+			uid := app.GetUserId(r.Context())
 
 			if uid > 0 {
 				banData, err := services.DB().FetchUserBlockInfo(r.Context(), uid)

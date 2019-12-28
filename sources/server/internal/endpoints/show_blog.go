@@ -2,9 +2,9 @@ package endpoints
 
 import (
 	"fantlab/base/dbtools"
-	"fantlab/server/internal/convers"
+	"fantlab/pb"
+	"fantlab/server/internal/converters"
 	"fantlab/server/internal/helpers"
-	"fantlab/server/internal/pb"
 	"net/http"
 	"strconv"
 
@@ -53,6 +53,6 @@ func (api *API) ShowBlog(r *http.Request) (int, proto.Message) {
 		}
 	}
 
-	blog := convers.GetBlog(dbResponse, params.Page, params.Limit, api.config)
+	blog := converters.GetBlog(dbResponse, params.Page, params.Limit, api.config)
 	return http.StatusOK, blog
 }

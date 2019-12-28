@@ -6,7 +6,9 @@ import (
 	"fantlab/base/dbtools"
 	"fantlab/base/dbtools/dbstubs"
 	"fantlab/base/dbtools/scanr"
+	"fantlab/base/dbtools/sqlbuilder"
 	"fantlab/base/dbtools/sqlr"
+	"fantlab/server/internal/db/queries"
 	"testing"
 	"time"
 )
@@ -14,8 +16,12 @@ import (
 func Test_DeleteSession(t *testing.T) {
 	execTable := make(dbstubs.StubExecTable)
 
-	execTable[deleteSessionQuery.WithArgs("1234").String()] = sqlr.Result{
+	execTable[sqlr.NewQuery(queries.DeleteUserSession).WithArgs("1234").String()] = sqlr.Result{
 		Rows: 1,
+	}
+
+	execTable[sqlr.NewQuery(queries.DeleteUserSession).WithArgs("4321").String()] = sqlr.Result{
+		Error: ErrWrite,
 	}
 
 	db := NewDB(&dbstubs.StubDB{ExecTable: execTable})
@@ -39,7 +45,16 @@ func Test_InsertNewSession(t *testing.T) {
 
 		time := time.Date(2019, 8, 19, 17, 40, 03, 0, time.UTC)
 
-		execTable[insertNewSessionQuery.WithArgs("1234", 1, "::1", "User Agent", time, time, 0).String()] = sqlr.Result{
+		entry := sessionEntry{
+			Code:             "1234",
+			UserId:           1,
+			UserIP:           "::1",
+			UserAgent:        "User Agent",
+			DateOfCreate:     time,
+			DateOfLastAction: time,
+		}
+
+		execTable[sqlbuilder.InsertInto(queries.SessionsTable, entry).String()] = sqlr.Result{
 			Rows: 1,
 		}
 
@@ -55,8 +70,17 @@ func Test_InsertNewSession(t *testing.T) {
 
 		time := time.Date(2019, 8, 19, 17, 40, 03, 0, time.UTC)
 
-		execTable[insertNewSessionQuery.WithArgs("4321", 1, "::1", "User Agent", time, time, 0).String()] = sqlr.Result{
-			Rows: 1,
+		entry := sessionEntry{
+			Code:             "1234",
+			UserId:           1,
+			UserIP:           "::1",
+			UserAgent:        "User Agent",
+			DateOfCreate:     time,
+			DateOfLastAction: time,
+		}
+
+		execTable[sqlbuilder.InsertInto(queries.SessionsTable, entry).String()] = sqlr.Result{
+			Error: ErrWrite,
 		}
 
 		db := NewDB(&dbstubs.StubDB{ExecTable: execTable})
@@ -70,7 +94,7 @@ func Test_InsertNewSession(t *testing.T) {
 func Test_FetchUserPasswordHash(t *testing.T) {
 	queryTable := make(dbstubs.StubQueryTable)
 
-	queryTable[fetchUserPasswordHashQuery.WithArgs("user").String()] = &dbstubs.StubRows{
+	queryTable[sqlr.NewQuery(queries.UserPasswordHash).WithArgs("user").String()] = &dbstubs.StubRows{
 		Values: [][]interface{}{{1, "abc", "xyz"}},
 		Columns: []scanr.Column{
 			dbstubs.StubColumn("user_id"),
@@ -105,7 +129,7 @@ func Test_FetchUserSessionInfo(t *testing.T) {
 
 	queryTable := make(dbstubs.StubQueryTable)
 
-	queryTable[fetchUserSessionInfoQuery.WithArgs("1234").String()] = &dbstubs.StubRows{
+	queryTable[sqlr.NewQuery(queries.UserSession).WithArgs("1234").String()] = &dbstubs.StubRows{
 		Values: [][]interface{}{{1, time}},
 		Columns: []scanr.Column{
 			dbstubs.StubColumn("user_id"),
@@ -139,7 +163,7 @@ func Test_FetchUserBlockInfo(t *testing.T) {
 
 	queryTable := make(dbstubs.StubQueryTable)
 
-	queryTable[fetchUserBlockInfoQuery.WithArgs(1).String()] = &dbstubs.StubRows{
+	queryTable[sqlr.NewQuery(queries.UserBlock).WithArgs(1).String()] = &dbstubs.StubRows{
 		Values: [][]interface{}{{1, 1, timeTo, reason}},
 		Columns: []scanr.Column{
 			dbstubs.StubColumn("user_id"),
@@ -167,5 +191,25 @@ func Test_FetchUserBlockInfo(t *testing.T) {
 
 		assert.True(t, dbtools.IsNotFoundError(err))
 		assert.DeepEqual(t, data, UserBlockInfo{})
+	})
+}
+
+func Test_FetchUserClass(t *testing.T) {
+	queryTable := make(dbstubs.StubQueryTable)
+
+	queryTable[sqlr.NewQuery(queries.UserClass).WithArgs(1).String()] = &dbstubs.StubRows{
+		Values: [][]interface{}{{3}},
+		Columns: []scanr.Column{
+			dbstubs.StubColumn(""),
+		},
+	}
+
+	db := NewDB(&dbstubs.StubDB{QueryTable: queryTable})
+
+	t.Run("positive", func(t *testing.T) {
+		userClass, err := db.FetchUserClass(context.Background(), 1)
+
+		assert.True(t, err == nil)
+		assert.True(t, userClass == 3)
 	})
 }

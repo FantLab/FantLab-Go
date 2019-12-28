@@ -3,9 +3,9 @@ package endpoints
 import (
 	"fantlab/base/dbtools"
 	"fantlab/base/utils"
-	"fantlab/server/internal/convers"
+	"fantlab/pb"
+	"fantlab/server/internal/converters"
 	"fantlab/server/internal/helpers"
-	"fantlab/server/internal/pb"
 	"net/http"
 	"strconv"
 	"strings"
@@ -81,6 +81,6 @@ func (api *API) ShowForumTopics(r *http.Request) (int, proto.Message) {
 		}
 	}
 
-	forumTopics := convers.GetForumTopics(dbResponse, params.Page, params.Limit, api.config)
+	forumTopics := converters.GetForumTopics(dbResponse, params.Page, params.Limit, api.config)
 	return http.StatusOK, forumTopics
 }

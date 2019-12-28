@@ -9,12 +9,14 @@ import (
 	"fantlab/base/dbtools"
 	"fantlab/base/dbtools/dbstubs"
 	"fantlab/base/dbtools/scanr"
+	"fantlab/base/dbtools/sqlr"
+	"fantlab/server/internal/db/queries"
 )
 
 func Test_FetchAvailableForums(t *testing.T) {
 	queryTable := make(dbstubs.StubQueryTable)
 
-	queryTable[fetchAvailableForumsQuery.WithArgs(1).String()] = &dbstubs.StubRows{
+	queryTable[sqlr.NewQuery(queries.AvailableForums).WithArgs(1).String()] = &dbstubs.StubRows{
 		Values: [][]interface{}{
 			{"1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,19,22"},
 		},
@@ -33,7 +35,7 @@ func Test_FetchAvailableForums(t *testing.T) {
 	})
 
 	t.Run("negative", func(t *testing.T) {
-		queryTable[fetchAvailableForumsQuery.WithArgs(1).String()] = &dbstubs.StubRows{
+		queryTable[sqlr.NewQuery(queries.AvailableForums).WithArgs(1).String()] = &dbstubs.StubRows{
 			Err: dbstubs.ErrSome,
 		}
 
@@ -51,7 +53,7 @@ func Test_FetchForums(t *testing.T) {
 
 	now := time.Now()
 
-	queryTable[fetchForumsQuery.WithArgs(1).String()] = &dbstubs.StubRows{
+	queryTable[sqlr.NewQuery(queries.Forums).WithArgs(1).String()] = &dbstubs.StubRows{
 		Values: [][]interface{}{
 			{
 				1,
@@ -121,7 +123,7 @@ func Test_FetchForums(t *testing.T) {
 	})
 
 	t.Run("negative", func(t *testing.T) {
-		queryTable[fetchForumsQuery.WithArgs(1).String()] = &dbstubs.StubRows{
+		queryTable[sqlr.NewQuery(queries.Forums).WithArgs(1).String()] = &dbstubs.StubRows{
 			Err: dbstubs.ErrSome,
 		}
 
@@ -137,7 +139,7 @@ func Test_FetchForums(t *testing.T) {
 func Test_FetchModerators(t *testing.T) {
 	queryTable := make(dbstubs.StubQueryTable)
 
-	queryTable[fetchModeratorsQuery.String()] = &dbstubs.StubRows{
+	queryTable[sqlr.NewQuery(queries.ForumModerators).String()] = &dbstubs.StubRows{
 		Values: [][]interface{}{
 			{1, "creator", 1, 19, 2},
 			{1, "creator", 1, 19, 4},
@@ -206,7 +208,7 @@ func Test_FetchModerators(t *testing.T) {
 	})
 
 	t.Run("negative", func(t *testing.T) {
-		queryTable[fetchModeratorsQuery.String()] = &dbstubs.StubRows{
+		queryTable[sqlr.NewQuery(queries.ForumModerators).String()] = &dbstubs.StubRows{
 			Err: dbstubs.ErrSome,
 		}
 
@@ -222,7 +224,7 @@ func Test_FetchModerators(t *testing.T) {
 func Test_FetchForumTopics(t *testing.T) {
 	queryTable := make(dbstubs.StubQueryTable)
 
-	queryTable[forumExistsQuery.WithArgs(2, []int{1, 2}).Rebind().String()] = &dbstubs.StubRows{
+	queryTable[sqlr.NewQuery(queries.ForumExists).WithArgs(2, []int{1, 2}).Rebind().String()] = &dbstubs.StubRows{
 		Values: [][]interface{}{{1}},
 		Columns: []scanr.Column{
 			dbstubs.StubColumn(""),
@@ -231,7 +233,7 @@ func Test_FetchForumTopics(t *testing.T) {
 
 	now := time.Now()
 
-	queryTable[fetchTopicsQuery.WithArgs(2, 20, 0).String()] = &dbstubs.StubRows{
+	queryTable[sqlr.NewQuery(queries.ForumTopics).WithArgs(2, 20, 0).String()] = &dbstubs.StubRows{
 		Values: [][]interface{}{
 			{327, "Раздел \"Авторы, книги\"", now, 519, 1, "creator", 1, 19, 1, 1, 0, 5, 10097, 203, 12, "Во-во, золотые слова:beer:", now},
 			{47, "Хочу застолбить за собой автора!", now, 1969, 76, "Andrew", 1, 0, 1, 1, 0, 35, 3294, 239, 1, "Мартин Скотт, за мной:biggrin:", now},
@@ -257,7 +259,7 @@ func Test_FetchForumTopics(t *testing.T) {
 		},
 	}
 
-	queryTable[topicsCountQuery.WithArgs(2).String()] = &dbstubs.StubRows{
+	queryTable[sqlr.NewQuery(queries.ForumTopicsCount).WithArgs(2).String()] = &dbstubs.StubRows{
 		Values: [][]interface{}{{298}},
 		Columns: []scanr.Column{
 			dbstubs.StubColumn(""),
@@ -325,7 +327,7 @@ func Test_FetchForumTopics(t *testing.T) {
 	})
 
 	t.Run("negative_2", func(t *testing.T) {
-		queryTable[topicsCountQuery.WithArgs(2).String()] = &dbstubs.StubRows{
+		queryTable[sqlr.NewQuery(queries.ForumTopicsCount).WithArgs(2).String()] = &dbstubs.StubRows{
 			Err: dbstubs.ErrSome,
 		}
 
@@ -338,7 +340,7 @@ func Test_FetchForumTopics(t *testing.T) {
 	})
 
 	t.Run("negative_3", func(t *testing.T) {
-		queryTable[fetchTopicsQuery.WithArgs(2, 20, 0).String()] = &dbstubs.StubRows{
+		queryTable[sqlr.NewQuery(queries.ForumTopics).WithArgs(2, 20, 0).String()] = &dbstubs.StubRows{
 			Err: dbstubs.ErrSome,
 		}
 
@@ -354,7 +356,7 @@ func Test_FetchForumTopics(t *testing.T) {
 func Test_FetchTopicMessages(t *testing.T) {
 	queryTable := make(dbstubs.StubQueryTable)
 
-	queryTable[shortTopicQuery.WithArgs(25, []int{1, 2}).Rebind().String()] = &dbstubs.StubRows{
+	queryTable[sqlr.NewQuery(queries.ShortForumTopic).WithArgs(25, []int{1, 2}).Rebind().String()] = &dbstubs.StubRows{
 		Values: [][]interface{}{{25, "Я вас слушаю!", 2, "Техподдержка и развитие сайта"}},
 		Columns: []scanr.Column{
 			dbstubs.StubColumn("topic_id"),
@@ -364,7 +366,7 @@ func Test_FetchTopicMessages(t *testing.T) {
 		},
 	}
 
-	queryTable[topicMessagesCountQuery.WithArgs(25).String()] = &dbstubs.StubRows{
+	queryTable[sqlr.NewQuery(queries.ForumTopicMessagesCount).WithArgs(25).String()] = &dbstubs.StubRows{
 		Values: [][]interface{}{{190}},
 		Columns: []scanr.Column{
 			dbstubs.StubColumn(""),
@@ -373,7 +375,7 @@ func Test_FetchTopicMessages(t *testing.T) {
 
 	now := time.Now()
 
-	queryTable[fetchTopicMessagesQuery.Format("ASC").WithArgs(25, 1, 20).String()] = &dbstubs.StubRows{
+	queryTable[sqlr.NewQuery(queries.ForumTopicMessages).Format("ASC").WithArgs(25, 1, 20).String()] = &dbstubs.StubRows{
 		Values: [][]interface{}{
 			{216, now, 1, "creator", 1, 19, 3, "", "Ну, что скажете? По поводу сайта, естественно", 0, 0, 0},
 			{224, now, 41, "Rol0c", 1, 0, 2, "", "Приветик ;-)", 0, 0, 0},
@@ -451,7 +453,7 @@ func Test_FetchTopicMessages(t *testing.T) {
 	})
 
 	t.Run("negative_2", func(t *testing.T) {
-		queryTable[fetchTopicMessagesQuery.Format("ASC").WithArgs(25, 1, 20).String()] = &dbstubs.StubRows{
+		queryTable[sqlr.NewQuery(queries.ForumTopicMessages).Format("ASC").WithArgs(25, 1, 20).String()] = &dbstubs.StubRows{
 			Err: dbstubs.ErrSome,
 		}
 
@@ -464,7 +466,7 @@ func Test_FetchTopicMessages(t *testing.T) {
 	})
 
 	t.Run("negative_3", func(t *testing.T) {
-		queryTable[topicMessagesCountQuery.WithArgs(25).String()] = &dbstubs.StubRows{
+		queryTable[sqlr.NewQuery(queries.ForumTopicMessagesCount).WithArgs(25).String()] = &dbstubs.StubRows{
 			Err: dbstubs.ErrSome,
 		}
 

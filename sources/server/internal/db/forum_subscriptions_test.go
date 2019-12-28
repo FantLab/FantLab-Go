@@ -6,6 +6,7 @@ import (
 	"fantlab/base/dbtools/dbstubs"
 	"fantlab/base/dbtools/scanr"
 	"fantlab/base/dbtools/sqlr"
+	"fantlab/server/internal/db/queries"
 	"testing"
 	"time"
 )
@@ -13,7 +14,7 @@ import (
 func Test_FetchForumTopicSubscribed(t *testing.T) {
 	queryTable := make(dbstubs.StubQueryTable)
 
-	queryTable[forumTopicSubscriptionExistsQuery.WithArgs(25, 2).String()] = &dbstubs.StubRows{
+	queryTable[sqlr.NewQuery(queries.ForumTopicSubscriptionExists).WithArgs(25, 2).String()] = &dbstubs.StubRows{
 		Values: [][]interface{}{{1}},
 		Columns: []scanr.Column{
 			dbstubs.StubColumn(""),
@@ -39,7 +40,7 @@ func Test_FetchForumTopicSubscribed(t *testing.T) {
 	})
 
 	t.Run("negative_2", func(t *testing.T) {
-		queryTable[forumTopicSubscriptionExistsQuery.WithArgs(25, 2).String()] = &dbstubs.StubRows{
+		queryTable[sqlr.NewQuery(queries.ForumTopicSubscriptionExists).WithArgs(25, 2).String()] = &dbstubs.StubRows{
 			Err: dbstubs.ErrSome,
 		}
 
@@ -57,7 +58,7 @@ func Test_UpdateForumTopicSubscribed(t *testing.T) {
 
 	now := time.Now()
 
-	execTable[forumTopicSubscriptionInsert.WithArgs(2, 25, now).String()] = sqlr.Result{
+	execTable[sqlr.NewQuery(queries.ForumTopicSubscriptionInsert).WithArgs(2, 25, now).String()] = sqlr.Result{
 		Rows: 1,
 	}
 
@@ -70,7 +71,7 @@ func Test_UpdateForumTopicSubscribed(t *testing.T) {
 	})
 
 	t.Run("negative", func(t *testing.T) {
-		execTable[forumTopicSubscriptionInsert.WithArgs(2, 25, now).String()] = sqlr.Result{
+		execTable[sqlr.NewQuery(queries.ForumTopicSubscriptionInsert).WithArgs(2, 25, now).String()] = sqlr.Result{
 			Rows: 0,
 		}
 
@@ -82,7 +83,7 @@ func Test_UpdateForumTopicSubscribed(t *testing.T) {
 	})
 
 	t.Run("negative_2", func(t *testing.T) {
-		execTable[forumTopicSubscriptionInsert.WithArgs(2, 25, now).String()] = sqlr.Result{
+		execTable[sqlr.NewQuery(queries.ForumTopicSubscriptionInsert).WithArgs(2, 25, now).String()] = sqlr.Result{
 			Error: dbstubs.ErrSome,
 		}
 
@@ -97,15 +98,15 @@ func Test_UpdateForumTopicSubscribed(t *testing.T) {
 func Test_UpdateForumTopicUnsubscribed(t *testing.T) {
 	execTable := make(dbstubs.StubExecTable)
 
-	execTable[forumTopicSubscriptionDelete.WithArgs(25, 2).String()] = sqlr.Result{
+	execTable[sqlr.NewQuery(queries.ForumTopicSubscriptionDelete).WithArgs(25, 2).String()] = sqlr.Result{
 		Rows: 1,
 	}
 
-	execTable[forumTopicNewMessagesDelete.WithArgs(25, 2).String()] = sqlr.Result{
+	execTable[sqlr.NewQuery(queries.ForumTopicNewMessagesDelete).WithArgs(25, 2).String()] = sqlr.Result{
 		Rows: 1,
 	}
 
-	execTable[forumNewMessagesUpdate.WithArgs(2, 2).String()] = sqlr.Result{
+	execTable[sqlr.NewQuery(queries.ForumNewMessagesUpdate).WithArgs(2, 2).String()] = sqlr.Result{
 		Rows: 1,
 	}
 
@@ -118,7 +119,7 @@ func Test_UpdateForumTopicUnsubscribed(t *testing.T) {
 	})
 
 	t.Run("negative", func(t *testing.T) {
-		execTable[forumNewMessagesUpdate.WithArgs(2, 2).String()] = sqlr.Result{
+		execTable[sqlr.NewQuery(queries.ForumNewMessagesUpdate).WithArgs(2, 2).String()] = sqlr.Result{
 			Error: dbstubs.ErrSome,
 		}
 
@@ -130,7 +131,7 @@ func Test_UpdateForumTopicUnsubscribed(t *testing.T) {
 	})
 
 	t.Run("negative_2", func(t *testing.T) {
-		execTable[forumTopicNewMessagesDelete.WithArgs(25, 2).String()] = sqlr.Result{
+		execTable[sqlr.NewQuery(queries.ForumTopicNewMessagesDelete).WithArgs(25, 2).String()] = sqlr.Result{
 			Error: dbstubs.ErrSome,
 		}
 
@@ -142,7 +143,7 @@ func Test_UpdateForumTopicUnsubscribed(t *testing.T) {
 	})
 
 	t.Run("negative_3", func(t *testing.T) {
-		execTable[forumTopicSubscriptionDelete.WithArgs(25, 2).String()] = sqlr.Result{
+		execTable[sqlr.NewQuery(queries.ForumTopicSubscriptionDelete).WithArgs(25, 2).String()] = sqlr.Result{
 			Rows: 0,
 		}
 
@@ -154,7 +155,7 @@ func Test_UpdateForumTopicUnsubscribed(t *testing.T) {
 	})
 
 	t.Run("negative_4", func(t *testing.T) {
-		execTable[forumTopicSubscriptionDelete.WithArgs(25, 2).String()] = sqlr.Result{
+		execTable[sqlr.NewQuery(queries.ForumTopicSubscriptionDelete).WithArgs(25, 2).String()] = sqlr.Result{
 			Error: dbstubs.ErrSome,
 		}
 

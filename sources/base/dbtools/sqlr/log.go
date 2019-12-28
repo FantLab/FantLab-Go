@@ -6,7 +6,7 @@ import (
 )
 
 type LogEntry struct {
-	Query    string
+	Query    func() string
 	Rows     int64
 	Err      error
 	Time     time.Time
@@ -51,7 +51,7 @@ func (l logRW) Write(ctx context.Context, q Query) Result {
 	t := time.Now()
 	result := l.rw.Write(ctx, q)
 	l.f(ctx, LogEntry{
-		Query:    q.String(),
+		Query:    q.String,
 		Rows:     result.Rows,
 		Err:      result.Error,
 		Time:     t,
@@ -64,7 +64,7 @@ func (l logRW) Read(ctx context.Context, q Query) Rows {
 	t := time.Now()
 	rows := l.rw.Read(ctx, q)
 	l.f(ctx, LogEntry{
-		Query:    q.String(),
+		Query:    q.String,
 		Rows:     -1,
 		Err:      rows.Error(),
 		Time:     t,

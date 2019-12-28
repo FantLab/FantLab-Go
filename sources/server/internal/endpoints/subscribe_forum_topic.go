@@ -3,7 +3,7 @@ package endpoints
 import (
 	"fantlab/base/dbtools"
 	"fantlab/base/utils"
-	"fantlab/server/internal/pb"
+	"fantlab/pb"
 	"net/http"
 	"strconv"
 	"strings"

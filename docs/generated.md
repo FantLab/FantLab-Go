@@ -72,7 +72,7 @@
 
 
 
-**GET** [/v1/forums/{id}](../sources/server/internal/endpoints/show_forum_topics.go#L15)
+**GET** [/v1/forums/{id}](../sources/server/internal/endpoints/show_forum_topics.go#L16)
 
 Параметры запроса:
 
@@ -155,7 +155,7 @@
 
 
 
-**GET** [/v1/topics/{id}](../sources/server/internal/endpoints/show_topic_messages.go#L15)
+**GET** [/v1/topics/{id}](../sources/server/internal/endpoints/show_topic_messages.go#L16)
 
 Параметры запроса:
 
@@ -684,10 +684,50 @@
       id: uint64          # id жанра
       name: string        # название
       info: string        # информация
-      work_count: uint64  # коичество произведений
       subgenres: [...]    # поджанры
+      work_count: uint64  # количество произведений (опционально)
+      vote_count: uint64  # количество голосов (опционально)
     }]
   }]
+}
+```
+---
+
+</p>
+</details>
+
+<details><summary>Классификация произведения</summary>
+<p>
+
+
+
+**GET** [/v1/work/{id}/classification](../sources/server/internal/endpoints/get_work_classification.go#L11)
+
+Параметры запроса:
+
+
+* **id** (path, uint64) - айди произведения
+
+
+
+
+Схема ответа:
+
+```
+{
+  groups: [{                    # группы жанров
+    id: uint64                  # id группы жанров
+    name: string                # название
+    genres: [{                  # жанры
+      id: uint64                # id жанра
+      name: string              # название
+      info: string              # информация
+      subgenres: [...]          # поджанры
+      work_count: uint64        # количество произведений (опционально)
+      vote_count: uint64        # количество голосов (опционально)
+    }]
+  }]
+  classification_count: uint64  # сколько раз пользователи классифицировали произведение
 }
 ```
 ---
@@ -748,6 +788,44 @@
 
 ```
 {}
+```
+---
+
+</p>
+</details>
+
+<details><summary>Классификация произведения пользователем</summary>
+<p>
+
+
+
+**GET** [/v1/work/{id}/userclassification](../sources/server/internal/endpoints/get_user_work_genres.go#L11)
+
+Параметры запроса:
+
+
+* **id** (path, uint64) - айди произведения
+
+
+
+
+Схема ответа:
+
+```
+{
+  groups: [{              # группы жанров
+    id: uint64            # id группы жанров
+    name: string          # название
+    genres: [{            # жанры
+      id: uint64          # id жанра
+      name: string        # название
+      info: string        # информация
+      subgenres: [...]    # поджанры
+      work_count: uint64  # количество произведений (опционально)
+      vote_count: uint64  # количество голосов (опционально)
+    }]
+  }]
+}
 ```
 ---
 
@@ -1012,12 +1090,16 @@
 </p>
 </details>
 
-<details><summary>Классификация произведения</summary>
+
+## Для незабаненных философов
+
+
+<details><summary>Классификация произведения пользователем</summary>
 <p>
 
 
 
-**PUT** [/v1/work/{id}/genres](../sources/server/internal/endpoints/set_work_genres.go#L15)
+**PUT** [/v1/work/{id}/userclassification](../sources/server/internal/endpoints/set_work_genres.go#L14)
 
 Параметры запроса:
 

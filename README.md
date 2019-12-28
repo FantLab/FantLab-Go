@@ -19,6 +19,7 @@ $ go run . -gendocs > ../docs/generated.md
 - Завести issue с описанием задачи/бага
 - Создать у себя ветку FLGO-{#issue}
 - Написать код
+- Написать тесты
 - При необходимости обновить [документацию](#документация)
 - Запушить
 - Создать Pull request
@@ -26,9 +27,9 @@ $ go run . -gendocs > ../docs/generated.md
 - ...
 - PROFIT
 
-## Полезная информация
+## Protobuf
 
-### [Protobuf](https://github.com/golang/protobuf)
+### [Плагин](https://github.com/golang/protobuf)
 
 Для перегенерации моделей выполните следующий скрипт (в *vscode* уже настроен экшн для расширения **saveAndRun**):
 
@@ -60,6 +61,10 @@ $ telnet localhost 11211
 ```
 
 [Список команд](https://github.com/memcached/memcached/wiki/Commands)
+
+## WRK
+
+[Нагрузочное тестирование](https://github.com/wg/wrk)
 
 ### Тестовый пароль/хэш
 

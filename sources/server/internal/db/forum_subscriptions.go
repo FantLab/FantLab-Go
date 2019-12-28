@@ -4,48 +4,14 @@ import (
 	"context"
 	"fantlab/base/dbtools"
 	"fantlab/base/dbtools/sqlr"
+	"fantlab/server/internal/db/queries"
 	"time"
-)
-
-var (
-	forumTopicSubscriptionExistsQuery = sqlr.NewQuery(`SELECT 1 FROM f_topics_subscribers WHERE topic_id = ? AND user_id = ?`)
-
-	forumTopicSubscriptionInsert = sqlr.NewQuery(`
-		INSERT INTO
-			f_topics_subscribers
-			(user_id, topic_id, date_of_add)
-		VALUES
-			(?, ?, ?)
-	`)
-
-	forumTopicSubscriptionDelete = sqlr.NewQuery(`
-		DELETE FROM
-			f_topics_subscribers
-		WHERE
-			topic_id = ? AND user_id = ?
-	`)
-
-	forumTopicNewMessagesDelete = sqlr.NewQuery(`
-		DELETE FROM
-			f_new_messages
-		WHERE
-			topic_id = ? AND user_id = ?
-	`)
-
-	forumNewMessagesUpdate = sqlr.NewQuery(`
-		UPDATE
-			users
-		SET
-			new_forum_answers = (SELECT COUNT(*) FROM f_new_messages WHERE user_id = ?)
-		WHERE
-			user_id = ?
-	`)
 )
 
 func (db *DB) FetchForumTopicSubscribed(ctx context.Context, topicId, userId uint64) (bool, error) {
 	var topicSubscriptionExists uint8
 
-	err := db.engine.Read(ctx, forumTopicSubscriptionExistsQuery.WithArgs(topicId, userId)).Scan(&topicSubscriptionExists)
+	err := db.engine.Read(ctx, sqlr.NewQuery(queries.ForumTopicSubscriptionExists).WithArgs(topicId, userId)).Scan(&topicSubscriptionExists)
 
 	if err != nil {
 		if dbtools.IsNotFoundError(err) {
@@ -58,7 +24,7 @@ func (db *DB) FetchForumTopicSubscribed(ctx context.Context, topicId, userId uin
 }
 
 func (db *DB) UpdateForumTopicSubscribed(ctx context.Context, topicId, userId uint64) error {
-	result := db.engine.Write(ctx, forumTopicSubscriptionInsert.WithArgs(userId, topicId, time.Now()))
+	result := db.engine.Write(ctx, sqlr.NewQuery(queries.ForumTopicSubscriptionInsert).WithArgs(userId, topicId, time.Now()))
 
 	if result.Error != nil {
 		return result.Error
@@ -73,7 +39,7 @@ func (db *DB) UpdateForumTopicSubscribed(ctx context.Context, topicId, userId ui
 
 func (db *DB) UpdateForumTopicUnsubscribed(ctx context.Context, topicId, userId uint64) error {
 	return db.engine.InTransaction(func(rw sqlr.ReaderWriter) error {
-		result := rw.Write(ctx, forumTopicSubscriptionDelete.WithArgs(topicId, userId))
+		result := rw.Write(ctx, sqlr.NewQuery(queries.ForumTopicSubscriptionDelete).WithArgs(topicId, userId))
 
 		if result.Error != nil {
 			return result.Error
@@ -83,13 +49,13 @@ func (db *DB) UpdateForumTopicUnsubscribed(ctx context.Context, topicId, userId 
 			return ErrWrite
 		}
 
-		result = rw.Write(ctx, forumTopicNewMessagesDelete.WithArgs(topicId, userId))
+		result = rw.Write(ctx, sqlr.NewQuery(queries.ForumTopicNewMessagesDelete).WithArgs(topicId, userId))
 
 		if result.Error != nil {
 			return result.Error
 		}
 
-		result = rw.Write(ctx, forumNewMessagesUpdate.WithArgs(userId, userId))
+		result = rw.Write(ctx, sqlr.NewQuery(queries.ForumNewMessagesUpdate).WithArgs(userId, userId))
 
 		if result.Error != nil {
 			return result.Error
