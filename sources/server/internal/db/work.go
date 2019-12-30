@@ -34,7 +34,7 @@ func (db *DB) GetWorkUserMark(ctx context.Context, workId, userId uint64) (mark 
 	return
 }
 
-func (db *DB) GetWorkChildren(ctx context.Context, parentWorkId uint64) (children []WorkChild, err error) {
-	err = db.engine.Read(ctx, sqlr.NewQuery(queries.WorkChildren).WithArgs(parentWorkId)).Scan(&children)
+func (db *DB) GetWorkChildren(ctx context.Context, parentWorkId uint64, depth uint8) (children []WorkChild, err error) {
+	err = db.engine.Read(ctx, sqlr.NewQuery(queries.WorkChildren).WithArgs(parentWorkId, depth)).Scan(&children)
 	return
 }
