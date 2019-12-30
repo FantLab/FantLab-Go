@@ -23,7 +23,7 @@ func GetSubWorks(rootWorkId uint64, children []db.WorkChild) *pb.Work_SubWorksRe
 			RusName:       child.RusName,
 			Year:          child.Year,
 			WorkType:      helpers.GetWorkType(child.WorkType),
-			Midmark:       child.Midmark,
+			Rating:        child.Midmark,
 			Marks:         child.Marks,
 			Reviews:       child.Reviews,
 			Plus:          child.IsBonus > 0,

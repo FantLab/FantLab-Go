@@ -29,5 +29,6 @@ const (
 		FROM cte c
 		LEFT JOIN works w ON w.work_id = c.work_id
 		LEFT JOIN work_stats ws ON ws.work_id = w.work_id
+		ORDER BY w.group_index, w.year
 	`
 )

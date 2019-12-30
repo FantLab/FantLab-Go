@@ -94,8 +94,8 @@ message Work {
         uint64 year = 4;
         // тип произведения
         WorkType work_type = 5;
-        // средняя оценка
-        double midmark = 6;
+        // рейтинг
+        double rating = 6;
         // кол-во оценок
         uint64 marks = 7;
         // кол-во отзывов
