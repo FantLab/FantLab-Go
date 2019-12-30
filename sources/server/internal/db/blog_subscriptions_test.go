@@ -6,6 +6,7 @@ import (
 	"fantlab/base/dbtools/dbstubs"
 	"fantlab/base/dbtools/scanr"
 	"fantlab/base/dbtools/sqlr"
+	"fantlab/server/internal/db/queries"
 	"testing"
 	"time"
 )
@@ -13,7 +14,7 @@ import (
 func Test_FetchBlogSubscribed(t *testing.T) {
 	queryTable := make(dbstubs.StubQueryTable)
 
-	queryTable[blogSubscriptionExistsQuery.WithArgs(1, 2).String()] = &dbstubs.StubRows{
+	queryTable[sqlr.NewQuery(queries.BlogSubscriptionExists).WithArgs(1, 2).String()] = &dbstubs.StubRows{
 		Values: [][]interface{}{{1}},
 		Columns: []scanr.Column{
 			dbstubs.StubColumn(""),
@@ -39,7 +40,7 @@ func Test_FetchBlogSubscribed(t *testing.T) {
 	})
 
 	t.Run("negative_2", func(t *testing.T) {
-		queryTable[blogSubscriptionExistsQuery.WithArgs(1, 2).String()] = &dbstubs.StubRows{
+		queryTable[sqlr.NewQuery(queries.BlogSubscriptionExists).WithArgs(1, 2).String()] = &dbstubs.StubRows{
 			Err: dbstubs.ErrSome,
 		}
 
@@ -57,11 +58,11 @@ func Test_UpdateBlogSubscribed(t *testing.T) {
 
 	now := time.Now()
 
-	execTable[blogSubscriptionInsert.WithArgs(2, 1, now).String()] = sqlr.Result{
+	execTable[sqlr.NewQuery(queries.BlogSubscriptionInsert).WithArgs(2, 1, now).String()] = sqlr.Result{
 		Rows: 1,
 	}
 
-	execTable[blogSubscriberUpdate.WithArgs(1).String()] = sqlr.Result{
+	execTable[sqlr.NewQuery(queries.BlogSubscriberUpdate).WithArgs(1).String()] = sqlr.Result{
 		Rows: 1,
 	}
 
@@ -74,7 +75,7 @@ func Test_UpdateBlogSubscribed(t *testing.T) {
 	})
 
 	t.Run("negative", func(t *testing.T) {
-		execTable[blogSubscriberUpdate.WithArgs(1).String()] = sqlr.Result{
+		execTable[sqlr.NewQuery(queries.BlogSubscriberUpdate).WithArgs(1).String()] = sqlr.Result{
 			Rows: 0,
 		}
 
@@ -86,7 +87,7 @@ func Test_UpdateBlogSubscribed(t *testing.T) {
 	})
 
 	t.Run("negative_2", func(t *testing.T) {
-		execTable[blogSubscriberUpdate.WithArgs(1).String()] = sqlr.Result{
+		execTable[sqlr.NewQuery(queries.BlogSubscriberUpdate).WithArgs(1).String()] = sqlr.Result{
 			Error: dbstubs.ErrSome,
 		}
 
@@ -98,7 +99,7 @@ func Test_UpdateBlogSubscribed(t *testing.T) {
 	})
 
 	t.Run("negative_3", func(t *testing.T) {
-		execTable[blogSubscriptionInsert.WithArgs(2, 1, now).String()] = sqlr.Result{
+		execTable[sqlr.NewQuery(queries.BlogSubscriptionInsert).WithArgs(2, 1, now).String()] = sqlr.Result{
 			Rows: 0,
 		}
 
@@ -110,7 +111,7 @@ func Test_UpdateBlogSubscribed(t *testing.T) {
 	})
 
 	t.Run("negative_4", func(t *testing.T) {
-		execTable[blogSubscriptionInsert.WithArgs(2, 1, now).String()] = sqlr.Result{
+		execTable[sqlr.NewQuery(queries.BlogSubscriptionInsert).WithArgs(2, 1, now).String()] = sqlr.Result{
 			Error: dbstubs.ErrSome,
 		}
 
@@ -125,11 +126,11 @@ func Test_UpdateBlogSubscribed(t *testing.T) {
 func Test_UpdateBlogUnsubscribed(t *testing.T) {
 	execTable := make(dbstubs.StubExecTable)
 
-	execTable[blogSubscriptionDelete.WithArgs(1, 2).String()] = sqlr.Result{
+	execTable[sqlr.NewQuery(queries.BlogSubscriptionDelete).WithArgs(1, 2).String()] = sqlr.Result{
 		Rows: 1,
 	}
 
-	execTable[blogSubscriberUpdate.WithArgs(1).String()] = sqlr.Result{
+	execTable[sqlr.NewQuery(queries.BlogSubscriberUpdate).WithArgs(1).String()] = sqlr.Result{
 		Rows: 1,
 	}
 
@@ -142,7 +143,7 @@ func Test_UpdateBlogUnsubscribed(t *testing.T) {
 	})
 
 	t.Run("negative", func(t *testing.T) {
-		execTable[blogSubscriberUpdate.WithArgs(1).String()] = sqlr.Result{
+		execTable[sqlr.NewQuery(queries.BlogSubscriberUpdate).WithArgs(1).String()] = sqlr.Result{
 			Rows: 0,
 		}
 
@@ -154,7 +155,7 @@ func Test_UpdateBlogUnsubscribed(t *testing.T) {
 	})
 
 	t.Run("negative_2", func(t *testing.T) {
-		execTable[blogSubscriberUpdate.WithArgs(1).String()] = sqlr.Result{
+		execTable[sqlr.NewQuery(queries.BlogSubscriberUpdate).WithArgs(1).String()] = sqlr.Result{
 			Error: dbstubs.ErrSome,
 		}
 
@@ -166,7 +167,7 @@ func Test_UpdateBlogUnsubscribed(t *testing.T) {
 	})
 
 	t.Run("negative_3", func(t *testing.T) {
-		execTable[blogSubscriptionDelete.WithArgs(1, 2).String()] = sqlr.Result{
+		execTable[sqlr.NewQuery(queries.BlogSubscriptionDelete).WithArgs(1, 2).String()] = sqlr.Result{
 			Rows: 0,
 		}
 
@@ -178,7 +179,7 @@ func Test_UpdateBlogUnsubscribed(t *testing.T) {
 	})
 
 	t.Run("negative_4", func(t *testing.T) {
-		execTable[blogSubscriptionDelete.WithArgs(1, 2).String()] = sqlr.Result{
+		execTable[sqlr.NewQuery(queries.BlogSubscriptionDelete).WithArgs(1, 2).String()] = sqlr.Result{
 			Error: dbstubs.ErrSome,
 		}
 
@@ -193,7 +194,7 @@ func Test_UpdateBlogUnsubscribed(t *testing.T) {
 func Test_FetchBlogTopicSubscribed(t *testing.T) {
 	queryTable := make(dbstubs.StubQueryTable)
 
-	queryTable[topicSubscriptionExistsQuery.WithArgs(1, 2).String()] = &dbstubs.StubRows{
+	queryTable[sqlr.NewQuery(queries.BlogTopicSubscriptionExists).WithArgs(1, 2).String()] = &dbstubs.StubRows{
 		Values: [][]interface{}{{1}},
 		Columns: []scanr.Column{
 			dbstubs.StubColumn(""),
@@ -219,7 +220,7 @@ func Test_FetchBlogTopicSubscribed(t *testing.T) {
 	})
 
 	t.Run("negative_2", func(t *testing.T) {
-		queryTable[topicSubscriptionExistsQuery.WithArgs(1, 2).String()] = &dbstubs.StubRows{
+		queryTable[sqlr.NewQuery(queries.BlogTopicSubscriptionExists).WithArgs(1, 2).String()] = &dbstubs.StubRows{
 			Err: dbstubs.ErrSome,
 		}
 
@@ -237,7 +238,7 @@ func Test_UpdateBlogTopicSubscribed(t *testing.T) {
 
 	now := time.Now()
 
-	execTable[topicSubscriptionInsert.WithArgs(2, 1, now).String()] = sqlr.Result{
+	execTable[sqlr.NewQuery(queries.BlogTopicSubscriptionInsert).WithArgs(2, 1, now).String()] = sqlr.Result{
 		Rows: 1,
 	}
 
@@ -250,7 +251,7 @@ func Test_UpdateBlogTopicSubscribed(t *testing.T) {
 	})
 
 	t.Run("negative", func(t *testing.T) {
-		execTable[topicSubscriptionInsert.WithArgs(2, 1, now).String()] = sqlr.Result{
+		execTable[sqlr.NewQuery(queries.BlogTopicSubscriptionInsert).WithArgs(2, 1, now).String()] = sqlr.Result{
 			Rows: 0,
 		}
 
@@ -262,7 +263,7 @@ func Test_UpdateBlogTopicSubscribed(t *testing.T) {
 	})
 
 	t.Run("negative_2", func(t *testing.T) {
-		execTable[topicSubscriptionInsert.WithArgs(2, 1, now).String()] = sqlr.Result{
+		execTable[sqlr.NewQuery(queries.BlogTopicSubscriptionInsert).WithArgs(2, 1, now).String()] = sqlr.Result{
 			Error: dbstubs.ErrSome,
 		}
 
@@ -277,7 +278,7 @@ func Test_UpdateBlogTopicSubscribed(t *testing.T) {
 func Test_UpdateBlogTopicUnsubscribed(t *testing.T) {
 	execTable := make(dbstubs.StubExecTable)
 
-	execTable[topicSubscriptionDelete.WithArgs(1, 2).String()] = sqlr.Result{
+	execTable[sqlr.NewQuery(queries.BlogTopicSubscriptionDelete).WithArgs(1, 2).String()] = sqlr.Result{
 		Rows: 1,
 	}
 
@@ -290,7 +291,7 @@ func Test_UpdateBlogTopicUnsubscribed(t *testing.T) {
 	})
 
 	t.Run("negative", func(t *testing.T) {
-		execTable[topicSubscriptionDelete.WithArgs(1, 2).String()] = sqlr.Result{
+		execTable[sqlr.NewQuery(queries.BlogTopicSubscriptionDelete).WithArgs(1, 2).String()] = sqlr.Result{
 			Rows: 0,
 		}
 
@@ -302,7 +303,7 @@ func Test_UpdateBlogTopicUnsubscribed(t *testing.T) {
 	})
 
 	t.Run("negative_2", func(t *testing.T) {
-		execTable[topicSubscriptionDelete.WithArgs(1, 2).String()] = sqlr.Result{
+		execTable[sqlr.NewQuery(queries.BlogTopicSubscriptionDelete).WithArgs(1, 2).String()] = sqlr.Result{
 			Error: dbstubs.ErrSome,
 		}
 

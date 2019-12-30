@@ -64,16 +64,6 @@ func Test_Scan(t *testing.T) {
 		assert.True(t, err == ErrNotAPtr)
 	})
 
-	t.Run("negative_output_not_a_struct_slice", func(t *testing.T) {
-		rows := &_testRows{}
-
-		var x []int
-
-		err := Scan(&x, rows)
-
-		assert.True(t, err == ErrNotAStruct)
-	})
-
 	t.Run("positive_single_value_1", func(t *testing.T) {
 		rows := &_testRows{
 			values: [][]interface{}{{1}},
@@ -119,7 +109,7 @@ func Test_Scan(t *testing.T) {
 
 		err := Scan(&x, rows)
 
-		assert.True(t, err == ErrMultiColumns)
+		assert.True(t, err == ErrInvalidColumnCount)
 		assert.True(t, x == "")
 	})
 
@@ -151,7 +141,7 @@ func Test_Scan(t *testing.T) {
 
 		err := Scan(&x, rows)
 
-		assert.True(t, err == ErrMultiRows)
+		assert.True(t, err == ErrInvalidRowCount)
 		assert.True(t, x == "")
 	})
 
@@ -234,9 +224,58 @@ func Test_Scan(t *testing.T) {
 
 		err := Scan(&x, rows)
 
-		assert.True(t, err == ErrMultiRows)
+		assert.True(t, err == ErrInvalidRowCount)
 		assert.True(t, x.FirstName == "")
 		assert.True(t, x.LastName == "")
+	})
+
+	t.Run("positive_slice_known_type_1", func(t *testing.T) {
+		rows := &_testRows{
+			values: [][]interface{}{{1}, {2}, {3}},
+			columns: []Column{
+				_testColumn(""),
+			},
+		}
+
+		var x []int
+
+		err := Scan(&x, rows)
+
+		assert.True(t, err == nil)
+		assert.DeepEqual(t, x, []int{1, 2, 3})
+	})
+
+	t.Run("positive_slice_known_type_2", func(t *testing.T) {
+		rows := &_testRows{
+			values: [][]interface{}{{"x"}, {"y"}, {"z"}},
+			columns: []Column{
+				_testColumn(""),
+			},
+		}
+
+		var x []string
+
+		err := Scan(&x, rows)
+
+		assert.True(t, err == nil)
+		assert.DeepEqual(t, x, []string{"x", "y", "z"})
+	})
+
+	t.Run("negative_slice_known_type", func(t *testing.T) {
+		rows := &_testRows{
+			values: [][]interface{}{{1}, {2}, {3}},
+			columns: []Column{
+				_testColumn(""),
+				_testColumn(""),
+			},
+		}
+
+		var x []int
+
+		err := Scan(&x, rows)
+
+		assert.True(t, err == ErrInvalidColumnCount)
+		assert.True(t, x == nil)
 	})
 
 	t.Run("positive_slice_alt_name", func(t *testing.T) {
@@ -331,5 +370,40 @@ func Test_Scan(t *testing.T) {
 			IsClosed:  false,
 			Coef:      3.2,
 		})
+	})
+
+	t.Run("positive_map_scan", func(t *testing.T) {
+		rows := &_testRows{
+			values: [][]interface{}{{1, "v1"}, {2, "v2"}},
+			columns: []Column{
+				_testColumn(""),
+				_testColumn(""),
+			},
+		}
+
+		x := make(map[uint]string)
+
+		err := Scan(&x, rows)
+
+		assert.True(t, err == nil)
+		assert.DeepEqual(t, x, map[uint]string{1: "v1", 2: "v2"})
+	})
+
+	t.Run("negative_map_scan", func(t *testing.T) {
+		rows := &_testRows{
+			values: [][]interface{}{{1, "v1", true}, {2, "v2", true}},
+			columns: []Column{
+				_testColumn(""),
+				_testColumn(""),
+				_testColumn(""),
+			},
+		}
+
+		x := make(map[uint]string)
+
+		err := Scan(&x, rows)
+
+		assert.True(t, err == ErrInvalidColumnCount)
+		assert.True(t, len(x) == 0)
 	})
 }

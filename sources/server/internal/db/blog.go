@@ -2,7 +2,9 @@ package db
 
 import (
 	"context"
+	"fantlab/base/codeflow"
 	"fantlab/base/dbtools/sqlr"
+	"fantlab/server/internal/db/queries"
 	"strings"
 	"time"
 )
@@ -94,252 +96,10 @@ type BlogTopicsDBResponse struct {
 	TotalTopicsCount uint64
 }
 
-var (
-	communitiesQuery = sqlr.NewQuery(`
-		SELECT
-			b.blog_id,
-			b.name,
-			b.description,
-			b.topics_count,
-			b.is_public,
-			b.last_topic_date,
-			b.last_topic_head,
-			b.last_topic_id,
-			b.subscriber_count,
-			u.user_id AS last_user_id,
-			u.login AS last_login,
-			u.sex AS last_sex,
-			u.photo_number AS last_photo_number
-		FROM
-			b_blogs b
-		LEFT JOIN
-			users u ON u.user_id = b.last_user_id
-		WHERE
-			b.is_community = 1 AND b.is_hidden = 0
-		ORDER BY
-			b.is_public DESC, b.last_topic_date DESC
-	`)
-
-	communityQuery = sqlr.NewQuery(`
-		SELECT
-			b.name,
-			b.description,
-			b.topics_count,
-			b.is_public,
-			b.last_topic_date,
-			b.last_topic_head,
-			b.last_topic_id,
-			b.subscriber_count,
-			u.user_id AS last_user_id,
-			u.login AS last_login,
-			u.sex AS last_sex,
-			u.photo_number AS last_photo_number
-		FROM
-			b_blogs b
-		LEFT JOIN
-			users u ON u.user_id = b.last_user_id
-		WHERE
-			b.blog_id = ? AND b.is_community = 1 AND b.is_hidden = 0
-	`)
-
-	shortCommunityQuery = sqlr.NewQuery(`
-		SELECT
-			blog_id,
-			name,
-			rules
-		FROM
-			b_blogs
-		WHERE
-			blog_id = ? AND is_community = 1
-	`)
-
-	communityModeratorsQuery = sqlr.NewQuery(`
-		SELECT
-			cm.user_id,
-			u.login,
-			u.sex,
-			u.photo_number
-		FROM
-			b_community_moderators cm
-		LEFT JOIN
-			users u ON u.user_id = cm.user_id
-		WHERE
-			cm.blog_id = ?
-		ORDER BY
-			cm.comm_moder_id
-	`)
-
-	communityAuthorsQuery = sqlr.NewQuery(`
-		SELECT
-			cu.user_id,
-			u.login,
-			u.sex,
-			u.photo_number
-		FROM
-			b_community_users cu
-		LEFT JOIN
-			users u ON u.user_id = cu.user_id
-		WHERE
-			cu.blog_id = ? AND cu.accepted = 1
-		ORDER BY
-			cu.community_user_id
-	`)
-
-	communityTopicsQuery = sqlr.NewQuery(`
-		SELECT
-			b.topic_id,
-			b.head_topic,
-			b.date_of_add,
-			u.user_id,
-			u.login,
-			u.sex,
-			u.photo_number,
-			t.message_text,
-			b.tags,
-			b.likes_count,
-			b.comments_count
-		FROM
-			b_topics b
-		JOIN
-			b_topics_text t ON t.message_id = b.topic_id
-		LEFT JOIN
-			users u ON u.user_id = b.user_id
-		WHERE
-			b.blog_id = ? AND b.is_opened = 1
-		ORDER BY
-			b.date_of_add DESC
-	`)
-
-	communityTopicCountQuery = sqlr.NewQuery(`
-		SELECT
-			COUNT(*)
-		FROM
-			b_topics
-		WHERE
-			blog_id = ? AND is_opened = 1
-	`)
-
-	blogsQuery = sqlr.NewQuery(`
-		SELECT
-			b.blog_id,
-			u.user_id,
-			u.login,
-			u.fio,
-			u.sex,
-			u.photo_number,
-			b.topics_count,
-			b.subscriber_count,
-			b.is_close,
-			b.last_topic_date,
-			b.last_topic_head,
-			b.last_topic_id
-		FROM
-			b_blogs b
-		LEFT JOIN
-			users u ON u.user_id = b.user_id
-		WHERE
-			b.is_community = 0 AND b.topics_count > 0
-		ORDER BY
-			b.is_close, b.%s DESC
-		LIMIT ?
-		OFFSET ?
-	`)
-
-	blogCountQuery = sqlr.NewQuery(`
-		SELECT
-			COUNT(*)
-		FROM
-			b_blogs
-		WHERE
-			is_community = 0 AND topics_count > 0
-	`)
-
-	blogQuery = sqlr.NewQuery(`
-		SELECT
-			b.blog_id,
-			u.user_id,
-			u.login,
-			u.fio,
-			u.sex,
-			u.photo_number,
-			b.topics_count,
-			b.subscriber_count,
-			b.is_close,
-			b.last_topic_date,
-			b.last_topic_head,
-			b.last_topic_id
-		FROM
-			b_blogs b
-		LEFT JOIN
-			users u ON u.user_id = b.user_id
-		WHERE
-			b.blog_id = ? AND b.is_community = 0
-	`)
-
-	blogExistsQuery = sqlr.NewQuery("SELECT 1 FROM b_blogs WHERE blog_id = ? AND is_community = 0")
-
-	blogTopicsQuery = sqlr.NewQuery(`
-		SELECT
-			b.topic_id,
-			b.head_topic,
-			b.date_of_add,
-			u.user_id,
-			u.login,
-			u.sex,
-			u.photo_number,
-			t.message_text,
-			b.tags,
-			b.likes_count,
-			b.comments_count
-		FROM
-			b_topics b
-		JOIN
-			b_topics_text t ON t.message_id = b.topic_id
-		LEFT JOIN
-			users u ON u.user_id = b.user_id
-		WHERE
-			b.blog_id = ? AND b.is_opened = 1
-		ORDER BY
-			b.date_of_add DESC
-	`)
-
-	blogTopicCountQuery = sqlr.NewQuery(`
-		SELECT
-			COUNT(*)
-		FROM
-			b_topics
-		WHERE
-			blog_id = ? AND is_opened = 1
-	`)
-
-	topicQuery = sqlr.NewQuery(`
-		SELECT
-			b.topic_id,
-			b.head_topic,
-			b.date_of_add,
-			u.user_id,
-			u.login,
-			u.sex,
-			u.photo_number,
-			t.message_text,
-			b.tags,
-			b.likes_count,
-			b.comments_count
-		FROM
-			b_topics b
-		JOIN
-			b_topics_text t ON t.message_id = b.topic_id
-		LEFT JOIN
-			users u ON u.user_id = b.user_id
-		WHERE
-			b.topic_id = ? AND b.is_opened > 0
-	`)
-)
-
 func (db *DB) FetchCommunities(ctx context.Context) ([]Community, error) {
 	var communities []Community
 
-	err := db.engine.Read(ctx, communitiesQuery).Scan(&communities)
+	err := db.engine.Read(ctx, sqlr.NewQuery(queries.Communities)).Scan(&communities)
 
 	if err != nil {
 		return nil, err
@@ -351,7 +111,7 @@ func (db *DB) FetchCommunities(ctx context.Context) ([]Community, error) {
 func (db *DB) FetchCommunity(ctx context.Context, communityID uint64) (*Community, error) {
 	var community Community
 
-	err := db.engine.Read(ctx, communityQuery.WithArgs(communityID)).Scan(&community)
+	err := db.engine.Read(ctx, sqlr.NewQuery(queries.Community).WithArgs(communityID)).Scan(&community)
 
 	if err != nil {
 		return nil, err
@@ -360,59 +120,45 @@ func (db *DB) FetchCommunity(ctx context.Context, communityID uint64) (*Communit
 	return &community, nil
 }
 
-func (db *DB) FetchCommunityTopics(ctx context.Context, communityID, limit, offset uint64) (*CommunityTopicsDBResponse, error) {
+func (db *DB) FetchCommunityTopics(ctx context.Context, communityID, limit, offset uint64) (response *CommunityTopicsDBResponse, err error) {
 	var community Community
-
-	err := db.engine.Read(ctx, shortCommunityQuery.WithArgs(communityID)).Scan(&community)
-
-	if err != nil {
-		return nil, err
-	}
-
 	var moderators []CommunityModerator
-
-	err = db.engine.Read(ctx, communityModeratorsQuery.WithArgs(communityID)).Scan(&moderators)
-
-	if err != nil {
-		return nil, err
-	}
-
 	var authors []CommunityAuthor
-
-	err = db.engine.Read(ctx, communityAuthorsQuery.WithArgs(communityID)).Scan(&authors)
-
-	if err != nil {
-		return nil, err
-	}
-
 	var topics []BlogTopic
-
-	err = db.engine.Read(ctx, communityTopicsQuery.WithArgs(communityID)).Scan(&topics)
-
-	if err != nil {
-		return nil, err
-	}
-
 	var count uint64
 
-	err = db.engine.Read(ctx, communityTopicCountQuery.WithArgs(communityID)).Scan(&count)
+	err = codeflow.Try(
+		func() error {
+			return db.engine.Read(ctx, sqlr.NewQuery(queries.ShortCommunity).WithArgs(communityID)).Scan(&community)
+		},
+		func() error {
+			return db.engine.Read(ctx, sqlr.NewQuery(queries.CommunityModerators).WithArgs(communityID)).Scan(&moderators)
+		},
+		func() error {
+			return db.engine.Read(ctx, sqlr.NewQuery(queries.CommunityAuthors).WithArgs(communityID)).Scan(&authors)
+		},
+		func() error {
+			return db.engine.Read(ctx, sqlr.NewQuery(queries.CommunityTopics).WithArgs(communityID)).Scan(&topics)
+		},
+		func() error {
+			return db.engine.Read(ctx, sqlr.NewQuery(queries.CommunityTopicCount).WithArgs(communityID)).Scan(&count)
+		},
+	)
 
-	if err != nil {
-		return nil, err
+	if err == nil {
+		response = &CommunityTopicsDBResponse{
+			Community:        community,
+			Moderators:       moderators,
+			Authors:          authors,
+			Topics:           topics,
+			TotalTopicsCount: count,
+		}
 	}
 
-	result := &CommunityTopicsDBResponse{
-		Community:        community,
-		Moderators:       moderators,
-		Authors:          authors,
-		Topics:           topics,
-		TotalTopicsCount: count,
-	}
-
-	return result, nil
+	return
 }
 
-func (db *DB) FetchBlogs(ctx context.Context, limit, offset uint64, sort string) (*BlogsDBResponse, error) {
+func (db *DB) FetchBlogs(ctx context.Context, limit, offset uint64, sort string) (response *BlogsDBResponse, err error) {
 	var sortOption string
 	switch strings.ToLower(sort) {
 	case "article":
@@ -424,33 +170,31 @@ func (db *DB) FetchBlogs(ctx context.Context, limit, offset uint64, sort string)
 	}
 
 	var blogs []Blog
-
-	err := db.engine.Read(ctx, blogsQuery.Format(sortOption).WithArgs(limit, offset)).Scan(&blogs)
-
-	if err != nil {
-		return nil, err
-	}
-
 	var count uint64
 
-	err = db.engine.Read(ctx, blogCountQuery).Scan(&count)
+	err = codeflow.Try(
+		func() error {
+			return db.engine.Read(ctx, sqlr.NewQuery(queries.Blogs).Format(sortOption).WithArgs(limit, offset)).Scan(&blogs)
+		},
+		func() error {
+			return db.engine.Read(ctx, sqlr.NewQuery(queries.BlogCount)).Scan(&count)
+		},
+	)
 
-	if err != nil {
-		return nil, err
+	if err == nil {
+		response = &BlogsDBResponse{
+			Blogs:      blogs,
+			TotalCount: count,
+		}
 	}
 
-	result := &BlogsDBResponse{
-		Blogs:      blogs,
-		TotalCount: count,
-	}
-
-	return result, nil
+	return
 }
 
 func (db *DB) FetchBlog(ctx context.Context, blogId uint64) (*Blog, error) {
 	var blog Blog
 
-	err := db.engine.Read(ctx, blogQuery.WithArgs(blogId)).Scan(&blog)
+	err := db.engine.Read(ctx, sqlr.NewQuery(queries.Blog).WithArgs(blogId)).Scan(&blog)
 
 	if err != nil {
 		return nil, err
@@ -459,43 +203,37 @@ func (db *DB) FetchBlog(ctx context.Context, blogId uint64) (*Blog, error) {
 	return &blog, nil
 }
 
-func (db *DB) FetchBlogTopics(ctx context.Context, blogID, limit, offset uint64) (*BlogTopicsDBResponse, error) {
+func (db *DB) FetchBlogTopics(ctx context.Context, blogID, limit, offset uint64) (response *BlogTopicsDBResponse, err error) {
 	var blogExists uint8
-
-	err := db.engine.Read(ctx, blogExistsQuery.WithArgs(blogID)).Scan(&blogExists)
-
-	if err != nil {
-		return nil, err
-	}
-
 	var topics []BlogTopic
-
-	err = db.engine.Read(ctx, blogTopicsQuery.WithArgs(blogID)).Scan(&topics)
-
-	if err != nil {
-		return nil, err
-	}
-
 	var count uint64
 
-	err = db.engine.Read(ctx, blogTopicCountQuery.WithArgs(blogID)).Scan(&count)
+	err = codeflow.Try(
+		func() error {
+			return db.engine.Read(ctx, sqlr.NewQuery(queries.BlogExists).WithArgs(blogID)).Scan(&blogExists)
+		},
+		func() error {
+			return db.engine.Read(ctx, sqlr.NewQuery(queries.BlogTopics).WithArgs(blogID)).Scan(&topics)
+		},
+		func() error {
+			return db.engine.Read(ctx, sqlr.NewQuery(queries.BlogTopicCount).WithArgs(blogID)).Scan(&count)
+		},
+	)
 
-	if err != nil {
-		return nil, err
+	if err == nil {
+		response = &BlogTopicsDBResponse{
+			Topics:           topics,
+			TotalTopicsCount: count,
+		}
 	}
 
-	response := &BlogTopicsDBResponse{
-		Topics:           topics,
-		TotalTopicsCount: count,
-	}
-
-	return response, nil
+	return
 }
 
 func (db *DB) FetchBlogTopic(ctx context.Context, topicId uint64) (*BlogTopic, error) {
 	var topic BlogTopic
 
-	err := db.engine.Read(ctx, topicQuery.WithArgs(topicId)).Scan(&topic)
+	err := db.engine.Read(ctx, sqlr.NewQuery(queries.BlogTopic).WithArgs(topicId)).Scan(&topic)
 
 	if err != nil {
 		return nil, err

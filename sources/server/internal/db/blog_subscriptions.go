@@ -4,58 +4,14 @@ import (
 	"context"
 	"fantlab/base/dbtools"
 	"fantlab/base/dbtools/sqlr"
+	"fantlab/server/internal/db/queries"
 	"time"
-)
-
-var (
-	blogSubscriptionExistsQuery = sqlr.NewQuery("SELECT 1 FROM b_subscribers WHERE blog_id = ? AND user_id = ?")
-
-	blogSubscriptionInsert = sqlr.NewQuery(`
-		INSERT INTO
-			b_subscribers
-			(user_id, blog_id, date_of_add)
-		VALUES
-			(?, ?, ?)
-	`)
-
-	blogSubscriptionDelete = sqlr.NewQuery(`
-		DELETE FROM
-			b_subscribers
-		WHERE
-			blog_id = ? AND user_id = ?
-	`)
-
-	blogSubscriberUpdate = sqlr.NewQuery(`
-		UPDATE
-			b_blogs b
-		SET
-			b.subscriber_count = (SELECT COUNT(DISTINCT bs.user_id) FROM b_subscribers bs WHERE bs.blog_id = b.blog_id)
-		WHERE
-			b.blog_id = ?
-	`)
-
-	topicSubscriptionExistsQuery = sqlr.NewQuery("SELECT 1 FROM b_topics_subscribers WHERE topic_id = ? AND user_id = ?")
-
-	topicSubscriptionInsert = sqlr.NewQuery(`
-		INSERT INTO
-			b_topics_subscribers
-			(user_id, topic_id, date_of_add)
-		VALUES
-			(?, ?, ?)
-	`)
-
-	topicSubscriptionDelete = sqlr.NewQuery(`
-		DELETE FROM
-			b_topics_subscribers
-		WHERE
-			topic_id = ? AND user_id = ?
-	`)
 )
 
 func (db *DB) FetchBlogSubscribed(ctx context.Context, blogId, userId uint64) (bool, error) {
 	var blogSubscriptionExists uint8
 
-	err := db.engine.Read(ctx, blogSubscriptionExistsQuery.WithArgs(blogId, userId)).Scan(&blogSubscriptionExists)
+	err := db.engine.Read(ctx, sqlr.NewQuery(queries.BlogSubscriptionExists).WithArgs(blogId, userId)).Scan(&blogSubscriptionExists)
 
 	if err != nil {
 		if dbtools.IsNotFoundError(err) {
@@ -69,7 +25,7 @@ func (db *DB) FetchBlogSubscribed(ctx context.Context, blogId, userId uint64) (b
 
 func (db *DB) UpdateBlogSubscribed(ctx context.Context, blogId, userId uint64) error {
 	return db.engine.InTransaction(func(rw sqlr.ReaderWriter) error {
-		result := rw.Write(ctx, blogSubscriptionInsert.WithArgs(userId, blogId, time.Now()))
+		result := rw.Write(ctx, sqlr.NewQuery(queries.BlogSubscriptionInsert).WithArgs(userId, blogId, time.Now()))
 
 		if result.Error != nil {
 			return result.Error
@@ -79,7 +35,7 @@ func (db *DB) UpdateBlogSubscribed(ctx context.Context, blogId, userId uint64) e
 			return ErrWrite
 		}
 
-		result = rw.Write(ctx, blogSubscriberUpdate.WithArgs(blogId))
+		result = rw.Write(ctx, sqlr.NewQuery(queries.BlogSubscriberUpdate).WithArgs(blogId))
 
 		if result.Error != nil {
 			return result.Error
@@ -95,7 +51,7 @@ func (db *DB) UpdateBlogSubscribed(ctx context.Context, blogId, userId uint64) e
 
 func (db *DB) UpdateBlogUnsubscribed(ctx context.Context, blogId, userId uint64) error {
 	return db.engine.InTransaction(func(rw sqlr.ReaderWriter) error {
-		result := rw.Write(ctx, blogSubscriptionDelete.WithArgs(blogId, userId))
+		result := rw.Write(ctx, sqlr.NewQuery(queries.BlogSubscriptionDelete).WithArgs(blogId, userId))
 
 		if result.Error != nil {
 			return result.Error
@@ -105,7 +61,7 @@ func (db *DB) UpdateBlogUnsubscribed(ctx context.Context, blogId, userId uint64)
 			return ErrWrite
 		}
 
-		result = rw.Write(ctx, blogSubscriberUpdate.WithArgs(blogId))
+		result = rw.Write(ctx, sqlr.NewQuery(queries.BlogSubscriberUpdate).WithArgs(blogId))
 
 		if result.Error != nil {
 			return result.Error
@@ -122,7 +78,7 @@ func (db *DB) UpdateBlogUnsubscribed(ctx context.Context, blogId, userId uint64)
 func (db *DB) FetchBlogTopicSubscribed(ctx context.Context, topicId, userId uint64) (bool, error) {
 	var topicSubscriptionExists uint8
 
-	err := db.engine.Read(ctx, topicSubscriptionExistsQuery.WithArgs(topicId, userId)).Scan(&topicSubscriptionExists)
+	err := db.engine.Read(ctx, sqlr.NewQuery(queries.BlogTopicSubscriptionExists).WithArgs(topicId, userId)).Scan(&topicSubscriptionExists)
 
 	if err != nil {
 		if dbtools.IsNotFoundError(err) {
@@ -135,7 +91,7 @@ func (db *DB) FetchBlogTopicSubscribed(ctx context.Context, topicId, userId uint
 }
 
 func (db *DB) UpdateBlogTopicSubscribed(ctx context.Context, topicId, userId uint64) error {
-	result := db.engine.Write(ctx, topicSubscriptionInsert.WithArgs(userId, topicId, time.Now()))
+	result := db.engine.Write(ctx, sqlr.NewQuery(queries.BlogTopicSubscriptionInsert).WithArgs(userId, topicId, time.Now()))
 
 	if result.Error != nil {
 		return result.Error
@@ -149,7 +105,7 @@ func (db *DB) UpdateBlogTopicSubscribed(ctx context.Context, topicId, userId uin
 }
 
 func (db *DB) UpdateBlogTopicUnsubscribed(ctx context.Context, topicId, userId uint64) error {
-	result := db.engine.Write(ctx, topicSubscriptionDelete.WithArgs(topicId, userId))
+	result := db.engine.Write(ctx, sqlr.NewQuery(queries.BlogTopicSubscriptionDelete).WithArgs(topicId, userId))
 
 	if result.Error != nil {
 		return result.Error

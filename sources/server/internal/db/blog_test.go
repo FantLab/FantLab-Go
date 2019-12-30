@@ -6,6 +6,8 @@ import (
 	"fantlab/base/dbtools"
 	"fantlab/base/dbtools/dbstubs"
 	"fantlab/base/dbtools/scanr"
+	"fantlab/base/dbtools/sqlr"
+	"fantlab/server/internal/db/queries"
 	"testing"
 	"time"
 )
@@ -15,7 +17,7 @@ func Test_FetchCommunities(t *testing.T) {
 
 	now := time.Now()
 
-	queryTable[communitiesQuery.String()] = &dbstubs.StubRows{
+	queryTable[sqlr.NewQuery(queries.Communities).String()] = &dbstubs.StubRows{
 		Values: [][]interface{}{
 			{271, "КИНОрецензии", "рецензии на фильмы", 635, 1, now, "Первому игроку приготовиться", 55779, 362, 7039, "Phelan", 1, 2},
 		},
@@ -62,7 +64,7 @@ func Test_FetchCommunities(t *testing.T) {
 	})
 
 	t.Run("negative", func(t *testing.T) {
-		queryTable[communitiesQuery.String()] = &dbstubs.StubRows{
+		queryTable[sqlr.NewQuery(queries.Communities).String()] = &dbstubs.StubRows{
 			Err: dbstubs.ErrSome,
 		}
 
@@ -80,7 +82,7 @@ func Test_FetchCommunity(t *testing.T) {
 
 	now := time.Now()
 
-	queryTable[communityQuery.WithArgs(271).String()] = &dbstubs.StubRows{
+	queryTable[sqlr.NewQuery(queries.Community).WithArgs(271).String()] = &dbstubs.StubRows{
 		Values: [][]interface{}{
 			{"КИНОрецензии", "рецензии на фильмы", 635, 1, now, "Первому игроку приготовиться", 55779, 362, 7039, "Phelan", 1, 2},
 		},
@@ -135,7 +137,7 @@ func Test_FetchCommunity(t *testing.T) {
 func Test_FetchCommunityTopics(t *testing.T) {
 	queryTable := make(dbstubs.StubQueryTable)
 
-	queryTable[shortCommunityQuery.WithArgs(271).String()] = &dbstubs.StubRows{
+	queryTable[sqlr.NewQuery(queries.ShortCommunity).WithArgs(271).String()] = &dbstubs.StubRows{
 		Values: [][]interface{}{
 			{271, "КИНОрецензии", "Рубрика для отобранных и качественных рецензий на кинофильмы."},
 		},
@@ -146,7 +148,7 @@ func Test_FetchCommunityTopics(t *testing.T) {
 		},
 	}
 
-	queryTable[communityModeratorsQuery.WithArgs(271).String()] = &dbstubs.StubRows{
+	queryTable[sqlr.NewQuery(queries.CommunityModerators).WithArgs(271).String()] = &dbstubs.StubRows{
 		Values: [][]interface{}{
 			{651, "Barros", 1, 1},
 			{8775, "fox_mulder", 1, 1237},
@@ -160,7 +162,7 @@ func Test_FetchCommunityTopics(t *testing.T) {
 		},
 	}
 
-	queryTable[communityAuthorsQuery.WithArgs(271).String()] = &dbstubs.StubRows{
+	queryTable[sqlr.NewQuery(queries.CommunityAuthors).WithArgs(271).String()] = &dbstubs.StubRows{
 		Values: [][]interface{}{
 			{5396, "glupec", 1, 28},
 			{7246, "armitura", 1, 54},
@@ -178,7 +180,7 @@ func Test_FetchCommunityTopics(t *testing.T) {
 
 	now := time.Now()
 
-	queryTable[communityTopicsQuery.WithArgs(271).String()] = &dbstubs.StubRows{
+	queryTable[sqlr.NewQuery(queries.CommunityTopics).WithArgs(271).String()] = &dbstubs.StubRows{
 		Values: [][]interface{}{
 			{12387, "Плывет корабль...", now, 5396, "glupec", 1, 28, "Текст статьи 12387", "Клайв С. Льюис", 8},
 			{11260, "Не ТРОНь !", now, 7999, "febeerovez", 1, 52, "Текст статьи 11260", "Трон: Наследие", 46},
@@ -198,7 +200,7 @@ func Test_FetchCommunityTopics(t *testing.T) {
 		},
 	}
 
-	queryTable[communityTopicCountQuery.WithArgs(271).String()] = &dbstubs.StubRows{
+	queryTable[sqlr.NewQuery(queries.CommunityTopicCount).WithArgs(271).String()] = &dbstubs.StubRows{
 		Values: [][]interface{}{{9}},
 		Columns: []scanr.Column{
 			dbstubs.StubColumn(""),
@@ -321,7 +323,7 @@ func Test_FetchCommunityTopics(t *testing.T) {
 	})
 
 	t.Run("negative_1", func(t *testing.T) {
-		queryTable[communityTopicCountQuery.WithArgs(271).String()] = &dbstubs.StubRows{
+		queryTable[sqlr.NewQuery(queries.CommunityTopicCount).WithArgs(271).String()] = &dbstubs.StubRows{
 			Err: dbstubs.ErrSome,
 		}
 
@@ -334,7 +336,7 @@ func Test_FetchCommunityTopics(t *testing.T) {
 	})
 
 	t.Run("negative_2", func(t *testing.T) {
-		queryTable[communityTopicsQuery.WithArgs(271).String()] = &dbstubs.StubRows{
+		queryTable[sqlr.NewQuery(queries.CommunityTopicCount).WithArgs(271).String()] = &dbstubs.StubRows{
 			Err: dbstubs.ErrSome,
 		}
 
@@ -347,7 +349,7 @@ func Test_FetchCommunityTopics(t *testing.T) {
 	})
 
 	t.Run("negative_3", func(t *testing.T) {
-		queryTable[communityAuthorsQuery.WithArgs(271).String()] = &dbstubs.StubRows{
+		queryTable[sqlr.NewQuery(queries.CommunityAuthors).WithArgs(271).String()] = &dbstubs.StubRows{
 			Err: dbstubs.ErrSome,
 		}
 
@@ -360,7 +362,7 @@ func Test_FetchCommunityTopics(t *testing.T) {
 	})
 
 	t.Run("negative_4", func(t *testing.T) {
-		queryTable[communityModeratorsQuery.WithArgs(271).String()] = &dbstubs.StubRows{
+		queryTable[sqlr.NewQuery(queries.CommunityModerators).WithArgs(271).String()] = &dbstubs.StubRows{
 			Err: dbstubs.ErrSome,
 		}
 
@@ -378,7 +380,7 @@ func Test_FetchBlogs(t *testing.T) {
 
 	now := time.Now()
 
-	queryTable[blogsQuery.Format("subscriber_count").WithArgs(5, 0).String()] = &dbstubs.StubRows{
+	queryTable[sqlr.NewQuery(queries.Blogs).Format("subscriber_count").WithArgs(5, 0).String()] = &dbstubs.StubRows{
 		Values: [][]interface{}{
 			{229, 10072, "antilia", "Гарбузова Ольга", 0, 2, 436, 975, 0, now, "Книжные новинки за неделю", 55717},
 			{611, 17299, "k2007", "", 1, 14, 341, 597, 0, now, "Нефантастика, детская фантастическая литература", 55745},
@@ -402,7 +404,7 @@ func Test_FetchBlogs(t *testing.T) {
 		},
 	}
 
-	queryTable[blogCountQuery.String()] = &dbstubs.StubRows{
+	queryTable[sqlr.NewQuery(queries.BlogCount).String()] = &dbstubs.StubRows{
 		Values: [][]interface{}{{645}},
 		Columns: []scanr.Column{
 			dbstubs.StubColumn(""),
@@ -502,7 +504,7 @@ func Test_FetchBlogs(t *testing.T) {
 	})
 
 	t.Run("negative_2", func(t *testing.T) {
-		queryTable[blogCountQuery.String()] = &dbstubs.StubRows{
+		queryTable[sqlr.NewQuery(queries.BlogCount).String()] = &dbstubs.StubRows{
 			Err: dbstubs.ErrSome,
 		}
 
@@ -520,7 +522,7 @@ func Test_FetchBlog(t *testing.T) {
 
 	now := time.Now()
 
-	queryTable[blogQuery.WithArgs(1).String()] = &dbstubs.StubRows{
+	queryTable[sqlr.NewQuery(queries.Blog).WithArgs(1).String()] = &dbstubs.StubRows{
 		Values: [][]interface{}{
 			{1, 1, "creator", "Львов Алексей", 1, 19, 22, 112, 0, now, "Майкл Ши. Первые экземпляры", 55320},
 		},
@@ -540,7 +542,7 @@ func Test_FetchBlog(t *testing.T) {
 		},
 	}
 
-	t.Run("positive", func(t *testing.T) {
+	t.Run("positive_1", func(t *testing.T) {
 		db := NewDB(&dbstubs.StubDB{QueryTable: queryTable})
 
 		blog, err := db.FetchBlog(context.Background(), 1)
@@ -562,7 +564,7 @@ func Test_FetchBlog(t *testing.T) {
 		})
 	})
 
-	t.Run("positive", func(t *testing.T) {
+	t.Run("positive_2", func(t *testing.T) {
 		db := NewDB(&dbstubs.StubDB{QueryTable: queryTable})
 
 		blog, err := db.FetchBlog(context.Background(), 2)
@@ -575,7 +577,7 @@ func Test_FetchBlog(t *testing.T) {
 func Test_FetchBlogTopics(t *testing.T) {
 	queryTable := make(dbstubs.StubQueryTable)
 
-	queryTable[blogExistsQuery.WithArgs(1).String()] = &dbstubs.StubRows{
+	queryTable[sqlr.NewQuery(queries.BlogExists).WithArgs(1).String()] = &dbstubs.StubRows{
 		Values: [][]interface{}{{1}},
 		Columns: []scanr.Column{
 			dbstubs.StubColumn(""),
@@ -584,7 +586,7 @@ func Test_FetchBlogTopics(t *testing.T) {
 
 	now := time.Now()
 
-	queryTable[blogTopicsQuery.WithArgs(1).String()] = &dbstubs.StubRows{
+	queryTable[sqlr.NewQuery(queries.BlogTopics).WithArgs(1).String()] = &dbstubs.StubRows{
 		Values: [][]interface{}{
 			{52, "Авторские колонки", now, 1, "creator", 1, 19, "Новый раздел авторских колонок...", "авторские колонки", 29},
 		},
@@ -602,7 +604,7 @@ func Test_FetchBlogTopics(t *testing.T) {
 		},
 	}
 
-	queryTable[blogTopicCountQuery.WithArgs(1).String()] = &dbstubs.StubRows{
+	queryTable[sqlr.NewQuery(queries.BlogTopicCount).WithArgs(1).String()] = &dbstubs.StubRows{
 		Values: [][]interface{}{{5}},
 		Columns: []scanr.Column{
 			dbstubs.StubColumn(""),
@@ -644,7 +646,7 @@ func Test_FetchBlogTopics(t *testing.T) {
 	})
 
 	t.Run("negative_2", func(t *testing.T) {
-		queryTable[blogTopicCountQuery.WithArgs(1).String()] = &dbstubs.StubRows{
+		queryTable[sqlr.NewQuery(queries.BlogTopicCount).WithArgs(1).String()] = &dbstubs.StubRows{
 			Err: dbstubs.ErrSome,
 		}
 
@@ -657,7 +659,7 @@ func Test_FetchBlogTopics(t *testing.T) {
 	})
 
 	t.Run("negative_2", func(t *testing.T) {
-		queryTable[blogTopicsQuery.WithArgs(1).String()] = &dbstubs.StubRows{
+		queryTable[sqlr.NewQuery(queries.BlogTopicCount).WithArgs(1).String()] = &dbstubs.StubRows{
 			Err: dbstubs.ErrSome,
 		}
 
@@ -675,7 +677,7 @@ func Test_FetchBlogTopic(t *testing.T) {
 
 	now := time.Now()
 
-	queryTable[topicQuery.WithArgs(52).String()] = &dbstubs.StubRows{
+	queryTable[sqlr.NewQuery(queries.BlogTopic).WithArgs(52).String()] = &dbstubs.StubRows{
 		Values: [][]interface{}{
 			{52, "Авторские колонки", now, 1, "creator", 1, 19, "Новый раздел авторских колонок...", "авторские колонки", 29},
 		},

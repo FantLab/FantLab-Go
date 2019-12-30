@@ -2,8 +2,8 @@ package middlewares
 
 import (
 	"fantlab/base/protobuf"
-	"fantlab/server/internal/keys"
-	"fantlab/server/internal/pb"
+	"fantlab/pb"
+	"fantlab/server/internal/app"
 	"net/http"
 
 	"github.com/golang/protobuf/proto"
@@ -11,7 +11,7 @@ import (
 
 func RequireAnon(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		uid := keys.GetUserId(r.Context())
+		uid := app.GetUserId(r.Context())
 
 		if uid > 0 {
 			protobuf.Handle(func(r *http.Request) (int, proto.Message) {

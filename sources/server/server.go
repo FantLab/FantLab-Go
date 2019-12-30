@@ -2,26 +2,20 @@ package server
 
 import (
 	"database/sql"
-	"fantlab/base/caches"
-	"fantlab/base/dbtools/sqldb"
-	"fantlab/base/dbtools/sqlr"
-	"fantlab/server/internal/cache"
-	"fantlab/server/internal/db"
-	"fantlab/server/internal/docs"
-	"fantlab/server/internal/logs"
-	"fantlab/server/internal/logs/logger"
-	"fantlab/server/internal/routing"
-	"fantlab/server/internal/shared"
+	"fantlab/base/logs/logger"
+	"fantlab/docs"
+	"fantlab/server/internal/app"
+	"fantlab/server/internal/config"
+	"fantlab/server/internal/router"
 	"log"
 	"net/http"
 	"os"
 
-	"github.com/bradfitz/gomemcache/memcache"
 	_ "github.com/go-sql-driver/mysql"
 )
 
 func GenerateDocs() {
-	_ = docs.Generate(os.Stdout)
+	_ = docs.Generate(os.Stdout, router.Routes(nil, nil, nil), router.BasePath)
 }
 
 func Start() {
@@ -36,16 +30,14 @@ func Start() {
 		}
 	}()
 
-	mc := memcache.New(os.Getenv("MC_ADDRESS"))
+	isDebug := os.Getenv("DEBUG") == "1"
 
-	services := shared.MakeServices(
-		db.NewDB(sqlr.Log(sqldb.New(mysql), logs.DB)),
-		cache.New(caches.Log("Memcached", caches.NewMemcache(mc), logs.Cache)),
+	router := router.MakeRouter(
+		makeConfig(os.Getenv("IMAGES_BASE_URL")),
+		app.MakeServices(isDebug, mysql, os.Getenv("MC_ADDRESS")),
+		logFunc(isDebug),
+		isDebug,
 	)
-
-	config := makeConfig(os.Getenv("IMAGES_BASE_URL"))
-
-	router := routing.MakeRouter(config, services, logFunc(os.Getenv("DEBUG") == "1"))
 
 	log.Fatal(http.ListenAndServe(":"+os.Getenv("PORT"), router))
 }
@@ -57,8 +49,8 @@ func logFunc(isDebug bool) logger.ToString {
 	return logger.JSON
 }
 
-func makeConfig(imagesBaseURL string) *shared.AppConfig {
-	return &shared.AppConfig{
+func makeConfig(imagesBaseURL string) *config.AppConfig {
+	return &config.AppConfig{
 		ImagesBaseURL:       imagesBaseURL,
 		BlogsInPage:         50,
 		BlogTopicsInPage:    5,

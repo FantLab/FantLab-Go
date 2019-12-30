@@ -10,7 +10,7 @@ func Benchmark_Generate(b *testing.B) {
 	}
 }
 
-func Benchmark_enerateParallel(b *testing.B) {
+func Benchmark_GenerateParallel(b *testing.B) {
 	b.RunParallel(func(pb *testing.PB) {
 		for pb.Next() {
 			_ = GenerateNow()

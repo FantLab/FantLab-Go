@@ -1,9 +1,9 @@
 package endpoints
 
 import (
-	"fantlab/server/internal/convers"
+	"fantlab/pb"
+	"fantlab/server/internal/converters"
 	"fantlab/server/internal/helpers"
-	"fantlab/server/internal/pb"
 	"net/http"
 
 	"github.com/golang/protobuf/proto"
@@ -45,6 +45,6 @@ func (api *API) ShowBlogs(r *http.Request) (int, proto.Message) {
 		}
 	}
 
-	blogs := convers.GetBlogs(dbResponse, params.Page, params.Limit, api.config)
+	blogs := converters.GetBlogs(dbResponse, params.Page, params.Limit, api.config)
 	return http.StatusOK, blogs
 }

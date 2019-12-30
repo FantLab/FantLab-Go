@@ -1,8 +1,8 @@
 package endpoints
 
 import (
-	"fantlab/server/internal/convers"
-	"fantlab/server/internal/pb"
+	"fantlab/pb"
+	"fantlab/server/internal/converters"
 	"net/http"
 
 	"github.com/golang/protobuf/proto"
@@ -17,6 +17,6 @@ func (api *API) ShowCommunities(r *http.Request) (int, proto.Message) {
 		}
 	}
 
-	communities := convers.GetCommunities(dbCommunities, api.config)
+	communities := converters.GetCommunities(dbCommunities, api.config)
 	return http.StatusOK, communities
 }

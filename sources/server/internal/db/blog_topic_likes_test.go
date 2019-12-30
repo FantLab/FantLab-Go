@@ -6,6 +6,7 @@ import (
 	"fantlab/base/dbtools/dbstubs"
 	"fantlab/base/dbtools/scanr"
 	"fantlab/base/dbtools/sqlr"
+	"fantlab/server/internal/db/queries"
 	"testing"
 	"time"
 )
@@ -20,13 +21,13 @@ func Test_LikeDislike(t *testing.T) {
 
 	t.Run("like_dislike", func(t *testing.T) {
 		{
-			stubDB.ExecTable[updateTopicLikesCountQuery.WithArgs(1).String()] = sqlr.Result{
+			stubDB.ExecTable[sqlr.NewQuery(queries.UpdateBlogTopicLikesCount).WithArgs(1).String()] = sqlr.Result{
 				Rows: 1,
 			}
 		}
 
 		{
-			stubDB.QueryTable[fetchBlogTopicLikeCountQuery.WithArgs(1).String()] = &dbstubs.StubRows{
+			stubDB.QueryTable[sqlr.NewQuery(queries.FetchBlogTopicLikeCount).WithArgs(1).String()] = &dbstubs.StubRows{
 				Values: [][]interface{}{{1}},
 				Columns: []scanr.Column{
 					dbstubs.StubColumn(""),
@@ -40,14 +41,14 @@ func Test_LikeDislike(t *testing.T) {
 		assert.True(t, err == nil)
 
 		{
-			stubDB.QueryTable[fetchBlogTopicLikeCountQuery.WithArgs(1).String()] = &dbstubs.StubRows{
+			stubDB.QueryTable[sqlr.NewQuery(queries.FetchBlogTopicLikeCount).WithArgs(1).String()] = &dbstubs.StubRows{
 				Values: [][]interface{}{{0}},
 				Columns: []scanr.Column{
 					dbstubs.StubColumn(""),
 				},
 			}
 
-			stubDB.ExecTable[dislikeBlogTopicQuery.WithArgs(1, 1).String()] = sqlr.Result{
+			stubDB.ExecTable[sqlr.NewQuery(queries.DislikeBlogTopic).WithArgs(1, 1).String()] = sqlr.Result{
 				Rows: 1,
 			}
 		}
@@ -62,22 +63,22 @@ func Test_LikeDislike(t *testing.T) {
 		assert.True(t, likesCount == 0)
 
 		{
-			stubDB.QueryTable[fetchBlogTopicLikeCountQuery.WithArgs(1).String()] = &dbstubs.StubRows{
+			stubDB.QueryTable[sqlr.NewQuery(queries.FetchBlogTopicLikeCount).WithArgs(1).String()] = &dbstubs.StubRows{
 				Values: [][]interface{}{{1}},
 				Columns: []scanr.Column{
 					dbstubs.StubColumn(""),
 				},
 			}
 
-			stubDB.ExecTable[likeBlogTopicQuery.WithArgs(1, 1, time.Date(2019, 8, 19, 17, 40, 03, 0, time.UTC)).String()] = sqlr.Result{
+			stubDB.ExecTable[sqlr.NewQuery(queries.LikeBlogTopic).WithArgs(1, 1, time.Date(2019, 8, 19, 17, 40, 03, 0, time.UTC)).String()] = sqlr.Result{
 				Rows: 1,
 			}
 
-			stubDB.ExecTable[updateTopicLikesCountQuery.WithArgs(1).String()] = sqlr.Result{
+			stubDB.ExecTable[sqlr.NewQuery(queries.UpdateBlogTopicLikesCount).WithArgs(1).String()] = sqlr.Result{
 				Rows: 1,
 			}
 
-			stubDB.QueryTable[isBlogTopicLikedQuery.WithArgs(1, 1).String()] = &dbstubs.StubRows{
+			stubDB.QueryTable[sqlr.NewQuery(queries.IsBlogTopicLiked).WithArgs(1, 1).String()] = &dbstubs.StubRows{
 				Values: [][]interface{}{{1}},
 				Columns: []scanr.Column{
 					dbstubs.StubColumn(""),
