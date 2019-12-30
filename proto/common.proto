@@ -6,11 +6,11 @@ import "google/protobuf/timestamp.proto";
 
 message Common {
     enum Gender {
-        UNKNOWN_GENDER = 0;
+        GENDER_UNKNOWN = 0;
         // мужчина
-        MALE = 1;
+        GENDER_MALE = 1;
         // женщина
-        FEMALE = 2;
+        GENDER_FEMALE = 2;
     }
 
     message UserLink {

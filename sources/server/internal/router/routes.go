@@ -28,6 +28,7 @@ func Routes(config *config.AppConfig, services *app.Services, pathParamGetter en
 		g.Endpoint("GET", "/blog_articles/{id}", api.ShowArticle, "Статья в блоге")
 		g.Endpoint("GET", "/allgenres", api.ShowGenres, "Список жанров")
 		g.Endpoint("GET", "/work/{id}/classification", api.GetWorkClassification, "Классификация произведения")
+		g.Endpoint("GET", "/work/{id}/subworks", api.GetWorkSubWorks, "Иерархия произведений, входящих в запрашиваемое")
 	})
 
 	g.Subgroup("Для анонимов", func(g *routing.Group) {

@@ -735,6 +735,46 @@
 </p>
 </details>
 
+<details><summary>Иерархия произведений, входящих в запрашиваемое</summary>
+<p>
+
+
+
+**GET** [/v1/work/{id}/subworks](../sources/server/internal/endpoints/get_work_subworks.go#L11)
+
+Параметры запроса:
+
+
+* **id** (path, uint64) - айди произведения
+
+
+
+
+Схема ответа:
+
+```
+{
+  work_id: uint64            # айди произведения, для которого был запрос
+  subworks: [{               # произведения, входящие в запрашиваемое
+    id: uint64               # идентификатор произведения
+    orig_name: string        # оригинальное название
+    rus_name: string         # название на русском
+    year: uint64             # год публикации
+    work_type: int32         # тип произведения
+    midmark: float64         # средняя оценка
+    marks: uint64            # кол-во оценок
+    reviews: uint64          # кол-во отзывов
+    plus: bool               # является ли произведение дополнительным
+    publish_status: [int32]  # статус публикации (не закончено, в планах, etc.)
+    subworks: [...]          # дочерние произведения
+  }]
+}
+```
+---
+
+</p>
+</details>
+
 
 ## Для анонимов
 
