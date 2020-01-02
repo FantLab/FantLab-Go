@@ -19,8 +19,6 @@ func GetWorkPublishStatus(rawPublishStatus uint8, notFinished bool, planned bool
 	switch rawPublishStatus {
 	case 0:
 		result = append(result, pb.Work_PUBLISH_STATUS_NOT_PUBLISHED)
-	case 1:
-		result = append(result, pb.Work_PUBLISH_STATUS_PUBLISHED)
 	case 2:
 		result = append(result, pb.Work_PUBLISH_STATUS_NETWORK_PUBLICATION)
 	case 3:
@@ -32,6 +30,15 @@ func GetWorkPublishStatus(rawPublishStatus uint8, notFinished bool, planned bool
 		result = append(result, pb.Work_PUBLISH_STATUS_PLANNED_BY_THE_AUTHOR)
 	}
 	return
+}
+
+func GetWorkCycleType(rawWorkType uint64) pb.Work_WorkType {
+	switch rawWorkType {
+	case 4, 13, 48:
+		return pb.Work_WORK_TYPE_CYCLE
+	default:
+		return pb.Work_WORK_TYPE_OTHER
+	}
 }
 
 func GetWorkType(rawWorkType uint64) pb.Work_WorkType {
