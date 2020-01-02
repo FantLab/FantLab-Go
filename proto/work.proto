@@ -79,8 +79,6 @@ message Work {
         PUBLISH_STATUS_AVAILABLE_ONLINE = 4;
         // В планах автора
         PUBLISH_STATUS_PLANNED_BY_THE_AUTHOR = 5;
-        // Опубликовано
-        PUBLISH_STATUS_PUBLISHED = 6;
     }
 
     message SubWork {

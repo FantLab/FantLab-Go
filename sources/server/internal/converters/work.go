@@ -17,17 +17,27 @@ func GetSubWorks(rootWorkId uint64, children []db.WorkChild) *pb.Work_SubWorksRe
 	for _, child := range children {
 		closeTable[child.Id] = child.ShowSubworks > 0
 
-		workTable[child.Id] = &pb.Work_SubWork{
-			Id:            child.Id,
-			OrigName:      child.OrigName,
-			RusName:       child.RusName,
-			Year:          child.Year,
-			WorkType:      helpers.GetWorkType(child.WorkType),
-			Rating:        child.Midmark,
-			Marks:         child.Marks,
-			Reviews:       child.Reviews,
-			Plus:          child.IsBonus > 0,
-			PublishStatus: helpers.GetWorkPublishStatus(child.IsPublished, child.NotFinished > 0, child.IsPlanned > 0),
+		if child.Link > 0 {
+			workTable[child.Id] = &pb.Work_SubWork{
+				Id:            child.Id,
+				OrigName:      child.OrigName,
+				RusName:       child.RusName,
+				Year:          child.Year,
+				WorkType:      helpers.GetWorkType(child.WorkType),
+				Rating:        child.Midmark,
+				Marks:         child.Marks,
+				Reviews:       child.Reviews,
+				Plus:          child.IsBonus > 0,
+				PublishStatus: helpers.GetWorkPublishStatus(child.IsPublished, child.NotFinished > 0, child.IsPlanned > 0),
+			}
+		} else {
+			workTable[child.Id] = &pb.Work_SubWork{
+				OrigName: child.OrigName,
+				RusName:  child.RusName,
+				Year:     child.Year,
+				WorkType: helpers.GetWorkCycleType(child.WorkType),
+				Plus:     child.IsBonus > 0,
+			}
 		}
 	}
 

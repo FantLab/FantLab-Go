@@ -20,6 +20,7 @@ type WorkChild struct {
 	NotFinished  uint8   `db:"not_finished"`
 	IsPlanned    uint8   `db:"is_plan"`
 	IsPublished  uint8   `db:"published"`
+	Link         uint8   `db:"link"`
 	ShowSubworks uint8   `db:"show_subworks_in_biblio"`
 }
 
@@ -35,6 +36,6 @@ func (db *DB) GetWorkUserMark(ctx context.Context, workId, userId uint64) (mark 
 }
 
 func (db *DB) GetWorkChildren(ctx context.Context, parentWorkId uint64, depth uint8) (children []WorkChild, err error) {
-	err = db.engine.Read(ctx, sqlr.NewQuery(queries.WorkChildren).WithArgs(parentWorkId, depth)).Scan(&children)
+	err = db.engine.Read(ctx, sqlr.NewQuery(queries.WorkChildren).WithArgs(parentWorkId, parentWorkId, depth)).Scan(&children)
 	return
 }
