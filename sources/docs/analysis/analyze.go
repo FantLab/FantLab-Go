@@ -6,6 +6,7 @@ import (
 	"go/ast"
 	"reflect"
 	"strings"
+	"sync"
 
 	"golang.org/x/tools/go/packages"
 )
@@ -29,23 +30,26 @@ type EndpointInfo struct {
 	ResponseModelScheme string
 }
 
-const (
-	endpointsPackagePath   = "fantlab/server/internal/endpoints"
-	protoModelsPackagePath = "fantlab/pb"
-)
-
 var (
 	endpointsPackage   *packages.Package
 	protoModelsPackage *packages.Package
+	loadPackagesOnce   sync.Once
 )
 
 func AnalyzeEndpoints(endpoints []routing.Endpoint, schemePrefix, schemePostfix string) map[int]*EndpointInfo {
-	if endpointsPackage == nil {
-		endpointsPackage = loadPackage(endpointsPackagePath)
-	}
-	if protoModelsPackage == nil {
-		protoModelsPackage = loadPackage(protoModelsPackagePath)
-	}
+	loadPackagesOnce.Do(func() {
+		var wg sync.WaitGroup
+		wg.Add(2)
+		go func() {
+			endpointsPackage = loadPackage("fantlab/server/internal/endpoints")
+			wg.Done()
+		}()
+		go func() {
+			protoModelsPackage = loadPackage("fantlab/pb")
+			wg.Done()
+		}()
+		wg.Wait()
+	})
 
 	table := make(map[int]*EndpointInfo)
 
