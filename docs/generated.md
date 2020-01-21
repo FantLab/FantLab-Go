@@ -5,12 +5,45 @@
 ## Общедоступные
 
 
+<details><summary>Логин</summary>
+<p>
+
+Создаёт новый аутентификационный токен для пользователя на основе пары логин/пароль
+
+
+**POST** [/v1/auth/login](../sources/server/internal/endpoints/login.go#L15)
+
+Параметры запроса:
+
+
+* **login** (form, string) - никнейм пользователя
+
+
+* **password** (form, string) - пароль
+
+
+
+
+Схема ответа:
+
+```
+{
+  user_id: uint64        # id пользователя
+  token: string          # токен -> X-Session
+  refresh_token: string  # токен для продления сессии
+}
+```
+---
+
+</p>
+</details>
+
 <details><summary>Список форумов</summary>
 <p>
 
 
 
-**GET** [/v1/forums](../sources/server/internal/endpoints/show_forums.go#L13)
+**GET** [/v1/forums](../sources/server/internal/endpoints/show_forums.go#L11)
 
 
 Схема ответа:
@@ -30,7 +63,7 @@
         name: string             # имя
         gender: int32            # пол
         avatar: string           # аватар
-        class: uint64            # класс
+        class: int32             # класс
         sign: string             # подпись на форуме
       }]
       stats: {                   # статистика
@@ -49,7 +82,7 @@
           name: string           # имя
           gender: int32          # пол
           avatar: string         # аватар
-          class: uint64          # класс
+          class: int32           # класс
           sign: string           # подпись на форуме
         }
         text: string             # текст
@@ -72,7 +105,7 @@
 
 
 
-**GET** [/v1/forums/{id}](../sources/server/internal/endpoints/show_forum_topics.go#L16)
+**GET** [/v1/forums/{id}](../sources/server/internal/endpoints/show_forum_topics.go#L14)
 
 Параметры запроса:
 
@@ -103,7 +136,7 @@
         name: string         # имя
         gender: int32        # пол
         avatar: string       # аватар
-        class: uint64        # класс
+        class: int32         # класс
         sign: string         # подпись на форуме
       }
       date: {                # дата создания
@@ -129,7 +162,7 @@
         name: string         # имя
         gender: int32        # пол
         avatar: string       # аватар
-        class: uint64        # класс
+        class: int32         # класс
         sign: string         # подпись на форуме
       }
       text: string           # текст
@@ -155,7 +188,7 @@
 
 
 
-**GET** [/v1/topics/{id}](../sources/server/internal/endpoints/show_topic_messages.go#L16)
+**GET** [/v1/topics/{id}](../sources/server/internal/endpoints/show_topic_messages.go#L15)
 
 Параметры запроса:
 
@@ -189,7 +222,7 @@
         name: string           # имя
         gender: int32          # пол
         avatar: string         # аватар
-        class: uint64          # класс
+        class: int32           # класс
         sign: string           # подпись на форуме
       }
       date: {                  # дата создания
@@ -215,7 +248,7 @@
         name: string           # имя
         gender: int32          # пол
         avatar: string         # аватар
-        class: uint64          # класс
+        class: int32           # класс
         sign: string           # подпись на форуме
       }
       text: string             # текст
@@ -235,7 +268,7 @@
       name: string             # имя
       gender: int32            # пол
       avatar: string           # аватар
-      class: uint64            # класс
+      class: int32             # класс
       sign: string             # подпись на форуме
     }]
     stats: {                   # статистика
@@ -254,7 +287,7 @@
         name: string           # имя
         gender: int32          # пол
         avatar: string         # аватар
-        class: uint64          # класс
+        class: int32           # класс
         sign: string           # подпись на форуме
       }
       text: string             # текст
@@ -273,7 +306,7 @@
         name: string           # имя
         gender: int32          # пол
         avatar: string         # аватар
-        class: uint64          # класс
+        class: int32           # класс
         sign: string           # подпись на форуме
       }
       date: {                  # дата создания
@@ -329,7 +362,7 @@
         name: string               # имя
         gender: int32              # пол
         avatar: string             # аватар
-        class: uint64              # класс
+        class: int32               # класс
         sign: string               # подпись на форуме
       }
       date: {                      # дата создания
@@ -357,7 +390,7 @@
         name: string               # имя
         gender: int32              # пол
         avatar: string             # аватар
-        class: uint64              # класс
+        class: int32               # класс
         sign: string               # подпись на форуме
       }
       date: {                      # дата создания
@@ -417,7 +450,7 @@
         name: string               # имя
         gender: int32              # пол
         avatar: string             # аватар
-        class: uint64              # класс
+        class: int32               # класс
         sign: string               # подпись на форуме
       }
       date: {                      # дата создания
@@ -432,7 +465,7 @@
     name: string                   # имя
     gender: int32                  # пол
     avatar: string                 # аватар
-    class: uint64                  # класс
+    class: int32                   # класс
     sign: string                   # подпись на форуме
   }]
   authors: [{                      # авторы
@@ -441,7 +474,7 @@
     name: string                   # имя
     gender: int32                  # пол
     avatar: string                 # аватар
-    class: uint64                  # класс
+    class: int32                   # класс
     sign: string                   # подпись на форуме
   }]
   articles: [{                     # статьи
@@ -454,7 +487,7 @@
         name: string               # имя
         gender: int32              # пол
         avatar: string             # аватар
-        class: uint64              # класс
+        class: int32               # класс
         sign: string               # подпись на форуме
       }
       date: {                      # дата создания
@@ -514,7 +547,7 @@
       name: string              # имя
       gender: int32             # пол
       avatar: string            # аватар
-      class: uint64             # класс
+      class: int32              # класс
       sign: string              # подпись на форуме
     }
     is_closed: bool             # блог закрыт?
@@ -531,7 +564,7 @@
         name: string            # имя
         gender: int32           # пол
         avatar: string          # аватар
-        class: uint64           # класс
+        class: int32            # класс
         sign: string            # подпись на форуме
       }
       date: {                   # дата создания
@@ -586,7 +619,7 @@
         name: string         # имя
         gender: int32        # пол
         avatar: string       # аватар
-        class: uint64        # класс
+        class: int32         # класс
         sign: string         # подпись на форуме
       }
       date: {                # дата создания
@@ -642,7 +675,7 @@
         name: string         # имя
         gender: int32        # пол
         avatar: string       # аватар
-        class: uint64        # класс
+        class: int32         # класс
         sign: string         # подпись на форуме
       }
       date: {                # дата создания
@@ -779,24 +812,21 @@
 </details>
 
 
-## Для анонимов
+## Для зарегистрированных пользователей
 
 
-<details><summary>Логин</summary>
+<details><summary>Продление сессии</summary>
 <p>
 
-Создает новую сессию пользователя
+Продлевает сессию с помощью рефреш-токена
 
 
-**POST** [/v1/login](../sources/server/internal/endpoints/login.go#L14)
+**POST** [/v1/auth/refresh](../sources/server/internal/endpoints/refresh_auth.go#L17)
 
 Параметры запроса:
 
 
-* **login** (form, string) - никнейм пользователя
-
-
-* **password** (form, string) - пароль
+* **refresh_token** (form, string) - рефреш-токен, выданный при логине или предыдущем продлении сессии
 
 
 
@@ -805,8 +835,9 @@
 
 ```
 {
-  user_id: uint64        # id пользователя, с которым связана созданная сессия
-  session_token: string  # токен сессии -> X-Session
+  user_id: uint64        # id пользователя
+  token: string          # токен -> X-Session
+  refresh_token: string  # токен для продления сессии
 }
 ```
 ---
@@ -815,27 +846,8 @@
 </details>
 
 
-## Для авторизованных пользователей
+## Для пользователей с валидной сессией
 
-
-<details><summary>Разлогин</summary>
-<p>
-
-Удаляет текущую сессию пользователя
-
-
-**DELETE** [/v1/logout](../sources/server/internal/endpoints/logout.go#L11)
-
-
-Схема ответа:
-
-```
-{}
-```
----
-
-</p>
-</details>
 
 <details><summary>Классификация произведения пользователем</summary>
 <p>
@@ -876,7 +888,7 @@
 </details>
 
 
-## Для авторизованных незабаненных пользователей
+## С проверкой на бан
 
 
 <details><summary>Подписка на тему форума</summary>
@@ -884,7 +896,7 @@
 
 
 
-**POST** [/v1/topics/{id}/subscription](../sources/server/internal/endpoints/subscribe_forum_topic.go#L14)
+**POST** [/v1/topics/{id}/subscription](../sources/server/internal/endpoints/subscribe_forum_topic.go#L12)
 
 Параметры запроса:
 
@@ -909,7 +921,7 @@
 
 
 
-**DELETE** [/v1/topics/{id}/subscription](../sources/server/internal/endpoints/unsubscribe_forum_topic.go#L14)
+**DELETE** [/v1/topics/{id}/subscription](../sources/server/internal/endpoints/unsubscribe_forum_topic.go#L12)
 
 Параметры запроса:
 
@@ -1134,7 +1146,7 @@
 </details>
 
 
-## Для незабаненных философов
+## Для философов
 
 
 <details><summary>Классификация произведения пользователем</summary>

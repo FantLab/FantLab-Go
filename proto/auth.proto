@@ -2,11 +2,38 @@ syntax = "proto3";
 
 option go_package = "sources/pb";
 
+import "proto/common.proto";
+import "google/protobuf/timestamp.proto";
+
 message Auth {
-    message LoginResponse {
-        // id пользователя, с которым связана созданная сессия
+    message Claims {
+        message UserInfo {
+            // айди
+            uint64 user_id = 1;
+            // логин
+            string login = 2;
+            // пол
+            Common.Gender gender = 3;
+            // класс (уровень развития)
+            Common.UserClass class = 4;
+            // список доступных форумов
+            repeated uint64 available_forum_ids = 5;
+        }
+
+        // идентификатор токена
+        string token_id = 1;
+        // время выпуска токена
+        google.protobuf.Timestamp issued = 2;
+        // данные пользователя
+        UserInfo user = 3;
+    }
+
+    message AuthResponse {
+        // id пользователя
         uint64 user_id = 1;
-        // токен сессии -> X-Session
-        string session_token = 2;
+        // токен -> X-Session
+        string token = 2;
+        // токен для продления сессии
+        string refresh_token = 3;
     }
 }

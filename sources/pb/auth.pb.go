@@ -6,6 +6,7 @@ package pb
 import (
 	fmt "fmt"
 	proto "github.com/golang/protobuf/proto"
+	timestamp "github.com/golang/protobuf/ptypes/timestamp"
 	math "math"
 )
 
@@ -51,71 +52,229 @@ func (m *Auth) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_Auth proto.InternalMessageInfo
 
-type Auth_LoginResponse struct {
-	// id пользователя, с которым связана созданная сессия
+type Auth_Claims struct {
+	// идентификатор токена
+	TokenId string `protobuf:"bytes,1,opt,name=token_id,json=tokenId,proto3" json:"token_id,omitempty"`
+	// время выпуска токена
+	Issued *timestamp.Timestamp `protobuf:"bytes,2,opt,name=issued,proto3" json:"issued,omitempty"`
+	// данные пользователя
+	User                 *Auth_Claims_UserInfo `protobuf:"bytes,3,opt,name=user,proto3" json:"user,omitempty"`
+	XXX_NoUnkeyedLiteral struct{}              `json:"-"`
+	XXX_unrecognized     []byte                `json:"-"`
+	XXX_sizecache        int32                 `json:"-"`
+}
+
+func (m *Auth_Claims) Reset()         { *m = Auth_Claims{} }
+func (m *Auth_Claims) String() string { return proto.CompactTextString(m) }
+func (*Auth_Claims) ProtoMessage()    {}
+func (*Auth_Claims) Descriptor() ([]byte, []int) {
+	return fileDescriptor_a9d38a2cdbb4f144, []int{0, 0}
+}
+
+func (m *Auth_Claims) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_Auth_Claims.Unmarshal(m, b)
+}
+func (m *Auth_Claims) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_Auth_Claims.Marshal(b, m, deterministic)
+}
+func (m *Auth_Claims) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_Auth_Claims.Merge(m, src)
+}
+func (m *Auth_Claims) XXX_Size() int {
+	return xxx_messageInfo_Auth_Claims.Size(m)
+}
+func (m *Auth_Claims) XXX_DiscardUnknown() {
+	xxx_messageInfo_Auth_Claims.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_Auth_Claims proto.InternalMessageInfo
+
+func (m *Auth_Claims) GetTokenId() string {
+	if m != nil {
+		return m.TokenId
+	}
+	return ""
+}
+
+func (m *Auth_Claims) GetIssued() *timestamp.Timestamp {
+	if m != nil {
+		return m.Issued
+	}
+	return nil
+}
+
+func (m *Auth_Claims) GetUser() *Auth_Claims_UserInfo {
+	if m != nil {
+		return m.User
+	}
+	return nil
+}
+
+type Auth_Claims_UserInfo struct {
+	// айди
 	UserId uint64 `protobuf:"varint,1,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
-	// токен сессии -> X-Session
-	SessionToken         string   `protobuf:"bytes,2,opt,name=session_token,json=sessionToken,proto3" json:"session_token,omitempty"`
+	// логин
+	Login string `protobuf:"bytes,2,opt,name=login,proto3" json:"login,omitempty"`
+	// пол
+	Gender Common_Gender `protobuf:"varint,3,opt,name=gender,proto3,enum=Common_Gender" json:"gender,omitempty"`
+	// класс (уровень развития)
+	Class Common_UserClass `protobuf:"varint,4,opt,name=class,proto3,enum=Common_UserClass" json:"class,omitempty"`
+	// список доступных форумов
+	AvailableForumIds    []uint64 `protobuf:"varint,5,rep,packed,name=available_forum_ids,json=availableForumIds,proto3" json:"available_forum_ids,omitempty"`
 	XXX_NoUnkeyedLiteral struct{} `json:"-"`
 	XXX_unrecognized     []byte   `json:"-"`
 	XXX_sizecache        int32    `json:"-"`
 }
 
-func (m *Auth_LoginResponse) Reset()         { *m = Auth_LoginResponse{} }
-func (m *Auth_LoginResponse) String() string { return proto.CompactTextString(m) }
-func (*Auth_LoginResponse) ProtoMessage()    {}
-func (*Auth_LoginResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_a9d38a2cdbb4f144, []int{0, 0}
+func (m *Auth_Claims_UserInfo) Reset()         { *m = Auth_Claims_UserInfo{} }
+func (m *Auth_Claims_UserInfo) String() string { return proto.CompactTextString(m) }
+func (*Auth_Claims_UserInfo) ProtoMessage()    {}
+func (*Auth_Claims_UserInfo) Descriptor() ([]byte, []int) {
+	return fileDescriptor_a9d38a2cdbb4f144, []int{0, 0, 0}
 }
 
-func (m *Auth_LoginResponse) XXX_Unmarshal(b []byte) error {
-	return xxx_messageInfo_Auth_LoginResponse.Unmarshal(m, b)
+func (m *Auth_Claims_UserInfo) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_Auth_Claims_UserInfo.Unmarshal(m, b)
 }
-func (m *Auth_LoginResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
-	return xxx_messageInfo_Auth_LoginResponse.Marshal(b, m, deterministic)
+func (m *Auth_Claims_UserInfo) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_Auth_Claims_UserInfo.Marshal(b, m, deterministic)
 }
-func (m *Auth_LoginResponse) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_Auth_LoginResponse.Merge(m, src)
+func (m *Auth_Claims_UserInfo) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_Auth_Claims_UserInfo.Merge(m, src)
 }
-func (m *Auth_LoginResponse) XXX_Size() int {
-	return xxx_messageInfo_Auth_LoginResponse.Size(m)
+func (m *Auth_Claims_UserInfo) XXX_Size() int {
+	return xxx_messageInfo_Auth_Claims_UserInfo.Size(m)
 }
-func (m *Auth_LoginResponse) XXX_DiscardUnknown() {
-	xxx_messageInfo_Auth_LoginResponse.DiscardUnknown(m)
+func (m *Auth_Claims_UserInfo) XXX_DiscardUnknown() {
+	xxx_messageInfo_Auth_Claims_UserInfo.DiscardUnknown(m)
 }
 
-var xxx_messageInfo_Auth_LoginResponse proto.InternalMessageInfo
+var xxx_messageInfo_Auth_Claims_UserInfo proto.InternalMessageInfo
 
-func (m *Auth_LoginResponse) GetUserId() uint64 {
+func (m *Auth_Claims_UserInfo) GetUserId() uint64 {
 	if m != nil {
 		return m.UserId
 	}
 	return 0
 }
 
-func (m *Auth_LoginResponse) GetSessionToken() string {
+func (m *Auth_Claims_UserInfo) GetLogin() string {
 	if m != nil {
-		return m.SessionToken
+		return m.Login
+	}
+	return ""
+}
+
+func (m *Auth_Claims_UserInfo) GetGender() Common_Gender {
+	if m != nil {
+		return m.Gender
+	}
+	return Common_GENDER_UNKNOWN
+}
+
+func (m *Auth_Claims_UserInfo) GetClass() Common_UserClass {
+	if m != nil {
+		return m.Class
+	}
+	return Common_USERCLASS_UNKNOWN
+}
+
+func (m *Auth_Claims_UserInfo) GetAvailableForumIds() []uint64 {
+	if m != nil {
+		return m.AvailableForumIds
+	}
+	return nil
+}
+
+type Auth_AuthResponse struct {
+	// id пользователя
+	UserId uint64 `protobuf:"varint,1,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
+	// токен -> X-Session
+	Token string `protobuf:"bytes,2,opt,name=token,proto3" json:"token,omitempty"`
+	// токен для продления сессии
+	RefreshToken         string   `protobuf:"bytes,3,opt,name=refresh_token,json=refreshToken,proto3" json:"refresh_token,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
+}
+
+func (m *Auth_AuthResponse) Reset()         { *m = Auth_AuthResponse{} }
+func (m *Auth_AuthResponse) String() string { return proto.CompactTextString(m) }
+func (*Auth_AuthResponse) ProtoMessage()    {}
+func (*Auth_AuthResponse) Descriptor() ([]byte, []int) {
+	return fileDescriptor_a9d38a2cdbb4f144, []int{0, 1}
+}
+
+func (m *Auth_AuthResponse) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_Auth_AuthResponse.Unmarshal(m, b)
+}
+func (m *Auth_AuthResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_Auth_AuthResponse.Marshal(b, m, deterministic)
+}
+func (m *Auth_AuthResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_Auth_AuthResponse.Merge(m, src)
+}
+func (m *Auth_AuthResponse) XXX_Size() int {
+	return xxx_messageInfo_Auth_AuthResponse.Size(m)
+}
+func (m *Auth_AuthResponse) XXX_DiscardUnknown() {
+	xxx_messageInfo_Auth_AuthResponse.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_Auth_AuthResponse proto.InternalMessageInfo
+
+func (m *Auth_AuthResponse) GetUserId() uint64 {
+	if m != nil {
+		return m.UserId
+	}
+	return 0
+}
+
+func (m *Auth_AuthResponse) GetToken() string {
+	if m != nil {
+		return m.Token
+	}
+	return ""
+}
+
+func (m *Auth_AuthResponse) GetRefreshToken() string {
+	if m != nil {
+		return m.RefreshToken
 	}
 	return ""
 }
 
 func init() {
 	proto.RegisterType((*Auth)(nil), "Auth")
-	proto.RegisterType((*Auth_LoginResponse)(nil), "Auth.LoginResponse")
+	proto.RegisterType((*Auth_Claims)(nil), "Auth.Claims")
+	proto.RegisterType((*Auth_Claims_UserInfo)(nil), "Auth.Claims.UserInfo")
+	proto.RegisterType((*Auth_AuthResponse)(nil), "Auth.AuthResponse")
 }
 
 func init() { proto.RegisterFile("proto/auth.proto", fileDescriptor_a9d38a2cdbb4f144) }
 
 var fileDescriptor_a9d38a2cdbb4f144 = []byte{
-	// 135 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xe2, 0x12, 0x28, 0x28, 0xca, 0x2f,
-	0xc9, 0xd7, 0x4f, 0x2c, 0x2d, 0xc9, 0xd0, 0x03, 0x33, 0x95, 0x42, 0xb9, 0x58, 0x1c, 0x4b, 0x4b,
-	0x32, 0xa4, 0x7c, 0xb9, 0x78, 0x7d, 0xf2, 0xd3, 0x33, 0xf3, 0x82, 0x52, 0x8b, 0x0b, 0xf2, 0xf3,
-	0x8a, 0x53, 0x85, 0xc4, 0xb9, 0xd8, 0x4b, 0x8b, 0x53, 0x8b, 0xe2, 0x33, 0x53, 0x24, 0x18, 0x15,
-	0x18, 0x35, 0x58, 0x82, 0xd8, 0x40, 0x5c, 0xcf, 0x14, 0x21, 0x65, 0x2e, 0xde, 0xe2, 0xd4, 0xe2,
-	0xe2, 0xcc, 0xfc, 0xbc, 0xf8, 0x92, 0xfc, 0xec, 0xd4, 0x3c, 0x09, 0x26, 0x05, 0x46, 0x0d, 0xce,
-	0x20, 0x1e, 0xa8, 0x60, 0x08, 0x48, 0xcc, 0x89, 0x27, 0x8a, 0xab, 0x38, 0xbf, 0xb4, 0x28, 0x39,
-	0xb5, 0x58, 0xbf, 0x20, 0x29, 0x89, 0x0d, 0x6c, 0x97, 0x31, 0x20, 0x00, 0x00, 0xff, 0xff, 0xfe,
-	0x15, 0x39, 0xdd, 0x7f, 0x00, 0x00, 0x00,
+	// 341 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0x7c, 0x90, 0xcf, 0x4e, 0xab, 0x40,
+	0x14, 0xc6, 0x43, 0xa1, 0xb4, 0x3d, 0xb7, 0xb7, 0xb9, 0x9d, 0x7b, 0x6f, 0x44, 0x36, 0x36, 0x9a,
+	0x68, 0xdd, 0x0c, 0x49, 0x7d, 0x02, 0x6d, 0xa2, 0x61, 0x3b, 0xa9, 0x1b, 0x37, 0x04, 0xca, 0x40,
+	0x89, 0xc0, 0x90, 0x39, 0x8c, 0x4f, 0xe5, 0x13, 0xb8, 0xf1, 0xd5, 0xcc, 0xcc, 0x80, 0x4b, 0x77,
+	0x7c, 0x7f, 0xc8, 0xef, 0x9b, 0x03, 0x7f, 0x3a, 0x29, 0x7a, 0x11, 0xa5, 0xaa, 0x3f, 0x51, 0xf3,
+	0x19, 0x12, 0xeb, 0x1c, 0x45, 0xd3, 0x88, 0x76, 0xf0, 0x2e, 0x4a, 0x21, 0xca, 0x9a, 0x47, 0x46,
+	0x65, 0xaa, 0x88, 0xfa, 0xaa, 0xe1, 0xd8, 0xa7, 0x4d, 0x67, 0x0b, 0x97, 0xef, 0x2e, 0x78, 0xf7,
+	0xaa, 0x3f, 0x85, 0x9f, 0x13, 0xf0, 0xf7, 0x75, 0x5a, 0x35, 0x48, 0xce, 0x61, 0xde, 0x8b, 0x57,
+	0xde, 0x26, 0x55, 0x1e, 0x38, 0x1b, 0x67, 0xbb, 0x60, 0x33, 0xa3, 0xe3, 0x9c, 0xec, 0xc0, 0xaf,
+	0x10, 0x15, 0xcf, 0x83, 0xc9, 0xc6, 0xd9, 0xfe, 0xda, 0x85, 0xd4, 0x02, 0xe8, 0x08, 0xa0, 0x87,
+	0x11, 0xc0, 0x86, 0x26, 0xb9, 0x05, 0x4f, 0x21, 0x97, 0x81, 0x6b, 0xfe, 0xf8, 0x4f, 0x35, 0x8e,
+	0x5a, 0x14, 0x7d, 0x46, 0x2e, 0xe3, 0xb6, 0x10, 0xcc, 0x54, 0xc2, 0x0f, 0x07, 0xe6, 0xa3, 0x45,
+	0xce, 0x60, 0xa6, 0xcd, 0x71, 0x85, 0xc7, 0x7c, 0x2d, 0xe3, 0x9c, 0xfc, 0x83, 0x69, 0x2d, 0xca,
+	0xaa, 0x35, 0x1b, 0x16, 0xcc, 0x0a, 0x72, 0x0d, 0x7e, 0xc9, 0xdb, 0x7c, 0x00, 0xad, 0x76, 0x2b,
+	0xba, 0xb7, 0x97, 0x78, 0x32, 0x2e, 0x1b, 0x52, 0x72, 0x03, 0xd3, 0x63, 0x9d, 0x22, 0x06, 0x9e,
+	0xa9, 0xad, 0xc7, 0x9a, 0xe6, 0xee, 0x75, 0xc0, 0x6c, 0x4e, 0x28, 0xfc, 0x4d, 0xdf, 0xd2, 0xaa,
+	0x4e, 0xb3, 0x9a, 0x27, 0x85, 0x90, 0xaa, 0x49, 0xaa, 0x1c, 0x83, 0xe9, 0xc6, 0xdd, 0x7a, 0x6c,
+	0xfd, 0x1d, 0x3d, 0xea, 0x24, 0xce, 0x31, 0xcc, 0x60, 0xa9, 0x9f, 0xc6, 0x38, 0x76, 0xa2, 0x45,
+	0xfe, 0xe3, 0x7e, 0x73, 0xcf, 0x71, 0xbf, 0x11, 0xe4, 0x0a, 0x7e, 0x4b, 0x5e, 0x48, 0x8e, 0xa7,
+	0xc4, 0xa6, 0xae, 0x49, 0x97, 0x83, 0x79, 0xd0, 0xde, 0xc3, 0xf2, 0x05, 0x50, 0x28, 0x79, 0xe4,
+	0x18, 0x75, 0x59, 0xe6, 0x9b, 0xab, 0xdf, 0x7d, 0x05, 0x00, 0x00, 0xff, 0xff, 0xe0, 0x55, 0xe7,
+	0x99, 0x0c, 0x02, 0x00, 0x00,
 }

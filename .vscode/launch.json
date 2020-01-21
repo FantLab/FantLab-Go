@@ -12,7 +12,9 @@
                 "MC_ADDRESS": "localhost:11211",
                 "PORT": 4242,
                 "DEBUG": 1,
-                "IMAGES_BASE_URL": "https://data.fantlab.ru/images"
+                "IMAGES_BASE_URL": "https://data.fantlab.ru/images",
+                "SIGN_PUB_KEY": "zZFlRP3NxWOiGVi+pSMn5nJCu5PjjsYVnLpxSIV3y2Y=", // debug only
+                "SIGN_PRIV_KEY": "IVjLbmNybLI49axLWqA0zecjXjNC8910xQfE2wW224zNkWVE/c3FY6IZWL6lIyfmckK7k+OOxhWcunFIhXfLZg==", // debug only
             },
             "args": [],
             "buildFlags": "-tags debug"

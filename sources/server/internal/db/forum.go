@@ -63,7 +63,7 @@ type ForumMessage struct {
 	Login       string    `db:"login"`
 	Sex         uint8     `db:"sex"`
 	PhotoNumber uint64    `db:"photo_number"`
-	UserClass   uint64    `db:"user_class"`
+	UserClass   uint8     `db:"user_class"`
 	Sign        string    `db:"sign"`
 	MessageText string    `db:"message_text"`
 	IsCensored  uint8     `db:"is_censored"`
@@ -88,18 +88,6 @@ type ForumTopicMessagesDBResponse struct {
 	Topic              ShortForumTopic
 	Messages           []ForumMessage
 	TotalMessagesCount uint64
-}
-
-func (db *DB) FetchAvailableForums(ctx context.Context, userId uint64) (string, error) {
-	var availableForums string
-
-	err := db.engine.Read(ctx, sqlr.NewQuery(queries.AvailableForums).WithArgs(userId)).Scan(&availableForums)
-
-	if err != nil {
-		return "", err
-	}
-
-	return availableForums, nil
 }
 
 func (db *DB) FetchForums(ctx context.Context, availableForums []uint64) ([]Forum, error) {

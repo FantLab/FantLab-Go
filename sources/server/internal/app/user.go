@@ -2,23 +2,24 @@ package app
 
 import (
 	"context"
+	"fantlab/pb"
 	"strconv"
 )
 
 const (
-	userIdKey          = "FantLab: userId"
+	userAuthKey        = "FantLab: user auth"
 	userCacheKeyPrefix = "users:user_id="
 )
 
-func GetUserId(ctx context.Context) uint64 {
-	if id, ok := ctx.Value(userIdKey).(uint64); ok {
-		return id
-	}
-	return 0
+func SetUserAuth(claims *pb.Auth_Claims, ctx context.Context) context.Context {
+	return context.WithValue(ctx, userAuthKey, claims)
 }
 
-func SetUserId(userId uint64, ctx context.Context) context.Context {
-	return context.WithValue(ctx, userIdKey, userId)
+func GetUserAuth(ctx context.Context) *pb.Auth_Claims {
+	if info, ok := ctx.Value(userAuthKey).(*pb.Auth_Claims); ok {
+		return info
+	}
+	return nil
 }
 
 func (s *Services) InvalidateUserCache(ctx context.Context, userId uint64) {

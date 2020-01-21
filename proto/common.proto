@@ -13,6 +13,26 @@ message Common {
         GENDER_FEMALE = 2;
     }
 
+    enum UserClass {
+        USERCLASS_UNKNOWN = 0;
+        // новичок
+        USERCLASS_BEGINNER = 1;
+        // активист
+        USERCLASS_ACTIVIST = 2;
+        // авторитет
+        USERCLASS_AUTHORITY = 3;
+        // философ
+        USERCLASS_PHILOSOPHER = 4;
+        // магистр
+        USERCLASS_MASTER = 5;
+        // гранд-мастер
+        USERCLASS_GRANDMASTER = 6;
+        // миродержец
+        USERCLASS_PEACEKEEPER = 7;
+        // миротворец
+        USERCLASS_PEACEMAKER = 8;
+    }
+
     message UserLink {
         // id пользователя
         uint64 id = 1;
@@ -25,7 +45,7 @@ message Common {
         // аватар
         string avatar = 5;
         // класс
-        uint64 class = 6;
+        UserClass class = 6;
         // подпись на форуме
         string sign = 7;
     }

@@ -13,41 +13,6 @@ import (
 	"fantlab/server/internal/db/queries"
 )
 
-func Test_FetchAvailableForums(t *testing.T) {
-	queryTable := make(dbstubs.StubQueryTable)
-
-	queryTable[sqlr.NewQuery(queries.AvailableForums).WithArgs(1).String()] = &dbstubs.StubRows{
-		Values: [][]interface{}{
-			{"1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,19,22"},
-		},
-		Columns: []scanr.Column{
-			dbstubs.StubColumn(""),
-		},
-	}
-
-	t.Run("positive", func(t *testing.T) {
-		db := NewDB(&dbstubs.StubDB{QueryTable: queryTable})
-
-		availableForums, err := db.FetchAvailableForums(context.Background(), 1)
-
-		assert.True(t, err == nil)
-		assert.True(t, availableForums == "1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,19,22")
-	})
-
-	t.Run("negative", func(t *testing.T) {
-		queryTable[sqlr.NewQuery(queries.AvailableForums).WithArgs(1).String()] = &dbstubs.StubRows{
-			Err: dbstubs.ErrSome,
-		}
-
-		db := NewDB(&dbstubs.StubDB{QueryTable: queryTable})
-
-		availableForums, err := db.FetchAvailableForums(context.Background(), 1)
-
-		assert.True(t, availableForums == "")
-		assert.True(t, err == dbstubs.ErrSome)
-	})
-}
-
 func Test_FetchForums(t *testing.T) {
 	queryTable := make(dbstubs.StubQueryTable)
 

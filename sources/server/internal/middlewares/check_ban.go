@@ -12,31 +12,27 @@ import (
 func CheckBan(services *app.Services) func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			uid := app.GetUserId(r.Context())
+			auth := app.GetUserAuth(r.Context())
 
-			if uid > 0 {
-				banData, err := services.DB().FetchUserBlockInfo(r.Context(), uid)
+			banInfo, err := services.DB().FetchUserBlockInfo(r.Context(), auth.User.UserId)
 
-				if err != nil {
+			if err != nil {
+				protobuf.Handle(func(r *http.Request) (int, proto.Message) {
+					return http.StatusInternalServerError, &pb.Error_Response{
+						Status: pb.Error_SOMETHING_WENT_WRONG,
+					}
+				}).ServeHTTP(w, r)
+			} else {
+				if banInfo.Blocked > 0 {
 					protobuf.Handle(func(r *http.Request) (int, proto.Message) {
-						return http.StatusInternalServerError, &pb.Error_Response{
-							Status: pb.Error_SOMETHING_WENT_WRONG,
+						return http.StatusForbidden, &pb.Error_Response{
+							Status:  pb.Error_USER_IS_BANNED,
+							Context: banInfo.BlockReason,
 						}
 					}).ServeHTTP(w, r)
 				} else {
-					if banData.Blocked > 0 {
-						protobuf.Handle(func(r *http.Request) (int, proto.Message) {
-							return http.StatusForbidden, &pb.Error_Response{
-								Status:  pb.Error_USER_IS_BANNED,
-								Context: banData.BlockReason,
-							}
-						}).ServeHTTP(w, r)
-					} else {
-						next.ServeHTTP(w, r)
-					}
+					next.ServeHTTP(w, r)
 				}
-			} else {
-				next.ServeHTTP(w, r)
 			}
 		})
 	}

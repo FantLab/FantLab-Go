@@ -1,5 +1,14 @@
 package config
 
+import (
+	"time"
+)
+
+const (
+	AuthTokenTimeout    = 10 * time.Minute
+	RefreshTokenTimeout = 30 * 24 * time.Hour
+)
+
 type AppConfig struct {
 	ImagesBaseURL         string
 	BlogsInPage           uint64

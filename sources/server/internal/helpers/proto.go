@@ -2,6 +2,52 @@ package helpers
 
 import "fantlab/pb"
 
+func GetUserClass(rawUserClass uint8) pb.Common_UserClass {
+	switch rawUserClass {
+	case 0:
+		return pb.Common_USERCLASS_BEGINNER
+	case 1:
+		return pb.Common_USERCLASS_ACTIVIST
+	case 2:
+		return pb.Common_USERCLASS_AUTHORITY
+	case 3:
+		return pb.Common_USERCLASS_PHILOSOPHER
+	case 4:
+		return pb.Common_USERCLASS_MASTER
+	case 5:
+		return pb.Common_USERCLASS_GRANDMASTER
+	case 6:
+		return pb.Common_USERCLASS_PEACEKEEPER
+	case 7:
+		return pb.Common_USERCLASS_PEACEMAKER
+	default:
+		return pb.Common_USERCLASS_UNKNOWN
+	}
+}
+
+func GetUserClassDescription(userClass pb.Common_UserClass) string {
+	switch userClass {
+	case pb.Common_USERCLASS_BEGINNER:
+		return "новичок"
+	case pb.Common_USERCLASS_ACTIVIST:
+		return "активист"
+	case pb.Common_USERCLASS_AUTHORITY:
+		return "авторитет"
+	case pb.Common_USERCLASS_PHILOSOPHER:
+		return "философ"
+	case pb.Common_USERCLASS_MASTER:
+		return "магистр"
+	case pb.Common_USERCLASS_GRANDMASTER:
+		return "гранд-мастер"
+	case pb.Common_USERCLASS_PEACEKEEPER:
+		return "миродержец"
+	case pb.Common_USERCLASS_PEACEMAKER:
+		return "миротворец"
+	default:
+		return ""
+	}
+}
+
 func GetGender(userId uint64, rawUserSex uint8) pb.Common_Gender {
 	if userId > 0 {
 		if rawUserSex == 0 {

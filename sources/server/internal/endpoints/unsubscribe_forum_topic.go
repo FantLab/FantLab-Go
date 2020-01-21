@@ -2,11 +2,9 @@ package endpoints
 
 import (
 	"fantlab/base/dbtools"
-	"fantlab/base/utils"
 	"fantlab/pb"
 	"net/http"
 	"strconv"
-	"strings"
 
 	"github.com/golang/protobuf/proto"
 )
@@ -25,23 +23,9 @@ func (api *API) UnsubscribeForumTopic(r *http.Request) (int, proto.Message) {
 
 	userId := api.getUserId(r)
 
-	availableForumsString, err := api.services.DB().FetchAvailableForums(r.Context(), userId)
+	availableForums := api.getAvailableForums(r)
 
-	if err != nil {
-		return http.StatusInternalServerError, &pb.Error_Response{
-			Status: pb.Error_SOMETHING_WENT_WRONG,
-		}
-	}
-
-	availableForums := utils.ParseUints(strings.Split(availableForumsString, ","))
-
-	if availableForums == nil {
-		return http.StatusInternalServerError, &pb.Error_Response{
-			Status: pb.Error_SOMETHING_WENT_WRONG,
-		}
-	}
-
-	_, err = api.services.DB().FetchForumTopic(r.Context(), availableForums, params.TopicId)
+	_, err := api.services.DB().FetchForumTopic(r.Context(), availableForums, params.TopicId)
 
 	if err != nil {
 		if dbtools.IsNotFoundError(err) {

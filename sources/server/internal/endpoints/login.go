@@ -3,6 +3,7 @@ package endpoints
 import (
 	"fantlab/base/dbtools"
 	"fantlab/pb"
+	"fantlab/server/internal/db"
 	"net/http"
 	"time"
 
@@ -10,7 +11,7 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
-// Создает новую сессию пользователя
+// Создаёт новый аутентификационный токен для пользователя на основе пары логин/пароль
 func (api *API) Login(r *http.Request) (int, proto.Message) {
 	var params struct {
 		// никнейм пользователя
@@ -23,16 +24,13 @@ func (api *API) Login(r *http.Request) (int, proto.Message) {
 
 	// ищем юзера в базе
 
-	userData, err := api.services.DB().FetchUserPasswordHash(r.Context(), params.Login)
+	userLoginInfo, err := api.services.DB().FetchUserLoginInfo(r.Context(), params.Login)
 
-	if err != nil {
-		if dbtools.IsNotFoundError(err) {
-			return http.StatusNotFound, &pb.Error_Response{
-				Status:  pb.Error_NOT_FOUND,
-				Context: params.Login,
-			}
+	if dbtools.IsNotFoundError(err) {
+		return http.StatusNotFound, &pb.Error_Response{
+			Status: pb.Error_NOT_FOUND,
 		}
-
+	} else if err != nil {
 		return http.StatusInternalServerError, &pb.Error_Response{
 			Status: pb.Error_SOMETHING_WENT_WRONG,
 		}
@@ -40,10 +38,10 @@ func (api *API) Login(r *http.Request) (int, proto.Message) {
 
 	// проверяем пароль
 
-	err = bcrypt.CompareHashAndPassword([]byte(userData.OldHash), []byte(params.Password))
+	err = bcrypt.CompareHashAndPassword([]byte(userLoginInfo.OldHash), []byte(params.Password))
 
 	if err != nil {
-		err = bcrypt.CompareHashAndPassword([]byte(userData.NewHash), []byte(params.Password))
+		err = bcrypt.CompareHashAndPassword([]byte(userLoginInfo.NewHash), []byte(params.Password))
 	}
 
 	if err != nil {
@@ -52,13 +50,11 @@ func (api *API) Login(r *http.Request) (int, proto.Message) {
 		}
 	}
 
-	// создаем новую сессию
+	// выпускаем новый токен
 
-	sid := api.generateSessionId()
-
-	dateOfCreate := time.Now()
-
-	err = api.services.DB().InsertNewSession(r.Context(), dateOfCreate, sid, userData.UserID, r.RemoteAddr, r.UserAgent())
+	response, err := api.makeAuthResponse(r, time.Now(), userLoginInfo.UserId, func(entry *db.AuthTokenEntry) error {
+		return api.services.DB().InsertAuthToken(r.Context(), entry)
+	})
 
 	if err != nil {
 		return http.StatusInternalServerError, &pb.Error_Response{
@@ -68,8 +64,5 @@ func (api *API) Login(r *http.Request) (int, proto.Message) {
 
 	// успех
 
-	return http.StatusOK, &pb.Auth_LoginResponse{
-		UserId:       userData.UserID,
-		SessionToken: sid,
-	}
+	return http.StatusOK, response
 }

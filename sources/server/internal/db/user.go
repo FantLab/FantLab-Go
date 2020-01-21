@@ -2,21 +2,25 @@ package db
 
 import (
 	"context"
+	"fantlab/base/codeflow"
+	"fantlab/base/dbtools"
 	"fantlab/base/dbtools/sqlbuilder"
 	"fantlab/base/dbtools/sqlr"
 	"fantlab/server/internal/db/queries"
 	"time"
 )
 
-type UserPasswordHash struct {
-	UserID  uint64 `db:"user_id"`
+type UserLoginInfo struct {
+	UserId  uint64 `db:"user_id"`
 	OldHash string `db:"password_hash"`
 	NewHash string `db:"new_password_hash"`
 }
 
-type UserSessionInfo struct {
-	UserID       uint64    `db:"user_id"`
-	DateOfCreate time.Time `db:"date_of_create"`
+type UserInfo struct {
+	Login           string `db:"login"`
+	Gender          uint8  `db:"sex"`
+	Class           uint8  `db:"user_class"`
+	AvailableForums string `db:"access_to_forums"`
 }
 
 type UserBlockInfo struct {
@@ -25,23 +29,22 @@ type UserBlockInfo struct {
 	BlockReason    string    `db:"block_reason"`
 }
 
-type sessionEntry struct {
-	Code             string    `db:"code"`
-	UserId           uint64    `db:"user_id"`
-	UserIP           string    `db:"user_ip"`
-	UserAgent        string    `db:"user_agent"`
-	DateOfCreate     time.Time `db:"date_of_create"`
-	DateOfLastAction time.Time `db:"date_of_last_action"`
-	Hits             uint64    `db:"hits"`
+type AuthTokenEntry struct {
+	TokenId     string    `db:"token_id"`
+	UserId      uint64    `db:"user_id"`
+	RefreshHash string    `db:"refresh_hash"`
+	IssuedAt    time.Time `db:"issued_at"`
+	RemoteAddr  string    `db:"remote_addr"`
+	DeviceInfo  string    `db:"device_info"`
 }
 
-func (db *DB) FetchUserSessionInfo(ctx context.Context, sid string) (data UserSessionInfo, err error) {
-	err = db.engine.Read(ctx, sqlr.NewQuery(queries.UserSession).WithArgs(sid)).Scan(&data)
+func (db *DB) FetchUserLoginInfo(ctx context.Context, login string) (data UserLoginInfo, err error) {
+	err = db.engine.Read(ctx, sqlr.NewQuery(queries.UserLoginInfo).WithArgs(login)).Scan(&data)
 	return
 }
 
-func (db *DB) FetchUserPasswordHash(ctx context.Context, login string) (data UserPasswordHash, err error) {
-	err = db.engine.Read(ctx, sqlr.NewQuery(queries.UserPasswordHash).WithArgs(login)).Scan(&data)
+func (db *DB) FetchUserInfo(ctx context.Context, userId uint64) (data UserInfo, err error) {
+	err = db.engine.Read(ctx, sqlr.NewQuery(queries.UserInfo).WithArgs(userId)).Scan(&data)
 	return
 }
 
@@ -50,24 +53,28 @@ func (db *DB) FetchUserBlockInfo(ctx context.Context, userID uint64) (data UserB
 	return
 }
 
-func (db *DB) FetchUserClass(ctx context.Context, userId uint64) (class uint8, err error) {
-	err = db.engine.Read(ctx, sqlr.NewQuery(queries.UserClass).WithArgs(userId)).Scan(&class)
+func (db *DB) FetchAuthToken(ctx context.Context, tokenId string) (data AuthTokenEntry, err error) {
+	err = db.engine.Read(ctx, sqlr.NewQuery(queries.FetchAuthTokenById).WithArgs(tokenId)).Scan(&data)
 	return
 }
 
-func (db *DB) InsertNewSession(ctx context.Context, t time.Time, code string, userID uint64, userIP string, userAgent string) error {
-	entry := sessionEntry{
-		Code:             code,
-		UserId:           userID,
-		UserIP:           userIP,
-		UserAgent:        userAgent,
-		DateOfCreate:     t,
-		DateOfLastAction: t,
-	}
-	query := sqlbuilder.InsertInto(queries.SessionsTable, entry)
-	return db.engine.Write(ctx, query).Error
+func (db *DB) InsertAuthToken(ctx context.Context, token *AuthTokenEntry) error {
+	return db.engine.Write(ctx, sqlbuilder.InsertInto(queries.AuthTokensTable, *token)).Error
 }
 
-func (db *DB) DeleteSession(ctx context.Context, code string) error {
-	return db.engine.Write(ctx, sqlr.NewQuery(queries.DeleteUserSession).WithArgs(code)).Error
+func (db *DB) ReplaceAuthToken(ctx context.Context, token *AuthTokenEntry, oldTokenId string) error {
+	return db.engine.InTransaction(func(rw sqlr.ReaderWriter) error {
+		return codeflow.Try(
+			func() error {
+				err := db.engine.Write(ctx, sqlr.NewQuery(queries.DeleteAuthToken).WithArgs(oldTokenId)).Error
+				if dbtools.IsNotFoundError(err) {
+					return nil
+				}
+				return err
+			},
+			func() error {
+				return db.engine.Write(ctx, sqlbuilder.InsertInto(queries.AuthTokensTable, *token)).Error
+			},
+		)
+	})
 }

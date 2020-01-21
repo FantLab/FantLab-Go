@@ -2,7 +2,6 @@ package endpoints
 
 import (
 	"fantlab/base/dbtools"
-	"fantlab/base/utils"
 	"fantlab/pb"
 	"fantlab/server/internal/converters"
 	"fantlab/server/internal/helpers"
@@ -41,27 +40,7 @@ func (api *API) ShowTopicMessages(r *http.Request) (int, proto.Message) {
 		return api.badParam("limit")
 	}
 
-	availableForums := api.config.DefaultAccessToForums
-
-	userId := api.getUserId(r)
-
-	if userId > 0 {
-		availableForumsString, err := api.services.DB().FetchAvailableForums(r.Context(), userId)
-
-		if err != nil {
-			return http.StatusInternalServerError, &pb.Error_Response{
-				Status: pb.Error_SOMETHING_WENT_WRONG,
-			}
-		}
-
-		availableForums = utils.ParseUints(strings.Split(availableForumsString, ","))
-
-		if availableForums == nil {
-			return http.StatusInternalServerError, &pb.Error_Response{
-				Status: pb.Error_SOMETHING_WENT_WRONG,
-			}
-		}
-	}
+	availableForums := api.getAvailableForums(r)
 
 	dbResponse, err := api.services.DB().FetchTopicMessages(
 		r.Context(),
