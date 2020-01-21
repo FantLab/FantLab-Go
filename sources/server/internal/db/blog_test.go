@@ -380,7 +380,7 @@ func Test_FetchBlogs(t *testing.T) {
 
 	now := time.Now()
 
-	queryTable[sqlr.NewQuery(queries.Blogs).Format("subscriber_count").WithArgs(5, 0).String()] = &dbstubs.StubRows{
+	queryTable[sqlr.NewQuery(queries.Blogs).Inject("subscriber_count").WithArgs(5, 0).String()] = &dbstubs.StubRows{
 		Values: [][]interface{}{
 			{229, 10072, "antilia", "Гарбузова Ольга", 0, 2, 436, 975, 0, now, "Книжные новинки за неделю", 55717},
 			{611, 17299, "k2007", "", 1, 14, 341, 597, 0, now, "Нефантастика, детская фантастическая литература", 55745},

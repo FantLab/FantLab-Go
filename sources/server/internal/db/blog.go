@@ -174,7 +174,7 @@ func (db *DB) FetchBlogs(ctx context.Context, limit, offset uint64, sort string)
 
 	err = codeflow.Try(
 		func() error {
-			return db.engine.Read(ctx, sqlr.NewQuery(queries.Blogs).Format(sortOption).WithArgs(limit, offset)).Scan(&blogs)
+			return db.engine.Read(ctx, sqlr.NewQuery(queries.Blogs).Inject(sortOption).WithArgs(limit, offset)).Scan(&blogs)
 		},
 		func() error {
 			return db.engine.Read(ctx, sqlr.NewQuery(queries.BlogCount)).Scan(&count)

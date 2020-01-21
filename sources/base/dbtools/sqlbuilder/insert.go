@@ -54,8 +54,6 @@ func insertInto(tableName, tagName string, entries ...interface{}) (*sqlr.Query,
 		return nil, ErrInsertUnsupportedType
 	}
 
-	var values []interface{}
-
 	var sb strings.Builder
 
 	sb.WriteString("INSERT INTO ")
@@ -69,6 +67,8 @@ func insertInto(tableName, tagName string, entries ...interface{}) (*sqlr.Query,
 	}
 	sb.WriteRune(')')
 	sb.WriteString(" VALUES ")
+
+	values := make([]interface{}, 0, len(entries)*len(fieldNames))
 
 	for i, entry := range entries {
 		value := reflect.ValueOf(entry)

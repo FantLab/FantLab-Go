@@ -189,7 +189,7 @@ func Test_FetchModerators(t *testing.T) {
 func Test_FetchForumTopics(t *testing.T) {
 	queryTable := make(dbstubs.StubQueryTable)
 
-	queryTable[sqlr.NewQuery(queries.ForumExists).WithArgs(2, []int{1, 2}).Rebind().String()] = &dbstubs.StubRows{
+	queryTable[sqlr.NewQuery(queries.ForumExists).WithArgs(2, []int{1, 2}).FlatArgs().String()] = &dbstubs.StubRows{
 		Values: [][]interface{}{{1}},
 		Columns: []scanr.Column{
 			dbstubs.StubColumn(""),
@@ -321,7 +321,7 @@ func Test_FetchForumTopics(t *testing.T) {
 func Test_FetchTopicMessages(t *testing.T) {
 	queryTable := make(dbstubs.StubQueryTable)
 
-	queryTable[sqlr.NewQuery(queries.ShortForumTopic).WithArgs(25, []int{1, 2}).Rebind().String()] = &dbstubs.StubRows{
+	queryTable[sqlr.NewQuery(queries.ShortForumTopic).WithArgs(25, []int{1, 2}).FlatArgs().String()] = &dbstubs.StubRows{
 		Values: [][]interface{}{{25, "Я вас слушаю!", 2, "Техподдержка и развитие сайта"}},
 		Columns: []scanr.Column{
 			dbstubs.StubColumn("topic_id"),
@@ -340,7 +340,7 @@ func Test_FetchTopicMessages(t *testing.T) {
 
 	now := time.Now()
 
-	queryTable[sqlr.NewQuery(queries.ForumTopicMessages).Format("ASC").WithArgs(25, 1, 20).String()] = &dbstubs.StubRows{
+	queryTable[sqlr.NewQuery(queries.ForumTopicMessages).Inject("ASC").WithArgs(25, 1, 20).String()] = &dbstubs.StubRows{
 		Values: [][]interface{}{
 			{216, now, 1, "creator", 1, 19, 3, "", "Ну, что скажете? По поводу сайта, естественно", 0, 0, 0},
 			{224, now, 41, "Rol0c", 1, 0, 2, "", "Приветик ;-)", 0, 0, 0},
@@ -418,7 +418,7 @@ func Test_FetchTopicMessages(t *testing.T) {
 	})
 
 	t.Run("negative_2", func(t *testing.T) {
-		queryTable[sqlr.NewQuery(queries.ForumTopicMessages).Format("ASC").WithArgs(25, 1, 20).String()] = &dbstubs.StubRows{
+		queryTable[sqlr.NewQuery(queries.ForumTopicMessages).Inject("ASC").WithArgs(25, 1, 20).String()] = &dbstubs.StubRows{
 			Err: dbstubs.ErrSome,
 		}
 
