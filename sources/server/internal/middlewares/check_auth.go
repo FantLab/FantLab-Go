@@ -9,16 +9,16 @@ import (
 	"github.com/golang/protobuf/proto"
 )
 
-func RequireAuth(next http.Handler) http.Handler {
+func CheckAuth(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		uid := app.GetUserId(r.Context())
+		auth := app.GetUserAuth(r.Context())
 
-		if uid > 0 {
+		if auth != nil {
 			next.ServeHTTP(w, r)
 		} else {
 			protobuf.Handle(func(r *http.Request) (int, proto.Message) {
 				return http.StatusUnauthorized, &pb.Error_Response{
-					Status: pb.Error_INVALID_SESSION,
+					Status: pb.Error_AUTH_REQUIRED,
 				}
 			}).ServeHTTP(w, r)
 		}

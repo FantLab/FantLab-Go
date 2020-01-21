@@ -1,17 +1,6 @@
 package queries
 
 const (
-	AvailableForums = `
-		SELECT
-			g.access_to_forums
-		FROM
-			user_groups g
-		JOIN
-			users u ON u.user_group_id = g.user_group_id
-		WHERE
-			u.user_id = ?
-	`
-
 	Forums = `
 		SELECT
 			f.forum_id,

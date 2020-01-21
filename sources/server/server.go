@@ -2,6 +2,8 @@ package server
 
 import (
 	"database/sql"
+	"encoding/base64"
+	"fantlab/base/edsign"
 	"fantlab/base/logs/logger"
 	"fantlab/docs"
 	"fantlab/server/internal/app"
@@ -19,22 +21,19 @@ func GenerateDocs() {
 }
 
 func Start() {
-	mysql, err := sql.Open("mysql", os.Getenv("MYSQL_URL"))
-	if err != nil {
-		log.Fatal(err)
-	}
-	defer func() {
-		err := mysql.Close()
-		if err != nil {
-			log.Println(err)
-		}
-	}()
-
 	isDebug := os.Getenv("DEBUG") == "1"
+
+	mysqlDB, closeDB := makeDB(os.Getenv("MYSQL_URL"))
+	defer closeDB()
 
 	router := router.MakeRouter(
 		makeConfig(os.Getenv("IMAGES_BASE_URL")),
-		app.MakeServices(isDebug, mysql, os.Getenv("MC_ADDRESS")),
+		app.MakeServices(
+			isDebug,
+			makeCryptoCoder(),
+			mysqlDB,
+			os.Getenv("MC_ADDRESS"),
+		),
 		logFunc(isDebug),
 		isDebug,
 	)
@@ -47,6 +46,34 @@ func logFunc(isDebug bool) logger.ToString {
 		return logger.Console
 	}
 	return logger.JSON
+}
+
+func makeDB(cs string) (*sql.DB, func()) {
+	db, err := sql.Open("mysql", cs)
+	if err != nil {
+		log.Fatal(err)
+	}
+	err = db.Ping()
+	if err != nil {
+		log.Fatal(err)
+	}
+	return db, func() {
+		if err := db.Close(); err != nil {
+			log.Println(err)
+		}
+	}
+}
+
+func makeCryptoCoder() *edsign.Coder {
+	pubKey, err := base64.StdEncoding.DecodeString(os.Getenv("SIGN_PUB_KEY"))
+	if err != nil {
+		log.Fatal(err)
+	}
+	privKey, err := base64.StdEncoding.DecodeString(os.Getenv("SIGN_PRIV_KEY"))
+	if err != nil {
+		log.Fatal(err)
+	}
+	return edsign.NewCoder(pubKey, privKey)
 }
 
 func makeConfig(imagesBaseURL string) *config.AppConfig {

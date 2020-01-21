@@ -2,6 +2,7 @@ package router
 
 import (
 	"fantlab/base/routing"
+	"fantlab/pb"
 	"fantlab/server/internal/app"
 	"fantlab/server/internal/config"
 	"fantlab/server/internal/endpoints"
@@ -15,9 +16,10 @@ func Routes(config *config.AppConfig, services *app.Services, pathParamGetter en
 
 	g := new(routing.Group)
 
-	g.Middleware(middlewares.DetectUser(services))
+	g.Middleware(middlewares.CheckSession(services))
 
 	g.Subgroup("Общедоступные", func(g *routing.Group) {
+		g.Endpoint("POST", "/auth/login", api.Login, "Логин")
 		g.Endpoint("GET", "/forums", api.ShowForums, "Список форумов")
 		g.Endpoint("GET", "/forums/{id}", api.ShowForumTopics, "Список тем форума")
 		g.Endpoint("GET", "/topics/{id}", api.ShowTopicMessages, "Сообщения в теме форума")
@@ -31,36 +33,35 @@ func Routes(config *config.AppConfig, services *app.Services, pathParamGetter en
 		g.Endpoint("GET", "/work/{id}/subworks", api.GetWorkSubWorks, "Иерархия произведений, входящих в запрашиваемое")
 	})
 
-	g.Subgroup("Для анонимов", func(g *routing.Group) {
-		g.Middleware(middlewares.RequireAnon)
+	g.Subgroup("Для зарегистрированных пользователей", func(g *routing.Group) {
+		g.Middleware(middlewares.CheckAuth)
 
-		g.Endpoint("POST", "/login", api.Login, "Логин")
-	})
+		g.Endpoint("POST", "/auth/refresh", api.RefreshAuth, "Продление сессии")
 
-	g.Subgroup("Для авторизованных пользователей", func(g *routing.Group) {
-		g.Middleware(middlewares.RequireAuth)
+		g.Subgroup("Для пользователей с валидной сессией", func(g *routing.Group) {
+			g.Middleware(middlewares.CheckAuthExpiration)
 
-		g.Endpoint("DELETE", "/logout", api.Logout, "Разлогин")
-		g.Endpoint("GET", "/work/{id}/userclassification", api.GetUserWorkGenres, "Классификация произведения пользователем")
+			g.Endpoint("GET", "/work/{id}/userclassification", api.GetUserWorkGenres, "Классификация произведения пользователем")
 
-		g.Subgroup("Для авторизованных незабаненных пользователей", func(g *routing.Group) {
-			g.Middleware(middlewares.CheckBan(services))
+			g.Subgroup("С проверкой на бан", func(g *routing.Group) {
+				g.Middleware(middlewares.CheckBan(services))
 
-			g.Endpoint("POST", "/topics/{id}/subscription", api.SubscribeForumTopic, "Подписка на тему форума")
-			g.Endpoint("DELETE", "/topics/{id}/subscription", api.UnsubscribeForumTopic, "Отписка от темы форума")
-			g.Endpoint("POST", "/communities/{id}/subscription", api.SubscribeCommunity, "Вступление в сообщество")
-			g.Endpoint("DELETE", "/communities/{id}/subscription", api.UnsubscribeCommunity, "Выход из сообщества")
-			g.Endpoint("POST", "/blogs/{id}/subscription", api.SubscribeBlog, "Подписка на блог")
-			g.Endpoint("DELETE", "/blogs/{id}/subscription", api.UnsubscribeBlog, "Отписка от блога")
-			g.Endpoint("POST", "/blog_articles/{id}/subscription", api.SubscribeArticle, "Подписка на статью в блоге")
-			g.Endpoint("DELETE", "/blog_articles/{id}/subscription", api.UnsubscribeArticle, "Отписка от статьи в блоге")
-			g.Endpoint("POST", "/blog_articles/{id}/like", api.LikeArticle, "Лайк статьи в блоге")
-			g.Endpoint("DELETE", "/blog_articles/{id}/like", api.DislikeArticle, "Дизлайк статьи в блоге")
+				g.Endpoint("POST", "/topics/{id}/subscription", api.SubscribeForumTopic, "Подписка на тему форума")
+				g.Endpoint("DELETE", "/topics/{id}/subscription", api.UnsubscribeForumTopic, "Отписка от темы форума")
+				g.Endpoint("POST", "/communities/{id}/subscription", api.SubscribeCommunity, "Вступление в сообщество")
+				g.Endpoint("DELETE", "/communities/{id}/subscription", api.UnsubscribeCommunity, "Выход из сообщества")
+				g.Endpoint("POST", "/blogs/{id}/subscription", api.SubscribeBlog, "Подписка на блог")
+				g.Endpoint("DELETE", "/blogs/{id}/subscription", api.UnsubscribeBlog, "Отписка от блога")
+				g.Endpoint("POST", "/blog_articles/{id}/subscription", api.SubscribeArticle, "Подписка на статью в блоге")
+				g.Endpoint("DELETE", "/blog_articles/{id}/subscription", api.UnsubscribeArticle, "Отписка от статьи в блоге")
+				g.Endpoint("POST", "/blog_articles/{id}/like", api.LikeArticle, "Лайк статьи в блоге")
+				g.Endpoint("DELETE", "/blog_articles/{id}/like", api.DislikeArticle, "Дизлайк статьи в блоге")
 
-			g.Subgroup("Для незабаненных философов", func(g *routing.Group) {
-				g.Middleware(middlewares.CheckMinLevel(services, middlewares.UserClass_Philosopher))
+				g.Subgroup("Для философов", func(g *routing.Group) {
+					g.Middleware(middlewares.CheckMinLevel(pb.Common_USERCLASS_PHILOSOPHER))
 
-				g.Endpoint("PUT", "/work/{id}/userclassification", api.SetWorkGenres, "Классификация произведения пользователем")
+					g.Endpoint("PUT", "/work/{id}/userclassification", api.SetWorkGenres, "Классификация произведения пользователем")
+				})
 			})
 		})
 	})

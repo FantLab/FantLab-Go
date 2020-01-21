@@ -180,7 +180,7 @@ func GetTopic(dbResponse *db.ForumTopicMessagesDBResponse, page, limit uint64, c
 					Login:  dbMessage.Login,
 					Gender: gender,
 					Avatar: avatar,
-					Class:  dbMessage.UserClass,
+					Class:  helpers.GetUserClass(dbMessage.UserClass),
 					Sign:   dbMessage.Sign,
 				},
 				Date: pbutils.TimestampProto(dbMessage.DateOfAdd),
