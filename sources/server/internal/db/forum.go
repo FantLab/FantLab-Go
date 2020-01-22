@@ -93,7 +93,7 @@ type ForumTopicMessagesDBResponse struct {
 func (db *DB) FetchForums(ctx context.Context, availableForums []uint64) ([]Forum, error) {
 	var forums []Forum
 
-	err := db.engine.Read(ctx, sqlr.NewQuery(queries.Forums).WithArgs(availableForums).Rebind()).Scan(&forums)
+	err := db.engine.Read(ctx, sqlr.NewQuery(queries.Forums).WithArgs(availableForums).FlatArgs()).Scan(&forums)
 
 	if err != nil {
 		return nil, err
@@ -127,7 +127,7 @@ func (db *DB) FetchForumTopics(ctx context.Context, availableForums []uint64, fo
 
 	err = codeflow.Try(
 		func() error {
-			return db.engine.Read(ctx, sqlr.NewQuery(queries.ForumExists).WithArgs(forumID, availableForums).Rebind()).Scan(&forumExists)
+			return db.engine.Read(ctx, sqlr.NewQuery(queries.ForumExists).WithArgs(forumID, availableForums).FlatArgs()).Scan(&forumExists)
 		},
 		func() error {
 			return db.engine.Read(ctx, sqlr.NewQuery(queries.ForumTopics).WithArgs(forumID, limit, offset)).Scan(&topics)
@@ -150,7 +150,7 @@ func (db *DB) FetchForumTopics(ctx context.Context, availableForums []uint64, fo
 func (db *DB) FetchForumTopic(ctx context.Context, availableForums []uint64, topicID uint64) (*ForumTopic, error) {
 	var topic ForumTopic
 
-	err := db.engine.Read(ctx, sqlr.NewQuery(queries.ForumTopic).WithArgs(topicID, availableForums).Rebind()).Scan(&topic)
+	err := db.engine.Read(ctx, sqlr.NewQuery(queries.ForumTopic).WithArgs(topicID, availableForums).FlatArgs()).Scan(&topic)
 
 	if err != nil {
 		return nil, err
@@ -166,7 +166,7 @@ func (db *DB) FetchTopicMessages(ctx context.Context, availableForums []uint64, 
 
 	err = codeflow.Try(
 		func() error {
-			return db.engine.Read(ctx, sqlr.NewQuery(queries.ShortForumTopic).WithArgs(topicID, availableForums).Rebind()).Scan(&shortTopic)
+			return db.engine.Read(ctx, sqlr.NewQuery(queries.ShortForumTopic).WithArgs(topicID, availableForums).FlatArgs()).Scan(&shortTopic)
 		},
 		func() error {
 			return db.engine.Read(ctx, sqlr.NewQuery(queries.ForumTopicMessagesCount).WithArgs(topicID)).Scan(&count)
@@ -184,7 +184,7 @@ func (db *DB) FetchTopicMessages(ctx context.Context, availableForums []uint64, 
 				sortDirection = "DESC"
 			}
 
-			return db.engine.Read(ctx, sqlr.NewQuery(queries.ForumTopicMessages).Format(sortDirection).WithArgs(topicID, finalOffset+1, finalOffset+int64(limit))).Scan(&messages)
+			return db.engine.Read(ctx, sqlr.NewQuery(queries.ForumTopicMessages).Inject(sortDirection).WithArgs(topicID, finalOffset+1, finalOffset+int64(limit))).Scan(&messages)
 		},
 	)
 

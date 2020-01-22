@@ -26,14 +26,14 @@ func (q Query) WithArgs(args ...interface{}) Query {
 	}
 }
 
-func (q Query) Format(values ...interface{}) Query {
+func (q Query) Inject(values ...interface{}) Query {
 	return Query{
 		text: fmt.Sprintf(q.text, values...),
 		args: q.args,
 	}
 }
 
-func (q Query) Rebind() Query {
+func (q Query) FlatArgs() Query {
 	newArgs, counts := flatArgs(q.args...)
 	newQuery := expandQuery(q.text, BindVarChar, counts)
 
