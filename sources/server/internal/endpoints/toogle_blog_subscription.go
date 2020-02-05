@@ -9,25 +9,27 @@ import (
 	"github.com/golang/protobuf/proto"
 )
 
-func (api *API) SubscribeCommunity(r *http.Request) (int, proto.Message) {
+func (api *API) ToggleBlogSubscription(r *http.Request) (int, proto.Message) {
 	var params struct {
-		// айди сообщества
-		CommunityId uint64 `http:"id,path"`
+		// айди блога
+		BlogId uint64 `http:"id,path"`
+		// подписаться - true, отписаться - false
+		Subscribe bool `http:"subscribe,form"`
 	}
 
 	api.bindParams(&params, r)
 
-	if params.CommunityId == 0 {
+	if params.BlogId == 0 {
 		return api.badParam("id")
 	}
 
-	_, err := api.services.DB().FetchCommunity(r.Context(), params.CommunityId)
+	dbBlog, err := api.services.DB().FetchBlog(r.Context(), params.BlogId)
 
 	if err != nil {
 		if dbtools.IsNotFoundError(err) {
 			return http.StatusNotFound, &pb.Error_Response{
 				Status:  pb.Error_NOT_FOUND,
-				Context: strconv.FormatUint(params.CommunityId, 10),
+				Context: strconv.FormatUint(params.BlogId, 10),
 			}
 		}
 
@@ -38,22 +40,18 @@ func (api *API) SubscribeCommunity(r *http.Request) (int, proto.Message) {
 
 	userId := api.getUserId(r)
 
-	isDbCommunitySubscribed, err := api.services.DB().FetchBlogSubscribed(r.Context(), params.CommunityId, userId)
-
-	if err != nil {
-		return http.StatusInternalServerError, &pb.Error_Response{
-			Status: pb.Error_SOMETHING_WENT_WRONG,
-		}
-	}
-
-	if isDbCommunitySubscribed {
+	if dbBlog.UserId == userId {
 		return http.StatusForbidden, &pb.Error_Response{
 			Status:  pb.Error_ACTION_PERMITTED,
-			Context: "already subscribed",
+			Context: "your own blog",
 		}
 	}
 
-	err = api.services.DB().UpdateBlogSubscribed(r.Context(), params.CommunityId, userId)
+	if params.Subscribe {
+		err = api.services.DB().UpdateBlogSubscribed(r.Context(), params.BlogId, userId)
+	} else {
+		err = api.services.DB().UpdateBlogUnsubscribed(r.Context(), params.BlogId, userId)
+	}
 
 	if err != nil {
 		return http.StatusInternalServerError, &pb.Error_Response{

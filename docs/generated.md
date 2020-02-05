@@ -891,12 +891,12 @@
 ## С проверкой на бан
 
 
-<details><summary>Подписка на тему форума</summary>
+<details><summary>Подписка/отписка от темы форума</summary>
 <p>
 
 
 
-**POST** [/v1/topics/{id}/subscription](../sources/server/internal/endpoints/subscribe_forum_topic.go#L12)
+**PUT** [/v1/topics/{id}/subscription](../sources/server/internal/endpoints/toggle_forum_topic_subscription.go#L12)
 
 Параметры запроса:
 
@@ -904,29 +904,7 @@
 * **id** (path, uint64) - айди темы
 
 
-
-
-Схема ответа:
-
-```
-{}
-```
----
-
-</p>
-</details>
-
-<details><summary>Отписка от темы форума</summary>
-<p>
-
-
-
-**DELETE** [/v1/topics/{id}/subscription](../sources/server/internal/endpoints/unsubscribe_forum_topic.go#L12)
-
-Параметры запроса:
-
-
-* **id** (path, uint64) - айди темы
+* **subscribe** (form, bool) - подписаться - true, отписаться - false
 
 
 
@@ -941,12 +919,12 @@
 </p>
 </details>
 
-<details><summary>Вступление в сообщество</summary>
+<details><summary>Вступление/выход из сообщества</summary>
 <p>
 
 
 
-**POST** [/v1/communities/{id}/subscription](../sources/server/internal/endpoints/subscribe_community.go#L12)
+**PUT** [/v1/communities/{id}/subscription](../sources/server/internal/endpoints/toggle_community_subscription.go#L12)
 
 Параметры запроса:
 
@@ -954,29 +932,7 @@
 * **id** (path, uint64) - айди сообщества
 
 
-
-
-Схема ответа:
-
-```
-{}
-```
----
-
-</p>
-</details>
-
-<details><summary>Выход из сообщества</summary>
-<p>
-
-
-
-**DELETE** [/v1/communities/{id}/subscription](../sources/server/internal/endpoints/unsubscribe_community.go#L12)
-
-Параметры запроса:
-
-
-* **id** (path, uint64) - айди сообщества
+* **subscribe** (form, bool) - подписаться - true, отписаться - false
 
 
 
@@ -991,12 +947,12 @@
 </p>
 </details>
 
-<details><summary>Подписка на блог</summary>
+<details><summary>Подписка/отписка от блога</summary>
 <p>
 
 
 
-**POST** [/v1/blogs/{id}/subscription](../sources/server/internal/endpoints/subscribe_blog.go#L12)
+**PUT** [/v1/blogs/{id}/subscription](../sources/server/internal/endpoints/toogle_blog_subscription.go#L12)
 
 Параметры запроса:
 
@@ -1004,29 +960,7 @@
 * **id** (path, uint64) - айди блога
 
 
-
-
-Схема ответа:
-
-```
-{}
-```
----
-
-</p>
-</details>
-
-<details><summary>Отписка от блога</summary>
-<p>
-
-
-
-**DELETE** [/v1/blogs/{id}/subscription](../sources/server/internal/endpoints/unsubscribe_blog.go#L12)
-
-Параметры запроса:
-
-
-* **id** (path, uint64) - айди блога
+* **subscribe** (form, bool) - подписаться - true, отписаться - false
 
 
 
@@ -1041,17 +975,20 @@
 </p>
 </details>
 
-<details><summary>Подписка на статью в блоге</summary>
+<details><summary>Подписка/отписка от статьи в блоге</summary>
 <p>
 
 
 
-**POST** [/v1/blog_articles/{id}/subscription](../sources/server/internal/endpoints/subscribe_article.go#L10)
+**PUT** [/v1/blog_articles/{id}/subscription](../sources/server/internal/endpoints/toogle_article_subscription.go#L10)
 
 Параметры запроса:
 
 
 * **id** (path, uint64) - айди статьи
+
+
+* **subscribe** (form, bool) - подписаться - true, отписаться - false
 
 
 
@@ -1066,12 +1003,12 @@
 </p>
 </details>
 
-<details><summary>Отписка от статьи в блоге</summary>
+<details><summary>Лайк/дизлайк статьи в блоге</summary>
 <p>
 
 
 
-**DELETE** [/v1/blog_articles/{id}/subscription](../sources/server/internal/endpoints/unsubscribe_article.go#L10)
+**PUT** [/v1/blog_articles/{id}/like](../sources/server/internal/endpoints/toggle_article_like.go#L12)
 
 Параметры запроса:
 
@@ -1079,56 +1016,7 @@
 * **id** (path, uint64) - айди статьи
 
 
-
-
-Схема ответа:
-
-```
-{}
-```
----
-
-</p>
-</details>
-
-<details><summary>Лайк статьи в блоге</summary>
-<p>
-
-
-
-**POST** [/v1/blog_articles/{id}/like](../sources/server/internal/endpoints/like_article.go#L13)
-
-Параметры запроса:
-
-
-* **id** (path, uint64) - айди статьи
-
-
-
-
-Схема ответа:
-
-```
-{
-  like_count: uint64  # количество лайков
-}
-```
----
-
-</p>
-</details>
-
-<details><summary>Дизлайк статьи в блоге</summary>
-<p>
-
-
-
-**DELETE** [/v1/blog_articles/{id}/like](../sources/server/internal/endpoints/dislike_article.go#L12)
-
-Параметры запроса:
-
-
-* **id** (path, uint64) - айди статьи
+* **like** (form, bool) - лайк - true, dislike - false
 
 
 

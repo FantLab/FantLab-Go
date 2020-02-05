@@ -9,10 +9,12 @@ import (
 	"github.com/golang/protobuf/proto"
 )
 
-func (api *API) UnsubscribeCommunity(r *http.Request) (int, proto.Message) {
+func (api *API) ToggleCommunitySubscription(r *http.Request) (int, proto.Message) {
 	var params struct {
 		// айди сообщества
 		CommunityId uint64 `http:"id,path"`
+		// подписаться - true, отписаться - false
+		Subscribe bool `http:"subscribe,form"`
 	}
 
 	api.bindParams(&params, r)
@@ -38,22 +40,11 @@ func (api *API) UnsubscribeCommunity(r *http.Request) (int, proto.Message) {
 
 	userId := api.getUserId(r)
 
-	isDbCommunitySubscribed, err := api.services.DB().FetchBlogSubscribed(r.Context(), params.CommunityId, userId)
-
-	if err != nil {
-		return http.StatusInternalServerError, &pb.Error_Response{
-			Status: pb.Error_SOMETHING_WENT_WRONG,
-		}
+	if params.Subscribe {
+		err = api.services.DB().UpdateBlogSubscribed(r.Context(), params.CommunityId, userId)
+	} else {
+		err = api.services.DB().UpdateBlogUnsubscribed(r.Context(), params.CommunityId, userId)
 	}
-
-	if !isDbCommunitySubscribed {
-		return http.StatusForbidden, &pb.Error_Response{
-			Status:  pb.Error_ACTION_PERMITTED,
-			Context: "already unsubscribed",
-		}
-	}
-
-	err = api.services.DB().UpdateBlogUnsubscribed(r.Context(), params.CommunityId, userId)
 
 	if err != nil {
 		return http.StatusInternalServerError, &pb.Error_Response{
