@@ -3,17 +3,17 @@ package endpoints
 import (
 	"fantlab/base/dbtools"
 	"fantlab/pb"
+	"github.com/golang/protobuf/proto"
 	"net/http"
 	"strconv"
-	"time"
-
-	"github.com/golang/protobuf/proto"
 )
 
-func (api *API) LikeArticle(r *http.Request) (int, proto.Message) {
+func (api *API) ToggleArticleLike(r *http.Request) (int, proto.Message) {
 	var params struct {
 		// айди статьи
 		ArticleId uint64 `http:"id,path"`
+		// лайк - true, dislike - false
+		Like bool `http:"like,form"`
 	}
 
 	api.bindParams(&params, r)
@@ -46,22 +46,11 @@ func (api *API) LikeArticle(r *http.Request) (int, proto.Message) {
 		}
 	}
 
-	ok, err := api.services.DB().IsBlogTopicLiked(r.Context(), params.ArticleId, userId)
-
-	if err != nil && !dbtools.IsNotFoundError(err) {
-		return http.StatusInternalServerError, &pb.Error_Response{
-			Status: pb.Error_SOMETHING_WENT_WRONG,
-		}
+	if params.Like {
+		err = api.services.DB().LikeBlogTopic(r.Context(), params.ArticleId, userId)
+	} else {
+		err = api.services.DB().DislikeBlogTopic(r.Context(), params.ArticleId, userId)
 	}
-
-	if ok {
-		return http.StatusUnauthorized, &pb.Error_Response{
-			Status:  pb.Error_ACTION_PERMITTED,
-			Context: "already liked",
-		}
-	}
-
-	err = api.services.DB().LikeBlogTopic(r.Context(), time.Now(), params.ArticleId, userId)
 
 	if err != nil {
 		return http.StatusInternalServerError, &pb.Error_Response{

@@ -46,16 +46,11 @@ func Routes(config *config.AppConfig, services *app.Services, pathParamGetter en
 			g.Subgroup("С проверкой на бан", func(g *routing.Group) {
 				g.Middleware(middlewares.CheckBan(services))
 
-				g.Endpoint("POST", "/topics/{id}/subscription", api.SubscribeForumTopic, "Подписка на тему форума")
-				g.Endpoint("DELETE", "/topics/{id}/subscription", api.UnsubscribeForumTopic, "Отписка от темы форума")
-				g.Endpoint("POST", "/communities/{id}/subscription", api.SubscribeCommunity, "Вступление в сообщество")
-				g.Endpoint("DELETE", "/communities/{id}/subscription", api.UnsubscribeCommunity, "Выход из сообщества")
-				g.Endpoint("POST", "/blogs/{id}/subscription", api.SubscribeBlog, "Подписка на блог")
-				g.Endpoint("DELETE", "/blogs/{id}/subscription", api.UnsubscribeBlog, "Отписка от блога")
-				g.Endpoint("POST", "/blog_articles/{id}/subscription", api.SubscribeArticle, "Подписка на статью в блоге")
-				g.Endpoint("DELETE", "/blog_articles/{id}/subscription", api.UnsubscribeArticle, "Отписка от статьи в блоге")
-				g.Endpoint("POST", "/blog_articles/{id}/like", api.LikeArticle, "Лайк статьи в блоге")
-				g.Endpoint("DELETE", "/blog_articles/{id}/like", api.DislikeArticle, "Дизлайк статьи в блоге")
+				g.Endpoint("PUT", "/topics/{id}/subscription", api.ToggleForumTopicSubscription, "Подписка/отписка от темы форума")
+				g.Endpoint("PUT", "/communities/{id}/subscription", api.ToggleCommunitySubscription, "Вступление/выход из сообщества")
+				g.Endpoint("PUT", "/blogs/{id}/subscription", api.ToggleBlogSubscription, "Подписка/отписка от блога")
+				g.Endpoint("PUT", "/blog_articles/{id}/subscription", api.ToggleArticleSubscription, "Подписка/отписка от статьи в блоге")
+				g.Endpoint("PUT", "/blog_articles/{id}/like", api.ToggleArticleLike, "Лайк/дизлайк статьи в блоге")
 
 				g.Subgroup("Для философов", func(g *routing.Group) {
 					g.Middleware(middlewares.CheckMinLevel(pb.Common_USERCLASS_PHILOSOPHER))

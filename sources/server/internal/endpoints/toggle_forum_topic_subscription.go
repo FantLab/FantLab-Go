@@ -9,10 +9,12 @@ import (
 	"github.com/golang/protobuf/proto"
 )
 
-func (api *API) SubscribeForumTopic(r *http.Request) (int, proto.Message) {
+func (api *API) ToggleForumTopicSubscription(r *http.Request) (int, proto.Message) {
 	var params struct {
 		// айди темы
 		TopicId uint64 `http:"id,path"`
+		// подписаться - true, отписаться - false
+		Subscribe bool `http:"subscribe,form"`
 	}
 
 	api.bindParams(&params, r)
@@ -20,8 +22,6 @@ func (api *API) SubscribeForumTopic(r *http.Request) (int, proto.Message) {
 	if params.TopicId == 0 {
 		return api.badParam("id")
 	}
-
-	userId := api.getUserId(r)
 
 	availableForums := api.getAvailableForums(r)
 
@@ -40,22 +40,13 @@ func (api *API) SubscribeForumTopic(r *http.Request) (int, proto.Message) {
 		}
 	}
 
-	isDbTopicSubscribed, err := api.services.DB().FetchForumTopicSubscribed(r.Context(), params.TopicId, userId)
+	userId := api.getUserId(r)
 
-	if err != nil {
-		return http.StatusInternalServerError, &pb.Error_Response{
-			Status: pb.Error_SOMETHING_WENT_WRONG,
-		}
+	if params.Subscribe {
+		err = api.services.DB().UpdateForumTopicSubscribed(r.Context(), params.TopicId, userId)
+	} else {
+		err = api.services.DB().UpdateForumTopicUnsubscribed(r.Context(), params.TopicId, userId)
 	}
-
-	if isDbTopicSubscribed {
-		return http.StatusForbidden, &pb.Error_Response{
-			Status:  pb.Error_ACTION_PERMITTED,
-			Context: "already subscribed",
-		}
-	}
-
-	err = api.services.DB().UpdateForumTopicSubscribed(r.Context(), params.TopicId, userId)
 
 	if err != nil {
 		return http.StatusInternalServerError, &pb.Error_Response{
