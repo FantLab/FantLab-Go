@@ -297,6 +297,29 @@
       }
     }
   }
+  pinnedMessage: {             # закрепленное сообщение, если есть
+    id: uint64                 # id сообщения
+    creation: {                # данные о создании
+      user: {                  # пользователь
+        id: uint64             # id пользователя
+        login: string          # логин
+        name: string           # имя
+        gender: int32          # пол
+        avatar: string         # аватар
+        class: int32           # класс
+        sign: string           # подпись на форуме
+      }
+      date: {                  # дата создания
+        seconds: int64
+        nanos: int32
+      }
+    }
+    text: string               # текст
+    is_censored: bool          # текст изъят модератором?
+    stats: {                   # статистика
+      rating: int64            # рейтинг
+    }
+  }
   messages: [{                 # сообщения
     id: uint64                 # id сообщения
     creation: {                # данные о создании
@@ -1008,7 +1031,7 @@
 
 
 
-**PUT** [/v1/blog_articles/{id}/like](../sources/server/internal/endpoints/toggle_article_like.go#L12)
+**PUT** [/v1/blog_articles/{id}/like](../sources/server/internal/endpoints/toggle_article_like.go#L11)
 
 Параметры запроса:
 
