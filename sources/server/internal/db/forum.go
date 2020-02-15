@@ -50,10 +50,11 @@ type ForumTopic struct {
 }
 
 type ShortForumTopic struct {
-	TopicID   uint64 `db:"topic_id"`
-	TopicName string `db:"topic_name"`
-	ForumID   uint64 `db:"forum_id"`
-	ForumName string `db:"forum_name"`
+	TopicID              uint64 `db:"topic_id"`
+	TopicName            string `db:"topic_name"`
+	IsFirstMessagePinned uint8  `db:"is_first_message_pinned"`
+	ForumID              uint64 `db:"forum_id"`
+	ForumName            string `db:"forum_name"`
 }
 
 type ForumMessage struct {
@@ -86,6 +87,7 @@ type ForumTopicsDBResponse struct {
 
 type ForumTopicMessagesDBResponse struct {
 	Topic              ShortForumTopic
+	PinnedFirstMessage ForumMessage
 	Messages           []ForumMessage
 	TotalMessagesCount uint64
 }
@@ -161,6 +163,7 @@ func (db *DB) FetchForumTopic(ctx context.Context, availableForums []uint64, top
 
 func (db *DB) FetchTopicMessages(ctx context.Context, availableForums []uint64, topicID, limit, offset uint64, asc bool) (response *ForumTopicMessagesDBResponse, err error) {
 	var shortTopic ShortForumTopic
+	var pinnedFirstMessage ForumMessage
 	var messages []ForumMessage
 	var count uint64
 
@@ -188,9 +191,14 @@ func (db *DB) FetchTopicMessages(ctx context.Context, availableForums []uint64, 
 		},
 	)
 
+	if shortTopic.IsFirstMessagePinned == 1 {
+		err = db.engine.Read(ctx, sqlr.NewQuery(queries.ForumTopicFirstMessage).WithArgs(topicID)).Scan(&pinnedFirstMessage)
+	}
+
 	if err == nil {
 		response = &ForumTopicMessagesDBResponse{
 			Topic:              shortTopic,
+			PinnedFirstMessage: pinnedFirstMessage,
 			Messages:           messages,
 			TotalMessagesCount: count,
 		}

@@ -126,9 +126,11 @@ message Forum {
         Topic topic = 1;
         // форум, в который входит тема
         Forum forum = 2;
+        // закрепленное сообщение, если есть
+        TopicMessage pinnedMessage = 3;
         // сообщения
-        repeated TopicMessage messages = 3;
+        repeated TopicMessage messages = 4;
         // страницы
-        Common.Pages pages = 4;
+        Common.Pages pages = 5;
     }
 }

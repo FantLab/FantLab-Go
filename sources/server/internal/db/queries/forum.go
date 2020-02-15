@@ -124,6 +124,7 @@ const (
 		SELECT
 			t.topic_id,
 			t.name AS topic_name,
+			t.is_firstpost AS is_first_message_pinned,
 			f.forum_id,
 			f.name AS forum_name
 		FROM
@@ -163,5 +164,29 @@ const (
 			f.topic_id = ? AND f.number >= ? AND f.number <= ?
 		ORDER BY
 			f.date_of_add %s
+	`
+
+	ForumTopicFirstMessage = `
+		SELECT
+			f.message_id,
+			f.date_of_add,
+			f.user_id,
+			u.login,
+			u.sex,
+			u.photo_number,
+			u.user_class,
+			u.sign,
+			m.message_text,
+			f.is_censored,
+			f.vote_plus,
+			ABS(f.vote_minus) AS vote_minus
+		FROM
+			f_messages f
+		LEFT JOIN
+			users u ON u.user_id = f.user_id
+		JOIN
+			f_messages_text m ON m.message_id = f.message_id
+		WHERE
+			f.topic_id = ? AND f.number = 1
 	`
 )
