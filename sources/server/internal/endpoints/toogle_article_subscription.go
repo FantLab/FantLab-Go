@@ -1,8 +1,10 @@
 package endpoints
 
 import (
+	"fantlab/base/dbtools"
 	"fantlab/pb"
 	"net/http"
+	"strconv"
 
 	"github.com/golang/protobuf/proto"
 )
@@ -21,9 +23,22 @@ func (api *API) ToggleArticleSubscription(r *http.Request) (int, proto.Message) 
 		return api.badParam("id")
 	}
 
-	userId := api.getUserId(r)
+	_, err := api.services.DB().FetchBlogTopic(r.Context(), params.ArticleId)
 
-	var err error
+	if err != nil {
+		if dbtools.IsNotFoundError(err) {
+			return http.StatusNotFound, &pb.Error_Response{
+				Status:  pb.Error_NOT_FOUND,
+				Context: strconv.FormatUint(params.ArticleId, 10),
+			}
+		}
+
+		return http.StatusInternalServerError, &pb.Error_Response{
+			Status: pb.Error_SOMETHING_WENT_WRONG,
+		}
+	}
+
+	userId := api.getUserId(r)
 
 	if params.Subscribe {
 		err = api.services.DB().UpdateBlogTopicSubscribed(r.Context(), params.ArticleId, userId)
