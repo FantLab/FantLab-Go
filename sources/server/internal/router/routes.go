@@ -56,6 +56,7 @@ func Routes(config *config.AppConfig, services *app.Services, pathParamGetter en
 					g.Middleware(middlewares.CheckMinLevel(pb.Common_USERCLASS_PHILOSOPHER))
 
 					g.Endpoint("PUT", "/work/{id}/userclassification", api.SetWorkGenres, "Классификация произведения пользователем")
+					g.Endpoint("PUT", "/forum_messages/{id}/voting", api.SetForumMessageVoting, "Плюс/минус посту в форуме")
 				})
 			})
 		})
