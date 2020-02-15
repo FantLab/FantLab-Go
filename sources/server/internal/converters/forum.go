@@ -159,51 +159,60 @@ func GetTopic(dbResponse *db.ForumTopicMessagesDBResponse, page, limit uint64, c
 		Title: dbResponse.Topic.ForumName,
 	}
 
+	var pinnedMessage *pb.Forum_TopicMessage
+
+	if dbResponse.PinnedFirstMessage != (db.ForumMessage{}) {
+		pinnedMessage = convertMessage(dbResponse.PinnedFirstMessage, cfg)
+	}
+
 	//noinspection GoPreferNilSlice
 	messages := []*pb.Forum_TopicMessage{}
 
 	for _, dbMessage := range dbResponse.Messages {
-		text := dbMessage.MessageText
-
-		if dbMessage.IsCensored != 0 {
-			text = cfg.CensorshipText
-		}
-
-		gender := helpers.GetGender(dbMessage.UserID, dbMessage.Sex)
-		avatar := helpers.GetUserAvatarUrl(cfg.ImagesBaseURL, dbMessage.UserID, dbMessage.PhotoNumber)
-
-		message := &pb.Forum_TopicMessage{
-			Id: dbMessage.MessageID,
-			Creation: &pb.Common_Creation{
-				User: &pb.Common_UserLink{
-					Id:     dbMessage.UserID,
-					Login:  dbMessage.Login,
-					Gender: gender,
-					Avatar: avatar,
-					Class:  helpers.GetUserClass(dbMessage.UserClass),
-					Sign:   dbMessage.Sign,
-				},
-				Date: pbutils.TimestampProto(dbMessage.DateOfAdd),
-			},
-			Text:       text,
-			IsCensored: dbMessage.IsCensored != 0,
-			Stats: &pb.Forum_TopicMessage_Stats{
-				Rating: int64(dbMessage.VotePlus - dbMessage.VoteMinus),
-			},
-		}
-
-		messages = append(messages, message)
+		messages = append(messages, convertMessage(dbMessage, cfg))
 	}
 
 	pageCount := helpers.CalculatePageCount(dbResponse.TotalMessagesCount, limit)
 
 	return &pb.Forum_ForumTopicResponse{
-		Topic:    topic,
-		Forum:    forum,
-		Messages: messages,
+		Topic:         topic,
+		Forum:         forum,
+		PinnedMessage: pinnedMessage,
+		Messages:      messages,
 		Pages: &pb.Common_Pages{
 			Current: page,
 			Count:   pageCount,
+		},
+	}
+}
+
+func convertMessage(dbMessage db.ForumMessage, cfg *config.AppConfig) *pb.Forum_TopicMessage {
+	text := dbMessage.MessageText
+
+	if dbMessage.IsCensored != 0 {
+		text = cfg.CensorshipText
+	}
+
+	gender := helpers.GetGender(dbMessage.UserID, dbMessage.Sex)
+	avatar := helpers.GetUserAvatarUrl(cfg.ImagesBaseURL, dbMessage.UserID, dbMessage.PhotoNumber)
+
+	return &pb.Forum_TopicMessage{
+		Id: dbMessage.MessageID,
+		Creation: &pb.Common_Creation{
+			User: &pb.Common_UserLink{
+				Id:     dbMessage.UserID,
+				Login:  dbMessage.Login,
+				Gender: gender,
+				Avatar: avatar,
+				Class:  helpers.GetUserClass(dbMessage.UserClass),
+				Sign:   dbMessage.Sign,
+			},
+			Date: pbutils.TimestampProto(dbMessage.DateOfAdd),
+		},
+		Text:       text,
+		IsCensored: dbMessage.IsCensored == 1,
+		Stats: &pb.Forum_TopicMessage_Stats{
+			Rating: int64(dbMessage.VotePlus - dbMessage.VoteMinus),
 		},
 	}
 }
