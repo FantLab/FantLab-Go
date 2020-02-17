@@ -1003,7 +1003,7 @@
 
 
 
-**PUT** [/v1/blog_articles/{id}/subscription](../sources/server/internal/endpoints/toogle_article_subscription.go#L10)
+**PUT** [/v1/blog_articles/{id}/subscription](../sources/server/internal/endpoints/toogle_article_subscription.go#L12)
 
 Параметры запроса:
 
@@ -1074,6 +1074,34 @@
 
 
 * **genres** (form, string) - айди жанров, разделённые запятыми
+
+
+
+
+Схема ответа:
+
+```
+{}
+```
+---
+
+</p>
+</details>
+
+<details><summary>Плюс/минус посту в форуме</summary>
+<p>
+
+
+
+**PUT** [/v1/forum_messages/{id}/voting](../sources/server/internal/endpoints/toggle_forum_message_voting.go#L12)
+
+Параметры запроса:
+
+
+* **id** (path, uint64) - id сообщения
+
+
+* **vote** (form, string) - плюс посту - plus, минус посту - minus, удалить голос - none (для модераторов)
 
 
 
