@@ -137,7 +137,7 @@ const (
 
 	ForumTopicMessagesCount = "SELECT COUNT(*) FROM f_messages WHERE topic_id = ?"
 
-	// todo не нужны ли какие-нибудь доп. манипуляции с полем number при чтении
+	// TODO Не нужны ли какие-нибудь доп. манипуляции с полем number при чтении
 	//  (например, при переносе сообщений между темами)?
 	//  https://github.com/parserpro/fantlab/blob/HEAD@%7B2019-06-17T18:16:10Z%7D/pm/Forum.pm#L1011
 	ForumTopicMessages = `
@@ -145,6 +145,7 @@ const (
 			f.message_id,
 			f.date_of_add,
 			f.user_id,
+			f.is_red,
 			u.login,
 			u.sex,
 			u.photo_number,
@@ -153,7 +154,7 @@ const (
 			m.message_text,
 			f.is_censored,
 			f.vote_plus,
-			ABS(f.vote_minus) as vote_minus
+			ABS(f.vote_minus) AS vote_minus
 		FROM
 			f_messages f
 		LEFT JOIN
@@ -189,4 +190,79 @@ const (
 		WHERE
 			f.topic_id = ? AND f.number = 1
 	`
+
+	ForumMessage = `
+		SELECT
+			user_id,
+			is_red,
+			vote_plus,
+			vote_minus
+		FROM
+			f_messages
+		WHERE
+			message_id = ? AND forum_id IN (?)
+	`
+
+	ForumMessageUserVoteCount = `
+		SELECT 
+			COUNT(*) 
+		FROM 
+			f_messages_votes 
+		WHERE 
+			user_id = ? AND message_id = ?
+	`
+
+	UserIsForumModerator = `
+		SELECT
+			COUNT(*)
+		FROM
+			f_messages fm 
+		INNER JOIN 
+			f_moderators fmd ON fm.forum_id = fmd.forum_id 
+		WHERE
+			fmd.user_id = ? AND fm.message_id = ?
+	`
+
+	ForumMessageVoteInsert = `
+		INSERT 
+			f_messages_votes 
+		SET 
+			user_id = ?, message_id = ?, voteone = ?, date_of_vote = NOW()
+	`
+
+	ForumMessageVotePlusUpdate = `
+		UPDATE 
+			f_messages 
+		SET
+			vote_plus = vote_plus + 1
+		WHERE 
+			message_id = ?
+	`
+
+	ForumMessageVoteMinusUpdate = `
+		UPDATE 
+			f_messages 
+		SET 
+			vote_minus = vote_minus - 1
+		WHERE 
+			message_id = ?
+	`
+
+	ForumMessageVoteDelete = `
+		DELETE FROM 
+			f_messages_votes 
+		WHERE 
+			message_id = ?
+	`
+
+	// TODO Неясно, зачем выставляется флаг is_red. Предоложительно, чтобы запретить повторную оценку сообщения после
+	//  удаления его оценки модератором. Но подобное применение флага нивелирует его смысл как стопроцентного индикатора
+	//  модераторского сообщения. Похоже на баг. https://github.com/parserpro/fantlab/issues/945
+	ForumMessageVoteCountUpdateByModerator = `
+		UPDATE 
+			f_messages 
+		SET 
+			is_red = 1, vote_plus = 0, vote_minus = 0 
+		WHERE 
+			message_id = ?`
 )
