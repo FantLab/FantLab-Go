@@ -4,10 +4,9 @@ import (
 	"fantlab/base/dbtools"
 	"fantlab/pb"
 	"fantlab/server/internal/converters"
+	"github.com/golang/protobuf/proto"
 	"net/http"
 	"strconv"
-
-	"github.com/golang/protobuf/proto"
 )
 
 func (api *API) ShowArticle(r *http.Request) (int, proto.Message) {
@@ -32,6 +31,14 @@ func (api *API) ShowArticle(r *http.Request) (int, proto.Message) {
 			}
 		}
 
+		return http.StatusInternalServerError, &pb.Error_Response{
+			Status: pb.Error_SOMETHING_WENT_WRONG,
+		}
+	}
+
+	err = api.services.SetBlogArticleLikeCount(r.Context(), params.ArticleId, dbTopic.LikesCount)
+
+	if err != nil {
 		return http.StatusInternalServerError, &pb.Error_Response{
 			Status: pb.Error_SOMETHING_WENT_WRONG,
 		}

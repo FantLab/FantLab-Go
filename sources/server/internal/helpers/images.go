@@ -1,16 +1,16 @@
 package helpers
 
 import (
-	"strconv"
+	"fmt"
 )
 
 func GetUserAvatarUrl(baseURL string, userId uint64, photoNumber uint64) string {
 	if photoNumber > 0 {
-		return baseURL + "/users/" + strconv.FormatUint(userId, 10) + "_" + strconv.FormatUint(photoNumber, 10)
+		return fmt.Sprintf("%s/users/%d_%d", baseURL, userId, photoNumber)
 	}
 	return ""
 }
 
 func GetCommunityAvatarUrl(baseURL string, communityId uint64) string {
-	return baseURL + "/communities/" + strconv.FormatUint(communityId, 10) + ".jpg"
+	return fmt.Sprintf("%s/communities/%d.jpg", baseURL, communityId)
 }
