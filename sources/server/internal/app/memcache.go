@@ -2,8 +2,8 @@ package app
 
 import (
 	"context"
-	"encoding/binary"
 	"fmt"
+	"strconv"
 	"time"
 )
 
@@ -16,11 +16,12 @@ func (s *Services) GetBlogArticleLikeCount(ctx context.Context, articleId uint64
 		return 0, err
 	}
 
-	return binary.BigEndian.Uint64(likeCountBytes), nil
+	likeCount, err := strconv.Atoi(string(likeCountBytes))
+
+	return uint64(likeCount), err
 }
 
 func (s *Services) SetBlogArticleLikeCount(ctx context.Context, articleId, likeCount uint64) error {
-	bytes := make([]byte, 8)
-	binary.BigEndian.PutUint64(bytes, likeCount)
+	bytes := []byte(strconv.Itoa(int(likeCount)))
 	return s.memcache.Set(ctx, fmt.Sprintf(articleLikeCountKey, articleId), bytes, time.Now().Add(1*time.Hour))
 }
