@@ -18,7 +18,7 @@ type client struct {
 func (cl *client) Add(ctx context.Context, key string, value []byte, ttl time.Time) error {
 	return cl.api.Add(&memcache.Item{
 		Key:        key,
-		Value:      []byte(value),
+		Value:      value,
 		Expiration: int32(ttl.Unix()),
 	})
 }
@@ -26,7 +26,7 @@ func (cl *client) Add(ctx context.Context, key string, value []byte, ttl time.Ti
 func (cl *client) Set(ctx context.Context, key string, value []byte, ttl time.Time) error {
 	return cl.api.Set(&memcache.Item{
 		Key:        key,
-		Value:      []byte(value),
+		Value:      value,
 		Expiration: int32(ttl.Unix()),
 	})
 }

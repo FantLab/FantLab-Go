@@ -42,7 +42,7 @@ func (api *API) ToggleArticleLike(r *http.Request) (int, proto.Message) {
 	if dbTopic.UserId == userId {
 		return http.StatusUnauthorized, &pb.Error_Response{
 			Status:  pb.Error_ACTION_PERMITTED,
-			Context: "your own article",
+			Context: "Нельзя лайкнуть собственную статью",
 		}
 	}
 
@@ -59,6 +59,14 @@ func (api *API) ToggleArticleLike(r *http.Request) (int, proto.Message) {
 	}
 
 	dbTopicLikeCount, err := api.services.DB().FetchBlogTopicLikeCount(r.Context(), params.ArticleId)
+
+	if err != nil {
+		return http.StatusInternalServerError, &pb.Error_Response{
+			Status: pb.Error_SOMETHING_WENT_WRONG,
+		}
+	}
+
+	err = api.services.SetBlogArticleLikeCount(r.Context(), params.ArticleId, dbTopicLikeCount)
 
 	if err != nil {
 		return http.StatusInternalServerError, &pb.Error_Response{
