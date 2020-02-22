@@ -9,6 +9,10 @@ import (
 	"time"
 )
 
+const (
+	blogArticleCommentsMaxDepth = 50
+)
+
 type Community struct {
 	BlogId          uint64    `db:"blog_id"`
 	Name            string    `db:"name"`
@@ -94,6 +98,18 @@ type BlogsDBResponse struct {
 type BlogTopicsDBResponse struct {
 	Topics           []BlogTopic
 	TotalTopicsCount uint64
+}
+
+type BlogTopicComment struct {
+	MessageId       uint64    `db:"message_id"`
+	ParentMessageId uint64    `db:"parent_message_id"`
+	Text            string    `db:"content"`
+	DateOfAdd       time.Time `db:"date_of_add"`
+	IsCensored      uint8     `db:"is_censored"`
+	UserId          uint64    `db:"user_id"`
+	UserLogin       string    `db:"login"`
+	UserSex         uint8     `db:"sex"`
+	UserPhotoNumber uint64    `db:"photo_number"`
 }
 
 func (db *DB) FetchCommunities(ctx context.Context) ([]Community, error) {
@@ -240,4 +256,14 @@ func (db *DB) FetchBlogTopic(ctx context.Context, topicId uint64) (*BlogTopic, e
 	}
 
 	return &topic, nil
+}
+
+func (db *DB) FetchBlogArticleCommentsCount(ctx context.Context, topicId uint64) (result uint64, err error) {
+	err = db.engine.Read(ctx, sqlr.NewQuery(queries.BlogArticleCommentsCount).WithArgs(topicId)).Scan(&result)
+	return
+}
+
+func (db *DB) FetchBlogArticleComments(ctx context.Context, topicId uint64, after time.Time, sort string, count uint8) (response []BlogTopicComment, err error) {
+	err = db.engine.Read(ctx, sqlr.NewQuery(queries.BlogArticleComments).Inject(sort).WithArgs(topicId, after, count, blogArticleCommentsMaxDepth)).Scan(&response)
+	return
 }

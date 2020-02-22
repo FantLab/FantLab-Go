@@ -674,7 +674,7 @@
 
 
 
-**GET** [/v1/blog_articles/{id}](../sources/server/internal/endpoints/show_article.go#L13)
+**GET** [/v1/blog_articles/{id}](../sources/server/internal/endpoints/show_article.go#L12)
 
 Параметры запроса:
 
@@ -827,6 +827,63 @@
     publish_status: [int32]  # статус публикации (не закончено, в планах, etc.)
     subworks: [...]          # дочерние произведения
   }]
+}
+```
+---
+
+</p>
+</details>
+
+<details><summary>Комментарии к статье в блоге</summary>
+<p>
+
+
+
+**GET** [/v1/blog_articles/{id}/comments](../sources/server/internal/endpoints/blog_article_comments.go#L14)
+
+Параметры запроса:
+
+
+* **id** (path, uint64) - айди статьи
+
+
+* **after** (query, string) - дата, после которой искать сообщения (в формате RFC3339)
+
+
+* **count** (query, uint64) - кол-во комментариев верхнего уровня (по умолчанию - 10, [5, 20])
+
+
+* **sort** (query, string) - Сортировка (asc, dec, по умолчанию - asc)
+
+
+
+
+Схема ответа:
+
+```
+{
+  comments: [{          # список комментариев
+    id: uint64          # id сообщения
+    creation: {         # данные о создании
+      user: {           # пользователь
+        id: uint64      # id пользователя
+        login: string   # логин
+        name: string    # имя
+        gender: int32   # пол
+        avatar: string  # аватар
+        class: int32    # класс
+        sign: string    # подпись на форуме
+      }
+      date: {           # дата создания
+        seconds: int64
+        nanos: int32
+      }
+    }
+    text: string        # текст сообщения
+    is_censored: bool   # текст изъят модератором?
+    answers: [...]      # ответы на комментарий
+  }]
+  total_count: uint64   # общее ко-во комментариев у поста
 }
 ```
 ---
