@@ -240,4 +240,27 @@ const (
 		WHERE
 			b.topic_id = ? AND b.is_opened > 0
 	`
+
+	BlogArticleComments = `
+		WITH RECURSIVE CTE (message_id, parent_message_id, is_censored, date_of_add, user_id, depth) AS (
+			(
+				SELECT message_id, parent_message_id, is_censored, date_of_add, user_id, 0 AS depth
+				FROM b_messages
+				WHERE topic_id = ? AND parent_message_id = 0 AND date_of_add > ?
+				ORDER BY date_of_add %s
+				LIMIT ?
+			)
+			UNION ALL
+			SELECT bm.message_id, bm.parent_message_id, bm.is_censored, bm.date_of_add, bm.user_id, cte.depth + 1 AS depth
+			FROM b_messages bm
+			INNER JOIN cte ON bm.parent_message_id = cte.message_id
+			WHERE depth + 1 < ?
+		)
+		SELECT c.message_id, c.parent_message_id, c.date_of_add, c.is_censored, u.user_id, u.login, u.sex, u.photo_number, IF(c.is_censored, '', bmt.message_text) AS content
+		FROM cte c
+		LEFT JOIN users u ON c.user_id = u.user_id
+		LEFT JOIN b_messages_text bmt ON bmt.message_id = c.message_id
+	`
+
+	BlogArticleCommentsCount = "SELECT COUNT(*) FROM b_messages WHERE topic_id = ?"
 )

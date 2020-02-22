@@ -85,6 +85,19 @@ message Blog {
         LastArticle last_article = 5;
     }
 
+    message Comment {
+        // id сообщения
+        uint64 id = 1;
+        // данные о создании
+        Common.Creation creation = 2;
+        // текст сообщения
+        string text = 3;
+        // текст изъят модератором?
+        bool is_censored = 4;
+        // ответы на комментарий
+        repeated Comment answers = 5;
+    }
+
     message CommunitiesResponse {
         // основные рубрики
         repeated Community main = 1;
@@ -127,5 +140,12 @@ message Blog {
     message BlogArticleLikeResponse {
         // количество лайков
         uint64 like_count = 1;
+    }
+
+    message BlogArticleCommentsResponse {
+        // список комментариев
+        repeated Comment comments = 1;
+        // общее ко-во комментариев у поста
+        uint64 total_count = 2;
     }
 }

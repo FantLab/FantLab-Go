@@ -254,3 +254,45 @@ func GetArticle(dbBlogTopic *db.BlogTopic, cfg *config.AppConfig) *pb.Blog_BlogA
 		Article: article,
 	}
 }
+
+func GetBlogArticleComments(entries []db.BlogTopicComment, totalCount uint64, cfg *config.AppConfig) *pb.Blog_BlogArticleCommentsResponse {
+	messageTable := make(map[uint64]*pb.Blog_Comment)
+
+	for _, entry := range entries {
+		messageTable[entry.MessageId] = &pb.Blog_Comment{
+			Id: entry.MessageId,
+			Creation: &pb.Common_Creation{
+				User: &pb.Common_UserLink{
+					Id:     entry.UserId,
+					Login:  entry.UserLogin,
+					Gender: helpers.GetGender(entry.UserId, entry.UserSex),
+					Avatar: helpers.GetUserAvatarUrl(cfg.ImagesBaseURL, entry.UserId, entry.UserPhotoNumber),
+				},
+				Date: pbutils.TimestampProto(entry.DateOfAdd),
+			},
+			Text:       entry.Text,
+			IsCensored: entry.IsCensored > 0,
+		}
+	}
+
+	response := new(pb.Blog_BlogArticleCommentsResponse)
+
+	for _, entry := range entries {
+		comment := messageTable[entry.MessageId]
+		if comment == nil {
+			continue
+		}
+
+		parentComment := messageTable[entry.ParentMessageId]
+
+		if parentComment == nil {
+			response.Comments = append(response.Comments, comment)
+		} else {
+			parentComment.Answers = append(parentComment.Answers, comment)
+		}
+	}
+
+	response.TotalCount = totalCount
+
+	return response
+}

@@ -31,6 +31,7 @@ func Routes(config *config.AppConfig, services *app.Services, pathParamGetter en
 		g.Endpoint("GET", "/allgenres", api.ShowGenres, "Список жанров")
 		g.Endpoint("GET", "/work/{id}/classification", api.GetWorkClassification, "Классификация произведения")
 		g.Endpoint("GET", "/work/{id}/subworks", api.GetWorkSubWorks, "Иерархия произведений, входящих в запрашиваемое")
+		g.Endpoint("GET", "/blog_articles/{id}/comments", api.BlogArticleComments, "Комментарии к статье в блоге")
 	})
 
 	g.Subgroup("Для зарегистрированных пользователей", func(g *routing.Group) {
