@@ -3,9 +3,10 @@ package db
 import (
 	"context"
 	"fantlab/base/codeflow"
-	"fantlab/base/dbtools"
+	"fantlab/base/dbtools/sqlbuilder"
 	"fantlab/base/dbtools/sqlr"
 	"fantlab/server/internal/db/queries"
+	"fantlab/server/internal/helpers"
 	"time"
 )
 
@@ -29,7 +30,8 @@ type Forum struct {
 }
 
 type ForumTopic struct {
-	TopicID         uint64    `db:"topic_id"`
+	TopicId         uint64    `db:"topic_id"`
+	ForumId         uint64    `db:"forum_id"`
 	Name            string    `db:"name"`
 	DateOfAdd       time.Time `db:"date_of_add"`
 	Views           uint64    `db:"views"`
@@ -48,6 +50,7 @@ type ForumTopic struct {
 	LastPhotoNumber uint64    `db:"last_photo_number"`
 	LastMessageText string    `db:"last_message_text"`
 	LastMessageDate time.Time `db:"last_message_date"`
+	IsModerated     uint8     `db:"moderated"`
 }
 
 type ShortForumTopic struct {
@@ -59,20 +62,20 @@ type ShortForumTopic struct {
 }
 
 type ForumMessage struct {
-	MessageID uint64    `db:"message_id"`
-	DateOfAdd time.Time `db:"date_of_add"`
-	UserID    uint64    `db:"user_id"`
-	// модераторское?
-	IsRed       uint8  `db:"is_red"`
-	Login       string `db:"login"`
-	Sex         uint8  `db:"sex"`
-	PhotoNumber uint64 `db:"photo_number"`
-	UserClass   uint8  `db:"user_class"`
-	Sign        string `db:"sign"`
-	MessageText string `db:"message_text"`
-	IsCensored  uint8  `db:"is_censored"`
-	VotePlus    uint64 `db:"vote_plus"`
-	VoteMinus   uint64 `db:"vote_minus"`
+	MessageID   uint64    `db:"message_id"`
+	TopicId     uint64    `db:"topic_id"`
+	DateOfAdd   time.Time `db:"date_of_add"`
+	UserID      uint64    `db:"user_id"`
+	IsRed       uint8     `db:"is_red"` // модераторское?
+	Login       string    `db:"login"`
+	Sex         uint8     `db:"sex"`
+	PhotoNumber uint64    `db:"photo_number"`
+	UserClass   uint8     `db:"user_class"`
+	Sign        string    `db:"sign"`
+	MessageText string    `db:"message_text"`
+	IsCensored  uint8     `db:"is_censored"`
+	VotePlus    uint64    `db:"vote_plus"`
+	VoteMinus   uint64    `db:"vote_minus"`
 }
 
 type ForumModerator struct {
@@ -213,7 +216,7 @@ func (db *DB) FetchTopicMessages(ctx context.Context, availableForums []uint64, 
 func (db *DB) FetchForumMessage(ctx context.Context, messageId uint64, availableForums []uint64) (*ForumMessage, error) {
 	var message ForumMessage
 
-	err := db.engine.Read(ctx, sqlr.NewQuery(queries.ForumMessage).WithArgs(messageId, availableForums).FlatArgs()).Scan(&message)
+	err := db.engine.Read(ctx, sqlr.NewQuery(queries.ForumGetShortMessage).WithArgs(messageId, availableForums).FlatArgs()).Scan(&message)
 
 	if err != nil {
 		return nil, err
@@ -234,10 +237,10 @@ func (db *DB) FetchForumMessageUserVoteCount(ctx context.Context, userId, messag
 	return count, nil
 }
 
-func (db *DB) FetchUserIsForumModerator(ctx context.Context, userId, messageId uint64) (bool, error) {
+func (db *DB) FetchUserIsForumModerator(ctx context.Context, userId, topicId uint64) (bool, error) {
 	var userIsForumModerator uint8
 
-	err := db.engine.Read(ctx, sqlr.NewQuery(queries.UserIsForumModerator).WithArgs(userId, messageId)).Scan(&userIsForumModerator)
+	err := db.engine.Read(ctx, sqlr.NewQuery(queries.UserIsForumModerator).WithArgs(userId, topicId)).Scan(&userIsForumModerator)
 
 	if err != nil {
 		return false, err
@@ -246,45 +249,113 @@ func (db *DB) FetchUserIsForumModerator(ctx context.Context, userId, messageId u
 	return userIsForumModerator == 1, nil
 }
 
-func (db *DB) UpdateForumMessageVotedPlus(ctx context.Context, messageId, userId uint64) error {
-	return db.engine.InTransaction(func(rw sqlr.ReaderWriter) error {
+func (db *DB) InsertNewForumMessage(ctx context.Context, topic *ForumTopic, userId uint64, login string, text string, isRed uint8, forumMessagesInPage uint64) error {
+	err := db.engine.InTransaction(func(rw sqlr.ReaderWriter) error {
+		var message ForumMessage
+
 		return codeflow.Try(
-			func() error {
-				return rw.Write(ctx, sqlr.NewQuery(queries.ForumMessageVoteInsert).WithArgs(userId, messageId, 1)).Error
+			func() error { // Создаем новое сообщение
+				// TODO Поле проставляется для подсчета баллов, однако в методе расчета абсолютно не учитывается нерусский текст
+				//  (например, если писать в "English forum", рейтинг никак не поменяется). Выглядит как очередной баг.
+				messageLength := len(helpers.RemoveImmeasurable(text))
+				return rw.Write(ctx, sqlr.NewQuery(queries.ForumInsertNewMessage).WithArgs(messageLength, topic.TopicId, userId, topic.ForumId, isRed, topic.TopicId)).Error
 			},
-			func() error {
-				return rw.Write(ctx, sqlr.NewQuery(queries.ForumMessageVotePlusUpdate).WithArgs(messageId)).Error
+			func() error { // Получаем данные свежесозданного сообщения
+				return rw.Read(ctx, sqlr.NewQuery(queries.ForumGetTopicLastMessage).WithArgs(topic.TopicId)).Scan(&message)
+			},
+			func() error { // Сохраняем текст сообщения
+				return rw.Write(ctx, sqlr.NewQuery(queries.ForumSetMessageText).WithArgs(message.MessageID, text)).Error
+			},
+			func() error { // Удаляем, если есть, черновик сообщения для данной темы
+				return rw.Write(ctx, sqlr.NewQuery(queries.ForumCancelTopicMessagePreview).WithArgs(userId, topic.TopicId)).Error
+			},
+			func() error { // Обновляем статистику пользователя, выставляем флаг для Cron-а
+				return rw.Write(ctx, sqlr.NewQuery(queries.ForumUpdateUserStat).WithArgs(userId)).Error
+			},
+			func() error { // Обновляем статистику форума
+				return updateForumStat(ctx, rw, topic, forumMessagesInPage, message.MessageID, userId, login)
 			},
 		)
 	})
-}
 
-func (db *DB) UpdateForumMessageVotedMinus(ctx context.Context, messageId, userId uint64) error {
-	return db.engine.InTransaction(func(rw sqlr.ReaderWriter) error {
-		return codeflow.Try(
-			func() error {
-				return rw.Write(ctx, sqlr.NewQuery(queries.ForumMessageVoteInsert).WithArgs(userId, messageId, -1)).Error
-			},
-			func() error {
-				return rw.Write(ctx, sqlr.NewQuery(queries.ForumMessageVoteMinusUpdate).WithArgs(messageId)).Error
-			},
-		)
-	})
-}
-
-func (db *DB) UpdateForumMessageVoteDeleted(ctx context.Context, messageId uint64) error {
-	return db.engine.InTransaction(func(rw sqlr.ReaderWriter) error {
-		err := codeflow.Try(
-			func() error {
-				return rw.Write(ctx, sqlr.NewQuery(queries.ForumMessageVoteDelete).WithArgs(messageId)).Error
-			},
-			func() error {
-				return rw.Write(ctx, sqlr.NewQuery(queries.ForumMessageVoteCountUpdateByModerator).WithArgs(messageId)).Error
-			},
-		)
-		if dbtools.IsNotFoundError(err) {
-			return nil
-		}
+	if err != nil {
 		return err
-	})
+	}
+
+	return notifyForumTopicSubscribers(ctx, db.engine, topic.TopicId)
+}
+
+func updateForumStat(ctx context.Context, rw sqlr.ReaderWriter, topic *ForumTopic, forumMessagesInPage, messageId, userId uint64, login string) error {
+	if topic.IsModerated == 0 {
+		return nil
+	}
+
+	type forumStat struct {
+		TopicCount   uint64 `db:"topic_count"`
+		MessageCount uint64 `db:"forum_message_count"`
+	}
+	var stat forumStat
+	var topicMessageCount uint64
+
+	return codeflow.Try(
+		func() error { // Обновляем данные о последнем сообщении в теме, выставляем флаги для Cron-а
+			return rw.Write(ctx, sqlr.NewQuery(queries.ForumSetTopicLastMessage).WithArgs(messageId, userId, login, topic.TopicId)).Error
+		},
+		func() error { // Получаем обновленную статистику форума
+			return rw.Read(ctx, sqlr.NewQuery(queries.ForumGetStat).WithArgs(topic.ForumId)).Scan(&stat)
+		},
+		func() error { // Получаем количество сообщений в теме
+			return rw.Read(ctx, sqlr.NewQuery(queries.ForumGetTopicMessageCount).WithArgs(topic.TopicId)).Scan(&topicMessageCount)
+		},
+		func() error { // Обновляем данные о последней теме в форуме
+			pageCount := helpers.CalculatePageCount(topicMessageCount, forumMessagesInPage)
+			return rw.Write(ctx, sqlr.NewQuery(queries.ForumSetForumLastTopic).
+				WithArgs(stat.MessageCount, stat.TopicCount, messageId, userId, login, topic.TopicId, topic.Name, pageCount, topic.ForumId)).Error
+		},
+	)
+}
+
+func notifyForumTopicSubscribers(ctx context.Context, rw sqlr.ReaderWriter, topicId uint64) error {
+	var message ForumMessage
+	var topicSubscribers []uint64
+
+	type newForumAnswerEntry struct {
+		TopicId     uint64    `db:"topic_id"`
+		UserId      uint64    `db:"user_id"`
+		MessageId   uint64    `db:"message_id"`
+		MessageDate time.Time `db:"date_of_add"`
+	}
+
+	err := codeflow.Try(
+		func() error { // Получаем данные сообщения
+			return rw.Read(ctx, sqlr.NewQuery(queries.ForumGetTopicLastMessage).WithArgs(topicId)).Scan(&message)
+		},
+		func() error { // Получаем список подписчиков на обновления темы (за вычетом автора сообщения)
+			return rw.Read(ctx, sqlr.NewQuery(queries.ForumGetTopicSubscribers).WithArgs(topicId, message.UserID)).Scan(&topicSubscribers)
+		},
+		func() error { // Обновляем статистику новых ответов в форуме для подписчиков
+			return rw.Write(ctx, sqlr.NewQuery(queries.ForumUpdateNewForumAnswersCount).WithArgs(topicSubscribers).FlatArgs()).Error
+		},
+	)
+
+	if err != nil {
+		return err
+	}
+
+	// Добавляем оповещение для подписчиков о новом сообщении в теме. Не в транзакции, поскольку запрос тяжелый.
+	entries := make([]interface{}, len(topicSubscribers))
+	for index, userId := range topicSubscribers {
+		entries[index] = newForumAnswerEntry{
+			TopicId:     topicId,
+			UserId:      userId,
+			MessageId:   message.MessageID,
+			MessageDate: message.DateOfAdd,
+		}
+	}
+	return rw.Write(ctx, sqlbuilder.InsertInto(queries.NewForumAnswersTable, entries...)).Error
+}
+
+func (db *DB) FetchForumTopicSubscribers(ctx context.Context, topicId, excludedUserId uint64) (subscribers []uint64, err error) {
+	err = db.engine.Read(ctx, sqlr.NewQuery(queries.ForumGetTopicSubscribers).WithArgs(topicId, excludedUserId)).Scan(&subscribers)
+	return
 }

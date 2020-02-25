@@ -971,6 +971,34 @@
 ## С проверкой на бан
 
 
+<details><summary>Создание нового сообщения в форуме</summary>
+<p>
+
+
+
+**POST** [/v1/topics/{id}/message](../sources/server/internal/endpoints/add_forum_message.go#L12)
+
+Параметры запроса:
+
+
+* **id** (path, uint64) - id темы
+
+
+* **message** (form, string) - текст сообщения
+
+
+
+
+Схема ответа:
+
+```
+{}
+```
+---
+
+</p>
+</details>
+
 <details><summary>Подписка/отписка от темы форума</summary>
 <p>
 

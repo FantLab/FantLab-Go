@@ -36,7 +36,7 @@ func (api *API) ShowArticle(r *http.Request) (int, proto.Message) {
 		}
 	}
 
-	err = api.services.SetBlogArticleLikeCount(r.Context(), params.ArticleId, dbTopic.LikesCount)
+	err = api.services.SetBlogArticleLikeCountCache(r.Context(), params.ArticleId, dbTopic.LikesCount)
 
 	if err != nil {
 		return http.StatusInternalServerError, &pb.Error_Response{

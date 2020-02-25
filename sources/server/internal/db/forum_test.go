@@ -240,7 +240,7 @@ func Test_FetchForumTopics(t *testing.T) {
 		assert.DeepEqual(t, topics, &ForumTopicsDBResponse{
 			Topics: []ForumTopic{
 				{
-					TopicID:         327,
+					TopicId:         327,
 					Name:            "Раздел \"Авторы, книги\"",
 					DateOfAdd:       now,
 					Views:           519,
@@ -259,7 +259,7 @@ func Test_FetchForumTopics(t *testing.T) {
 					LastMessageDate: now,
 				},
 				{
-					TopicID:         47,
+					TopicId:         47,
 					Name:            "Хочу застолбить за собой автора!",
 					DateOfAdd:       now,
 					Views:           1969,
