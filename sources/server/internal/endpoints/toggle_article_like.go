@@ -66,7 +66,7 @@ func (api *API) ToggleArticleLike(r *http.Request) (int, proto.Message) {
 		}
 	}
 
-	err = api.services.SetBlogArticleLikeCount(r.Context(), params.ArticleId, dbTopicLikeCount)
+	err = api.services.SetBlogArticleLikeCountCache(r.Context(), params.ArticleId, dbTopicLikeCount)
 
 	if err != nil {
 		return http.StatusInternalServerError, &pb.Error_Response{

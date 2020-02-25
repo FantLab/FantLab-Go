@@ -1,6 +1,10 @@
 package queries
 
 const (
+	NewForumAnswersTable = "f_new_messages"
+)
+
+const (
 	Forums = `
 		SELECT
 			f.forum_id,
@@ -68,7 +72,8 @@ const (
 			u2.user_id AS last_user_id,
 			u2.photo_number AS last_photo_number,
 			m.message_text AS last_message_text,
-			t.last_message_date
+			t.last_message_date,
+			t.moderated
 		FROM
 			f_topics t
 		LEFT JOIN
@@ -88,6 +93,7 @@ const (
 	ForumTopic = `
 		SELECT
 			t.topic_id,
+			t.forum_id,
 			t.name,
 			t.date_of_add,
 			t.views,
@@ -103,7 +109,8 @@ const (
 			u2.user_id AS last_user_id,
 			u2.photo_number AS last_photo_number,
 			m.message_text AS last_message_text,
-			t.last_message_date
+			t.last_message_date,
+			t.moderated
 		FROM
 			f_topics t
 		LEFT JOIN
@@ -143,6 +150,7 @@ const (
 	ForumTopicMessages = `
 		SELECT
 			f.message_id,
+			f.topic_id,
 			f.date_of_add,
 			f.user_id,
 			f.is_red,
@@ -170,6 +178,7 @@ const (
 	ForumTopicFirstMessage = `
 		SELECT
 			f.message_id,
+			f.topic_id,
 			f.date_of_add,
 			f.user_id,
 			u.login,
@@ -191,8 +200,9 @@ const (
 			f.topic_id = ? AND f.number = 1
 	`
 
-	ForumMessage = `
+	ForumGetShortMessage = `
 		SELECT
+			topic_id,
 			user_id,
 			is_red,
 			vote_plus,
@@ -203,66 +213,142 @@ const (
 			message_id = ? AND forum_id IN (?)
 	`
 
-	ForumMessageUserVoteCount = `
-		SELECT 
-			COUNT(*) 
-		FROM 
-			f_messages_votes 
-		WHERE 
-			user_id = ? AND message_id = ?
-	`
-
 	UserIsForumModerator = `
 		SELECT
 			COUNT(*)
 		FROM
-			f_messages fm 
+			f_topics ft 
 		INNER JOIN 
-			f_moderators fmd ON fm.forum_id = fmd.forum_id 
+			f_moderators fmd ON ft.forum_id = fmd.forum_id 
 		WHERE
-			fmd.user_id = ? AND fm.message_id = ?
+			fmd.user_id = ? AND ft.topic_id = ?
 	`
 
-	ForumMessageVoteInsert = `
-		INSERT 
-			f_messages_votes 
-		SET 
-			user_id = ?, message_id = ?, voteone = ?, date_of_vote = NOW()
+	ForumInsertNewMessage = `
+		INSERT INTO
+			f_messages (
+				message_length,
+				topic_id,
+				user_id,
+				forum_id,
+				is_red,
+				date_of_add,
+				date_of_edit,
+				number
+			)
+		SELECT
+			?, ?, ?, ?, ?, NOW(), NOW(), COALESCE(MAX(number), 0) + 1
+		FROM
+			f_messages
+		WHERE
+			topic_id = ?
 	`
 
-	ForumMessageVotePlusUpdate = `
-		UPDATE 
+	ForumGetTopicLastMessage = `
+		SELECT 
+			* 
+		FROM 
 			f_messages 
+		WHERE
+			topic_id = ?
+		ORDER BY 
+			message_id DESC 
+		LIMIT 1
+	`
+
+	ForumSetMessageText = `
+		REPLACE
+			f_messages_text
 		SET
-			vote_plus = vote_plus + 1
-		WHERE 
-			message_id = ?
+			message_id = ?,
+			message_text = ?
 	`
 
-	ForumMessageVoteMinusUpdate = `
-		UPDATE 
-			f_messages 
-		SET 
-			vote_minus = vote_minus - 1
-		WHERE 
-			message_id = ?
+	ForumCancelTopicMessagePreview = `
+		DELETE FROM
+			f_messages_preview
+		WHERE
+			user_id = ? AND topic_id = ?
 	`
 
-	ForumMessageVoteDelete = `
-		DELETE FROM 
-			f_messages_votes 
-		WHERE 
-			message_id = ?
+	ForumUpdateUserStat = `
+		UPDATE
+			users
+		SET
+			messagecount = messagecount + 1,
+			need_recalc_level = 1
+		WHERE
+			user_id = ?
 	`
 
-	// TODO Неясно, зачем выставляется флаг is_red. Предоложительно, чтобы запретить повторную оценку сообщения после
-	//  удаления его оценки модератором. Но подобное применение флага нивелирует его смысл как стопроцентного индикатора
-	//  модераторского сообщения. Похоже на баг. https://github.com/parserpro/fantlab/issues/945
-	ForumMessageVoteCountUpdateByModerator = `
-		UPDATE 
-			f_messages 
-		SET 
-			is_red = 1, vote_plus = 0, vote_minus = 0 
-		WHERE 
-			message_id = ?`
+	// need_sindex - тема требует переиндексации Sphinx-ом, need_update_numbers - требует пересчета number для сообщений
+	ForumSetTopicLastMessage = `
+		UPDATE
+			f_topics
+		SET
+			message_count = message_count + 1,
+			last_message_id = ?,
+			last_user_id = ?,
+			last_user_name = ?,
+			last_message_date = NOW(),
+			need_sindex = 1,
+			need_update_numbers = 1
+		WHERE
+			topic_id = ?
+	`
+
+	// SUM возвращает значение типа DECIMAL (https://dev.mysql.com/doc/refman/8.0/en/group-by-functions.html)
+	ForumGetStat = `
+		SELECT
+			COUNT(*) AS topic_count,
+			CAST(SUM(message_count) AS SIGNED) AS forum_message_count
+		FROM
+			f_topics
+		WHERE
+			forum_id = ? AND moderated = 1
+	`
+
+	ForumGetTopicMessageCount = `
+		SELECT
+			message_count
+		FROM
+			f_topics
+		WHERE
+			topic_id = ?
+	`
+
+	ForumSetForumLastTopic = `
+		UPDATE
+			f_forums
+		SET
+			message_count = ?,
+			topic_count = ?,
+			last_message_id = ?,
+			last_user_id = ?,
+			last_user_name = ?,
+			last_topic_id = ?,
+			last_topic_name = ?,
+			last_message_date = NOW(),
+			last_topic_page_count = ?
+		WHERE
+			forum_id = ?
+	`
+
+	ForumGetTopicSubscribers = `
+		SELECT
+			user_id
+		FROM
+			f_topics_subscribers
+		WHERE
+			topic_id = ? AND user_id != ?
+	`
+
+	ForumUpdateNewForumAnswersCount = `
+		UPDATE
+			users
+		SET
+			new_forum_answers = new_forum_answers + 1
+		WHERE
+			user_id IN (?)
+	`
 )

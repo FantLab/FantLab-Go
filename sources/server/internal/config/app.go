@@ -15,6 +15,8 @@ type AppConfig struct {
 	BlogTopicsInPage      uint64
 	ForumTopicsInPage     uint64
 	ForumMessagesInPage   uint64
+	MaxForumMessageLength uint64
 	DefaultAccessToForums []uint64
 	CensorshipText        string
+	BotUserId             uint64
 }

@@ -103,7 +103,7 @@ func GetForumTopics(dbResponse *db.ForumTopicsDBResponse, page, limit uint64, cf
 		lastMessageUserAvatar := helpers.GetUserAvatarUrl(cfg.ImagesBaseURL, dbTopic.LastUserID, dbTopic.LastPhotoNumber)
 
 		topic := &pb.Forum_Topic{
-			Id:        dbTopic.TopicID,
+			Id:        dbTopic.TopicId,
 			Title:     dbTopic.Name,
 			TopicType: topicType,
 			Creation: &pb.Common_Creation{

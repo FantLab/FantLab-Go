@@ -78,15 +78,17 @@ func makeCryptoCoder() *edsign.Coder {
 
 func makeConfig(imagesBaseURL string) *config.AppConfig {
 	return &config.AppConfig{
-		ImagesBaseURL:       imagesBaseURL,
-		BlogsInPage:         50,
-		BlogTopicsInPage:    5,
-		ForumTopicsInPage:   20,
-		ForumMessagesInPage: 20,
+		ImagesBaseURL:         imagesBaseURL,
+		BlogsInPage:           50,
+		BlogTopicsInPage:      5,
+		ForumTopicsInPage:     20,
+		ForumMessagesInPage:   20,
+		MaxForumMessageLength: 20000,
 		// https://github.com/parserpro/fantlab/blob/ea456f3e8b8f9e02ab13ca2cdb9c335d36884d93/config/main.cfg#L402
 		// 20 (один из первоапрельских форумов) убрал из списка
 		DefaultAccessToForums: []uint64{1, 2, 3, 5, 6, 7, 8, 10, 12, 13, 14, 15, 16, 17, 22},
 		// https://github.com/parserpro/fantlab/blob/ce769f66c5eacd59f487de840eb4bf62cac733a2/config/misc.cfg#L71
 		CensorshipText: "Сообщение изъято модератором",
+		BotUserId:      2, // Р. Букашка
 	}
 }

@@ -60,7 +60,7 @@ func (api *API) SetForumMessageVoting(r *http.Request) (int, proto.Message) {
 		}
 	}
 
-	userIsForumModerator, err := api.services.DB().FetchUserIsForumModerator(r.Context(), userId, params.MessageId)
+	userIsForumModerator, err := api.services.DB().FetchUserIsForumModerator(r.Context(), userId, message.TopicId)
 
 	if err != nil {
 		return http.StatusInternalServerError, &pb.Error_Response{

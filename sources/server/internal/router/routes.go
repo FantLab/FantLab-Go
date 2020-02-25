@@ -46,6 +46,7 @@ func Routes(config *config.AppConfig, services *app.Services, pathParamGetter en
 			g.Subgroup("С проверкой на бан", func(g *routing.Group) {
 				g.Middleware(middlewares.CheckBan(services))
 
+				g.Endpoint("POST", "/topics/{id}/message", api.AddForumMessage, "Создание нового сообщения в форуме")
 				g.Endpoint("PUT", "/topics/{id}/subscription", api.ToggleForumTopicSubscription, "Подписка/отписка от темы форума")
 				g.Endpoint("PUT", "/communities/{id}/subscription", api.ToggleCommunitySubscription, "Вступление/выход из сообщества")
 				g.Endpoint("PUT", "/blogs/{id}/subscription", api.ToggleBlogSubscription, "Подписка/отписка от блога")
