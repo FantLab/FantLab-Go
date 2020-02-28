@@ -1,10 +1,12 @@
 package server
 
 import (
+	"context"
 	"database/sql"
 	"encoding/base64"
 	"fantlab/base/edsign"
 	"fantlab/base/logs/logger"
+	"fantlab/base/redisco"
 	"fantlab/docs"
 	"fantlab/server/internal/app"
 	"fantlab/server/internal/config"
@@ -24,7 +26,18 @@ func Start() {
 	isDebug := os.Getenv("DEBUG") == "1"
 
 	mysqlDB, closeDB := makeDB(os.Getenv("MYSQL_URL"))
-	defer closeDB()
+	defer func() {
+		if err := closeDB(); err != nil {
+			log.Println(err)
+		}
+	}()
+
+	redisClient, closeRedis := makeRedis(os.Getenv("RDS_ADDRESS"))
+	defer func() {
+		if err := closeRedis(); err != nil {
+			log.Println(err)
+		}
+	}()
 
 	router := router.MakeRouter(
 		makeConfig(os.Getenv("IMAGES_BASE_URL")),
@@ -32,6 +45,7 @@ func Start() {
 			isDebug,
 			makeCryptoCoder(),
 			mysqlDB,
+			redisClient,
 			os.Getenv("MC_ADDRESS"),
 		),
 		logFunc(isDebug),
@@ -48,7 +62,7 @@ func logFunc(isDebug bool) logger.ToString {
 	return logger.JSON
 }
 
-func makeDB(cs string) (*sql.DB, func()) {
+func makeDB(cs string) (*sql.DB, func() error) {
 	db, err := sql.Open("mysql", cs)
 	if err != nil {
 		log.Fatal(err)
@@ -57,11 +71,19 @@ func makeDB(cs string) (*sql.DB, func()) {
 	if err != nil {
 		log.Fatal(err)
 	}
-	return db, func() {
-		if err := db.Close(); err != nil {
-			log.Println(err)
-		}
+	return db, db.Close
+}
+
+func makeRedis(server string) (redisco.Client, func() error) {
+	client, close := redisco.NewPool(server, 8)
+	err := client.Perform(context.Background(), func(conn redisco.Conn) error {
+		_, err := conn.Do("PING")
+		return err
+	})
+	if err != nil {
+		log.Fatal(err)
 	}
+	return client, close
 }
 
 func makeCryptoCoder() *edsign.Coder {
@@ -89,7 +111,7 @@ func makeConfig(imagesBaseURL string) *config.AppConfig {
 		BlogsInPage:               50,
 		BlogTopicsInPage:          5,
 		BlogArticleCommentsInPage: 10,
-		CensorshipText: "Сообщение изъято модератором",
-		BotUserId:      2, // Р. Букашка
+		CensorshipText:            "Сообщение изъято модератором",
+		BotUserId:                 2, // Р. Букашка
 	}
 }

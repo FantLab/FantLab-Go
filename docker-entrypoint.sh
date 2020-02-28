@@ -9,5 +9,6 @@ fi
 
 ./wait-for.sh $DB_ADDRESS
 ./wait-for.sh $MC_ADDRESS
+./wait-for.sh $RDS_ADDRESS
 
 exec "$@"

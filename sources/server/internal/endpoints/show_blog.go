@@ -53,6 +53,14 @@ func (api *API) ShowBlog(r *http.Request) (int, proto.Message) {
 		}
 	}
 
-	blog := converters.GetBlog(dbResponse, params.Page, params.Limit, api.config)
+	topicIds := make([]uint64, 0, len(dbResponse.Topics))
+
+	for _, topic := range dbResponse.Topics {
+		topicIds = append(topicIds, topic.TopicId)
+	}
+
+	viewCounts := api.services.BlogTopicsViewCount(r.Context(), topicIds)
+
+	blog := converters.GetBlog(dbResponse, viewCounts, params.Page, params.Limit, api.config)
 	return http.StatusOK, blog
 }

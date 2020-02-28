@@ -4,9 +4,10 @@ import (
 	"fantlab/base/dbtools"
 	"fantlab/pb"
 	"fantlab/server/internal/converters"
-	"github.com/golang/protobuf/proto"
 	"net/http"
 	"strconv"
+
+	"github.com/golang/protobuf/proto"
 )
 
 func (api *API) ShowArticle(r *http.Request) (int, proto.Message) {
@@ -44,6 +45,8 @@ func (api *API) ShowArticle(r *http.Request) (int, proto.Message) {
 		}
 	}
 
-	article := converters.GetArticle(dbTopic, api.config)
+	viewCount := api.services.BlogTopicsViewCount(r.Context(), []uint64{params.ArticleId})
+
+	article := converters.GetArticle(dbTopic, viewCount[0], api.config)
 	return http.StatusOK, article
 }

@@ -182,11 +182,11 @@ func GetBlogs(dbResponse *db.BlogsDBResponse, page, limit uint64, cfg *config.Ap
 	}
 }
 
-func GetBlog(dbResponse *db.BlogTopicsDBResponse, page, limit uint64, cfg *config.AppConfig) *pb.Blog_BlogResponse {
+func GetBlog(dbResponse *db.BlogTopicsDBResponse, viewCounts []uint64, page, limit uint64, cfg *config.AppConfig) *pb.Blog_BlogResponse {
 	//noinspection GoPreferNilSlice
 	var articles = []*pb.Blog_Article{}
 
-	for _, dbBlogTopic := range dbResponse.Topics {
+	for index, dbBlogTopic := range dbResponse.Topics {
 		gender := helpers.GetGender(dbBlogTopic.UserId, dbBlogTopic.Sex)
 		avatar := helpers.GetUserAvatarUrl(cfg.ImagesBaseURL, dbBlogTopic.UserId, dbBlogTopic.PhotoNumber)
 
@@ -206,7 +206,7 @@ func GetBlog(dbResponse *db.BlogTopicsDBResponse, page, limit uint64, cfg *confi
 			Tags: dbBlogTopic.Tags,
 			Stats: &pb.Blog_Article_Stats{
 				LikeCount:    dbBlogTopic.LikesCount,
-				ViewCount:    dbBlogTopic.Views,
+				ViewCount:    viewCounts[index],
 				CommentCount: dbBlogTopic.CommentsCount,
 			},
 		}
@@ -225,7 +225,7 @@ func GetBlog(dbResponse *db.BlogTopicsDBResponse, page, limit uint64, cfg *confi
 	}
 }
 
-func GetArticle(dbBlogTopic *db.BlogTopic, cfg *config.AppConfig) *pb.Blog_BlogArticleResponse {
+func GetArticle(dbBlogTopic *db.BlogTopic, viewCount uint64, cfg *config.AppConfig) *pb.Blog_BlogArticleResponse {
 	gender := helpers.GetGender(dbBlogTopic.UserId, dbBlogTopic.Sex)
 	avatar := helpers.GetUserAvatarUrl(cfg.ImagesBaseURL, dbBlogTopic.UserId, dbBlogTopic.PhotoNumber)
 
@@ -245,7 +245,7 @@ func GetArticle(dbBlogTopic *db.BlogTopic, cfg *config.AppConfig) *pb.Blog_BlogA
 		Tags: dbBlogTopic.Tags,
 		Stats: &pb.Blog_Article_Stats{
 			LikeCount:    dbBlogTopic.LikesCount,
-			ViewCount:    dbBlogTopic.Views,
+			ViewCount:    viewCount,
 			CommentCount: dbBlogTopic.CommentsCount,
 		},
 	}

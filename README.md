@@ -39,17 +39,17 @@ $ ./make_protos.sh
 
 ### Docker
 
-Для запуска проекта целиком в докере выполните следующие команды:
+Для запуска проекта через docker-compose выполните следующие команды:
 
 ```console
-$ docker-compose -f docker-compose/all.debug.yml build
-$ docker-compose -f docker-compose/all.debug.yml up
+$ docker-compose -f docker-compose/deps.yml -f docker-compose/app.yml build
+$ docker-compose -f docker-compose/deps.yml -f docker-compose/app.yml up
 ```
 
-Если нужно запустить только сторонние сервисы (mysql, memcached, etc.):
+Если нужно запустить только сторонние сервисы (mysql, memcached, redis, etc.):
 
 ```console
-$ docker-compose -f docker-compose/depsonly.yml up
+$ docker-compose -f docker-compose/deps.yml up
 ```
 
 ### Memcached
