@@ -1,4 +1,4 @@
-version: '3.7'
+version: '3'
 
 services:
   mc:
@@ -8,6 +8,16 @@ services:
       - 11211:11211
     networks:
       - flnetwork
+  rds:
+    image: redis
+    command: redis-server --appendonly yes
+    restart: unless-stopped
+    ports:
+      - 6379:6379
+    networks:
+      - flnetwork
+    volumes:
+      - flredis:/data
   db:
     image: mariadb
     restart: unless-stopped
@@ -31,5 +41,6 @@ services:
       - flnetwork
 volumes:
   flsqldata:
+  flredis:
 networks:
   flnetwork:

@@ -3,14 +3,14 @@ package helpers
 import "regexp"
 
 var (
-	carriageReturnRegex       = regexp.MustCompile("\r")
-	whitespaceCharactersRegex = regexp.MustCompile("\\s+$")
-	onlySpacesStringRegex     = regexp.MustCompile(" +\n")
-	headNewlines              = regexp.MustCompile("^\n+")
-	tooManyNewlines           = regexp.MustCompile("\n{4,}")
-	moderTagsRegex            = regexp.MustCompile("(?i)\\[moder](.*)\\[/moder]")
-	quoteTagsRegex            = regexp.MustCompile("(?i)\\[q](.*)\\[/q]")
-	nonRussianCharactersRegex = regexp.MustCompile("[^А-Яа-я]")
+	carriageReturnRegex       = regexp.MustCompile(`\r`)
+	whitespaceCharactersRegex = regexp.MustCompile(`\s+$`)
+	onlySpacesStringRegex     = regexp.MustCompile(` +\n`)
+	headNewlines              = regexp.MustCompile(`^\n+`)
+	tooManyNewlines           = regexp.MustCompile(`\n{4,}`)
+	moderTagsRegex            = regexp.MustCompile(`(?i)\[moder](.*)\[/moder]`)
+	quoteTagsRegex            = regexp.MustCompile(`(?i)\[q](.*)\[/q]`)
+	nonRussianCharactersRegex = regexp.MustCompile(`[^А-Яа-я]`)
 )
 
 // Чистим сообщение от лишних пробельных символов

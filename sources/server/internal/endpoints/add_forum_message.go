@@ -4,9 +4,10 @@ import (
 	"fantlab/base/dbtools"
 	"fantlab/pb"
 	"fantlab/server/internal/helpers"
-	"github.com/golang/protobuf/proto"
 	"net/http"
 	"strconv"
+
+	"github.com/golang/protobuf/proto"
 )
 
 func (api *API) AddForumMessage(r *http.Request) (int, proto.Message) {
@@ -94,24 +95,15 @@ func (api *API) AddForumMessage(r *http.Request) (int, proto.Message) {
 		}
 	}
 
-	err = api.services.DeleteUserCache(r.Context(), user.UserId)
+	// инвалидируем кэши подписчиков и текущего юзера (запрос не фейлим в случае ошибки)
+	{
+		subscribers, _ := api.services.DB().FetchForumTopicSubscribers(r.Context(), dbTopic.TopicId, user.UserId)
 
-	if err != nil {
-		return http.StatusInternalServerError, &pb.Error_Response{
-			Status: pb.Error_SOMETHING_WENT_WRONG,
+		for _, subscriber := range subscribers {
+			_ = api.services.DeleteUserCache(r.Context(), subscriber)
 		}
-	}
 
-	dbTopicSubscribers, err := api.services.DB().FetchForumTopicSubscribers(r.Context(), dbTopic.TopicId, user.UserId)
-
-	for _, dbTopicSubscriber := range dbTopicSubscribers {
-		err = api.services.DeleteUserCache(r.Context(), dbTopicSubscriber)
-
-		if err != nil {
-			return http.StatusInternalServerError, &pb.Error_Response{
-				Status: pb.Error_SOMETHING_WENT_WRONG,
-			}
-		}
+		_ = api.services.DeleteUserCache(r.Context(), user.UserId)
 	}
 
 	return http.StatusOK, &pb.Common_SuccessResponse{}
