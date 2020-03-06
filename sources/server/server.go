@@ -10,7 +10,7 @@ import (
 	"fantlab/docs"
 	"fantlab/server/internal/app"
 	"fantlab/server/internal/config"
-	"fantlab/server/internal/router"
+	"fantlab/server/internal/routes"
 	"log"
 	"net/http"
 	"os"
@@ -19,7 +19,7 @@ import (
 )
 
 func GenerateDocs() {
-	_ = docs.Generate(os.Stdout, router.Routes(nil, nil, nil), router.BasePath)
+	_ = docs.Generate(os.Stdout, routes.Tree(nil, nil, nil), "/"+routes.BasePath)
 }
 
 func Start() {
@@ -39,7 +39,7 @@ func Start() {
 		}
 	}()
 
-	router := router.MakeRouter(
+	handler := routes.MakeHandler(
 		makeConfig(os.Getenv("IMAGES_BASE_URL")),
 		app.MakeServices(
 			isDebug,
@@ -52,7 +52,7 @@ func Start() {
 		isDebug,
 	)
 
-	log.Fatal(http.ListenAndServe(":"+os.Getenv("PORT"), router))
+	log.Fatal(http.ListenAndServe(":"+os.Getenv("PORT"), handler))
 }
 
 func logFunc(isDebug bool) logger.ToString {

@@ -1,9 +1,8 @@
 package codeflow
 
-func Try(fs ...func() error) error {
-	for _, f := range fs {
-		err := f()
-		if err != nil {
+func Try(fns ...func() error) error {
+	for _, fn := range fns {
+		if err := fn(); err != nil {
 			return err
 		}
 	}
