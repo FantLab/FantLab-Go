@@ -33,15 +33,6 @@ func (hr *httpRouter) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	handler.ServeHTTP(w, r)
 }
 
-func GetValueFromContext(ctx context.Context, paramsKey, valueKey string) string {
-	if values, ok := ctx.Value(paramsKey).(map[string]string); ok {
-		if values != nil {
-			return values[valueKey]
-		}
-	}
-	return ""
-}
-
 type Config struct {
 	RootGroup               *Group
 	NotFoundHandler         http.Handler

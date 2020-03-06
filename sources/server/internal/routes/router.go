@@ -62,7 +62,8 @@ func MakeHandler(appConfig *config.AppConfig, services *app.Services, logFunc lo
 	}
 
 	fill(routerConfig.RootGroup, Tree(appConfig, services, func(r *http.Request, valueKey string) string {
-		return httprouter.GetValueFromContext(r.Context(), routerConfig.RequestContextParamsKey, valueKey)
+		value, _ := httprouter.GetValueFromContext(r.Context(), routerConfig.RequestContextParamsKey, valueKey)
+		return value
 	}))
 
 	router, _ := httprouter.NewRouter(routerConfig)
