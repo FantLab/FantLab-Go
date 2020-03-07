@@ -3,7 +3,7 @@ package protobuf
 import (
 	"net/http"
 
-	"github.com/golang/protobuf/proto"
+	"google.golang.org/protobuf/proto"
 )
 
 type HandlerFunc func(*http.Request) (int, proto.Message)

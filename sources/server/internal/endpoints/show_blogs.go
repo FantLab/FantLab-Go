@@ -6,7 +6,7 @@ import (
 	"fantlab/server/internal/helpers"
 	"net/http"
 
-	"github.com/golang/protobuf/proto"
+	"google.golang.org/protobuf/proto"
 )
 
 func (api *API) ShowBlogs(r *http.Request) (int, proto.Message) {

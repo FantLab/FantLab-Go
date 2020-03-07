@@ -6,7 +6,7 @@ import (
 	"fantlab/server/internal/app"
 	"net/http"
 
-	"github.com/golang/protobuf/proto"
+	"google.golang.org/protobuf/proto"
 )
 
 func CheckBan(services *app.Services) func(http.Handler) http.Handler {

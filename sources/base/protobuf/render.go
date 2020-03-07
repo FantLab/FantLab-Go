@@ -3,29 +3,11 @@ package protobuf
 import (
 	"net/http"
 
-	"github.com/golang/protobuf/jsonpb"
-	"github.com/golang/protobuf/proto"
+	"google.golang.org/protobuf/encoding/protojson"
+	"google.golang.org/protobuf/proto"
 )
 
 const protoContentType = "application/x-protobuf"
-
-func writePB(w http.ResponseWriter, pb proto.Message) error {
-	data, err := proto.Marshal(pb)
-
-	if err == nil {
-		_, err = w.Write(data)
-	}
-
-	return err
-}
-
-func writeJSON(w http.ResponseWriter, pb proto.Message) error {
-	m := jsonpb.Marshaler{
-		OrigName: true,
-	}
-
-	return m.Marshal(w, pb)
-}
 
 func render(w http.ResponseWriter, r *http.Request, code int, pb proto.Message) {
 	acceptProto := r.Header.Get("Accept") == protoContentType
@@ -38,12 +20,17 @@ func render(w http.ResponseWriter, r *http.Request, code int, pb proto.Message) 
 
 	w.WriteHeader(code)
 
+	var data []byte
 	var err error
 
 	if acceptProto {
-		err = writePB(w, pb)
+		data, err = proto.Marshal(pb)
 	} else {
-		err = writeJSON(w, pb)
+		data, err = protojson.Marshal(pb)
+	}
+
+	if err == nil {
+		_, err = w.Write(data)
 	}
 
 	if err != nil {

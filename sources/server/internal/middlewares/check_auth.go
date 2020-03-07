@@ -6,7 +6,7 @@ import (
 	"fantlab/server/internal/app"
 	"net/http"
 
-	"github.com/golang/protobuf/proto"
+	"google.golang.org/protobuf/proto"
 )
 
 func CheckAuth(next http.Handler) http.Handler {

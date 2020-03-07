@@ -12,7 +12,7 @@ import (
 	"net/http"
 	"regexp"
 
-	"github.com/golang/protobuf/proto"
+	"google.golang.org/protobuf/proto"
 )
 
 func fill(x *httprouter.Group, y *routing.Group) {

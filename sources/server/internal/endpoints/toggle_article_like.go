@@ -3,7 +3,7 @@ package endpoints
 import (
 	"fantlab/base/dbtools"
 	"fantlab/pb"
-	"github.com/golang/protobuf/proto"
+	"google.golang.org/protobuf/proto"
 	"net/http"
 	"strconv"
 )

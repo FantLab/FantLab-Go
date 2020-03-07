@@ -9,7 +9,7 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/golang/protobuf/proto"
+	"google.golang.org/protobuf/proto"
 )
 
 func CheckAuthExpiration(next http.Handler) http.Handler {

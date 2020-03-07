@@ -105,7 +105,7 @@
 
 
 
-**GET** [/v1/forums/{id}](../sources/server/internal/endpoints/show_forum_topics.go#L14)
+**GET** [/v1/forums/:id](../sources/server/internal/endpoints/show_forum_topics.go#L14)
 
 Параметры запроса:
 
@@ -188,7 +188,7 @@
 
 
 
-**GET** [/v1/topics/{id}](../sources/server/internal/endpoints/show_topic_messages.go#L15)
+**GET** [/v1/topics/:id](../sources/server/internal/endpoints/show_topic_messages.go#L15)
 
 Параметры запроса:
 
@@ -434,7 +434,7 @@
 
 
 
-**GET** [/v1/communities/{id}](../sources/server/internal/endpoints/show_community.go#L14)
+**GET** [/v1/communities/:id](../sources/server/internal/endpoints/show_community.go#L14)
 
 Параметры запроса:
 
@@ -612,7 +612,7 @@
 
 
 
-**GET** [/v1/blogs/{id}](../sources/server/internal/endpoints/show_blog.go#L14)
+**GET** [/v1/blogs/:id](../sources/server/internal/endpoints/show_blog.go#L14)
 
 Параметры запроса:
 
@@ -674,7 +674,7 @@
 
 
 
-**GET** [/v1/blog_articles/{id}](../sources/server/internal/endpoints/show_article.go#L12)
+**GET** [/v1/blog_articles/:id](../sources/server/internal/endpoints/show_article.go#L13)
 
 Параметры запроса:
 
@@ -757,7 +757,7 @@
 
 
 
-**GET** [/v1/work/{id}/classification](../sources/server/internal/endpoints/get_work_classification.go#L11)
+**GET** [/v1/work/:id/classification](../sources/server/internal/endpoints/get_work_classification.go#L11)
 
 Параметры запроса:
 
@@ -796,7 +796,7 @@
 
 
 
-**GET** [/v1/work/{id}/subworks](../sources/server/internal/endpoints/get_work_subworks.go#L11)
+**GET** [/v1/work/:id/subworks](../sources/server/internal/endpoints/get_work_subworks.go#L11)
 
 Параметры запроса:
 
@@ -839,7 +839,7 @@
 
 
 
-**GET** [/v1/blog_articles/{id}/comments](../sources/server/internal/endpoints/blog_article_comments.go#L14)
+**GET** [/v1/blog_articles/:id/comments](../sources/server/internal/endpoints/blog_article_comments.go#L14)
 
 Параметры запроса:
 
@@ -934,7 +934,7 @@
 
 
 
-**GET** [/v1/work/{id}/userclassification](../sources/server/internal/endpoints/get_user_work_genres.go#L11)
+**GET** [/v1/work/:id/userclassification](../sources/server/internal/endpoints/get_user_work_genres.go#L11)
 
 Параметры запроса:
 
@@ -976,7 +976,7 @@
 
 
 
-**POST** [/v1/topics/{id}/message](../sources/server/internal/endpoints/add_forum_message.go#L12)
+**POST** [/v1/topics/:id/message](../sources/server/internal/endpoints/add_forum_message.go#L13)
 
 Параметры запроса:
 
@@ -1004,7 +1004,7 @@
 
 
 
-**PUT** [/v1/topics/{id}/subscription](../sources/server/internal/endpoints/toggle_forum_topic_subscription.go#L12)
+**PUT** [/v1/topics/:id/subscription](../sources/server/internal/endpoints/toggle_forum_topic_subscription.go#L12)
 
 Параметры запроса:
 
@@ -1032,7 +1032,7 @@
 
 
 
-**PUT** [/v1/communities/{id}/subscription](../sources/server/internal/endpoints/toggle_community_subscription.go#L12)
+**PUT** [/v1/communities/:id/subscription](../sources/server/internal/endpoints/toggle_community_subscription.go#L12)
 
 Параметры запроса:
 
@@ -1060,7 +1060,7 @@
 
 
 
-**PUT** [/v1/blogs/{id}/subscription](../sources/server/internal/endpoints/toogle_blog_subscription.go#L12)
+**PUT** [/v1/blogs/:id/subscription](../sources/server/internal/endpoints/toogle_blog_subscription.go#L12)
 
 Параметры запроса:
 
@@ -1088,7 +1088,7 @@
 
 
 
-**PUT** [/v1/blog_articles/{id}/subscription](../sources/server/internal/endpoints/toogle_article_subscription.go#L12)
+**PUT** [/v1/blog_articles/:id/subscription](../sources/server/internal/endpoints/toogle_article_subscription.go#L12)
 
 Параметры запроса:
 
@@ -1116,7 +1116,7 @@
 
 
 
-**PUT** [/v1/blog_articles/{id}/like](../sources/server/internal/endpoints/toggle_article_like.go#L11)
+**PUT** [/v1/blog_articles/:id/like](../sources/server/internal/endpoints/toggle_article_like.go#L11)
 
 Параметры запроса:
 
@@ -1150,7 +1150,7 @@
 
 
 
-**PUT** [/v1/work/{id}/userclassification](../sources/server/internal/endpoints/set_work_genres.go#L14)
+**PUT** [/v1/work/:id/userclassification](../sources/server/internal/endpoints/set_work_genres.go#L14)
 
 Параметры запроса:
 
@@ -1178,7 +1178,7 @@
 
 
 
-**PUT** [/v1/forum_messages/{id}/voting](../sources/server/internal/endpoints/toggle_forum_message_voting.go#L12)
+**PUT** [/v1/forum_messages/:id/voting](../sources/server/internal/endpoints/toggle_forum_message_voting.go#L12)
 
 Параметры запроса:
 

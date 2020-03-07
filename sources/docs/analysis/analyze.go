@@ -7,12 +7,9 @@ import (
 	"reflect"
 	"strings"
 	"sync"
+	"unicode"
 
 	"golang.org/x/tools/go/packages"
-)
-
-const (
-	protoModelSystemFieldPrefix = "XXX"
 )
 
 type ParamInfo struct {
@@ -36,6 +33,17 @@ var (
 	loadPackagesOnce   sync.Once
 )
 
+func isValidFieldName(s string) bool {
+	for _, r := range s {
+		if unicode.IsUpper(r) {
+			return true
+		} else {
+			break
+		}
+	}
+	return false
+}
+
 func AnalyzeEndpoints(endpoints []routing.Endpoint, schemePrefix, schemePostfix string) map[int]*EndpointInfo {
 	loadPackagesOnce.Do(func() {
 		var wg sync.WaitGroup
@@ -54,7 +62,7 @@ func AnalyzeEndpoints(endpoints []routing.Endpoint, schemePrefix, schemePostfix 
 	table := make(map[int]*EndpointInfo)
 
 	modelComments := makeModelCommentsTable(protoModelsPackage, func(f *ast.Field) bool {
-		return !strings.HasPrefix(f.Names[0].Name, protoModelSystemFieldPrefix)
+		return isValidFieldName(f.Names[0].Name)
 	})
 	schemeBuilder := makeSchemeBuilder(modelComments)
 	funcDecls := collectFuncDecls(endpointsPackage)
@@ -108,7 +116,7 @@ func makeSchemeBuilder(modelComments commentsTable) *scheme.Builder {
 			return ""
 		},
 		func(f reflect.StructField) bool {
-			return !strings.HasPrefix(f.Name, protoModelSystemFieldPrefix)
+			return isValidFieldName(f.Name)
 		},
 	)
 }
