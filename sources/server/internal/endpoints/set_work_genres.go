@@ -8,7 +8,7 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/golang/protobuf/proto"
+	"google.golang.org/protobuf/proto"
 )
 
 func (api *API) SetWorkGenres(r *http.Request) (int, proto.Message) {

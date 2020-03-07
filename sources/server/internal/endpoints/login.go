@@ -7,8 +7,8 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/golang/protobuf/proto"
 	"golang.org/x/crypto/bcrypt"
+	"google.golang.org/protobuf/proto"
 )
 
 // Создаёт новый аутентификационный токен для пользователя на основе пары логин/пароль

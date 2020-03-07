@@ -8,7 +8,7 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/golang/protobuf/proto"
+	"google.golang.org/protobuf/proto"
 )
 
 func CheckMinLevel(minUserClass pb.Common_UserClass) func(http.Handler) http.Handler {

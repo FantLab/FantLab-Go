@@ -1,5 +1,5 @@
 #build stage
-FROM golang:1.13 AS builder
+FROM golang:1.14 AS builder
 ENV GO111MODULE=on
 WORKDIR /app
 COPY sources .

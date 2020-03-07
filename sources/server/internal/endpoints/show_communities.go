@@ -5,7 +5,7 @@ import (
 	"fantlab/server/internal/converters"
 	"net/http"
 
-	"github.com/golang/protobuf/proto"
+	"google.golang.org/protobuf/proto"
 )
 
 func (api *API) ShowCommunities(r *http.Request) (int, proto.Message) {
