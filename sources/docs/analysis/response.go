@@ -6,8 +6,9 @@ import (
 	"reflect"
 	"strings"
 
-	"github.com/golang/protobuf/proto"
 	"golang.org/x/tools/go/packages"
+	"google.golang.org/protobuf/reflect/protoreflect"
+	"google.golang.org/protobuf/reflect/protoregistry"
 )
 
 func getResponseModelType(funcDecl *ast.FuncDecl, pkg *packages.Package) reflect.Type {
@@ -25,7 +26,10 @@ func getResponseModelType(funcDecl *ast.FuncDecl, pkg *packages.Package) reflect
 					case 1:
 						if t.Type != nil {
 							protoName := getProtoNameFromTypeName(t.Type.String())
-							messageType = proto.MessageType(protoName)
+
+							if mt, _ := protoregistry.GlobalTypes.FindMessageByName(protoreflect.FullName(protoName)); mt != nil {
+								messageType = reflect.TypeOf(mt.Zero().Interface())
+							}
 						}
 					default:
 						break

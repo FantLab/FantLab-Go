@@ -29,9 +29,11 @@ func render(w http.ResponseWriter, r *http.Request, code int, pb proto.Message) 
 		data, err = protojson.Marshal(pb)
 	}
 
+	if err == nil {
+		_, err = w.Write(data)
+	}
+
 	if err != nil {
 		panic(err)
 	}
-
-	w.Write(data)
 }
