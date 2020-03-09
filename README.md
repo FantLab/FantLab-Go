@@ -69,3 +69,11 @@ $ telnet localhost 11211
 ### Тестовый пароль/хэш
 
 password -> $2a$08$5.4GFX2fkP7XWYrpDWQFqup6.NC6MejFMEOmgX30gRCu4AsMd/A0G
+
+### Запуск из консоли
+
+Из под рутовой папки запускаем команду:
+
+```console
+$ export $(xargs < debug.env) && cd sources && go run .
+```

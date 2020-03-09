@@ -37,7 +37,7 @@ func fill(x *httprouter.Group, y *routing.Group) {
 
 const BasePath = "v1"
 
-func MakeHandler(appConfig *config.AppConfig, services *app.Services, logFunc logger.ToString, isDebug bool) http.Handler {
+func MakeHandler(appConfig *config.AppConfig, services *app.Services, logFunc func(*logger.Request)) http.Handler {
 	routerConfig := &httprouter.Config{
 		RootGroup: new(httprouter.Group),
 		NotFoundHandler: protobuf.Handle(func(r *http.Request) (int, proto.Message) {
@@ -49,15 +49,11 @@ func MakeHandler(appConfig *config.AppConfig, services *app.Services, logFunc lo
 		CommonPrefix:            BasePath,
 		PathSegmentValidator:    regexp.MustCompile(`^\w+$`).MatchString,
 		GlobalMiddlewares: []httprouter.Middleware{
-			logs.HTTP(logs.Config{
-				NeedsRecover: true,
-				ToString:     logFunc,
-				PanicHandler: protobuf.Handle(func(r *http.Request) (int, proto.Message) {
-					return http.StatusInternalServerError, &pb.Error_Response{
-						Status: pb.Error_SOMETHING_WENT_WRONG,
-					}
-				}),
-			}),
+			logs.HTTP(logFunc, protobuf.Handle(func(r *http.Request) (int, proto.Message) {
+				return http.StatusInternalServerError, &pb.Error_Response{
+					Status: pb.Error_SOMETHING_WENT_WRONG,
+				}
+			})),
 		},
 	}
 

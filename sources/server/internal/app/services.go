@@ -11,13 +11,13 @@ import (
 	"fantlab/server/internal/db"
 )
 
-func MakeServices(isDebug bool, cryptoCoder *edsign.Coder, mysql *sql.DB, redis redisco.Client, memcacheAddr string) *Services {
+func MakeServices(isDebug bool, mysqlDB *sql.DB, redisClient redisco.Client, memcacheClient memcached.Client, cryptoCoder *edsign.Coder) *Services {
 	return &Services{
 		isDebug:      isDebug,
 		cryptoCoder:  cryptoCoder,
-		db:           db.NewDB(sqlr.Log(sqldb.New(mysql), logDB(isDebug))),
-		redis:        redis,
-		memcache:     memcached.Log(memcached.New(memcacheAddr), logMemcache(isDebug)),
+		db:           db.NewDB(sqlr.Log(sqldb.New(mysqlDB), logDB(isDebug))),
+		redis:        redisClient,
+		memcache:     memcached.Log(memcacheClient, logMemcache(isDebug)),
 		localStorage: syncache.NewWithDefaultExpireFunc(),
 	}
 }

@@ -15,6 +15,10 @@ type client struct {
 	api *memcache.Client
 }
 
+func (cl *client) Ping() error {
+	return cl.api.Ping()
+}
+
 func (cl *client) Add(ctx context.Context, key string, value []byte, ttl time.Time) error {
 	return cl.api.Add(&memcache.Item{
 		Key:        key,

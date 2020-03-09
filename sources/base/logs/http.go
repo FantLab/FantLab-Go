@@ -4,7 +4,6 @@ import (
 	"fantlab/base/logs/logger"
 	"fantlab/base/uuid"
 	"fmt"
-	"log"
 	"net/http"
 	"runtime/debug"
 	"sync/atomic"
@@ -38,13 +37,7 @@ func (r *responseWriter) WriteHeader(statusCode int) {
 
 // *******************************************************
 
-type Config struct {
-	NeedsRecover bool
-	ToString     logger.ToString
-	PanicHandler http.HandlerFunc
-}
-
-func HTTP(config Config) func(http.Handler) http.Handler {
+func HTTP(fn func(*logger.Request), panicHandler http.Handler) func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			rid := fmt.Sprintf("%s-%d", launchId, nextRequestId())
@@ -63,7 +56,7 @@ func HTTP(config Config) func(http.Handler) http.Handler {
 
 				var isPanic bool
 
-				if config.NeedsRecover {
+				if panicHandler != nil {
 					if err := recover(); err != nil {
 						buf.Append(logger.Entry{
 							Message: string(debug.Stack()),
@@ -75,7 +68,7 @@ func HTTP(config Config) func(http.Handler) http.Handler {
 					}
 				}
 
-				s := config.ToString(logger.Request{
+				fn(&logger.Request{
 					Id:       rid,
 					Host:     request.Host,
 					Method:   request.Method,
@@ -87,12 +80,8 @@ func HTTP(config Config) func(http.Handler) http.Handler {
 					Duration: d,
 				})
 
-				if "" != s {
-					log.Println(s)
-				}
-
 				if isPanic {
-					config.PanicHandler.ServeHTTP(w, r)
+					panicHandler.ServeHTTP(w, r)
 				}
 			}()
 
