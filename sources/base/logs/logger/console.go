@@ -43,7 +43,7 @@ func statusCodeColor(statusCode int) int {
 	}
 }
 
-func Console(request Request) string {
+func Console(request *Request) string {
 	var sb strings.Builder
 
 	sb.WriteString(colorize(request.Time.Format("15:04:05"), colorDarkGray))

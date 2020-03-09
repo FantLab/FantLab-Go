@@ -25,6 +25,10 @@ type logger struct {
 	logFunc LogFunc
 }
 
+func (l *logger) Ping() error {
+	return l.client.Ping()
+}
+
 func (l *logger) Add(ctx context.Context, key string, value []byte, ttl time.Time) error {
 	err := l.client.Add(ctx, key, value, ttl)
 	l.logFunc(ctx, LogEntry{Operation: "ADD", Key: key, Err: err})

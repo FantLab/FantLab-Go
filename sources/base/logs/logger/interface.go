@@ -26,5 +26,3 @@ type Request struct {
 	Time     time.Time     `json:"time,omitempty"`
 	Duration time.Duration `json:"duration,omitempty"`
 }
-
-type ToString func(request Request) string

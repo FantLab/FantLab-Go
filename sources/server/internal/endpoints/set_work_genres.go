@@ -80,7 +80,7 @@ func (api *API) SetWorkGenres(r *http.Request) (int, proto.Message) {
 		err := genreTree.CheckRequiredGroupsForGenreIds(genreIds)
 
 		if err != nil {
-			return http.StatusInternalServerError, &pb.Error_Response{
+			return http.StatusBadRequest, &pb.Error_Response{
 				Status:  pb.Error_VALIDATION_FAILED,
 				Context: err.Error(),
 			}

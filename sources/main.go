@@ -3,7 +3,6 @@ package main
 import (
 	"fantlab/server"
 	"flag"
-	"log"
 )
 
 var gendocs = flag.Bool("gendocs", false, "")
@@ -14,9 +13,6 @@ func main() {
 	if *gendocs {
 		server.GenerateDocs()
 	} else {
-		log.SetFlags(0)
-		log.SetPrefix("$ ")
-
 		server.Start()
 	}
 }
