@@ -35,7 +35,7 @@ func RunWithGracefulShutdown(errorFunc func(error), servers ...*Server) {
 func runServers(servers []*Server, quit <-chan struct{}, errorFunc func(error)) {
 	wg := new(sync.WaitGroup)
 	for _, server := range servers {
-		if server == nil || server.Start == nil || server.Stop == nil {
+		if server == nil {
 			continue
 		}
 		wg.Add(1)
@@ -63,6 +63,12 @@ func runServer(server *Server, quit <-chan struct{}, finishFunc func(), errorFun
 		return
 	}
 
+	if server.Start == nil || server.Stop == nil {
+		finishFunc()
+
+		return
+	}
+
 	fail := make(chan struct{})
 
 	go func() {
@@ -84,8 +90,8 @@ func runServer(server *Server, quit <-chan struct{}, finishFunc func(), errorFun
 	}()
 
 	if err := server.Start(); err != nil {
-		fail <- struct{}{}
-
 		errorFunc(err)
+
+		fail <- struct{}{}
 	}
 }

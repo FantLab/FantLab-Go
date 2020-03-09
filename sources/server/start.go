@@ -48,8 +48,8 @@ func Start() {
 	time.Sleep(1 * time.Second)
 }
 
-func makeAPIServer(logFunc func(string)) *anyserver.Server {
-	server := new(anyserver.Server)
+func makeAPIServer(logFunc func(string)) (server *anyserver.Server) {
+	server = new(anyserver.Server)
 
 	var mysqlDB *sql.DB
 	var redisClient redisco.Client
@@ -124,40 +124,42 @@ func makeAPIServer(logFunc func(string)) *anyserver.Server {
 		},
 	)
 
-	if server.SetupError == nil {
-		isDebug := os.Getenv("DEBUG") != ""
-
-		var requestToString func(r *logger.Request) string
-		if isDebug {
-			requestToString = logger.Console
-		} else {
-			requestToString = logger.JSON
-		}
-
-		httpServer := &http.Server{
-			Addr: ":" + os.Getenv("PORT"),
-			Handler: routes.MakeHandler(
-				appConfig,
-				app.MakeServices(isDebug, mysqlDB, redisClient, memcacheClient, cryptoCoder),
-				func(r *logger.Request) {
-					logFunc(requestToString(r))
-				},
-			),
-		}
-
-		server.Start = func() error {
-			if err := httpServer.ListenAndServe(); err != http.ErrServerClosed {
-				return err
-			}
-			return nil
-		}
-		server.Stop = func(ctx context.Context) error {
-			httpServer.SetKeepAlivesEnabled(false)
-
-			return httpServer.Shutdown(ctx)
-		}
-		server.ShutdownTimeout = 5 * time.Second
+	if server.SetupError != nil {
+		return
 	}
 
-	return server
+	isDebug := os.Getenv("DEBUG") != ""
+
+	var requestToString func(r *logger.Request) string
+	if isDebug {
+		requestToString = logger.Console
+	} else {
+		requestToString = logger.JSON
+	}
+
+	httpServer := &http.Server{
+		Addr: ":" + os.Getenv("PORT"),
+		Handler: routes.MakeHandler(
+			appConfig,
+			app.MakeServices(isDebug, mysqlDB, redisClient, memcacheClient, cryptoCoder),
+			func(r *logger.Request) {
+				logFunc(requestToString(r))
+			},
+		),
+	}
+
+	server.Start = func() error {
+		if err := httpServer.ListenAndServe(); err != http.ErrServerClosed {
+			return err
+		}
+		return nil
+	}
+	server.Stop = func(ctx context.Context) error {
+		httpServer.SetKeepAlivesEnabled(false)
+
+		return httpServer.Shutdown(ctx)
+	}
+	server.ShutdownTimeout = 5 * time.Second
+
+	return
 }
