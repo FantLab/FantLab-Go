@@ -7,6 +7,12 @@ import "google/protobuf/timestamp.proto";
 
 message Auth {
     message Claims {
+        enum Permission {
+            PERMISSION_UNKNOWN = 0;
+            // может редактировать свои сообщения в форуме без ограничения по времени
+            PERMISSION_CAN_EDIT_OWN_FORUM_MESSAGES = 1;
+        }
+
         message UserInfo {
             // айди
             uint64 user_id = 1;
@@ -18,6 +24,8 @@ message Auth {
             Common.UserClass class = 4;
             // список доступных форумов
             repeated uint64 available_forum_ids = 5;
+            // список разрешений
+            repeated Permission permissions = 6;
         }
 
         // идентификатор токена

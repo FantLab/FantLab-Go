@@ -54,6 +54,16 @@ const (
 
 	ForumExists = "SELECT 1 FROM f_forums WHERE forum_id = ? AND forum_id IN (?)"
 
+	ForumGetShortForum = `
+		SELECT
+			forum_id,
+			only_for_admins
+		FROM
+			f_forums
+		WHERE
+			forum_id = ?
+	`
+
 	ForumTopics = `
 		SELECT
 			t.topic_id,
@@ -142,6 +152,17 @@ const (
 			t.topic_id = ? AND t.forum_id IN (?)
 	`
 
+	ForumTopicGetIsEditTopicStarter = `
+		SELECT
+			t.is_edit_topicstarter
+		FROM
+			f_topics t
+		JOIN
+			f_messages m ON m.topic_id = t.topic_id
+		WHERE
+			m.message_id = ?
+	`
+
 	ForumTopicMessagesCount = "SELECT COUNT(*) FROM f_messages WHERE topic_id = ?"
 
 	// TODO Не нужны ли какие-нибудь доп. манипуляции с полем number при чтении
@@ -162,7 +183,8 @@ const (
 			m.message_text,
 			f.is_censored,
 			f.vote_plus,
-			ABS(f.vote_minus) AS vote_minus
+			ABS(f.vote_minus) AS vote_minus,
+			f.number
 		FROM
 			f_messages f
 		LEFT JOIN
@@ -189,7 +211,8 @@ const (
 			m.message_text,
 			f.is_censored,
 			f.vote_plus,
-			ABS(f.vote_minus) AS vote_minus
+			ABS(f.vote_minus) AS vote_minus,
+			f.number
 		FROM
 			f_messages f
 		LEFT JOIN
@@ -202,11 +225,16 @@ const (
 
 	ForumGetShortMessage = `
 		SELECT
+			message_id,
 			topic_id,
+			forum_id,
 			user_id,
+			is_censored,
 			is_red,
+			date_of_add,
 			vote_plus,
-			vote_minus
+			vote_minus,
+			number
 		FROM
 			f_messages
 		WHERE
@@ -281,7 +309,7 @@ const (
 			user_id = ?
 	`
 
-	// need_sindex - тема требует переиндексации Sphinx-ом, need_update_numbers - требует пересчета number для сообщений
+	// need_update_numbers - требует пересчета number для сообщений
 	ForumSetTopicLastMessage = `
 		UPDATE
 			f_topics
@@ -291,8 +319,17 @@ const (
 			last_user_id = ?,
 			last_user_name = ?,
 			last_message_date = NOW(),
-			need_sindex = 1,
 			need_update_numbers = 1
+		WHERE
+			topic_id = ?
+	`
+
+	// need_sindex - тема требует переиндексации Sphinx-ом
+	ForumMarkTopicUpdated = `
+		UPDATE
+			f_topics
+		SET
+			need_sindex = 1
 		WHERE
 			topic_id = ?
 	`
@@ -350,5 +387,15 @@ const (
 			new_forum_answers = new_forum_answers + 1
 		WHERE
 			user_id IN (?)
+	`
+
+	ForumUpdateMessage = `
+		UPDATE
+			f_messages
+		SET
+			message_length = ?,
+			is_red = ?
+		WHERE
+			message_id = ?
 	`
 )

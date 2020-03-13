@@ -17,10 +17,11 @@ type UserLoginInfo struct {
 }
 
 type UserInfo struct {
-	Login           string `db:"login"`
-	Gender          uint8  `db:"sex"`
-	Class           uint8  `db:"user_class"`
-	AvailableForums string `db:"access_to_forums"`
+	Login                string `db:"login"`
+	Gender               uint8  `db:"sex"`
+	Class                uint8  `db:"user_class"`
+	CanEditForumMessages uint8  `db:"can_edit_f_messages"`
+	AvailableForums      string `db:"access_to_forums"`
 }
 
 type UserBlockInfo struct {

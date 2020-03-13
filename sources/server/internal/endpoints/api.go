@@ -96,6 +96,18 @@ func (api *API) getAvailableForums(r *http.Request) []uint64 {
 	return api.config.DefaultAccessToForums
 }
 
+func (api *API) isPermissionGranted(r *http.Request, destPermission pb.Auth_Claims_Permission) bool {
+	if user := api.getUser(r); user != nil {
+		for _, permission := range user.Permissions {
+			if permission == destPermission {
+				return true
+			}
+		}
+		return false
+	}
+	return false
+}
+
 func (api *API) makeAuthResponse(r *http.Request, issuedAt time.Time, userId uint64, saveFn func(entry *db.AuthTokenEntry) error) (*pb.Auth_AuthResponse, error) {
 	// получаем инфу о пользователе
 
@@ -107,6 +119,12 @@ func (api *API) makeAuthResponse(r *http.Request, issuedAt time.Time, userId uin
 
 	// формируем данные токена
 
+	var permissions []pb.Auth_Claims_Permission
+
+	if userInfo.CanEditForumMessages == 1 {
+		permissions = append(permissions, pb.Auth_Claims_PERMISSION_CAN_EDIT_OWN_FORUM_MESSAGES)
+	}
+
 	claims := &pb.Auth_Claims{
 		TokenId: uuid.Generate(issuedAt),
 		Issued:  pbutils.TimestampProto(issuedAt),
@@ -116,6 +134,7 @@ func (api *API) makeAuthResponse(r *http.Request, issuedAt time.Time, userId uin
 			Gender:            helpers.GetGender(userId, userInfo.Gender),
 			Class:             helpers.GetUserClass(userInfo.Class),
 			AvailableForumIds: utils.ParseUints(strings.Split(userInfo.AvailableForums, ",")),
+			Permissions:       permissions,
 		},
 	}
 
