@@ -13,4 +13,6 @@ services:
       - 4242:4242
     networks:
       - flnetwork
+    volumes:
+      - ./:/forum_render_cache
     env_file: app.env
