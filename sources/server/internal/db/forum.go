@@ -29,6 +29,15 @@ type Forum struct {
 	ForumBlockName  string    `db:"forum_block_name"`
 }
 
+type ShortForum struct {
+	ForumId uint64 `db:"forum_id"`
+	// Доступ в форум только админам. TODO На самом деле это поле крайне опасно. Если не делать явную проверку на наличие
+	//  доступа к данному форуму, у любого пользователя появляется возможность редактировать сообщения из админских
+	//  форумов. В Perl-коде такая уязвимость была (https://github.com/parserpro/fantlab/issues/954,
+	// https://github.com/parserpro/fantlab/issues/952).
+	OnlyForAdmins uint8 `db:"only_for_admins"`
+}
+
 type ForumTopic struct {
 	TopicId         uint64    `db:"topic_id"`
 	ForumId         uint64    `db:"forum_id"`
@@ -64,8 +73,10 @@ type ShortForumTopic struct {
 type ForumMessage struct {
 	MessageID   uint64    `db:"message_id"`
 	TopicId     uint64    `db:"topic_id"`
+	ForumId     uint64    `db:"forum_id"`
 	DateOfAdd   time.Time `db:"date_of_add"`
 	UserID      uint64    `db:"user_id"`
+	IsCensored  uint8     `db:"is_censored"`
 	IsRed       uint8     `db:"is_red"` // модераторское?
 	Login       string    `db:"login"`
 	Sex         uint8     `db:"sex"`
@@ -73,9 +84,9 @@ type ForumMessage struct {
 	UserClass   uint8     `db:"user_class"`
 	Sign        string    `db:"sign"`
 	MessageText string    `db:"message_text"`
-	IsCensored  uint8     `db:"is_censored"`
 	VotePlus    uint64    `db:"vote_plus"`
 	VoteMinus   uint64    `db:"vote_minus"`
+	Number      uint64    `db:"number"`
 }
 
 type ForumModerator struct {
@@ -128,6 +139,11 @@ func (db *DB) FetchModerators(ctx context.Context) (map[uint64][]ForumModerator,
 	return moderatorsMap, nil
 }
 
+func (db *DB) FetchShortForum(ctx context.Context, forumId uint64) (forum ShortForum, err error) {
+	err = db.engine.Read(ctx, sqlr.NewQuery(queries.ForumGetShortForum).WithArgs(forumId)).Scan(&forum)
+	return
+}
+
 func (db *DB) FetchForumTopics(ctx context.Context, availableForums []uint64, forumID, limit, offset uint64) (response *ForumTopicsDBResponse, err error) {
 	var forumExists uint8
 	var topics []ForumTopic
@@ -165,6 +181,18 @@ func (db *DB) FetchForumTopic(ctx context.Context, availableForums []uint64, top
 	}
 
 	return &topic, nil
+}
+
+func (db *DB) FetchTopicStarterCanEditFirstMessage(ctx context.Context, messageId uint64) (bool, error) {
+	var canEdit uint8
+
+	err := db.engine.Read(ctx, sqlr.NewQuery(queries.ForumTopicGetIsEditTopicStarter).WithArgs(messageId)).Scan(&canEdit)
+
+	if err != nil {
+		return false, err
+	}
+
+	return canEdit == 1, nil
 }
 
 func (db *DB) FetchTopicMessages(ctx context.Context, availableForums []uint64, topicID, limit, offset uint64, asc bool) (response *ForumTopicMessagesDBResponse, err error) {
@@ -249,7 +277,7 @@ func (db *DB) FetchUserIsForumModerator(ctx context.Context, userId, topicId uin
 	return userIsForumModerator == 1, nil
 }
 
-func (db *DB) InsertNewForumMessage(ctx context.Context, topic *ForumTopic, userId uint64, login string, text string, isRed uint8, forumMessagesInPage uint64) error {
+func (db *DB) InsertNewForumMessage(ctx context.Context, topic *ForumTopic, userId uint64, login, text string, isRed uint8, forumMessagesInPage uint64) error {
 	err := db.engine.InTransaction(func(rw sqlr.ReaderWriter) error {
 		var message ForumMessage
 
@@ -298,8 +326,11 @@ func updateForumStat(ctx context.Context, rw sqlr.ReaderWriter, topic *ForumTopi
 	var topicMessageCount uint64
 
 	return codeflow.Try(
-		func() error { // Обновляем данные о последнем сообщении в теме, выставляем флаги для Cron-а
+		func() error { // Обновляем данные о последнем сообщении в теме, выставляем флаг для Cron-а о необходимости пересчета number
 			return rw.Write(ctx, sqlr.NewQuery(queries.ForumSetTopicLastMessage).WithArgs(messageId, userId, login, topic.TopicId)).Error
+		},
+		func() error { // Выставляем флаг для Cron-а о необходимости переиндексации Sphinx-ом
+			return rw.Write(ctx, sqlr.NewQuery(queries.ForumMarkTopicUpdated).WithArgs(topic.TopicId)).Error
 		},
 		func() error { // Получаем обновленную статистику форума
 			return rw.Read(ctx, sqlr.NewQuery(queries.ForumGetStat).WithArgs(topic.ForumId)).Scan(&stat)
@@ -358,4 +389,23 @@ func notifyForumTopicSubscribers(ctx context.Context, rw sqlr.ReaderWriter, topi
 func (db *DB) FetchForumTopicSubscribers(ctx context.Context, topicId, excludedUserId uint64) (subscribers []uint64, err error) {
 	err = db.engine.Read(ctx, sqlr.NewQuery(queries.ForumGetTopicSubscribers).WithArgs(topicId, excludedUserId)).Scan(&subscribers)
 	return
+}
+
+func (db *DB) UpdateForumMessage(ctx context.Context, messageId, topicId uint64, text string, isRed uint8) error {
+	return db.engine.InTransaction(func(rw sqlr.ReaderWriter) error {
+		return codeflow.Try(
+			func() error { // Обновляем сообщение
+				// TODO Скорее всего, поле message_length проставляется здесь просто для отчетности. Реального
+				//  пересчета баллов, ради которого оно и вводилось, не происходит.
+				messageLength := len(helpers.RemoveImmeasurable(text))
+				return rw.Write(ctx, sqlr.NewQuery(queries.ForumUpdateMessage).WithArgs(messageLength, isRed, messageId)).Error
+			},
+			func() error { // Сохраняем текст сообщения
+				return rw.Write(ctx, sqlr.NewQuery(queries.ForumSetMessageText).WithArgs(messageId, text)).Error
+			},
+			func() error { // Выставляем флаг для Cron-а о необходимости переиндексации Sphinx-ом
+				return rw.Write(ctx, sqlr.NewQuery(queries.ForumMarkTopicUpdated).WithArgs(topicId)).Error
+			},
+		)
+	})
 }

@@ -1027,6 +1027,34 @@
 </p>
 </details>
 
+<details><summary>Правка сообщения в форуме</summary>
+<p>
+
+
+
+**PUT** [/v1/forum_messages/:id](../sources/server/internal/endpoints/edit_forum_message.go#L13)
+
+Параметры запроса:
+
+
+* **id** (path, uint64) - id сообщения
+
+
+* **message** (form, string) - новый текст сообщения
+
+
+
+
+Схема ответа:
+
+```
+{}
+```
+---
+
+</p>
+</details>
+
 <details><summary>Вступление/выход из сообщества</summary>
 <p>
 

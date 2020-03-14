@@ -48,9 +48,10 @@ func (api *API) AddForumMessage(r *http.Request) (int, proto.Message) {
 		}
 	}
 
+	// проверка на nil далее опущена, поскольку неавторизованный пользователь сюда не попадет
 	user := api.getUser(r)
 
-	userIsForumModerator, err := api.services.DB().FetchUserIsForumModerator(r.Context(), user.UserId, params.TopicId)
+	userIsForumModerator, err := api.services.DB().FetchUserIsForumModerator(r.Context(), user.UserId, dbTopic.TopicId)
 
 	if err != nil {
 		return http.StatusInternalServerError, &pb.Error_Response{
