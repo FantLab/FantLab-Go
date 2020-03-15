@@ -1,0 +1,39 @@
+pipeline {
+    agent any
+
+    environment {
+        tag = "fantlab/go:go_build_$BUILD_NUMBER"
+        credential = 'fldockerhub'
+        dockerImage = ''
+    }
+
+    stages {
+        stage('Checkout') {
+            steps {
+                checkout([$class: 'GitSCM', branches: [[name: "${COMMIT_HASH}"]], userRemoteConfigs: [[url: 'https://github.com/FantLab/FantLab-Go']]])
+            }
+        }
+        stage('Build') {
+            steps {
+                script {
+                    dockerImage = docker.build tag
+                }
+            }
+        }
+        stage('Deploy') {
+            steps {
+                script {
+                    docker.withRegistry( '', credential ) {
+                        dockerImage.push()
+                        dockerImage.push('latest')
+                    }
+                }
+            }
+        }
+        stage('Clean') {
+            steps{
+                sh "docker rmi $tag"
+            }
+        }
+    }
+}
