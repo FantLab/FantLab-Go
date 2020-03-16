@@ -7,7 +7,7 @@ import (
 )
 
 const (
-	userAuthKey        = "FantLab: user auth"
+	userAuthKey        = contextKey("FantLab: user auth")
 	userCacheKeyPrefix = "users:user_id="
 )
 
