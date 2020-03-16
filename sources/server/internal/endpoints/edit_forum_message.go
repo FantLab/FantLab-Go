@@ -49,7 +49,7 @@ func (api *API) EditForumMessage(r *http.Request) (int, proto.Message) {
 		}
 	}
 
-	// проверка на nil далее опущена, поскольку неавторизованный пользователь сюда не попадет
+	// Проверка на nil далее опущена, поскольку неавторизованный пользователь сюда не попадет
 	user := api.getUser(r)
 
 	userIsForumModerator, err := api.services.DB().FetchUserIsForumModerator(r.Context(), user.UserId, dbMessage.TopicId)
@@ -74,14 +74,6 @@ func (api *API) EditForumMessage(r *http.Request) (int, proto.Message) {
 		}
 	}
 
-	// Проверяем, может ли пользователь редактировать чужое сообщение
-	if user.UserId != dbMessage.UserID && !userIsForumModerator && forum.OnlyForAdmins == 0 {
-		return http.StatusForbidden, &pb.Error_Response{
-			Status:  pb.Error_ACTION_PERMITTED,
-			Context: "У вас нет прав для редактирования данного сообщения",
-		}
-	}
-
 	topicStarterCanEditFirstMessage, err := api.services.DB().FetchTopicStarterCanEditFirstMessage(r.Context(), dbMessage.MessageID)
 
 	if err != nil {
@@ -91,19 +83,18 @@ func (api *API) EditForumMessage(r *http.Request) (int, proto.Message) {
 	}
 
 	timeAgo := time.Since(dbMessage.DateOfAdd).Seconds()
+	userCanEditOwnForumMessages := api.isPermissionGranted(r, pb.Auth_Claims_PERMISSION_CAN_EDIT_OWN_FORUM_MESSAGES)
 
 	// Еще не вышло время редактирования
 	//  или пользователь может редактировать свои сообщения без ограничения по времени
 	//  или это первое сообщение темы и модератор разрешил его автору правки
 	// TODO В Perl-коде 2000с, хотя в комментарии говорится про час.
-	userCanEditOwnForumMessages := api.isPermissionGranted(r, pb.Auth_Claims_PERMISSION_CAN_EDIT_OWN_FORUM_MESSAGES)
 	canUserEditMessage := timeAgo <= 2000 || userCanEditOwnForumMessages ||
 		(dbMessage.Number == 1 && topicStarterCanEditFirstMessage)
 
 	isMessageEditable := dbMessage.IsCensored == 0 && dbMessage.IsRed == 0
 
-	// Проверяем, может ли пользователь редактировать свое сообщение
-	if !(canUserEditMessage && isMessageEditable) && !userIsForumModerator && forum.OnlyForAdmins == 0 {
+	if !(user.UserId == dbMessage.UserID && canUserEditMessage && isMessageEditable) && !userIsForumModerator && forum.OnlyForAdmins == 0 {
 		return http.StatusForbidden, &pb.Error_Response{
 			Status:  pb.Error_ACTION_PERMITTED,
 			Context: "Вы не можете отредактировать данное сообщение",

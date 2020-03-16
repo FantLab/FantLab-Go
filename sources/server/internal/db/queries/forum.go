@@ -81,6 +81,8 @@ const (
 			t.last_message_id,
 			u2.user_id AS last_user_id,
 			u2.photo_number AS last_photo_number,
+			u2.login AS last_login,
+			u2.sex AS last_sex,
 			m.message_text AS last_message_text,
 			t.last_message_date,
 			t.moderated
@@ -100,6 +102,7 @@ const (
 		OFFSET ?
 	`
 
+	// TODO Все данные, кроме last_sex, уже есть в таблице f_topics (на рефакторинг)
 	ForumTopic = `
 		SELECT
 			t.topic_id,
@@ -118,6 +121,8 @@ const (
 			t.last_message_id,
 			u2.user_id AS last_user_id,
 			u2.photo_number AS last_photo_number,
+			u2.login AS last_login,
+			u2.sex AS last_sex,
 			m.message_text AS last_message_text,
 			t.last_message_date,
 			t.moderated
@@ -309,23 +314,22 @@ const (
 			user_id = ?
 	`
 
-	// need_update_numbers - требует пересчета number для сообщений
 	ForumSetTopicLastMessage = `
 		UPDATE
-			f_topics
+			f_topics t
 		SET
-			message_count = message_count + 1,
-			last_message_id = ?,
-			last_user_id = ?,
-			last_user_name = ?,
-			last_message_date = NOW(),
-			need_update_numbers = 1
+			t.message_count = (SELECT COUNT(DISTINCT m.message_id) FROM f_messages m WHERE m.topic_id = t.topic_id),
+			t.last_message_id = ?,
+			t.last_user_id = ?,
+			t.last_user_name = ?,
+			t.last_message_date = ?,
+			t.need_update_numbers = 1
 		WHERE
-			topic_id = ?
+			t.topic_id = ?
 	`
 
 	// need_sindex - тема требует переиндексации Sphinx-ом
-	ForumMarkTopicUpdated = `
+	ForumMarkTopicNeedSphinxReindex = `
 		UPDATE
 			f_topics
 		SET
@@ -335,10 +339,10 @@ const (
 	`
 
 	// SUM возвращает значение типа DECIMAL (https://dev.mysql.com/doc/refman/8.0/en/group-by-functions.html)
-	ForumGetStat = `
+	ForumGetForumStat = `
 		SELECT
 			COUNT(*) AS topic_count,
-			CAST(SUM(message_count) AS SIGNED) AS forum_message_count
+			CAST(SUM(message_count) AS SIGNED) AS message_count
 		FROM
 			f_topics
 		WHERE
@@ -365,8 +369,9 @@ const (
 			last_user_name = ?,
 			last_topic_id = ?,
 			last_topic_name = ?,
-			last_message_date = NOW(),
-			last_topic_page_count = ?
+			last_message_date = ?,
+			last_topic_page_count = ?,
+			not_moderated_topic_count = ?
 		WHERE
 			forum_id = ?
 	`
@@ -377,10 +382,10 @@ const (
 		FROM
 			f_topics_subscribers
 		WHERE
-			topic_id = ? AND user_id != ?
+			topic_id = ?
 	`
 
-	ForumUpdateNewForumAnswersCount = `
+	ForumIncrementNewForumAnswersCount = `
 		UPDATE
 			users
 		SET
@@ -397,5 +402,120 @@ const (
 			is_red = ?
 		WHERE
 			message_id = ?
+	`
+
+	ForumDeleteMessage = `
+		DELETE
+		FROM
+			f_messages
+		WHERE
+			message_id = ?
+	`
+
+	ForumDeleteMessageText = `
+		DELETE
+		FROM
+			f_messages_text
+		WHERE
+			message_id = ?
+	`
+
+	ForumDeleteMessageFiles = `
+		DELETE
+		FROM
+			f_files
+		WHERE
+			file_group = 'forum' AND message_id = ?
+	`
+
+	ForumMarkMessageDeleted = `
+		INSERT INTO
+			f_messages_deleted (message_id)
+		VALUES
+			(?)
+	`
+
+	ForumMarkTopicNeedRecalc = `
+		UPDATE
+			f_topics
+		SET
+			need_recalc_unread_count = 1
+		WHERE
+			topic_id = ?
+	`
+
+	ForumUpdateUserTopicReads = `
+		UPDATE
+			user_topic_reads
+		SET
+			read_count = read_count - 1
+		WHERE
+			topic_id = ? AND date_of_read >= ?
+	`
+
+	ForumGetTopicStat = `
+		SELECT
+			MAX(message_id) AS last_message_id
+		FROM
+			f_messages
+		WHERE
+			topic_id = ?
+	`
+
+	ForumGetMessageInfo = `
+		SELECT
+			m.user_id,
+			u.login,
+			m.date_of_add
+		FROM
+			f_messages m
+		LEFT JOIN
+			users u ON u.user_id = m.user_id
+		WHERE
+			m.message_id = ?
+	`
+
+	ForumGetNotModeratedTopicCount = `
+		SELECT
+			COUNT(*) AS topic_count
+		FROM
+			f_topics
+		WHERE
+			forum_id = ? AND moderated = 0
+	`
+
+	ForumGetLastTopic = `
+		SELECT
+			last_message_id,
+			topic_id,
+			name,
+			last_user_id,
+			last_user_name AS last_login,
+			last_message_date,
+			message_count
+		FROM
+			f_topics
+		WHERE
+			forum_id = ? AND moderated = 1
+		ORDER BY
+			last_message_date DESC
+		LIMIT 1
+	`
+
+	ForumDeleteNewForumAnswer = `
+		DELETE
+		FROM
+			f_new_messages
+		WHERE
+			message_id = ?
+	`
+
+	ForumDecrementNewForumAnswersCount = `
+		UPDATE
+			users
+		SET
+			new_forum_answers = new_forum_answers - 1
+		WHERE
+			user_id IN (?) AND new_forum_answers > 0
 	`
 )

@@ -301,7 +301,7 @@ func (db *DB) InsertNewForumMessage(ctx context.Context, topic *ForumTopic, user
 				return rw.Write(ctx, sqlr.NewQuery(queries.ForumUpdateUserStat).WithArgs(userId)).Error
 			},
 			func() error { // Обновляем статистику форума
-				return updateForumStat(ctx, rw, topic, forumMessagesInPage, message.MessageID, userId, login)
+				return updateForumStatAfterNewMessage(ctx, rw, topic, forumMessagesInPage, message.MessageID, userId, login)
 			},
 		)
 	})
@@ -310,43 +310,48 @@ func (db *DB) InsertNewForumMessage(ctx context.Context, topic *ForumTopic, user
 		return err
 	}
 
-	return notifyForumTopicSubscribers(ctx, db.engine, topic.TopicId)
+	return notifyForumTopicSubscribersAboutNewMessage(ctx, db.engine, topic.TopicId)
 }
 
-func updateForumStat(ctx context.Context, rw sqlr.ReaderWriter, topic *ForumTopic, forumMessagesInPage, messageId, userId uint64, login string) error {
+func updateForumStatAfterNewMessage(ctx context.Context, rw sqlr.ReaderWriter, topic *ForumTopic, forumMessagesInPage, messageId, userId uint64, login string) error {
 	if topic.IsModerated == 0 {
 		return nil
 	}
 
 	type forumStat struct {
 		TopicCount   uint64 `db:"topic_count"`
-		MessageCount uint64 `db:"forum_message_count"`
+		MessageCount uint64 `db:"message_count"`
 	}
 	var stat forumStat
 	var topicMessageCount uint64
+	var notModeratedTopicCount uint64
 
 	return codeflow.Try(
 		func() error { // Обновляем данные о последнем сообщении в теме, выставляем флаг для Cron-а о необходимости пересчета number
-			return rw.Write(ctx, sqlr.NewQuery(queries.ForumSetTopicLastMessage).WithArgs(messageId, userId, login, topic.TopicId)).Error
+			return rw.Write(ctx, sqlr.NewQuery(queries.ForumSetTopicLastMessage).WithArgs(messageId, userId, login, time.Now(), topic.TopicId)).Error
 		},
 		func() error { // Выставляем флаг для Cron-а о необходимости переиндексации Sphinx-ом
-			return rw.Write(ctx, sqlr.NewQuery(queries.ForumMarkTopicUpdated).WithArgs(topic.TopicId)).Error
+			return rw.Write(ctx, sqlr.NewQuery(queries.ForumMarkTopicNeedSphinxReindex).WithArgs(topic.TopicId)).Error
 		},
 		func() error { // Получаем обновленную статистику форума
-			return rw.Read(ctx, sqlr.NewQuery(queries.ForumGetStat).WithArgs(topic.ForumId)).Scan(&stat)
+			return rw.Read(ctx, sqlr.NewQuery(queries.ForumGetForumStat).WithArgs(topic.ForumId)).Scan(&stat)
 		},
 		func() error { // Получаем количество сообщений в теме
 			return rw.Read(ctx, sqlr.NewQuery(queries.ForumGetTopicMessageCount).WithArgs(topic.TopicId)).Scan(&topicMessageCount)
 		},
+		func() error { // Получаем количество непромодерированных тем в форуме
+			return rw.Read(ctx, sqlr.NewQuery(queries.ForumGetNotModeratedTopicCount).WithArgs(topic.ForumId)).Scan(&notModeratedTopicCount)
+		},
 		func() error { // Обновляем данные о последней теме в форуме
 			pageCount := helpers.CalculatePageCount(topicMessageCount, forumMessagesInPage)
 			return rw.Write(ctx, sqlr.NewQuery(queries.ForumSetForumLastTopic).
-				WithArgs(stat.MessageCount, stat.TopicCount, messageId, userId, login, topic.TopicId, topic.Name, pageCount, topic.ForumId)).Error
+				WithArgs(stat.MessageCount, stat.TopicCount, messageId, userId, login, topic.TopicId, topic.Name, time.Now(),
+					pageCount, notModeratedTopicCount, topic.ForumId)).Error
 		},
 	)
 }
 
-func notifyForumTopicSubscribers(ctx context.Context, rw sqlr.ReaderWriter, topicId uint64) error {
+func notifyForumTopicSubscribersAboutNewMessage(ctx context.Context, rw sqlr.ReaderWriter, topicId uint64) error {
 	var message ForumMessage
 	var topicSubscribers []uint64
 
@@ -361,11 +366,8 @@ func notifyForumTopicSubscribers(ctx context.Context, rw sqlr.ReaderWriter, topi
 		func() error { // Получаем данные сообщения
 			return rw.Read(ctx, sqlr.NewQuery(queries.ForumGetTopicLastMessage).WithArgs(topicId)).Scan(&message)
 		},
-		func() error { // Получаем список подписчиков на обновления темы (за вычетом автора сообщения)
-			return rw.Read(ctx, sqlr.NewQuery(queries.ForumGetTopicSubscribers).WithArgs(topicId, message.UserID)).Scan(&topicSubscribers)
-		},
-		func() error { // Обновляем статистику новых ответов в форуме для подписчиков
-			return rw.Write(ctx, sqlr.NewQuery(queries.ForumUpdateNewForumAnswersCount).WithArgs(topicSubscribers).FlatArgs()).Error
+		func() error { // Получаем список подписчиков на обновления темы
+			return rw.Read(ctx, sqlr.NewQuery(queries.ForumGetTopicSubscribers).WithArgs(topicId)).Scan(&topicSubscribers)
 		},
 	)
 
@@ -383,11 +385,18 @@ func notifyForumTopicSubscribers(ctx context.Context, rw sqlr.ReaderWriter, topi
 			MessageDate: message.DateOfAdd,
 		}
 	}
-	return rw.Write(ctx, sqlbuilder.InsertInto(queries.NewForumAnswersTable, entries...)).Error
+	err = rw.Write(ctx, sqlbuilder.InsertInto(queries.NewForumAnswersTable, entries...)).Error
+
+	if err != nil {
+		return err
+	}
+
+	// Обновляем статистику новых ответов в форуме для подписчиков
+	return rw.Write(ctx, sqlr.NewQuery(queries.ForumIncrementNewForumAnswersCount).WithArgs(topicSubscribers).FlatArgs()).Error
 }
 
-func (db *DB) FetchForumTopicSubscribers(ctx context.Context, topicId, excludedUserId uint64) (subscribers []uint64, err error) {
-	err = db.engine.Read(ctx, sqlr.NewQuery(queries.ForumGetTopicSubscribers).WithArgs(topicId, excludedUserId)).Scan(&subscribers)
+func (db *DB) FetchForumTopicSubscribers(ctx context.Context, topicId uint64) (subscribers []uint64, err error) {
+	err = db.engine.Read(ctx, sqlr.NewQuery(queries.ForumGetTopicSubscribers).WithArgs(topicId)).Scan(&subscribers)
 	return
 }
 
@@ -404,8 +413,112 @@ func (db *DB) UpdateForumMessage(ctx context.Context, messageId, topicId uint64,
 				return rw.Write(ctx, sqlr.NewQuery(queries.ForumSetMessageText).WithArgs(messageId, text)).Error
 			},
 			func() error { // Выставляем флаг для Cron-а о необходимости переиндексации Sphinx-ом
-				return rw.Write(ctx, sqlr.NewQuery(queries.ForumMarkTopicUpdated).WithArgs(topicId)).Error
+				return rw.Write(ctx, sqlr.NewQuery(queries.ForumMarkTopicNeedSphinxReindex).WithArgs(topicId)).Error
 			},
 		)
 	})
+}
+
+func (db *DB) DeleteForumMessage(ctx context.Context, messageId, topicId, forumId uint64, messageDate time.Time, forumMessagesInPage uint64) error {
+	err := db.engine.InTransaction(func(rw sqlr.ReaderWriter) error {
+		return codeflow.Try(
+			func() error { // Удаляем сообщение
+				return rw.Write(ctx, sqlr.NewQuery(queries.ForumDeleteMessage).WithArgs(messageId)).Error
+			},
+			func() error { // Удаляем текст сообщения
+				return rw.Write(ctx, sqlr.NewQuery(queries.ForumDeleteMessageText).WithArgs(messageId)).Error
+			},
+			func() error { // Удаляем записи об аттачах сообщения
+				return rw.Write(ctx, sqlr.NewQuery(queries.ForumDeleteMessageFiles).WithArgs(messageId)).Error
+			},
+			func() error {
+				// Записываем сообщение в список удаленных. Таблица чистится при переиндексации форума Sphinx-ом
+				// (script/search/source_for_forum_messages.pl)
+				return rw.Write(ctx, sqlr.NewQuery(queries.ForumMarkMessageDeleted).WithArgs(messageId)).Error
+			},
+			func() error { // Обновляем данные о последнем сообщении в теме
+				return updateTopicStatAfterMessageDeleting(ctx, rw, topicId)
+			},
+			func() error { // Обновляем данные о последней теме в форуме
+				return updateForumStatAfterMessageDeleting(ctx, rw, forumId, forumMessagesInPage)
+			},
+			func() error { // Помечаем тему, как требующую пересчета (для Cron-а)
+				return rw.Write(ctx, sqlr.NewQuery(queries.ForumMarkTopicNeedRecalc).WithArgs(topicId)).Error
+			},
+			func() error {
+				// Пересчитываем количество прочитанных пользователями сообщений (используется в списке форумов для
+				// подсчета количества непрочитанных сообщений в каждом форуме для данного пользователя)
+				return rw.Write(ctx, sqlr.NewQuery(queries.ForumUpdateUserTopicReads).WithArgs(topicId, messageDate)).Error
+			},
+			func() error {
+				return notifyForumTopicSubscribersAboutMessageDeleting(ctx, rw, messageId, topicId)
+			},
+		)
+	})
+	return err
+}
+
+func updateTopicStatAfterMessageDeleting(ctx context.Context, rw sqlr.ReaderWriter, topicId uint64) error {
+	type topicStat struct {
+		LastMessageId uint64 `db:"last_message_id"`
+	}
+	var stat topicStat
+	var message ForumMessage
+
+	return codeflow.Try(
+		func() error { // Получаем статистику темы
+			return rw.Read(ctx, sqlr.NewQuery(queries.ForumGetTopicStat).WithArgs(topicId)).Scan(&stat)
+		},
+		func() error { // Получаем данные о последнем сообщении в теме
+			return rw.Read(ctx, sqlr.NewQuery(queries.ForumGetMessageInfo).WithArgs(stat.LastMessageId)).Scan(&message)
+		},
+		func() error { // Обновляем данные о последнем сообщении в теме
+			return rw.Write(ctx, sqlr.NewQuery(queries.ForumSetTopicLastMessage).
+				WithArgs(stat.LastMessageId, message.UserID, message.Login, message.DateOfAdd, topicId)).Error
+		},
+	)
+}
+
+func updateForumStatAfterMessageDeleting(ctx context.Context, rw sqlr.ReaderWriter, forumId, forumMessagesInPage uint64) error {
+	type forumStat struct {
+		TopicCount   uint64 `db:"topic_count"`
+		MessageCount uint64 `db:"message_count"`
+	}
+	var stat forumStat
+	var lastTopic ForumTopic
+	var notModeratedTopicCount uint64
+
+	return codeflow.Try(
+		func() error { // Получаем статистику форума
+			return rw.Read(ctx, sqlr.NewQuery(queries.ForumGetForumStat).WithArgs(forumId)).Scan(&stat)
+		},
+		func() error { // Получаем данные о последней теме в форуме
+			return rw.Read(ctx, sqlr.NewQuery(queries.ForumGetLastTopic).WithArgs(forumId)).Scan(&lastTopic)
+		},
+		func() error { // Получаем количество непромодерированных тем в форуме
+			return rw.Read(ctx, sqlr.NewQuery(queries.ForumGetNotModeratedTopicCount).WithArgs(forumId)).Scan(&notModeratedTopicCount)
+		},
+		func() error { // Обновляем данные о последней теме в форуме
+			pageCount := helpers.CalculatePageCount(lastTopic.MessageCount, forumMessagesInPage)
+			return rw.Write(ctx, sqlr.NewQuery(queries.ForumSetForumLastTopic).
+				WithArgs(stat.MessageCount, stat.TopicCount, lastTopic.LastMessageID, lastTopic.LastUserID, lastTopic.LastLogin,
+					lastTopic.TopicId, lastTopic.Name, lastTopic.LastMessageDate, pageCount, notModeratedTopicCount, forumId)).Error
+		},
+	)
+}
+
+func notifyForumTopicSubscribersAboutMessageDeleting(ctx context.Context, rw sqlr.ReaderWriter, messageId, topicId uint64) error {
+	var topicSubscribers []uint64
+
+	return codeflow.Try(
+		func() error { // Получаем список подписчиков на обновления темы
+			return rw.Read(ctx, sqlr.NewQuery(queries.ForumGetTopicSubscribers).WithArgs(topicId)).Scan(&topicSubscribers)
+		},
+		func() error { // Удаляем оповещение о новом сообщении, если есть, для всех подписчиков
+			return rw.Write(ctx, sqlr.NewQuery(queries.ForumDeleteNewForumAnswer).WithArgs(messageId)).Error
+		},
+		func() error { // Обновляем статистику новых ответов в форуме для подписчиков
+			return rw.Write(ctx, sqlr.NewQuery(queries.ForumDecrementNewForumAnswersCount).WithArgs(topicSubscribers).FlatArgs()).Error
+		},
+	)
 }
