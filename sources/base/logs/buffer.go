@@ -16,7 +16,9 @@ func (buf *Buffer) Append(entry logger.Entry) {
 	buf.entries = append(buf.entries, entry)
 }
 
-const bufferKey = "logs: buffer"
+type contextKey string
+
+const bufferKey = contextKey("logs: buffer")
 
 func setBuffer(ctx context.Context) (context.Context, *Buffer) {
 	buf := new(Buffer)

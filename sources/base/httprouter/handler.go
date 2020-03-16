@@ -8,7 +8,7 @@ import (
 type httpRouter struct {
 	tree             map[string]*pathTrie
 	notFoundHandler  http.Handler
-	contextParamsKey string
+	contextParamsKey interface{}
 }
 
 func (hr *httpRouter) ServeHTTP(w http.ResponseWriter, r *http.Request) {
@@ -36,7 +36,7 @@ func (hr *httpRouter) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 type Config struct {
 	RootGroup               *Group
 	NotFoundHandler         http.Handler
-	RequestContextParamsKey string
+	RequestContextParamsKey interface{}
 	CommonPrefix            string
 	PathSegmentValidator    func(string) bool
 	GlobalMiddlewares       []Middleware

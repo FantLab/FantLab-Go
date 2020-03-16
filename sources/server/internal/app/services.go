@@ -11,6 +11,8 @@ import (
 	"fantlab/server/internal/db"
 )
 
+type contextKey string
+
 func MakeServices(isDebug bool, mysqlDB *sql.DB, redisClient redisco.Client, memcacheClient memcached.Client, cryptoCoder *edsign.Coder) *Services {
 	return &Services{
 		isDebug:      isDebug,

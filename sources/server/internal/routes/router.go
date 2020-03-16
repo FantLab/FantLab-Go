@@ -35,7 +35,12 @@ func fill(x *httprouter.Group, y *routing.Group) {
 	}
 }
 
-const BasePath = "v1"
+type contextKey string
+
+const (
+	paramsKey = contextKey("path_params")
+	BasePath  = "v1"
+)
 
 func MakeHandler(appConfig *config.AppConfig, services *app.Services, logFunc func(*logger.Request)) http.Handler {
 	routerConfig := &httprouter.Config{
@@ -45,7 +50,7 @@ func MakeHandler(appConfig *config.AppConfig, services *app.Services, logFunc fu
 				Status: pb.Error_NOT_FOUND,
 			}
 		}),
-		RequestContextParamsKey: "path_params",
+		RequestContextParamsKey: paramsKey,
 		CommonPrefix:            BasePath,
 		PathSegmentValidator:    regexp.MustCompile(`^\w+$`).MatchString,
 		GlobalMiddlewares: []httprouter.Middleware{
@@ -58,7 +63,7 @@ func MakeHandler(appConfig *config.AppConfig, services *app.Services, logFunc fu
 	}
 
 	fill(routerConfig.RootGroup, Tree(appConfig, services, func(r *http.Request, valueKey string) string {
-		value, _ := httprouter.GetValueFromContext(r.Context(), routerConfig.RequestContextParamsKey, valueKey)
+		value, _ := httprouter.GetValueFromContext(r.Context(), paramsKey, valueKey)
 		return value
 	}))
 

@@ -5,7 +5,7 @@ import (
 	"net/http"
 )
 
-func GetValueFromContext(ctx context.Context, paramsKey, valueKey string) (value string, exists bool) {
+func GetValueFromContext(ctx context.Context, paramsKey interface{}, valueKey string) (value string, exists bool) {
 	if values, ok := ctx.Value(paramsKey).(map[string]string); ok {
 		if values != nil {
 			value, exists = values[valueKey]
