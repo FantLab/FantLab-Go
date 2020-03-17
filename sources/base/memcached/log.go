@@ -14,6 +14,9 @@ type LogEntry struct {
 type LogFunc func(context.Context, LogEntry)
 
 func Log(client Client, logFunc LogFunc) Client {
+	if client == nil {
+		return nil
+	}
 	return &logger{
 		client:  client,
 		logFunc: logFunc,

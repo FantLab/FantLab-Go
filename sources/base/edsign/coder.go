@@ -3,6 +3,7 @@ package edsign
 import (
 	"bytes"
 	"crypto/ed25519"
+	"crypto/rand"
 	"encoding/base64"
 	"errors"
 )
@@ -20,16 +21,36 @@ var (
 	signLen = b64.EncodedLen(ed25519.SignatureSize)
 )
 
+func GenerateNewKeyPair() (string, string, error) {
+	pubKey, privKey, err := ed25519.GenerateKey(rand.Reader)
+	if err != nil {
+		return "", "", nil
+	}
+	return base64.StdEncoding.EncodeToString(pubKey), base64.StdEncoding.EncodeToString(privKey), nil
+}
+
 type Coder struct {
 	publicKey  ed25519.PublicKey
 	privateKey ed25519.PrivateKey
 }
 
-func NewCoder(publicKey []byte, privateKey []byte) *Coder {
-	if len(publicKey) != ed25519.PublicKeySize || len(privateKey) != ed25519.PrivateKeySize {
-		panic(ErrKey)
+func NewCoder64(publicKey, privateKey string) (*Coder, error) {
+	pubKey, err := base64.StdEncoding.DecodeString(publicKey)
+	if err != nil {
+		return nil, err
 	}
-	return &Coder{publicKey: publicKey, privateKey: privateKey}
+	privKey, err := base64.StdEncoding.DecodeString(privateKey)
+	if err != nil {
+		return nil, err
+	}
+	return NewCoder(pubKey, privKey)
+}
+
+func NewCoder(publicKey, privateKey []byte) (*Coder, error) {
+	if len(publicKey) != ed25519.PublicKeySize || len(privateKey) != ed25519.PrivateKeySize {
+		return nil, ErrKey
+	}
+	return &Coder{publicKey: publicKey, privateKey: privateKey}, nil
 }
 
 func (c *Coder) Encode(input []byte) []byte {
