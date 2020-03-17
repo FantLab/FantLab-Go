@@ -3,7 +3,6 @@ package server
 import (
 	"context"
 	"database/sql"
-	"encoding/base64"
 	"fantlab/base/anyserver"
 	"fantlab/base/codeflow"
 	"fantlab/base/edsign"
@@ -70,8 +69,13 @@ func makeAPIServer(logFunc func(string)) (server *anyserver.Server) {
 			server.DisposeBag = append(server.DisposeBag, db.Close)
 			return nil
 		},
-		func() error { // редис
-			client, close := redisco.NewPool(os.Getenv("RDS_ADDRESS"), 8)
+		func() error { // редис (опционально)
+			serverAddr := os.Getenv("RDS_ADDRESS")
+			if len(serverAddr) == 0 {
+				return nil
+			}
+
+			client, close := redisco.NewPool(serverAddr, 8)
 			err := client.Perform(context.Background(), func(conn redisco.Conn) error {
 				_, err := conn.Do("PING")
 				return err
@@ -83,8 +87,13 @@ func makeAPIServer(logFunc func(string)) (server *anyserver.Server) {
 			server.DisposeBag = append(server.DisposeBag, close)
 			return nil
 		},
-		func() error { // мемкэш
-			client := memcached.New(os.Getenv("MC_ADDRESS"))
+		func() error { // мемкэш (опционально)
+			serverAddr := os.Getenv("MC_ADDRESS")
+			if len(serverAddr) == 0 {
+				return nil
+			}
+
+			client := memcached.New(serverAddr)
 			err := client.Ping()
 			if err != nil {
 				return fmt.Errorf("Memcache setup error: %v", err)
@@ -93,15 +102,11 @@ func makeAPIServer(logFunc func(string)) (server *anyserver.Server) {
 			return nil
 		},
 		func() error { // криптокодер для jwt-like токенов
-			pubKey, err := base64.StdEncoding.DecodeString(os.Getenv("SIGN_PUB_KEY"))
+			coder, err := edsign.NewCoder64(os.Getenv("SIGN_PUB_KEY"), os.Getenv("SIGN_PRIV_KEY"))
 			if err != nil {
-				return fmt.Errorf("Invalid JWT signer public key: %v", err)
+				return fmt.Errorf("JWT setup error: %v", err)
 			}
-			privKey, err := base64.StdEncoding.DecodeString(os.Getenv("SIGN_PRIV_KEY"))
-			if err != nil {
-				return fmt.Errorf("Invalid JWT signer private key: %v", err)
-			}
-			cryptoCoder = edsign.NewCoder(pubKey, privKey)
+			cryptoCoder = coder
 			return nil
 		},
 		func() error { // конфигурация бизнес-логики

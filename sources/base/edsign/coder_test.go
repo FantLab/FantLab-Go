@@ -11,7 +11,7 @@ import (
 func Test_Coder(t *testing.T) {
 	pubKey, privKey, _ := ed25519.GenerateKey(rand.Reader)
 
-	coder := NewCoder(pubKey, privKey)
+	coder, _ := NewCoder(pubKey, privKey)
 
 	t.Run("positive", func(t *testing.T) {
 		x := coder.Encode([]byte("success"))
@@ -55,7 +55,7 @@ func Test_Coder(t *testing.T) {
 
 func Benchmark_Encode(b *testing.B) {
 	pubKey, privKey, _ := ed25519.GenerateKey(rand.Reader)
-	coder := NewCoder(pubKey, privKey)
+	coder, _ := NewCoder(pubKey, privKey)
 
 	for i := 0; i < b.N; i++ {
 		_ = coder.Encode([]byte("123456789123456789123456789"))
@@ -64,7 +64,7 @@ func Benchmark_Encode(b *testing.B) {
 
 func Benchmark_Decode(b *testing.B) {
 	pubKey, privKey, _ := ed25519.GenerateKey(rand.Reader)
-	coder := NewCoder(pubKey, privKey)
+	coder, _ := NewCoder(pubKey, privKey)
 	bytes := coder.Encode([]byte("123456789123456789123456789"))
 
 	for i := 0; i < b.N; i++ {

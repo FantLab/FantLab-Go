@@ -9,7 +9,7 @@ RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build
 #final stage
 FROM alpine:latest
 ENV TZ=Europe/Moscow
-RUN apk update && apk add tzdata && cp -r -f /usr/share/zoneinfo/$TZ /etc/localtime
+RUN apk update && apk add --no-cache curl && apk add tzdata && cp -r -f /usr/share/zoneinfo/$TZ /etc/localtime
 WORKDIR /app
 COPY --from=builder /app/fantlab .
 COPY docker-entrypoint.sh wait-for.sh ./

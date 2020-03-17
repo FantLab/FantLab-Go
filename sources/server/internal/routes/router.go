@@ -62,6 +62,10 @@ func MakeHandler(appConfig *config.AppConfig, services *app.Services, logFunc fu
 		},
 	}
 
+	routerConfig.RootGroup.Endpoint(http.MethodGet, "ping", protobuf.Handle(func(r *http.Request) (int, proto.Message) {
+		return http.StatusOK, &pb.Common_SuccessResponse{}
+	}))
+
 	fill(routerConfig.RootGroup, Tree(appConfig, services, func(r *http.Request, valueKey string) string {
 		value, _ := httprouter.GetValueFromContext(r.Context(), paramsKey, valueKey)
 		return value

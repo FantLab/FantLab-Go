@@ -7,6 +7,9 @@ import (
 )
 
 func (s *Services) BlogTopicsViewCount(ctx context.Context, topicIds []uint64) []uint64 {
+	if s.redis == nil {
+		return nil
+	}
 	result := make([]uint64, len(topicIds))
 	_ = s.redis.Perform(ctx, func(conn redisco.Conn) error {
 		for index, topicId := range topicIds {

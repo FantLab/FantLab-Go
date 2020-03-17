@@ -8,7 +8,11 @@ if [ $? -ne 0 ]; then
 fi
 
 ./wait-for.sh $DB_ADDRESS
-./wait-for.sh $MC_ADDRESS
-./wait-for.sh $RDS_ADDRESS
+if [ ! -z "$MC_ADDRESS" ]; then
+    ./wait-for.sh $MC_ADDRESS
+fi
+if [ ! -z "$RDS_ADDRESS" ]; then
+    ./wait-for.sh $RDS_ADDRESS
+fi
 
 exec "$@"
