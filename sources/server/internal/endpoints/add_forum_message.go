@@ -98,7 +98,7 @@ func (api *API) AddForumMessage(r *http.Request) (int, proto.Message) {
 
 	// инвалидируем кэши подписчиков и текущего юзера (запрос не фейлим в случае ошибки)
 	{
-		subscribers, _ := api.services.DB().FetchForumTopicSubscribers(r.Context(), dbTopic.TopicId, user.UserId)
+		subscribers, _ := api.services.DB().FetchForumTopicSubscribers(r.Context(), dbTopic.TopicId)
 
 		for _, subscriber := range subscribers {
 			_ = api.services.DeleteUserCache(r.Context(), subscriber)
