@@ -110,15 +110,18 @@ func makeAPIServer(logFunc func(string)) (server *anyserver.Server) {
 			return nil
 		},
 		func() error { // конфигурация бизнес-логики
+			// Все параметры заданы в config/main.cfg и config/misc.cfg Perl-бэка
 			appConfig = &config.AppConfig{
 				ImagesBaseURL:         os.Getenv("IMAGES_BASE_URL"),
 				ForumTopicsInPage:     20,
 				ForumMessagesInPage:   20,
 				MaxForumMessageLength: 20000,
-				// https://github.com/parserpro/fantlab/blob/ea456f3e8b8f9e02ab13ca2cdb9c335d36884d93/config/main.cfg#L402
-				// 20 (один из первоапрельских форумов) убрал из списка
-				DefaultAccessToForums: []uint64{1, 2, 3, 5, 6, 7, 8, 10, 12, 13, 14, 15, 16, 17, 22},
-				// https://github.com/parserpro/fantlab/blob/ce769f66c5eacd59f487de840eb4bf62cac733a2/config/misc.cfg#L71
+				// В Perl-бэке указаны разные значения: при редактировании - 2_000с., там же в комментарии - 3_600с.,
+				// при удалении - 1_800c. Остановимся на часе.
+				MaxForumMessageEditTimeout: 3600,
+				// Первоапрельские форумы, в отличие от Perl-бэка, недоступны для любых действий (поскольку доступ к ним
+				// реализован хардкодом в Auth.pm)
+				DefaultAccessToForums:     []uint64{1, 2, 3, 5, 6, 7, 8, 10, 12, 13, 14, 15, 16, 17, 22},
 				BlogsInPage:               50,
 				BlogTopicsInPage:          5,
 				BlogArticleCommentsInPage: 10,

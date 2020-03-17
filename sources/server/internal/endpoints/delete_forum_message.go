@@ -46,7 +46,6 @@ func (api *API) DeleteForumMessage(r *http.Request) (int, proto.Message) {
 		}
 	}
 
-	// Проверка на nil далее опущена, поскольку неавторизованный пользователь сюда не попадет
 	user := api.getUser(r)
 
 	userIsForumModerator, err := api.services.DB().FetchUserIsForumModerator(r.Context(), user.UserId, dbMessage.TopicId)
@@ -61,13 +60,12 @@ func (api *API) DeleteForumMessage(r *http.Request) (int, proto.Message) {
 	//  1. Пропущена обработка Profile->workgroup_referee, поскольку оно реализовано хардкодом в Auth.pm
 	//  2. Пропущен хардкод про то, что creator и vad - модераторы
 
-	timeAgo := time.Since(dbMessage.DateOfAdd).Seconds()
+	isTimeUp := uint64(time.Since(dbMessage.DateOfAdd).Seconds()) > api.config.MaxForumMessageEditTimeout
 	userCanEditOwnForumMessages := api.isPermissionGranted(r, pb.Auth_Claims_PERMISSION_CAN_EDIT_OWN_FORUM_MESSAGES)
 
 	// Еще не вышло время редактирования
 	//  или пользователь может редактировать свои сообщения без ограничения по времени
-	// TODO Неясно, почему редактировать сообщение можно в течение 2000с, а удалить - 1800с.
-	canUserEditMessage := timeAgo <= 1800 || userCanEditOwnForumMessages
+	canUserEditMessage := !isTimeUp || userCanEditOwnForumMessages
 
 	isMessageEditable := dbMessage.IsCensored == 0 && dbMessage.IsRed == 0
 

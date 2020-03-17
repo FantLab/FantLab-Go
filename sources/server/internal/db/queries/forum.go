@@ -518,4 +518,20 @@ const (
 		WHERE
 			user_id IN (?) AND new_forum_answers > 0
 	`
+
+	ForumInsertMessagePreview = `
+		INSERT INTO
+			f_messages_preview (
+				message,
+				user_id,
+				topic_id,
+				date_of_add,
+				date_of_edit
+			)
+		VALUES
+			(?, ?, ?, NOW(), NOW())
+		ON DUPLICATE KEY UPDATE
+			message = ?,
+			date_of_edit = NOW()
+	`
 )
