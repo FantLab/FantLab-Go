@@ -534,4 +534,21 @@ const (
 			message = ?,
 			date_of_edit = NOW()
 	`
+
+	ForumGetMessagePreview = `
+		SELECT
+			message
+		FROM
+			f_messages_preview
+		WHERE
+			topic_id = ? AND user_id = ?
+	`
+
+	ForumDeleteForumMessagePreview = `
+		DELETE
+		FROM
+			f_messages_preview
+		WHERE
+			topic_id = ? AND user_id = ?
+	`
 )

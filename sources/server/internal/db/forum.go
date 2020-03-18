@@ -526,3 +526,22 @@ func notifyForumTopicSubscribersAboutMessageDeleting(ctx context.Context, rw sql
 func (db *DB) InsertForumMessageDraft(ctx context.Context, message string, topicId, userId uint64) error {
 	return db.engine.Write(ctx, sqlr.NewQuery(queries.ForumInsertMessagePreview).WithArgs(message, userId, topicId, message)).Error
 }
+
+func (db *DB) GetForumMessageDraft(ctx context.Context, topicId, userId uint64) (message string, err error) {
+	err = db.engine.Read(ctx, sqlr.NewQuery(queries.ForumGetMessagePreview).WithArgs(topicId, userId)).Scan(&message)
+	return
+}
+
+func (db *DB) ConfirmForumMessageDraft(ctx context.Context, topic *ForumTopic, userId uint64, login, text string, isRed uint8, forumMessagesInPage uint64) (err error) {
+	err = db.engine.InTransaction(func(rw sqlr.ReaderWriter) error {
+		return codeflow.Try(
+			func() error {
+				return db.InsertForumMessage(ctx, topic, userId, login, text, isRed, forumMessagesInPage)
+			},
+			func() error {
+				return rw.Write(ctx, sqlr.NewQuery(queries.ForumDeleteForumMessagePreview).WithArgs(topic.TopicId, userId)).Error
+			},
+		)
+	})
+	return
+}
