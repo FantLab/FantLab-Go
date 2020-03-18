@@ -539,9 +539,13 @@ func (db *DB) ConfirmForumMessageDraft(ctx context.Context, topic *ForumTopic, u
 				return db.InsertForumMessage(ctx, topic, userId, login, text, isRed, forumMessagesInPage)
 			},
 			func() error {
-				return rw.Write(ctx, sqlr.NewQuery(queries.ForumDeleteForumMessagePreview).WithArgs(topic.TopicId, userId)).Error
+				return db.DeleteForumMessageDraft(ctx, topic.TopicId, userId)
 			},
 		)
 	})
 	return
+}
+
+func (db *DB) DeleteForumMessageDraft(ctx context.Context, topicId, userId uint64) error {
+	return db.engine.Write(ctx, sqlr.NewQuery(queries.ForumDeleteForumMessagePreview).WithArgs(topicId, userId)).Error
 }
