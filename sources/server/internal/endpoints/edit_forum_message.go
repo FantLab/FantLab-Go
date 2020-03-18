@@ -4,6 +4,7 @@ import (
 	"fantlab/base/dbtools"
 	"fantlab/pb"
 	"fantlab/server/internal/helpers"
+	"fmt"
 	"google.golang.org/protobuf/proto"
 	"net/http"
 	"strconv"
@@ -49,7 +50,6 @@ func (api *API) EditForumMessage(r *http.Request) (int, proto.Message) {
 		}
 	}
 
-	// Проверка на nil далее опущена, поскольку неавторизованный пользователь сюда не попадет
 	user := api.getUser(r)
 
 	userIsForumModerator, err := api.services.DB().FetchUserIsForumModerator(r.Context(), user.UserId, dbMessage.TopicId)
@@ -82,15 +82,13 @@ func (api *API) EditForumMessage(r *http.Request) (int, proto.Message) {
 		}
 	}
 
-	timeAgo := time.Since(dbMessage.DateOfAdd).Seconds()
+	isTimeUp := uint64(time.Since(dbMessage.DateOfAdd).Seconds()) > api.config.MaxForumMessageEditTimeout
 	userCanEditOwnForumMessages := api.isPermissionGranted(r, pb.Auth_Claims_PERMISSION_CAN_EDIT_OWN_FORUM_MESSAGES)
 
 	// Еще не вышло время редактирования
 	//  или пользователь может редактировать свои сообщения без ограничения по времени
 	//  или это первое сообщение темы и модератор разрешил его автору правки
-	// TODO В Perl-коде 2000с, хотя в комментарии говорится про час.
-	canUserEditMessage := timeAgo <= 2000 || userCanEditOwnForumMessages ||
-		(dbMessage.Number == 1 && topicStarterCanEditFirstMessage)
+	canUserEditMessage := !isTimeUp || userCanEditOwnForumMessages || (dbMessage.Number == 1 && topicStarterCanEditFirstMessage)
 
 	isMessageEditable := dbMessage.IsCensored == 0 && dbMessage.IsRed == 0
 
@@ -121,7 +119,7 @@ func (api *API) EditForumMessage(r *http.Request) (int, proto.Message) {
 	if formattedMessageLength > api.config.MaxForumMessageLength && user.UserId != api.config.BotUserId {
 		return http.StatusForbidden, &pb.Error_Response{
 			Status:  pb.Error_ACTION_PERMITTED,
-			Context: "Текст сообщения слишком длинный (больше 20 тыс. символов после форматирования)",
+			Context: fmt.Sprintf("Текст сообщения слишком длинный (больше %d символов после форматирования)", api.config.MaxForumMessageLength),
 		}
 	}
 

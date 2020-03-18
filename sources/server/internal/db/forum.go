@@ -277,7 +277,7 @@ func (db *DB) FetchUserIsForumModerator(ctx context.Context, userId, topicId uin
 	return userIsForumModerator == 1, nil
 }
 
-func (db *DB) InsertNewForumMessage(ctx context.Context, topic *ForumTopic, userId uint64, login, text string, isRed uint8, forumMessagesInPage uint64) error {
+func (db *DB) InsertForumMessage(ctx context.Context, topic *ForumTopic, userId uint64, login, text string, isRed uint8, forumMessagesInPage uint64) error {
 	err := db.engine.InTransaction(func(rw sqlr.ReaderWriter) error {
 		var message ForumMessage
 
@@ -521,4 +521,8 @@ func notifyForumTopicSubscribersAboutMessageDeleting(ctx context.Context, rw sql
 			return rw.Write(ctx, sqlr.NewQuery(queries.ForumDecrementNewForumAnswersCount).WithArgs(topicSubscribers).FlatArgs()).Error
 		},
 	)
+}
+
+func (db *DB) InsertForumMessageDraft(ctx context.Context, message string, topicId, userId uint64) error {
+	return db.engine.Write(ctx, sqlr.NewQuery(queries.ForumInsertMessagePreview).WithArgs(message, userId, topicId, message)).Error
 }
