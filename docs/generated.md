@@ -1052,6 +1052,31 @@
 </p>
 </details>
 
+<details><summary>Отмена черновика сообщения в форуме</summary>
+<p>
+
+
+
+**DELETE** [/v1/topics/:id/message_draft](../sources/server/internal/endpoints/cancel_forum_message_draft.go#L12)
+
+Параметры запроса:
+
+
+* **id** (path, uint64) - id темы
+
+
+
+
+Схема ответа:
+
+```
+{}
+```
+---
+
+</p>
+</details>
+
 <details><summary>Подписка/отписка от темы форума</summary>
 <p>
 
