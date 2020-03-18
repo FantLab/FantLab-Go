@@ -48,6 +48,7 @@ func Tree(config *config.AppConfig, services *app.Services, pathParamGetter endp
 
 				g.Endpoint(http.MethodPost, "/topics/:id/message", api.AddForumMessage, "Создание нового сообщения в форуме")
 				g.Endpoint(http.MethodPut, "/topics/:id/message_draft", api.SaveForumMessageDraft, "Сохранение черновика сообщения в форуме")
+				g.Endpoint(http.MethodPost, "/topics/:id/message_draft", api.ConfirmForumMessageDraft, "Подтверждение черновика сообщения в форуме")
 				g.Endpoint(http.MethodPut, "/topics/:id/subscription", api.ToggleForumTopicSubscription, "Подписка/отписка от темы форума")
 				g.Endpoint(http.MethodPut, "/forum_messages/:id", api.EditForumMessage, "Редактирование сообщения в форуме")
 				g.Endpoint(http.MethodDelete, "/forum_messages/:id", api.DeleteForumMessage, "Удаление сообщения в форуме")

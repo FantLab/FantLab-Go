@@ -976,7 +976,7 @@
 
 
 
-**POST** [/v1/topics/:id/message](../sources/server/internal/endpoints/add_forum_message.go#L13)
+**POST** [/v1/topics/:id/message](../sources/server/internal/endpoints/add_forum_message.go#L14)
 
 Параметры запроса:
 
@@ -985,6 +985,59 @@
 
 
 * **message** (form, string) - текст сообщения
+
+
+
+
+Схема ответа:
+
+```
+{}
+```
+---
+
+</p>
+</details>
+
+<details><summary>Сохранение черновика сообщения в форуме</summary>
+<p>
+
+
+
+**PUT** [/v1/topics/:id/message_draft](../sources/server/internal/endpoints/save_forum_message_draft.go#L13)
+
+Параметры запроса:
+
+
+* **id** (path, uint64) - id темы
+
+
+* **message** (form, string) - текст сообщения
+
+
+
+
+Схема ответа:
+
+```
+{}
+```
+---
+
+</p>
+</details>
+
+<details><summary>Подтверждение черновика сообщения в форуме</summary>
+<p>
+
+
+
+**POST** [/v1/topics/:id/message_draft](../sources/server/internal/endpoints/confirm_forum_message_draft.go#L14)
+
+Параметры запроса:
+
+
+* **id** (path, uint64) - id темы
 
 
 
@@ -1027,12 +1080,12 @@
 </p>
 </details>
 
-<details><summary>Правка сообщения в форуме</summary>
+<details><summary>Редактирование сообщения в форуме</summary>
 <p>
 
 
 
-**PUT** [/v1/forum_messages/:id](../sources/server/internal/endpoints/edit_forum_message.go#L13)
+**PUT** [/v1/forum_messages/:id](../sources/server/internal/endpoints/edit_forum_message.go#L14)
 
 Параметры запроса:
 
@@ -1041,6 +1094,31 @@
 
 
 * **message** (form, string) - новый текст сообщения
+
+
+
+
+Схема ответа:
+
+```
+{}
+```
+---
+
+</p>
+</details>
+
+<details><summary>Удаление сообщения в форуме</summary>
+<p>
+
+
+
+**DELETE** [/v1/forum_messages/:id](../sources/server/internal/endpoints/delete_forum_message.go#L12)
+
+Параметры запроса:
+
+
+* **id** (path, uint64) - id сообщения
 
 
 
