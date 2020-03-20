@@ -68,7 +68,7 @@ networks:
         }
         stage('Clean') {
             steps{
-                // sh "docker rmi $tag"
+                sh "docker image prune -f"
                 sh "docker container prune -f"
             }
         }
