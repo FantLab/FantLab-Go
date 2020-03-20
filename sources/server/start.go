@@ -9,6 +9,7 @@ import (
 	"fantlab/base/logs/logger"
 	"fantlab/base/memcached"
 	"fantlab/base/redisco"
+	"fantlab/base/sharedconfig"
 	"fantlab/docs"
 	"fantlab/server/internal/app"
 	"fantlab/server/internal/config"
@@ -136,10 +137,8 @@ func makeAPIServer(logFunc func(string)) (server *anyserver.Server) {
 		return
 	}
 
-	isDebug := os.Getenv("DEBUG") != ""
-
 	var requestToString func(r *logger.Request) string
-	if isDebug {
+	if sharedconfig.IsDebug() {
 		requestToString = logger.Console
 	} else {
 		requestToString = logger.JSON
@@ -149,7 +148,7 @@ func makeAPIServer(logFunc func(string)) (server *anyserver.Server) {
 		Addr: ":" + os.Getenv("PORT"),
 		Handler: routes.MakeHandler(
 			appConfig,
-			app.MakeServices(isDebug, mysqlDB, redisClient, memcacheClient, cryptoCoder),
+			app.MakeServices(mysqlDB, redisClient, memcacheClient, cryptoCoder),
 			func(r *logger.Request) {
 				logFunc(requestToString(r))
 			},

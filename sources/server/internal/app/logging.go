@@ -6,12 +6,13 @@ import (
 	"fantlab/base/logs"
 	"fantlab/base/logs/logger"
 	"fantlab/base/memcached"
+	"fantlab/base/sharedconfig"
 	"strconv"
 )
 
-func logMemcache(isDebug bool) memcached.LogFunc {
+func logMemcache() memcached.LogFunc {
 	return func(ctx context.Context, entry memcached.LogEntry) {
-		if !isDebug && (entry.Err == nil || memcached.IsNotFoundError(entry.Err)) {
+		if !sharedconfig.IsDebug() && (entry.Err == nil || memcached.IsNotFoundError(entry.Err)) {
 			return
 		}
 
@@ -23,9 +24,9 @@ func logMemcache(isDebug bool) memcached.LogFunc {
 	}
 }
 
-func logDB(isDebug bool) sqlr.LogFunc {
+func logDB() sqlr.LogFunc {
 	return func(ctx context.Context, entry sqlr.LogEntry) {
-		if !isDebug && entry.Err == nil {
+		if !sharedconfig.IsDebug() && entry.Err == nil {
 			return
 		}
 

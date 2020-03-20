@@ -13,19 +13,17 @@ import (
 
 type contextKey string
 
-func MakeServices(isDebug bool, mysqlDB *sql.DB, redisClient redisco.Client, memcacheClient memcached.Client, cryptoCoder *edsign.Coder) *Services {
+func MakeServices(mysqlDB *sql.DB, redisClient redisco.Client, memcacheClient memcached.Client, cryptoCoder *edsign.Coder) *Services {
 	return &Services{
-		isDebug:      isDebug,
 		cryptoCoder:  cryptoCoder,
-		db:           db.NewDB(sqlr.Log(sqldb.New(mysqlDB), logDB(isDebug))),
+		db:           db.NewDB(sqlr.Log(sqldb.New(mysqlDB), logDB())),
 		redis:        redisClient,
-		memcache:     memcached.Log(memcacheClient, logMemcache(isDebug)),
+		memcache:     memcached.Log(memcacheClient, logMemcache()),
 		localStorage: syncache.NewWithDefaultExpireFunc(),
 	}
 }
 
 type Services struct {
-	isDebug      bool
 	cryptoCoder  *edsign.Coder
 	db           *db.DB
 	redis        redisco.Client

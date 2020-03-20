@@ -376,14 +376,14 @@ func notifyForumTopicSubscribersAboutNewMessage(ctx context.Context, rw sqlr.Rea
 	}
 
 	// Добавляем оповещение для подписчиков о новом сообщении в теме. Не в транзакции, поскольку запрос тяжелый.
-	entries := make([]interface{}, len(topicSubscribers))
-	for index, userId := range topicSubscribers {
-		entries[index] = newForumAnswerEntry{
+	entries := make([]interface{}, 0, len(topicSubscribers))
+	for _, userId := range topicSubscribers {
+		entries = append(entries, newForumAnswerEntry{
 			TopicId:     topicId,
 			UserId:      userId,
 			MessageId:   message.MessageID,
 			MessageDate: message.DateOfAdd,
-		}
+		})
 	}
 	err = rw.Write(ctx, sqlbuilder.InsertInto(queries.NewForumAnswersTable, entries...)).Error
 
