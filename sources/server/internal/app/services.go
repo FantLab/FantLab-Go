@@ -7,7 +7,7 @@ import (
 	"fantlab/base/edsign"
 	"fantlab/base/memcacheclient"
 	"fantlab/base/redisclient"
-	"fantlab/base/syncache"
+	"fantlab/base/ttlcache"
 	"fantlab/server/internal/db"
 )
 
@@ -19,7 +19,7 @@ func MakeServices(mysqlDB *sql.DB, redisClient redisclient.Client, memcacheClien
 		db:           db.NewDB(sqlr.Log(sqldb.New(mysqlDB), logDB())),
 		redis:        redisClient,
 		memcache:     memcacheclient.Log(memcacheClient, logMemcache()),
-		localStorage: syncache.NewWithDefaultExpireFunc(),
+		localStorage: ttlcache.NewWithDefaultExpireFunc(),
 	}
 }
 
@@ -28,7 +28,7 @@ type Services struct {
 	db           *db.DB
 	redis        redisclient.Client
 	memcache     memcacheclient.Client
-	localStorage *syncache.Storage
+	localStorage *ttlcache.Storage
 }
 
 func (s *Services) DB() *db.DB {

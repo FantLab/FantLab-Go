@@ -77,7 +77,7 @@ func makeAPIServer(logFunc func(string)) (server *anyserver.Server) {
 			}
 
 			client, close := redisclient.NewPool(serverAddr, 8)
-			err := client.Perform(context.Background(), func(conn redisco.Conn) error {
+			err := client.Perform(context.Background(), func(conn redisclient.Conn) error {
 				_, err := conn.Do("PING")
 				return err
 			})

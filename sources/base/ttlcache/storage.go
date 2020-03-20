@@ -1,4 +1,4 @@
-package syncache
+package ttlcache
 
 import (
 	"sync"
