@@ -1,4 +1,4 @@
-package redisco
+package redisclient
 
 import "context"
 
