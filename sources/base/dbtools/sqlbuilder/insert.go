@@ -1,62 +1,99 @@
 package sqlbuilder
 
 import (
-	"errors"
 	"fantlab/base/dbtools/sqlr"
+	"fantlab/base/sharedconfig"
 	"reflect"
 	"strings"
+	"unicode/utf8"
 )
 
-var (
-	ErrInsertNoData             = errors.New("sqlbuilder: insert no data")
-	ErrInsertNonHomogeneousData = errors.New("sqlbuilder: insert non homogeneous data")
-	ErrInsertUnsupportedType    = errors.New("sqlbuilder: insert unsupported type")
-)
-
-func InsertInto(tableName string, entries ...interface{}) sqlr.Query {
-	query, err := insertInto(tableName, "db", entries...)
-	if err != nil {
-		panic(err)
-	}
-	return *query
+func InsertInto(tableName string, records ...interface{}) sqlr.Query {
+	return *insertInto(tableName, "db", sharedconfig.IsDebug(), records)
 }
 
-func insertInto(tableName, tagName string, entries ...interface{}) (*sqlr.Query, error) {
-	var typ reflect.Type
-	for _, entry := range entries {
-		if typ == nil {
-			typ = reflect.TypeOf(entry)
-		} else if typ != reflect.TypeOf(entry) {
-			return nil, ErrInsertNonHomogeneousData
+func insertInto(tableName, tagName string, checkTypes bool, records []interface{}) *sqlr.Query {
+	var recordType reflect.Type
+
+	for _, record := range records {
+		if recordType == nil {
+			recordType = reflect.TypeOf(record)
+			if !checkTypes {
+				break
+			}
+		} else if reflect.TypeOf(record) != recordType {
+			return nil
 		}
 	}
-	if typ == nil {
-		return nil, ErrInsertNoData
-	}
-	if typ.Kind() != reflect.Struct {
-		return nil, ErrInsertUnsupportedType
+
+	if recordType == nil || recordType.Kind() != reflect.Struct {
+		return nil
 	}
 
-	var fieldNames []string
+	fieldNames := extractFieldNames(recordType, tagName)
 
+	n, m := len(fieldNames), len(records)
+
+	if n == 0 {
+		return nil
+	}
+
+	args := make([]interface{}, 0, m*n)
+
+	for _, record := range records {
+		value := reflect.ValueOf(record)
+
+		for j := 0; j < n; j++ {
+			args = append(args, value.Field(j).Interface())
+		}
+	}
+
+	text := makeInsertQueryText(tableName, fieldNames, sqlr.BindVarChar, m)
+
+	query := sqlr.NewQuery(text).WithArgs(args...)
+
+	return &query
+}
+
+func extractFieldNames(typ reflect.Type, tagName string) (fieldNames []string) {
 	for i := 0; i < typ.NumField(); i++ {
-		f := typ.Field(i)
+		field := typ.Field(i)
 
-		name := f.Tag.Get(tagName)
-		if "" == name {
-			name = f.Name
+		name := field.Tag.Get(tagName)
+		if len(name) == 0 {
+			name = field.Name
 		}
 
 		fieldNames = append(fieldNames, name)
 	}
+	return
+}
 
-	if fieldNames == nil {
-		return nil, ErrInsertUnsupportedType
+const (
+	insertText = "INSERT INTO "
+	valuesText = " VALUES "
+)
+
+func calculateInsertQuerySize(tableName string, fieldNames []string, bindVarChar rune, count int) (size int) {
+	size += len(insertText)
+	size += len(tableName)
+	size++
+	for i, fieldName := range fieldNames {
+		if i > 0 {
+			size++
+		}
+		size += len(fieldName)
 	}
+	size++
+	size += len(valuesText)
+	size += count*(len(fieldNames)*(utf8.RuneLen(bindVarChar)+1)+2) - 1
+	return
+}
 
+func makeInsertQueryText(tableName string, fieldNames []string, bindVarChar rune, count int) string {
 	var sb strings.Builder
-
-	sb.WriteString("INSERT INTO ")
+	sb.Grow(calculateInsertQuerySize(tableName, fieldNames, bindVarChar, count))
+	sb.WriteString(insertText)
 	sb.WriteString(tableName)
 	sb.WriteRune('(')
 	for i, fieldName := range fieldNames {
@@ -66,29 +103,19 @@ func insertInto(tableName, tagName string, entries ...interface{}) (*sqlr.Query,
 		sb.WriteString(fieldName)
 	}
 	sb.WriteRune(')')
-	sb.WriteString(" VALUES ")
-
-	values := make([]interface{}, 0, len(entries)*len(fieldNames))
-
-	for i, entry := range entries {
-		value := reflect.ValueOf(entry)
-
+	sb.WriteString(valuesText)
+	for i := 0; i < count; i++ {
 		if i > 0 {
 			sb.WriteRune(',')
 		}
 		sb.WriteRune('(')
 		for j := 0; j < len(fieldNames); j++ {
-			values = append(values, value.Field(j).Interface())
-
 			if j > 0 {
 				sb.WriteRune(',')
 			}
-			sb.WriteRune('?')
+			sb.WriteRune(bindVarChar)
 		}
 		sb.WriteRune(')')
 	}
-
-	query := sqlr.NewQuery(sb.String()).WithArgs(values...)
-
-	return &query, nil
+	return sb.String()
 }

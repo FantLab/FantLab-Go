@@ -5,32 +5,30 @@ import (
 	"fantlab/base/dbtools/sqldb"
 	"fantlab/base/dbtools/sqlr"
 	"fantlab/base/edsign"
-	"fantlab/base/memcached"
-	"fantlab/base/redisco"
-	"fantlab/base/syncache"
+	"fantlab/base/memcacheclient"
+	"fantlab/base/redisclient"
+	"fantlab/base/ttlcache"
 	"fantlab/server/internal/db"
 )
 
 type contextKey string
 
-func MakeServices(isDebug bool, mysqlDB *sql.DB, redisClient redisco.Client, memcacheClient memcached.Client, cryptoCoder *edsign.Coder) *Services {
+func MakeServices(mysqlDB *sql.DB, redisClient redisclient.Client, memcacheClient memcacheclient.Client, cryptoCoder *edsign.Coder) *Services {
 	return &Services{
-		isDebug:      isDebug,
 		cryptoCoder:  cryptoCoder,
-		db:           db.NewDB(sqlr.Log(sqldb.New(mysqlDB), logDB(isDebug))),
+		db:           db.NewDB(sqlr.Log(sqldb.New(mysqlDB), logDB())),
 		redis:        redisClient,
-		memcache:     memcached.Log(memcacheClient, logMemcache(isDebug)),
-		localStorage: syncache.NewWithDefaultExpireFunc(),
+		memcache:     memcacheclient.Log(memcacheClient, logMemcache()),
+		localStorage: ttlcache.NewWithDefaultExpireFunc(),
 	}
 }
 
 type Services struct {
-	isDebug      bool
 	cryptoCoder  *edsign.Coder
 	db           *db.DB
-	redis        redisco.Client
-	memcache     memcached.Client
-	localStorage *syncache.Storage
+	redis        redisclient.Client
+	memcache     memcacheclient.Client
+	localStorage *ttlcache.Storage
 }
 
 func (s *Services) DB() *db.DB {

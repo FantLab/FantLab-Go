@@ -1,8 +1,8 @@
 package endpoints
 
 import (
-	"fantlab/base/bindr"
 	"fantlab/base/protobuf/pbutils"
+	"fantlab/base/reflectutils"
 	"fantlab/base/utils"
 	"fantlab/base/uuid"
 	"fantlab/pb"
@@ -11,7 +11,6 @@ import (
 	"fantlab/server/internal/db"
 	"fantlab/server/internal/helpers"
 	"net/http"
-	"reflect"
 	"strings"
 	"time"
 
@@ -21,8 +20,8 @@ import (
 
 type PathParamGetter = func(r *http.Request, key string) string
 
-func getParamValue(r *http.Request, f reflect.StructField, pathParamGetter PathParamGetter) string {
-	s := strings.Split(f.Tag.Get("http"), ",")
+func getParamValue(r *http.Request, tagValue string, pathParamGetter PathParamGetter) string {
+	s := strings.Split(tagValue, ",")
 	if len(s) != 2 {
 		return ""
 	}
@@ -66,8 +65,8 @@ func (api *API) badParam(name string) (int, proto.Message) {
 }
 
 func (api *API) bindParams(output interface{}, r *http.Request) {
-	_ = bindr.BindStruct(output, func(f reflect.StructField) string {
-		return getParamValue(r, f, api.pathParamGetter)
+	reflectutils.SetStructValues(output, "http", func(s string) string {
+		return getParamValue(r, s, api.pathParamGetter)
 	})
 }
 
@@ -107,6 +106,8 @@ func (api *API) isPermissionGranted(r *http.Request, destPermission pb.Auth_Clai
 	}
 	return false
 }
+
+// *******************************************************
 
 func (api *API) makeAuthResponse(r *http.Request, issuedAt time.Time, userId uint64, saveFn func(entry *db.AuthTokenEntry) error) (*pb.Auth_AuthResponse, error) {
 	// получаем инфу о пользователе
@@ -181,5 +182,3 @@ func (api *API) makeAuthResponse(r *http.Request, issuedAt time.Time, userId uin
 		RefreshToken: refreshToken,
 	}, nil
 }
-
-// *******************************************************

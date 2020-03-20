@@ -28,7 +28,8 @@ services:
     deploy:
       replicas: 2
       update_config:
-        parallelism: 2
+        parallelism: 1
+        delay: 10s
         failure_action: rollback
       restart_policy:
         condition: on-failure
@@ -68,7 +69,7 @@ networks:
         }
         stage('Clean') {
             steps{
-                // sh "docker rmi $tag"
+                sh "docker image prune -f"
                 sh "docker container prune -f"
             }
         }

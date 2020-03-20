@@ -7,8 +7,9 @@ import (
 	"fantlab/base/codeflow"
 	"fantlab/base/edsign"
 	"fantlab/base/logs/logger"
-	"fantlab/base/memcached"
-	"fantlab/base/redisco"
+	"fantlab/base/memcacheclient"
+	"fantlab/base/redisclient"
+	"fantlab/base/sharedconfig"
 	"fantlab/docs"
 	"fantlab/server/internal/app"
 	"fantlab/server/internal/config"
@@ -51,8 +52,8 @@ func makeAPIServer(logFunc func(string)) (server *anyserver.Server) {
 	server = new(anyserver.Server)
 
 	var mysqlDB *sql.DB
-	var redisClient redisco.Client
-	var memcacheClient memcached.Client
+	var redisClient redisclient.Client
+	var memcacheClient memcacheclient.Client
 	var cryptoCoder *edsign.Coder
 	var appConfig *config.AppConfig
 
@@ -75,8 +76,8 @@ func makeAPIServer(logFunc func(string)) (server *anyserver.Server) {
 				return nil
 			}
 
-			client, close := redisco.NewPool(serverAddr, 8)
-			err := client.Perform(context.Background(), func(conn redisco.Conn) error {
+			client, close := redisclient.NewPool(serverAddr, 8)
+			err := client.Perform(context.Background(), func(conn redisclient.Conn) error {
 				_, err := conn.Do("PING")
 				return err
 			})
@@ -93,7 +94,7 @@ func makeAPIServer(logFunc func(string)) (server *anyserver.Server) {
 				return nil
 			}
 
-			client := memcached.New(serverAddr)
+			client := memcacheclient.New(serverAddr)
 			err := client.Ping()
 			if err != nil {
 				return fmt.Errorf("Memcache setup error: %v", err)
@@ -136,10 +137,8 @@ func makeAPIServer(logFunc func(string)) (server *anyserver.Server) {
 		return
 	}
 
-	isDebug := os.Getenv("DEBUG") != ""
-
 	var requestToString func(r *logger.Request) string
-	if isDebug {
+	if sharedconfig.IsDebug() {
 		requestToString = logger.Console
 	} else {
 		requestToString = logger.JSON
@@ -149,7 +148,7 @@ func makeAPIServer(logFunc func(string)) (server *anyserver.Server) {
 		Addr: ":" + os.Getenv("PORT"),
 		Handler: routes.MakeHandler(
 			appConfig,
-			app.MakeServices(isDebug, mysqlDB, redisClient, memcacheClient, cryptoCoder),
+			app.MakeServices(mysqlDB, redisClient, memcacheClient, cryptoCoder),
 			func(r *logger.Request) {
 				logFunc(requestToString(r))
 			},

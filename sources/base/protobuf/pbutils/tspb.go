@@ -3,16 +3,19 @@ package pbutils
 import (
 	"time"
 
-	"github.com/golang/protobuf/ptypes"
-	tspb "github.com/golang/protobuf/ptypes/timestamp"
+	tspb "google.golang.org/protobuf/types/known/timestamppb"
 )
 
-func TimestampProto(t time.Time) (ts *tspb.Timestamp) {
-	ts, _ = ptypes.TimestampProto(t)
-	return
+func TimestampProto(t time.Time) *tspb.Timestamp {
+	return &tspb.Timestamp{
+		Seconds: t.Unix(),
+		Nanos:   int32(t.Nanosecond()),
+	}
 }
 
 func Timestamp(ts *tspb.Timestamp) time.Time {
-	t, _ := ptypes.Timestamp(ts)
-	return t
+	if ts == nil {
+		return time.Unix(0, 0).UTC()
+	}
+	return time.Unix(ts.Seconds, int64(ts.Nanos)).UTC()
 }

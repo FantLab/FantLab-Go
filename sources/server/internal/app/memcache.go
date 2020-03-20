@@ -2,7 +2,7 @@ package app
 
 import (
 	"context"
-	"fantlab/base/memcached"
+	"fantlab/base/memcacheclient"
 	"fmt"
 	"strconv"
 	"time"
@@ -18,7 +18,7 @@ func (s *Services) DeleteUserCache(ctx context.Context, userId uint64) error {
 		return nil
 	}
 	err := s.memcache.Delete(ctx, fmt.Sprintf(userKey, userId))
-	if err != nil && !memcached.IsNotFoundError(err) {
+	if err != nil && !memcacheclient.IsNotFoundError(err) {
 		return err
 	}
 	return nil

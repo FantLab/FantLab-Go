@@ -97,15 +97,15 @@ func (db *DB) GenreVote(ctx context.Context, workId, userId uint64, genreIds []u
 			func() error { // Записываем новые
 				now := time.Now()
 
-				newEntries := make([]interface{}, len(genreIds))
+				newEntries := make([]interface{}, 0, len(genreIds))
 
-				for i, genreId := range genreIds {
-					newEntries[i] = userWorkGenreEntry{
+				for _, genreId := range genreIds {
+					newEntries = append(newEntries, userWorkGenreEntry{
 						UserId:      userId,
 						WorkId:      workId,
 						WorkGenreId: genreId,
 						DateOfAdd:   now,
-					}
+					})
 				}
 
 				return rw.Write(ctx, sqlbuilder.InsertInto(queries.UserWorkGenresTable, newEntries...)).Error
@@ -142,18 +142,15 @@ func updateWorkGenreCache(ctx context.Context, rw sqlr.ReaderWriter, workId uint
 			return rw.Write(ctx, sqlr.NewQuery(queries.DeleteWorkGenreCache).WithArgs(workId)).Error
 		},
 		func() error { // Записываем новые
-			entries := make([]interface{}, len(voteCounts))
-			i := 0
+			entries := make([]interface{}, 0, len(voteCounts))
 			for genreId, voteCount := range voteCounts {
-				entries[i] = workGenreCacheEntry{
+				entries = append(entries, workGenreCacheEntry{
 					WorkId:                workId,
 					GenreId:               genreId,
 					VoteCount:             voteCount,
 					AllVotesAfterGenreAdd: workClassifsAfterGenreAdd[genreId],
-				}
-				i++
+				})
 			}
-
 			return rw.Write(ctx, sqlbuilder.InsertInto(queries.WorkGenreCacheTable, entries...)).Error
 		},
 	)

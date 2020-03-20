@@ -1,4 +1,4 @@
-package redisco
+package redisclient
 
 import (
 	"github.com/gomodule/redigo/redis"
