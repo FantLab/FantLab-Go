@@ -16,6 +16,7 @@ services:
         - general
     environment:
         PORT: ${PORT}
+        MONITORING_PORT: ${MONITORING_PORT}
         DB_ADDRESS: ${DB_ADDRESS}
         MYSQL_URL: ${MYSQL_URL}
         IMAGES_BASE_URL: ${IMAGES_BASE_URL}
