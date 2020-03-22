@@ -11,17 +11,19 @@ services:
     image: ${tag}
     ports:
         - ${PORT}:${PORT}
+        - ${MONITORING_PORT}:${MONITORING_PORT}
     networks:
         - general
     environment:
         PORT: ${PORT}
+        MONITORING_PORT: ${MONITORING_PORT}
         DB_ADDRESS: ${DB_ADDRESS}
         MYSQL_URL: ${MYSQL_URL}
         IMAGES_BASE_URL: ${IMAGES_BASE_URL}
         SIGN_PUB_KEY: ${SIGN_PUB_KEY}
         SIGN_PRIV_KEY: ${SIGN_PRIV_KEY}
     healthcheck:
-      test: ['CMD', 'curl', '-sS', 'localhost:${PORT}/v1/ping']
+      test: ['CMD', 'curl', '-sS', 'localhost:${PORT}/ping']
       interval: 10s
       timeout: 30s
       retries: 3

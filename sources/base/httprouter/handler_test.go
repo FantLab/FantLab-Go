@@ -1,6 +1,7 @@
 package httprouter
 
 import (
+	"context"
 	"fantlab/base/assert"
 	"io/ioutil"
 	"net/http"
@@ -102,6 +103,16 @@ func sendTestRequest(method, url string, auth bool) string {
 func makeTestRouter() (http.Handler, []*Endpoint) {
 	type contextKey string
 	const paramsKey = contextKey("path_params")
+
+	getPathParamsFromContext := func(ctx context.Context, valueKey string) (value string, exists bool) {
+		if values, ok := ctx.Value(paramsKey).(map[string]string); ok {
+			if values != nil {
+				value, exists = values[valueKey]
+			}
+		}
+		return
+	}
+
 	cfg := &Config{
 		RootGroup: new(Group),
 		NotFoundHandler: http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -123,7 +134,7 @@ func makeTestRouter() (http.Handler, []*Endpoint) {
 	cfg.RootGroup.Subgroup(func(g *Group) {
 		g.Endpoint(http.MethodPost, "/auth/login", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			w.WriteHeader(200)
-			_, _ = GetValueFromContext(r.Context(), cfg.RequestContextParamsKey, "test")
+			_, _ = getPathParamsFromContext(r.Context(), "test")
 			_, _ = w.Write([]byte("login"))
 		}))
 		g.Endpoint(http.MethodGet, "/forums", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -132,24 +143,24 @@ func makeTestRouter() (http.Handler, []*Endpoint) {
 		}))
 		g.Endpoint(http.MethodGet, "/forums/:forum_id", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			w.WriteHeader(200)
-			fid, _ := GetValueFromContext(r.Context(), cfg.RequestContextParamsKey, "forum_id")
+			fid, _ := getPathParamsFromContext(r.Context(), "forum_id")
 			_, _ = w.Write([]byte("forum " + fid))
 		}))
 		g.Endpoint(http.MethodGet, "/topics/:topic_id", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			w.WriteHeader(200)
-			tid, _ := GetValueFromContext(r.Context(), cfg.RequestContextParamsKey, "topic_id")
+			tid, _ := getPathParamsFromContext(r.Context(), "topic_id")
 			_, _ = w.Write([]byte("topic " + tid))
 		}))
 		g.Endpoint(http.MethodGet, "/work/:work_id/info", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			w.WriteHeader(200)
-			wid, _ := GetValueFromContext(r.Context(), cfg.RequestContextParamsKey, "work_id")
+			wid, _ := getPathParamsFromContext(r.Context(), "work_id")
 			_, _ = w.Write([]byte("work " + wid))
 		}))
 		// override previous
 		g.Endpoint(http.MethodGet, "/work/:work_id_2/info", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			w.WriteHeader(200)
-			wid, _ := GetValueFromContext(r.Context(), cfg.RequestContextParamsKey, "work_id")
-			wid2, _ := GetValueFromContext(r.Context(), cfg.RequestContextParamsKey, "work_id_2")
+			wid, _ := getPathParamsFromContext(r.Context(), "work_id")
+			wid2, _ := getPathParamsFromContext(r.Context(), "work_id_2")
 			_, _ = w.Write([]byte("work " + wid + wid2))
 		}))
 
@@ -162,7 +173,7 @@ func makeTestRouter() (http.Handler, []*Endpoint) {
 			}))
 			g.Endpoint(http.MethodGet, "/work/:work_id/userclassification", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 				w.WriteHeader(200)
-				wid, _ := GetValueFromContext(r.Context(), cfg.RequestContextParamsKey, "work_id")
+				wid, _ := getPathParamsFromContext(r.Context(), "work_id")
 				_, _ = w.Write([]byte("userclassification for work " + wid))
 			}))
 			g.Endpoint(http.MethodPost, "/blog_topics/:id/message", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -170,7 +181,7 @@ func makeTestRouter() (http.Handler, []*Endpoint) {
 			}))
 			g.Endpoint(http.MethodPut, "/topics/:topic_id/subscription", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 				w.WriteHeader(200)
-				tid, _ := GetValueFromContext(r.Context(), cfg.RequestContextParamsKey, "topic_id")
+				tid, _ := getPathParamsFromContext(r.Context(), "topic_id")
 				_, _ = w.Write([]byte("topic subscription " + tid))
 			}))
 		})

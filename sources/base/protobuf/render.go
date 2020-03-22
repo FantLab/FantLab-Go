@@ -18,6 +18,8 @@ func render(w http.ResponseWriter, r *http.Request, code int, pb proto.Message) 
 		w.Header().Set("Content-Type", "application/json; charset=utf-8")
 	}
 
+	w.Header().Set("X-Content-Type-Options", "nosniff")
+
 	w.WriteHeader(code)
 
 	var data []byte
