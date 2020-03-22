@@ -26,7 +26,7 @@ func (hr *httpRouter) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if len(params) > 0 {
+	if hr.contextParamsKey != nil && len(params) > 0 {
 		r = r.WithContext(context.WithValue(r.Context(), hr.contextParamsKey, params))
 	}
 

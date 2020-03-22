@@ -3,9 +3,11 @@ package server
 import (
 	"context"
 	"database/sql"
+	"expvar"
 	"fantlab/base/anyserver"
 	"fantlab/base/codeflow"
 	"fantlab/base/edsign"
+	"fantlab/base/httprouter"
 	"fantlab/base/logs/logger"
 	"fantlab/base/memcacheclient"
 	"fantlab/base/redisclient"
@@ -17,6 +19,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"net/http/pprof"
 	"os"
 	"time"
 
@@ -28,27 +31,24 @@ func GenerateDocs() {
 }
 
 func Start() {
-	logsChan := make(chan string)
+	logWriter := log.New(os.Stderr, "", 0)
 
-	go func() {
-		mainLogger := log.New(os.Stdout, "$ ", 0)
-		for {
-			mainLogger.Println(<-logsChan)
-		}
-	}()
+	apiServer := makeAPIServer(logWriter)
 
-	apiServer := makeAPIServer(func(s string) {
-		logsChan <- s
-	})
+	var monitoringServer *anyserver.Server
+
+	if apiServer.SetupError == nil {
+		monitoringServer = makeMonitoringServer()
+	}
 
 	anyserver.RunWithGracefulShutdown(func(err error) {
-		logsChan <- err.Error()
-	}, apiServer)
+		logWriter.Println(err)
+	}, apiServer, monitoringServer)
 
 	time.Sleep(1 * time.Second)
 }
 
-func makeAPIServer(logFunc func(string)) (server *anyserver.Server) {
+func makeAPIServer(logWriter *log.Logger) (server *anyserver.Server) {
 	server = new(anyserver.Server)
 
 	var mysqlDB *sql.DB
@@ -144,15 +144,71 @@ func makeAPIServer(logFunc func(string)) (server *anyserver.Server) {
 		requestToString = logger.JSON
 	}
 
+	httpHandler, markAsUnavailable := routes.MakeHandler(
+		appConfig,
+		app.MakeServices(mysqlDB, redisClient, memcacheClient, cryptoCoder),
+		func(r *logger.Request) {
+			logWriter.Println(requestToString(r))
+		},
+	)
+
 	httpServer := &http.Server{
-		Addr: ":" + os.Getenv("PORT"),
-		Handler: routes.MakeHandler(
-			appConfig,
-			app.MakeServices(mysqlDB, redisClient, memcacheClient, cryptoCoder),
-			func(r *logger.Request) {
-				logFunc(requestToString(r))
-			},
-		),
+		Addr:     ":" + os.Getenv("PORT"),
+		Handler:  httpHandler,
+		ErrorLog: logWriter,
+	}
+
+	server.Start = func() error {
+		if err := httpServer.ListenAndServe(); err != http.ErrServerClosed {
+			return err
+		}
+		return nil
+	}
+	server.Stop = func(ctx context.Context) error {
+		markAsUnavailable()
+		httpServer.SetKeepAlivesEnabled(false)
+		return httpServer.Shutdown(ctx)
+	}
+	server.ShutdownTimeout = 5 * time.Second
+
+	return
+}
+
+func makeMonitoringServer() (server *anyserver.Server) {
+	server = new(anyserver.Server)
+
+	var httpHandler http.Handler
+
+	{
+		rootGroup := new(httprouter.Group)
+		{
+			rootGroup.Endpoint(http.MethodGet, "/pprof/:index", http.HandlerFunc(pprof.Index))
+			rootGroup.Endpoint(http.MethodGet, "/pprof/cmdline", http.HandlerFunc(pprof.Cmdline))
+			rootGroup.Endpoint(http.MethodGet, "/pprof/profile", http.HandlerFunc(pprof.Profile))
+			rootGroup.Endpoint(http.MethodGet, "/pprof/symbol", http.HandlerFunc(pprof.Symbol))
+			rootGroup.Endpoint(http.MethodGet, "/pprof/trace", http.HandlerFunc(pprof.Trace))
+		}
+		{
+			rootGroup.Endpoint(http.MethodGet, "/expvar", expvar.Handler())
+		}
+
+		routerConfig := &httprouter.Config{
+			RootGroup: rootGroup,
+			NotFoundHandler: http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+				http.Error(w, "not found", http.StatusNotFound)
+			}),
+			RequestContextParamsKey: nil,
+			CommonPrefix:            "debug",
+			PathSegmentValidator:    nil,
+			GlobalMiddlewares:       []httprouter.Middleware{},
+		}
+
+		httpHandler, _ = httprouter.NewRouter(routerConfig)
+	}
+
+	httpServer := &http.Server{
+		Addr:    ":" + os.Getenv("MONITORING_PORT"),
+		Handler: httpHandler,
 	}
 
 	server.Start = func() error {

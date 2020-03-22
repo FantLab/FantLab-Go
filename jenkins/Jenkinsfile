@@ -11,6 +11,7 @@ services:
     image: ${tag}
     ports:
         - ${PORT}:${PORT}
+        - ${MONITORING_PORT}:${MONITORING_PORT}
     networks:
         - general
     environment:
@@ -21,7 +22,7 @@ services:
         SIGN_PUB_KEY: ${SIGN_PUB_KEY}
         SIGN_PRIV_KEY: ${SIGN_PRIV_KEY}
     healthcheck:
-      test: ['CMD', 'curl', '-sS', 'localhost:${PORT}/v1/ping']
+      test: ['CMD', 'curl', '-sS', 'localhost:${PORT}/ping']
       interval: 10s
       timeout: 30s
       retries: 3
