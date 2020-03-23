@@ -1,0 +1,40 @@
+version: '3.7'
+
+services:
+  go-api:
+    image: ${TAG}
+    ports:
+        - ${PORT}:${PORT}
+        - ${MONITORING_PORT}:${MONITORING_PORT}
+    networks:
+        - general
+    environment:
+        PORT: ${PORT}
+        MONITORING_PORT: ${MONITORING_PORT}
+        DB_ADDRESS: ${DB_ADDRESS}
+        MC_ADDRESS: ${MC_ADDRESS}
+        RDS_ADDRESS: ${RDS_ADDRESS}
+        MYSQL_URL: ${MYSQL_URL}
+        IMAGES_BASE_URL: ${IMAGES_BASE_URL}
+        SIGN_PUB_KEY: ${SIGN_PUB_KEY}
+        SIGN_PRIV_KEY: ${SIGN_PRIV_KEY}
+    healthcheck:
+      test: ['CMD', 'curl', '-sS', 'localhost:${PORT}/ping']
+      interval: 10s
+      timeout: 30s
+      retries: 3
+    deploy:
+      replicas: 2
+      update_config:
+        parallelism: 1
+        delay: 10s
+        failure_action: rollback
+      restart_policy:
+        condition: on-failure
+        delay: 5s
+        max_attempts: 3
+        window: 120s
+
+networks:
+    general:
+        driver: overlay
