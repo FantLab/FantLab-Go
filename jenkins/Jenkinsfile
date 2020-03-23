@@ -47,11 +47,6 @@ networks:
     }
 
     stages {
-        stage('Checkout') {
-            steps {
-                checkout([$class: 'GitSCM', branches: [[name: "${COMMIT_HASH}"]], userRemoteConfigs: [[url: 'https://github.com/FantLab/FantLab-Go']]])
-            }
-        }
         stage('Build') {
             steps {
                 script {
