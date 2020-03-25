@@ -122,7 +122,7 @@ func (api *API) makeAuthResponse(r *http.Request, issuedAt time.Time, userId uin
 
 	var permissions []pb.Auth_Claims_Permission
 
-	if userInfo.CanEditForumMessages == 1 {
+	if userInfo.CanEditForumMessages == "1" {
 		permissions = append(permissions, pb.Auth_Claims_PERMISSION_CAN_EDIT_OWN_FORUM_MESSAGES)
 	}
 
