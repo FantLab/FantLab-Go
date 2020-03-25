@@ -13,7 +13,7 @@ const (
 			u.user_class, 
 			u.login, 
 			u.sex,
-			g.can_edit_f_messages
+			g.can_edit_f_messages,
 			g.access_to_forums 
 		FROM ` + UserGroupsTable + ` g 
 		JOIN ` + UsersTable + ` u ON u.user_group_id = g.user_group_id 
