@@ -53,7 +53,7 @@ func getTemplateDataFromRoutes(routes *routing.Group, basePath string) []t_group
 			e := t_endpoint{
 				Summary:     endpoint.Info(),
 				Method:      endpoint.Method(),
-				Path:        basePath + endpoint.Path(),
+				Path:        basePath + patchPath(endpoint.Path()),
 				File:        relativePathToFile(info.FilePath, info.Line),
 				Description: info.Description,
 				Params:      params,
@@ -71,4 +71,23 @@ func getTemplateDataFromRoutes(routes *routing.Group, basePath string) []t_group
 
 func relativePathToFile(filePath string, line int) string {
 	return "../" + filePath[strings.Index(filePath, "sources"):] + "#L" + strconv.Itoa(line)
+}
+
+func patchPath(path string) string {
+	segments := strings.FieldsFunc(path, func(r rune) bool {
+		return r == '/'
+	})
+	var sb strings.Builder
+	sb.Grow(len(path))
+	for _, segment := range segments {
+		sb.WriteRune('/')
+		if segment[0] == ':' {
+			sb.WriteRune('{')
+			sb.WriteString(segment[1:])
+			sb.WriteRune('}')
+		} else {
+			sb.WriteString(segment)
+		}
+	}
+	return sb.String()
 }
