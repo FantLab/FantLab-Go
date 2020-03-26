@@ -55,6 +55,7 @@ func Tree(config *config.AppConfig, services *app.Services, pathParamGetter endp
 				g.Endpoint(http.MethodDelete, "/forum_messages/:id", api.DeleteForumMessage, "Удаление сообщения в форуме")
 				g.Endpoint(http.MethodPut, "/communities/:id/subscription", api.ToggleCommunitySubscription, "Вступление/выход из сообщества")
 				g.Endpoint(http.MethodPut, "/blogs/:id/subscription", api.ToggleBlogSubscription, "Подписка/отписка от блога")
+				g.Endpoint(http.MethodPost, "/blog_articles/:id/comment", api.AddBlogArticleComment, "Создание нового комментария к статье в блоге")
 				g.Endpoint(http.MethodPut, "/blog_articles/:id/subscription", api.ToggleArticleSubscription, "Подписка/отписка от статьи в блоге")
 				g.Endpoint(http.MethodPut, "/blog_articles/:id/like", api.ToggleArticleLike, "Лайк/дизлайк статьи в блоге")
 

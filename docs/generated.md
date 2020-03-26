@@ -1214,6 +1214,37 @@
 </p>
 </details>
 
+<details><summary>Создание нового комментария к статье в блоге</summary>
+<p>
+
+
+
+**POST** [/v1/blog_articles/:id/comment](../sources/server/internal/endpoints/add_blog_article_message.go#L12)
+
+Параметры запроса:
+
+
+* **id** (path, uint64) - айди статьи
+
+
+* **comment** (form, string) - текст комментария (непустой)
+
+
+* **parent_comment_id** (form, uint64) - id родительского комментария (0, если комментарий 1-го уровня вложенности)
+
+
+
+
+Схема ответа:
+
+```
+{}
+```
+---
+
+</p>
+</details>
+
 <details><summary>Подписка/отписка от статьи в блоге</summary>
 <p>
 

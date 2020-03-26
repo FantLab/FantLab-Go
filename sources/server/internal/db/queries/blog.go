@@ -1,6 +1,10 @@
 package queries
 
 const (
+	NewBlogTopicMessagesTable = "b_new_messages"
+)
+
+const (
 	Communities = `
 		SELECT
 			b.blog_id,
@@ -179,10 +183,28 @@ const (
 		LEFT JOIN
 			users u ON u.user_id = b.user_id
 		WHERE
-			b.blog_id = ? AND b.is_community = 0
+			b.blog_id = ?
 	`
 
-	BlogExists = "SELECT 1 FROM b_blogs WHERE blog_id = ? AND is_community = 0"
+	BlogExists = "SELECT 1 FROM b_blogs WHERE blog_id = ?"
+
+	BlogGetRelatedBlogs = `
+		SELECT
+			blog_id
+		FROM
+			b_topic_blog_links
+		WHERE
+			topic_id = ?
+	`
+
+	BlogIsUserReadOnly = `
+		SELECT
+			1
+		FROM
+			b_readonly
+		WHERE
+			user_id = ? AND (blog_id = ? OR blog_id IN (?))
+	`
 
 	BlogTopics = `
 		SELECT
@@ -221,6 +243,7 @@ const (
 	BlogTopic = `
 		SELECT
 			b.topic_id,
+			b.blog_id,
 			b.head_topic,
 			b.date_of_add,
 			u.user_id,
@@ -241,7 +264,7 @@ const (
 			b.topic_id = ? AND b.is_opened > 0
 	`
 
-	BlogArticleComments = `
+	BlogTopicMessages = `
 		WITH RECURSIVE CTE (message_id, parent_message_id, is_censored, date_of_add, user_id, depth) AS (
 			(
 				SELECT message_id, parent_message_id, is_censored, date_of_add, user_id, 0 AS depth
@@ -262,5 +285,101 @@ const (
 		LEFT JOIN b_messages_text bmt ON bmt.message_id = c.message_id
 	`
 
-	BlogArticleCommentsCount = "SELECT COUNT(*) FROM b_messages WHERE topic_id = ?"
+	BlogGetTopicMessagesCount = `
+		SELECT 
+			COUNT(*) 
+		FROM 
+			b_messages 
+		WHERE 
+			topic_id = ?
+	`
+
+	BlogGetTopicMessage = `
+		SELECT
+			*
+		FROM
+			b_messages
+		WHERE
+			message_id = ?
+	`
+
+	BlogTopicInsertNewMessage = `
+		INSERT INTO
+			b_messages (
+				topic_id,
+				user_id,
+				parent_message_id,
+				message_length,
+				is_censored,
+				date_of_add,
+				topic_type
+			)
+		VALUES
+			(?, ?, ?, ?, ?, ?, 0)
+	`
+
+	BlogGetTopicLastMessage = `
+		SELECT
+			*
+		FROM
+			b_messages
+		WHERE
+			topic_id = ?
+		ORDER BY
+			message_id DESC
+		LIMIT 1
+	`
+
+	BlogSetMessageText = `
+		REPLACE
+			b_messages_text
+		SET
+			message_id = ?,
+			message_text = ?
+	`
+
+	BlogUpdateLastCommentReadActuality = `
+		UPDATE
+			b_last_comment_read
+		SET
+			is_actual = 0
+		WHERE
+			topic_id = ?
+	`
+
+	BlogUpdateTopicCommentCount = `
+		UPDATE
+			b_topics
+		SET
+			comments_count = ?
+		WHERE
+			topic_id = ?
+	`
+
+	BlogIncrementNewBlogCommentsCount = `
+		UPDATE
+			users
+		SET
+			new_blog_comments = new_blog_comments + 1
+		WHERE
+			user_id IN (?)
+	`
+
+	BlogGetTopicSubscribers = `
+		SELECT
+			user_id
+		FROM
+			b_topics_subscribers
+		WHERE
+			topic_id = ? AND user_id != ?
+	`
+
+	BlogGetFirstLevelMessageCount = `
+		SELECT
+			COUNT(*)
+		FROM
+			b_messages
+		WHERE
+			topic_id = ? AND topic_type = 0 AND parent_message_id = 0 AND message_id <= ?
+	`
 )
