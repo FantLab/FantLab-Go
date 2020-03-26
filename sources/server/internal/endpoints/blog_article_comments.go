@@ -52,7 +52,7 @@ func (api *API) BlogArticleComments(r *http.Request) (int, proto.Message) {
 		return api.badParam("after")
 	}
 
-	count, err := api.services.DB().FetchBlogArticleCommentsCount(r.Context(), params.ArticleId)
+	count, err := api.services.DB().FetchBlogTopicCommentsCount(r.Context(), params.ArticleId)
 
 	if err != nil && !dbtools.IsNotFoundError(err) {
 		return http.StatusInternalServerError, &pb.Error_Response{
@@ -64,7 +64,7 @@ func (api *API) BlogArticleComments(r *http.Request) (int, proto.Message) {
 		return http.StatusOK, &pb.Blog_BlogArticleCommentsResponse{}
 	}
 
-	comments, err := api.services.DB().FetchBlogArticleComments(
+	comments, err := api.services.DB().FetchBlogTopicComments(
 		r.Context(),
 		params.ArticleId,
 		after,

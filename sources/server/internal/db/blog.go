@@ -3,8 +3,11 @@ package db
 import (
 	"context"
 	"fantlab/base/codeflow"
+	"fantlab/base/dbtools/sqlbuilder"
 	"fantlab/base/dbtools/sqlr"
 	"fantlab/server/internal/db/queries"
+	"fantlab/server/internal/helpers"
+	"fmt"
 	"strings"
 	"time"
 )
@@ -62,6 +65,7 @@ type Blog struct {
 
 type BlogTopic struct {
 	TopicId       uint64    `db:"topic_id"`
+	BlogId        uint64    `db:"blog_id"`
 	HeadTopic     string    `db:"head_topic"`
 	DateOfAdd     time.Time `db:"date_of_add"`
 	UserId        uint64    `db:"user_id"`
@@ -102,11 +106,14 @@ type BlogTopicsDBResponse struct {
 
 type BlogTopicComment struct {
 	MessageId       uint64    `db:"message_id"`
-	ParentMessageId uint64    `db:"parent_message_id"`
-	Text            string    `db:"content"`
-	DateOfAdd       time.Time `db:"date_of_add"`
-	IsCensored      uint8     `db:"is_censored"`
+	TopicId         uint64    `db:"topic_id"`
 	UserId          uint64    `db:"user_id"`
+	ParentMessageId uint64    `db:"parent_message_id"`
+	MessageLength   uint64    `db:"message_length"`
+	IsCensored      uint8     `db:"is_censored"`
+	DateOfAdd       time.Time `db:"date_of_add"`
+	TopicType       uint64    `db:"topic_type"`
+	Text            string    `db:"content"`
 	UserLogin       string    `db:"login"`
 	UserSex         uint8     `db:"sex"`
 	UserPhotoNumber uint64    `db:"photo_number"`
@@ -219,14 +226,36 @@ func (db *DB) FetchBlog(ctx context.Context, blogId uint64) (*Blog, error) {
 	return &blog, nil
 }
 
-func (db *DB) FetchBlogTopics(ctx context.Context, blogID, limit, offset uint64) (response *BlogTopicsDBResponse, err error) {
+func (db *DB) FetchBlogExists(ctx context.Context, blogId uint64) (exists bool, err error) {
 	var blogExists uint8
+	err = db.engine.Read(ctx, sqlr.NewQuery(queries.BlogExists).WithArgs(blogId)).Scan(&blogExists)
+	return blogExists == 1, err
+}
+
+func (db *DB) FetchIsUserReadOnly(ctx context.Context, userId, topicId, blogId uint64) (isReadOnly bool, err error) {
+	var relatedBlogs []uint64
+	var isUserReadOnly uint8
+	err = codeflow.Try(
+		func() error {
+			return db.engine.Read(ctx, sqlr.NewQuery(queries.BlogGetRelatedBlogs).WithArgs(topicId)).Scan(&relatedBlogs)
+		},
+		func() error {
+			return db.engine.Read(ctx, sqlr.NewQuery(queries.BlogIsUserReadOnly).WithArgs(userId, blogId, relatedBlogs).FlatArgs()).Scan(&isUserReadOnly)
+		},
+	)
+	isReadOnly = isUserReadOnly == 1
+	return
+}
+
+// TODO Почему не используются limit/offset?
+func (db *DB) FetchBlogTopics(ctx context.Context, blogID, limit, offset uint64) (response *BlogTopicsDBResponse, err error) {
 	var topics []BlogTopic
 	var count uint64
 
 	err = codeflow.Try(
 		func() error {
-			return db.engine.Read(ctx, sqlr.NewQuery(queries.BlogExists).WithArgs(blogID)).Scan(&blogExists)
+			_, err := db.FetchBlogExists(ctx, blogID)
+			return err
 		},
 		func() error {
 			return db.engine.Read(ctx, sqlr.NewQuery(queries.BlogTopics).WithArgs(blogID)).Scan(&topics)
@@ -258,12 +287,135 @@ func (db *DB) FetchBlogTopic(ctx context.Context, topicId uint64) (*BlogTopic, e
 	return &topic, nil
 }
 
-func (db *DB) FetchBlogArticleCommentsCount(ctx context.Context, topicId uint64) (result uint64, err error) {
-	err = db.engine.Read(ctx, sqlr.NewQuery(queries.BlogArticleCommentsCount).WithArgs(topicId)).Scan(&result)
+func (db *DB) FetchBlogTopicCommentsCount(ctx context.Context, topicId uint64) (result uint64, err error) {
+	err = db.engine.Read(ctx, sqlr.NewQuery(queries.BlogGetTopicMessagesCount).WithArgs(topicId)).Scan(&result)
 	return
 }
 
-func (db *DB) FetchBlogArticleComments(ctx context.Context, topicId uint64, after time.Time, sort string, count uint8) (response []BlogTopicComment, err error) {
-	err = db.engine.Read(ctx, sqlr.NewQuery(queries.BlogArticleComments).Inject(sort).WithArgs(topicId, after, count, blogArticleCommentsMaxDepth)).Scan(&response)
+func (db *DB) FetchBlogTopicComments(ctx context.Context, topicId uint64, after time.Time, sort string, count uint8) (response []BlogTopicComment, err error) {
+	err = db.engine.Read(ctx, sqlr.NewQuery(queries.BlogTopicMessages).Inject(sort).WithArgs(topicId, after, count, blogArticleCommentsMaxDepth)).Scan(&response)
+	return
+}
+
+func (db *DB) FetchBlogTopicComment(ctx context.Context, commentId uint64) (comment BlogTopicComment, err error) {
+	err = db.engine.Read(ctx, sqlr.NewQuery(queries.BlogGetTopicMessage).WithArgs(commentId)).Scan(&comment)
+	return
+}
+
+func (db *DB) InsertBlogTopicComment(ctx context.Context, topicId, userId, parentCommentId, parentUserId uint64, text string, blogArticleCommentsInPage uint64) error {
+	err := db.engine.InTransaction(func(rw sqlr.ReaderWriter) error {
+		var comment BlogTopicComment
+
+		return codeflow.Try(
+			func() error { // Создаем новый комментарий
+				// Примечания:
+				//  - message_length всегда равен 0. Вообще неясно, зачем существует это поле. Возможно, предполагалось,
+				//    что в будущем за написание новых комментариев тоже будут начисляться баллы развития.
+				//  - Судя по всему, поле topic_type предполагалось использовать для разграничения функционала
+				//    комментирования статей и комментирования произведений. Из следов последнего остались только 3
+				//    комментария к "Регуляторам" Стивена Кинга, и те нельзя посмотреть, поскольку endpoint
+				//    https://fantlab.ru/discusswork396 стабильно падает с 500 ошибкой. Зачем все это находится в
+				//    таблице, относящейся к блогам - вопрос риторический. P.S. Функционал пытался сделать SHTrassEr.
+				return rw.Write(ctx, sqlr.NewQuery(queries.BlogTopicInsertNewMessage).WithArgs(topicId, userId, parentCommentId, 0, 0, time.Now())).Error
+			},
+			func() error { // Получаем данные свежесозданного комментария
+				return rw.Read(ctx, sqlr.NewQuery(queries.BlogGetTopicLastMessage).WithArgs(topicId)).Scan(&comment)
+			},
+			func() error { // Сохраняем текст комментария
+				return rw.Write(ctx, sqlr.NewQuery(queries.BlogSetMessageText).WithArgs(comment.MessageId, text)).Error
+			},
+			func() error { // Обновляем статистику статьи
+				return updateBlogTopicStatAfterNewMessage(ctx, rw, topicId)
+			},
+		)
+	})
+
+	if err != nil {
+		return err
+	}
+
+	return notifyBlogTopicSubscribersAboutNewMessage(ctx, db.engine, topicId, parentUserId, blogArticleCommentsInPage)
+}
+
+func updateBlogTopicStatAfterNewMessage(ctx context.Context, rw sqlr.ReaderWriter, topicId uint64) error {
+	var commentCount uint64
+
+	return codeflow.Try(
+		func() error {
+			// is_actual = 0 - флаг для Cron'а, что надо пересчитать количество непрочитанных сообщений к статье для
+			// данного пользователя. В настоящий момент скрипт располагается в script/cron/hulk/update_b_topic_read_cache.pl,
+			// запускается через каждые 2 минуты. Используется для актуализации информации в журнале на Главной.
+			return rw.Write(ctx, sqlr.NewQuery(queries.BlogUpdateLastCommentReadActuality).WithArgs(topicId)).Error
+		},
+		func() error { // Получаем количество комментариев к статье
+			return rw.Read(ctx, sqlr.NewQuery(queries.BlogGetTopicMessagesCount).WithArgs(topicId)).Scan(&commentCount)
+		},
+		func() error { // Обновляем количество комментариев в записи о самой статье
+			return rw.Write(ctx, sqlr.NewQuery(queries.BlogUpdateTopicCommentCount).WithArgs(commentCount, topicId)).Error
+		},
+	)
+}
+
+func notifyBlogTopicSubscribersAboutNewMessage(ctx context.Context, rw sqlr.ReaderWriter, topicId, parentUserId, blogArticleCommentsInPage uint64) error {
+	var topicSubscribers []uint64
+	var comment BlogTopicComment
+	var firstLevelCommentCount uint64
+
+	type newBlogMessageEntry struct {
+		UserId    uint64 `db:"user_id"`
+		MessageId uint64 `db:"message_id"`
+		// Поле используется для хранения endpoint-а для быстрого перехода из области уведомлений о новых сообщениях в
+		// блогах. Что подобное делает в базе, останется загадкой на долгие годы.
+		Endpoint string `db:"action"`
+		// Сводное поле. Если текущий комментарий - первого уровня, в поле хранится id автора поста. Если комментарий
+		// вложенный, то хранится id автора родительского комментария.
+		ParentUserId uint64    `db:"parent_user_id"`
+		MessageDate  time.Time `db:"date_of_add"`
+	}
+
+	err := codeflow.Try(
+		func() error { // Инкрементим счетчик количества новых комментариев в блогах для parentUserId
+			return rw.Write(ctx, sqlr.NewQuery(queries.BlogIncrementNewBlogCommentsCount).WithArgs(parentUserId)).Error
+		},
+		func() error { // Получаем список подписчиков на обновления статьи
+			return rw.Read(ctx, sqlr.NewQuery(queries.BlogGetTopicSubscribers).WithArgs(topicId, parentUserId)).Scan(&topicSubscribers)
+		},
+		func() error { // Инкрементим счетчик количества новых комментариев в блогах для подписчиков
+			return rw.Write(ctx, sqlr.NewQuery(queries.BlogIncrementNewBlogCommentsCount).WithArgs(topicSubscribers).FlatArgs()).Error
+		},
+		func() error { // Получаем данные комментария
+			return rw.Read(ctx, sqlr.NewQuery(queries.BlogGetTopicLastMessage).WithArgs(topicId)).Scan(&comment)
+		},
+		func() error { // Получаем количество комментариев первого уровня в данной статье
+			return rw.Read(ctx, sqlr.NewQuery(queries.BlogGetFirstLevelMessageCount).WithArgs(topicId, comment.MessageId)).Scan(&firstLevelCommentCount)
+		},
+	)
+
+	if err != nil {
+		return err
+	}
+
+	pageCount := helpers.CalculatePageCount(firstLevelCommentCount, blogArticleCommentsInPage)
+	endpoint := fmt.Sprintf("blogarticle%dpage%d", topicId, pageCount)
+
+	usersToNotify := append(topicSubscribers, parentUserId)
+
+	// Добавляем оповещение для подписчиков о новом комментарии в статье. Не в транзакции, поскольку запрос тяжелый.
+	entries := make([]interface{}, 0, len(usersToNotify))
+	for _, userId := range usersToNotify {
+		entries = append(entries, newBlogMessageEntry{
+			UserId:       userId,
+			MessageId:    comment.MessageId,
+			Endpoint:     endpoint,
+			ParentUserId: parentUserId,
+			MessageDate:  time.Now(),
+		})
+	}
+
+	return rw.Write(ctx, sqlbuilder.InsertInto(queries.NewBlogTopicMessagesTable, entries...)).Error
+}
+
+func (db *DB) FetchBlogTopicSubscribers(ctx context.Context, topicId, excludedUserId uint64) (subscribers []uint64, err error) {
+	err = db.engine.Read(ctx, sqlr.NewQuery(queries.BlogGetTopicSubscribers).WithArgs(topicId, excludedUserId)).Scan(&subscribers)
 	return
 }
