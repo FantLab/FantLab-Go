@@ -40,7 +40,7 @@ type AuthTokenEntry struct {
 }
 
 func (db *DB) FetchUserLoginInfo(ctx context.Context, login string) (data UserLoginInfo, err error) {
-	err = db.engine.Read(ctx, sqlr.NewQuery(queries.UserLoginInfo).WithArgs(login)).Scan(&data)
+	err = db.engine.Read(ctx, sqlr.NewQuery(queries.UserLoginInfo).WithArgs(login, login)).Scan(&data)
 	return
 }
 

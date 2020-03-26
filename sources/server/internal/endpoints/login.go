@@ -14,7 +14,7 @@ import (
 // Создаёт новый аутентификационный токен для пользователя на основе пары логин/пароль
 func (api *API) Login(r *http.Request) (int, proto.Message) {
 	var params struct {
-		// никнейм пользователя
+		// логин или почта пользователя
 		Login string `http:"login,form"`
 		// пароль
 		Password string `http:"password,form"`
