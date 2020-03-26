@@ -7,7 +7,7 @@ const (
 )
 
 const (
-	UserLoginInfo = "SELECT user_id, password_hash, new_password_hash, approved FROM " + UsersTable + " WHERE login = ? LIMIT 1"
+	UserLoginInfo = "SELECT user_id, password_hash, new_password_hash, approved FROM " + UsersTable + " WHERE login = ? OR email = ? LIMIT 1"
 	UserInfo      = `
 		SELECT 
 			u.user_class, 

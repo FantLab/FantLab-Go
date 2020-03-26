@@ -16,7 +16,7 @@
 Параметры запроса:
 
 
-* **login** (form, string) - никнейм пользователя
+* **login** (form, string) - логин или почта пользователя
 
 
 * **password** (form, string) - пароль
