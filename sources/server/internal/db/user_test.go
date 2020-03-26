@@ -15,7 +15,7 @@ import (
 func Test_FetchUserLoginInfo(t *testing.T) {
 	queryTable := make(dbstubs.StubQueryTable)
 
-	queryTable[sqlr.NewQuery(queries.UserLoginInfo).WithArgs("user").String()] = &dbstubs.StubRows{
+	queryTable[sqlr.NewQuery(queries.UserLoginInfo).WithArgs("user", "user").String()] = &dbstubs.StubRows{
 		Values: [][]interface{}{{1, "abc", "xyz"}},
 		Columns: []scanr.Column{
 			dbstubs.StubColumn("user_id"),
