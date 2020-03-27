@@ -58,6 +58,7 @@ func Tree(config *config.AppConfig, services *app.Services, pathParamGetter endp
 				g.Endpoint(http.MethodPost, "/blog_articles/:id/comment", api.AddBlogArticleComment, "Создание нового комментария к статье в блоге")
 				g.Endpoint(http.MethodPut, "/blog_articles/:id/subscription", api.ToggleArticleSubscription, "Подписка/отписка от статьи в блоге")
 				g.Endpoint(http.MethodPut, "/blog_articles/:id/like", api.ToggleArticleLike, "Лайк/дизлайк статьи в блоге")
+				g.Endpoint(http.MethodPut, "/blog_article_comments/:id", api.EditBlogArticleComment, "Редактирование комментария к статье в блоге")
 
 				g.Subgroup("Для философов", func(g *routing.Group) {
 					g.Middleware(middlewares.CheckMinLevel(pb.Common_USERCLASS_PHILOSOPHER))

@@ -21,7 +21,7 @@ func (api *API) AddBlogArticleComment(r *http.Request) (int, proto.Message) {
 
 	api.bindParams(&params, r)
 
-	if params.ArticleId <= 0 {
+	if params.ArticleId == 0 {
 		return api.badParam("id")
 	}
 

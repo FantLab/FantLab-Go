@@ -382,4 +382,24 @@ const (
 		WHERE
 			topic_id = ? AND topic_type = 0 AND parent_message_id = 0 AND message_id <= ?
 	`
+
+	BlogGetUserIsCommunityModerator = `
+		SELECT
+			COUNT(*)
+		FROM
+			b_community_moderators
+		WHERE
+			blog_id = ? AND user_id = ?
+	`
+
+	BlogGetUserIsCommunityTopicModerator = `
+		SELECT
+			COUNT(*)
+		FROM
+			b_topic_blog_links b
+		LEFT JOIN
+			b_community_moderators bm ON bm.blog_id = b.blog_id
+		WHERE
+			b.topic_id = ? AND bm.user_id = ?
+	`
 )

@@ -1219,7 +1219,7 @@
 
 
 
-**POST** [/v1/blog_articles/{id}/comment](../sources/server/internal/endpoints/add_blog_article_message.go#L12)
+**POST** [/v1/blog_articles/{id}/comment](../sources/server/internal/endpoints/add_blog_article_comment.go#L12)
 
 Параметры запроса:
 
@@ -1297,6 +1297,34 @@
 {
   like_count: uint64  # количество лайков
 }
+```
+---
+
+</p>
+</details>
+
+<details><summary>Редактирование комментария к статье в блоге</summary>
+<p>
+
+
+
+**PUT** [/v1/blog_article_comments/{id}](../sources/server/internal/endpoints/edit_blog_article_comment.go#L12)
+
+Параметры запроса:
+
+
+* **id** (path, uint64) - id комментария
+
+
+* **comment** (form, string) - текст комментария (непустой)
+
+
+
+
+Схема ответа:
+
+```
+{}
 ```
 ---
 
