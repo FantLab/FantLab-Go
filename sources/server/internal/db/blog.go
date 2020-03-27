@@ -322,7 +322,7 @@ func (db *DB) InsertBlogTopicComment(ctx context.Context, topicId, userId, paren
 				return rw.Read(ctx, sqlr.NewQuery(queries.BlogGetTopicLastMessage).WithArgs(topicId)).Scan(&comment)
 			},
 			func() error { // Сохраняем текст комментария
-				return rw.Write(ctx, sqlr.NewQuery(queries.BlogSetMessageText).WithArgs(comment.MessageId, text)).Error
+				return db.UpdateBlogTopicComment(ctx, comment.MessageId, text)
 			},
 			func() error { // Обновляем статистику статьи
 				return updateBlogTopicStatAfterNewMessage(ctx, rw, topicId)
@@ -417,5 +417,33 @@ func notifyBlogTopicSubscribersAboutNewMessage(ctx context.Context, rw sqlr.Read
 
 func (db *DB) FetchBlogTopicSubscribers(ctx context.Context, topicId, excludedUserId uint64) (subscribers []uint64, err error) {
 	err = db.engine.Read(ctx, sqlr.NewQuery(queries.BlogGetTopicSubscribers).WithArgs(topicId, excludedUserId)).Scan(&subscribers)
+	return
+}
+
+func (db *DB) FetchUserIsBlogModerator(ctx context.Context, userId, blogId, topicId uint64) (bool, error) {
+	var userIsCommunityModerator uint8
+	var userIsCommunityTopicModerator uint8
+
+	err := db.engine.Read(ctx, sqlr.NewQuery(queries.BlogGetUserIsCommunityModerator).WithArgs(blogId, userId)).Scan(&userIsCommunityModerator)
+
+	if err != nil {
+		return false, err
+	}
+
+	if userIsCommunityModerator == 1 {
+		return true, nil
+	}
+
+	err = db.engine.Read(ctx, sqlr.NewQuery(queries.BlogGetUserIsCommunityTopicModerator).WithArgs(topicId, userId)).Scan(&userIsCommunityTopicModerator)
+
+	if err != nil {
+		return false, err
+	}
+
+	return userIsCommunityTopicModerator == 1, nil
+}
+
+func (db *DB) UpdateBlogTopicComment(ctx context.Context, messageId uint64, text string) (err error) {
+	err = db.engine.Write(ctx, sqlr.NewQuery(queries.BlogSetMessageText).WithArgs(messageId, text)).Error
 	return
 }
