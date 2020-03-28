@@ -402,4 +402,41 @@ const (
 		WHERE
 			b.topic_id = ? AND bm.user_id = ?
 	`
+
+	BlogDeleteMessage = `
+		DELETE FROM
+			b_messages
+		WHERE
+			message_id = ?
+	`
+
+	BlogDeleteMessageText = `
+		DELETE FROM
+			b_topics_text
+		WHERE
+			message_id = ?
+	`
+
+	BlogUpdateMessagesParent = `
+		UPDATE
+			b_messages
+		SET
+			parent_message_id = ?
+		WHERE
+			parent_message_id = ?
+	`
+
+	BlogDeleteNewMessage = `
+		DELETE FROM
+			b_new_messages
+		WHERE
+			message_id = ?
+	`
+
+	BlogInsertMessageDeleted = `
+		REPLACE INTO
+			b_message_delete_topics
+		SET
+			topic_id = ?
+	`
 )

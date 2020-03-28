@@ -420,7 +420,7 @@ func (db *DB) FetchBlogTopicSubscribers(ctx context.Context, topicId, excludedUs
 	return
 }
 
-func (db *DB) FetchUserIsBlogModerator(ctx context.Context, userId, blogId, topicId uint64) (bool, error) {
+func (db *DB) FetchUserIsCommunityModerator(ctx context.Context, userId, blogId, topicId uint64) (bool, error) {
 	var userIsCommunityModerator uint8
 	var userIsCommunityTopicModerator uint8
 
@@ -443,7 +443,55 @@ func (db *DB) FetchUserIsBlogModerator(ctx context.Context, userId, blogId, topi
 	return userIsCommunityTopicModerator == 1, nil
 }
 
-func (db *DB) UpdateBlogTopicComment(ctx context.Context, messageId uint64, text string) (err error) {
-	err = db.engine.Write(ctx, sqlr.NewQuery(queries.BlogSetMessageText).WithArgs(messageId, text)).Error
+func (db *DB) UpdateBlogTopicComment(ctx context.Context, commentId uint64, text string) (err error) {
+	err = db.engine.Write(ctx, sqlr.NewQuery(queries.BlogSetMessageText).WithArgs(commentId, text)).Error
 	return
+}
+
+func (db *DB) DeleteBlogTopicComment(ctx context.Context, commentId, parentCommentId, topicId uint64) error {
+	return db.engine.InTransaction(func(rw sqlr.ReaderWriter) error {
+		return codeflow.Try(
+			func() error { // Удаляем комментарий
+				return rw.Write(ctx, sqlr.NewQuery(queries.BlogDeleteMessage).WithArgs(commentId)).Error
+			},
+			func() error { // Удаляем текст комментария
+				return rw.Write(ctx, sqlr.NewQuery(queries.BlogDeleteMessageText).WithArgs(commentId)).Error
+			},
+			func() error { // Поднимаем дочерние комментарии на уровень выше
+				return rw.Write(ctx, sqlr.NewQuery(queries.BlogUpdateMessagesParent).WithArgs(parentCommentId, commentId)).Error
+			},
+			func() error {
+				return updateBlogTopicStatAfterCommentDeleting(ctx, db.engine, topicId)
+			},
+			func() error {
+				return notifyBlogTopicSubscribersAboutCommentDeleting(ctx, db.engine, commentId, topicId)
+			},
+		)
+	})
+}
+
+func updateBlogTopicStatAfterCommentDeleting(ctx context.Context, rw sqlr.ReaderWriter, topicId uint64) error {
+	var commentCount uint64
+
+	return codeflow.Try(
+		func() error { // Получаем количество комментариев к статье
+			return rw.Read(ctx, sqlr.NewQuery(queries.BlogGetTopicMessagesCount).WithArgs(topicId)).Scan(&commentCount)
+		},
+		func() error { // Обновляем количество комментариев в записи о самой статье
+			return rw.Write(ctx, sqlr.NewQuery(queries.BlogUpdateTopicCommentCount).WithArgs(commentCount, topicId)).Error
+		},
+	)
+}
+
+func notifyBlogTopicSubscribersAboutCommentDeleting(ctx context.Context, rw sqlr.ReaderWriter, commentId, topicId uint64) error {
+	return codeflow.Try(
+		func() error { // Удаляем оповещение о комментарии
+			return rw.Write(ctx, sqlr.NewQuery(queries.BlogDeleteNewMessage).WithArgs(commentId)).Error
+		},
+		func() error {
+			// Заносим id статьи в отдельную таблицу, чтобы Cron пересчитал ссылки на новые комментарии в статьях
+			// (script/cron/hulk/update_b_topic_comments.pl)
+			return rw.Write(ctx, sqlr.NewQuery(queries.BlogInsertMessageDeleted).WithArgs(topicId)).Error
+		},
+	)
 }
