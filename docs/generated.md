@@ -1331,6 +1331,31 @@
 </p>
 </details>
 
+<details><summary>Удаление комментария к статье в блоге</summary>
+<p>
+
+
+
+**DELETE** [/v1/blog_article_comments/{id}](../sources/server/internal/endpoints/delete_blog_article_comment.go#L12)
+
+Параметры запроса:
+
+
+* **id** (path, uint64) - id комментария
+
+
+
+
+Схема ответа:
+
+```
+{}
+```
+---
+
+</p>
+</details>
+
 
 ## Для философов
 

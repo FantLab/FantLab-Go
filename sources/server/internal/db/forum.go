@@ -420,7 +420,7 @@ func (db *DB) UpdateForumMessage(ctx context.Context, messageId, topicId uint64,
 }
 
 func (db *DB) DeleteForumMessage(ctx context.Context, messageId, topicId, forumId uint64, messageDate time.Time, forumMessagesInPage uint64) error {
-	err := db.engine.InTransaction(func(rw sqlr.ReaderWriter) error {
+	return db.engine.InTransaction(func(rw sqlr.ReaderWriter) error {
 		return codeflow.Try(
 			func() error { // Удаляем сообщение
 				return rw.Write(ctx, sqlr.NewQuery(queries.ForumDeleteMessage).WithArgs(messageId)).Error
@@ -455,7 +455,6 @@ func (db *DB) DeleteForumMessage(ctx context.Context, messageId, topicId, forumI
 			},
 		)
 	})
-	return err
 }
 
 func updateTopicStatAfterMessageDeleting(ctx context.Context, rw sqlr.ReaderWriter, topicId uint64) error {

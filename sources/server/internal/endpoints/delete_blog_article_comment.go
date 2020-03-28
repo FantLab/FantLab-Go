@@ -9,12 +9,10 @@ import (
 	"google.golang.org/protobuf/proto"
 )
 
-func (api *API) EditBlogArticleComment(r *http.Request) (int, proto.Message) {
+func (api *API) DeleteBlogArticleComment(r *http.Request) (int, proto.Message) {
 	var params struct {
 		// id комментария
 		CommentId uint64 `http:"id,path"`
-		// текст комментария (непустой)
-		Comment string `http:"comment,form"`
 	}
 
 	api.bindParams(&params, r)
@@ -92,23 +90,11 @@ func (api *API) EditBlogArticleComment(r *http.Request) (int, proto.Message) {
 	if !(comment.UserId == user.UserId || blog.UserId == user.UserId || userIsCommunityModerator) {
 		return http.StatusForbidden, &pb.Error_Response{
 			Status:  pb.Error_ACTION_PERMITTED,
-			Context: "Вы не можете отредактировать данный комментарий",
+			Context: "Вы не можете удалить данный комментарий",
 		}
 	}
 
-	// В отличие от форума, здесь нет предварительного форматирования. Это позволяет не только навтыкать массу пробельных
-	// символов (мелочь), но и написать модераторское сообщение, будучи самым обычным пользователем (достаточно заключить
-	// текст в теги `moder`). https://github.com/parserpro/fantlab/issues/976
-	commentLength := uint64(len(params.Comment))
-
-	if commentLength == 0 {
-		return http.StatusForbidden, &pb.Error_Response{
-			Status:  pb.Error_ACTION_PERMITTED,
-			Context: "Текст комментария пустой",
-		}
-	}
-
-	err = api.services.DB().UpdateBlogTopicComment(r.Context(), comment.MessageId, params.Comment)
+	err = api.services.DB().DeleteBlogTopicComment(r.Context(), comment.MessageId, comment.ParentMessageId, article.TopicId)
 
 	if err != nil {
 		return http.StatusInternalServerError, &pb.Error_Response{
