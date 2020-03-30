@@ -127,7 +127,7 @@ message Forum {
         // форум, в который входит тема
         Forum forum = 2;
         // закрепленное сообщение, если есть
-        TopicMessage pinnedMessage = 3;
+        TopicMessage pinned_message = 3;
         // сообщения
         repeated TopicMessage messages = 4;
         // страницы
