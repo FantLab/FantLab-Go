@@ -18,6 +18,8 @@ services:
         IMAGES_BASE_URL: ${IMAGES_BASE_URL}
         SIGN_PUB_KEY: ${SIGN_PUB_KEY}
         SIGN_PRIV_KEY: ${SIGN_PRIV_KEY}
+        ELASTIC_APM_SERVER_URL: ${ELASTIC_APM_SERVER_URL}
+        ELASTIC_APM_SERVICE_NAME: ${ELASTIC_APM_SERVICE_NAME}
     healthcheck:
       test: ['CMD', 'curl', '-sS', 'localhost:${PORT}/ping']
       interval: 10s
