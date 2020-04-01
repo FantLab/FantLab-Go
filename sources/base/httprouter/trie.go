@@ -5,31 +5,36 @@ import (
 	"strings"
 )
 
-type pathSegment struct {
+type pathHandler struct {
+	path    string
 	handler http.Handler
-	keys    map[string]struct{}
-	dynamic *pathSegment
-	static  map[string]*pathSegment
 }
 
-func (s *pathSegment) insertPathHandler(path []string, handler http.Handler) {
+type node struct {
+	value    *pathHandler
+	keys     map[string]struct{}
+	anyChild *node
+	children map[string]*node
+}
+
+func (n *node) insertPathHandler(path []string, value *pathHandler) {
 	if len(path) == 0 {
-		s.handler = handler
+		n.value = value
 
 		return
 	}
 
 	wildcard, name := parseSegment(path[0])
 
-	var child *pathSegment
+	var child *node
 
 	if wildcard {
-		child = s.dynamic
+		child = n.anyChild
 
 		if child == nil {
-			child = new(pathSegment)
+			child = new(node)
 
-			s.dynamic = child
+			n.anyChild = child
 		}
 
 		if child.keys == nil {
@@ -38,43 +43,43 @@ func (s *pathSegment) insertPathHandler(path []string, handler http.Handler) {
 
 		child.keys[name] = struct{}{}
 	} else {
-		if s.static != nil {
-			child = s.static[name]
+		if n.children != nil {
+			child = n.children[name]
 		}
 
 		if child == nil {
-			child = new(pathSegment)
+			child = new(node)
 
-			if s.static == nil {
-				s.static = make(map[string]*pathSegment)
+			if n.children == nil {
+				n.children = make(map[string]*node)
 			}
 
-			s.static[name] = child
+			n.children[name] = child
 		}
 	}
 
-	child.insertPathHandler(path[1:], handler)
+	child.insertPathHandler(path[1:], value)
 }
 
-func (s *pathSegment) handlerForPath(path []string, saveParam func(key, value string)) http.Handler {
+func (n *node) handlerForPath(path []string, saveParam func(key, value string)) *pathHandler {
 	if len(path) == 0 {
-		return s.handler
+		return n.value
 	}
 
 	name, path := path[0], path[1:]
 
-	if child := s.static[name]; child != nil {
-		if handler := child.handlerForPath(path, saveParam); handler != nil {
-			return handler
+	if child := n.children[name]; child != nil {
+		if value := child.handlerForPath(path, saveParam); value != nil {
+			return value
 		}
 	}
 
-	if s.dynamic != nil {
-		if handler := s.dynamic.handlerForPath(path, saveParam); handler != nil {
-			for key := range s.dynamic.keys {
+	if n.anyChild != nil {
+		if value := n.anyChild.handlerForPath(path, saveParam); value != nil {
+			for key := range n.anyChild.keys {
 				saveParam(key, name)
 			}
-			return handler
+			return value
 		}
 	}
 
@@ -88,14 +93,14 @@ func parseSegment(s string) (bool, string) {
 	return false, s
 }
 
-type pathTrie struct {
+type trie struct {
 	maxDepth         int
 	prefix           string
 	segmentValidator func(string) bool
-	root             *pathSegment
+	root             *node
 }
 
-func (t *pathTrie) insertPathHandler(path string, handler http.Handler) bool {
+func (t *trie) insertPathHandler(path string, handler http.Handler) bool {
 	if handler == nil {
 		return false
 	}
@@ -116,7 +121,10 @@ func (t *pathTrie) insertPathHandler(path string, handler http.Handler) bool {
 		}
 	}
 
-	t.root.insertPathHandler(segments, handler)
+	t.root.insertPathHandler(segments, &pathHandler{
+		path:    path,
+		handler: handler,
+	})
 
 	if len(segments) > t.maxDepth {
 		t.maxDepth = len(segments)
@@ -125,7 +133,7 @@ func (t *pathTrie) insertPathHandler(path string, handler http.Handler) bool {
 	return true
 }
 
-func (t *pathTrie) handlerForPath(path string) (http.Handler, map[string]string) {
+func (t *trie) handlerForPath(path string) (*pathHandler, map[string]string) {
 	segments := strings.FieldsFunc(path, func(r rune) bool {
 		return r == '/'
 	})
@@ -153,10 +161,10 @@ func (t *pathTrie) handlerForPath(path string) (http.Handler, map[string]string)
 	return handler, params
 }
 
-func newPathTrie(prefix string, segmentValidator func(string) bool) *pathTrie {
-	return &pathTrie{
+func newPathTrie(prefix string, segmentValidator func(string) bool) *trie {
+	return &trie{
 		prefix:           prefix,
 		segmentValidator: segmentValidator,
-		root:             &pathSegment{},
+		root:             &node{},
 	}
 }

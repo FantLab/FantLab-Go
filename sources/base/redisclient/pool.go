@@ -7,7 +7,9 @@ import (
 	"github.com/gomodule/redigo/redis"
 )
 
-func NewPool(server string, maxIdle uint8) (Client, func() error) {
+type GetConnFunc = func(*redis.Pool, context.Context) (redis.Conn, error)
+
+func NewPoolClient(server string, maxIdle uint8, getConn GetConnFunc) (Client, func() error) {
 	pool := &redis.Pool{
 		MaxIdle: int(maxIdle),
 		Dial: func() (redis.Conn, error) {
@@ -21,15 +23,16 @@ func NewPool(server string, maxIdle uint8) (Client, func() error) {
 			return err
 		},
 	}
-	return &client{pool: pool}, pool.Close
+	return &client{pool: pool, getConn: getConn}, pool.Close
 }
 
 type client struct {
-	pool *redis.Pool
+	pool    *redis.Pool
+	getConn GetConnFunc
 }
 
 func (c *client) Perform(ctx context.Context, fn func(conn Conn) error) error {
-	conn, err := c.pool.GetContext(ctx)
+	conn, err := c.getConn(c.pool, ctx)
 	if err != nil {
 		return err
 	}

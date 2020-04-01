@@ -53,57 +53,57 @@ func Test_Trie(t *testing.T) {
 		cases := []func(w *httptest.ResponseRecorder){
 			// 1
 			func(rr *httptest.ResponseRecorder) {
-				handler, params := trie.handlerForPath("x/y/z")
-				handler.ServeHTTP(rr, nil)
+				value, params := trie.handlerForPath("x/y/z")
+				value.handler.ServeHTTP(rr, nil)
 				assert.True(t, rr.Body.String() == "1\n")
 				assert.True(t, len(params) == 0)
 			},
 			// 2
 			func(rr *httptest.ResponseRecorder) {
-				handler, params := trie.handlerForPath("x/y/9")
-				handler.ServeHTTP(rr, nil)
+				value, params := trie.handlerForPath("x/y/9")
+				value.handler.ServeHTTP(rr, nil)
 				assert.True(t, rr.Body.String() == "2\n")
 				assert.True(t, len(params) == 1 && params["z"] == "9")
 			},
 			// 3
 			func(rr *httptest.ResponseRecorder) {
-				handler, params := trie.handlerForPath("x/9/z")
-				handler.ServeHTTP(rr, nil)
+				value, params := trie.handlerForPath("x/9/z")
+				value.handler.ServeHTTP(rr, nil)
 				assert.True(t, rr.Body.String() == "3\n")
 				assert.True(t, len(params) == 1 && params["y"] == "9")
 			},
 			// 4
 			func(rr *httptest.ResponseRecorder) {
-				handler, params := trie.handlerForPath("x/9/10")
-				handler.ServeHTTP(rr, nil)
+				value, params := trie.handlerForPath("x/9/10")
+				value.handler.ServeHTTP(rr, nil)
 				assert.True(t, rr.Body.String() == "4\n")
 				assert.True(t, len(params) == 2 && params["y"] == "9" && params["z"] == "10")
 			},
 			// 5
 			func(rr *httptest.ResponseRecorder) {
-				handler, params := trie.handlerForPath("1/y/z")
-				handler.ServeHTTP(rr, nil)
+				value, params := trie.handlerForPath("1/y/z")
+				value.handler.ServeHTTP(rr, nil)
 				assert.True(t, rr.Body.String() == "5\n")
 				assert.True(t, len(params) == 1 && params["x"] == "1")
 			},
 			// 6
 			func(rr *httptest.ResponseRecorder) {
-				handler, params := trie.handlerForPath("1/y/2")
-				handler.ServeHTTP(rr, nil)
+				value, params := trie.handlerForPath("1/y/2")
+				value.handler.ServeHTTP(rr, nil)
 				assert.True(t, rr.Body.String() == "6\n")
 				assert.True(t, len(params) == 2 && params["x"] == "1" && params["z"] == "2")
 			},
 			// 7
 			func(rr *httptest.ResponseRecorder) {
-				handler, params := trie.handlerForPath("1/2/z")
-				handler.ServeHTTP(rr, nil)
+				value, params := trie.handlerForPath("1/2/z")
+				value.handler.ServeHTTP(rr, nil)
 				assert.True(t, rr.Body.String() == "7\n")
 				assert.True(t, len(params) == 2 && params["x"] == "1" && params["y"] == "2")
 			},
 			// 8
 			func(rr *httptest.ResponseRecorder) {
-				handler, params := trie.handlerForPath("1/2/3")
-				handler.ServeHTTP(rr, nil)
+				value, params := trie.handlerForPath("1/2/3")
+				value.handler.ServeHTTP(rr, nil)
 				assert.True(t, rr.Body.String() == "8\n")
 				assert.True(t, len(params) == 3 && params["x"] == "1" && params["y"] == "2" && params["z"] == "3")
 			},
@@ -140,12 +140,12 @@ func Test_EdgeCases(t *testing.T) {
 		assert.True(t, trie.insertPathHandler("x/y/z", emptyHandler))
 
 		{
-			handler, params := trie.handlerForPath("x/y")
-			assert.True(t, handler == nil && params == nil)
+			value, params := trie.handlerForPath("x/y")
+			assert.True(t, value == nil && params == nil)
 		}
 		{
-			handler, params := trie.handlerForPath("a/b/c/d")
-			assert.True(t, handler == nil && params == nil)
+			value, params := trie.handlerForPath("a/b/c/d")
+			assert.True(t, value == nil && params == nil)
 		}
 	})
 
@@ -172,12 +172,12 @@ func Test_EdgeCases(t *testing.T) {
 		assert.True(t, trie.insertPathHandler("x/y/z", emptyHandler))
 
 		{
-			handler, params := trie.handlerForPath("x/y/z")
-			assert.True(t, handler == nil && params == nil)
+			value, params := trie.handlerForPath("x/y/z")
+			assert.True(t, value == nil && params == nil)
 		}
 		{
-			handler, params := trie.handlerForPath("v1/x/y/z")
-			assert.True(t, handler != nil && params == nil)
+			value, params := trie.handlerForPath("v1/x/y/z")
+			assert.True(t, value != nil && params == nil)
 		}
 	})
 
@@ -189,8 +189,8 @@ func Test_EdgeCases(t *testing.T) {
 		assert.True(t, trie.insertPathHandler("x/:y1/z", emptyHandler))
 		assert.True(t, trie.insertPathHandler("x/:y2/z", emptyHandler))
 
-		handler, params := trie.handlerForPath("x/y/z")
-		assert.True(t, handler != nil)
+		value, params := trie.handlerForPath("x/y/z")
+		assert.True(t, value != nil)
 		assert.DeepEqual(t, params, map[string]string{
 			"y1": "y",
 			"y2": "y",
@@ -203,9 +203,9 @@ func Test_EdgeCases(t *testing.T) {
 				return true
 			})
 			assert.True(t, trie.insertPathHandler("/", emptyHandler))
-			handler, params := trie.handlerForPath("/")
-			assert.True(t, handler != nil && params == nil)
-			assert.True(t, trie.root.handler != nil)
+			value, params := trie.handlerForPath("/")
+			assert.True(t, value != nil && params == nil)
+			assert.True(t, trie.root.value != nil)
 		}
 
 		{
@@ -213,9 +213,9 @@ func Test_EdgeCases(t *testing.T) {
 				return true
 			})
 			assert.True(t, trie.insertPathHandler("/", emptyHandler))
-			handler, params := trie.handlerForPath("v1/")
-			assert.True(t, handler != nil && params == nil)
-			assert.True(t, trie.root.handler != nil)
+			value, params := trie.handlerForPath("v1/")
+			assert.True(t, value != nil && params == nil)
+			assert.True(t, trie.root.value != nil)
 		}
 	})
 }

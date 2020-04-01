@@ -62,9 +62,15 @@ $ telnet localhost 11211
 
 [Список команд](https://github.com/memcached/memcached/wiki/Commands)
 
-## WRK
+### WRK
 
 [Нагрузочное тестирование](https://github.com/wg/wrk)
+
+### Логи и метрики
+
+[Интеграция](https://www.elastic.co/blog/how-to-instrument-your-go-app-with-the-elastic-apm-go-agent)
+
+[ELK + Docker](https://github.com/deviantony/docker-elk)
 
 ### Тестовый пароль/хэш
 

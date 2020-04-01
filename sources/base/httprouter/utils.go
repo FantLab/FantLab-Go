@@ -32,11 +32,12 @@ func walkGroup(g *Group, mws []Middleware, fn func(mws []Middleware, endpoint *E
 }
 
 func chainHandler(endpoint http.Handler, mws ...Middleware) http.Handler {
-	if len(mws) == 0 || endpoint == nil {
+	n := len(mws)
+	if n == 0 || endpoint == nil {
 		return endpoint
 	}
-	h := mws[len(mws)-1](endpoint)
-	for i := len(mws) - 2; i >= 0; i-- {
+	h := mws[n-1](endpoint)
+	for i := n - 2; i >= 0; i-- {
 		h = mws[i](h)
 	}
 	return h

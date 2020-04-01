@@ -3,11 +3,10 @@ package app
 import (
 	"context"
 	"fantlab/pb"
-	"strconv"
 )
 
 const (
-	userAuthKey        = contextKey("FantLab: user auth")
+	userAuthKey        = contextKey("user_auth")
 	userCacheKeyPrefix = "users:user_id="
 )
 
@@ -20,8 +19,4 @@ func GetUserAuth(ctx context.Context) *pb.Auth_Claims {
 		return info
 	}
 	return nil
-}
-
-func (s *Services) InvalidateUserCache(ctx context.Context, userId uint64) {
-	_ = s.memcache.Delete(ctx, userCacheKeyPrefix+strconv.FormatUint(userId, 10))
 }

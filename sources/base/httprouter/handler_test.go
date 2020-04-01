@@ -101,11 +101,8 @@ func sendTestRequest(method, url string, auth bool) string {
 }
 
 func makeTestRouter() (http.Handler, []*Endpoint) {
-	type contextKey string
-	const paramsKey = contextKey("path_params")
-
 	getPathParamsFromContext := func(ctx context.Context, valueKey string) (value string, exists bool) {
-		if values, ok := ctx.Value(paramsKey).(map[string]string); ok {
+		if values, ok := ctx.Value(ParamsKey).(map[string]string); ok {
 			if values != nil {
 				value, exists = values[valueKey]
 			}
@@ -118,8 +115,7 @@ func makeTestRouter() (http.Handler, []*Endpoint) {
 		NotFoundHandler: http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			_, _ = w.Write([]byte("not found"))
 		}),
-		RequestContextParamsKey: paramsKey,
-		CommonPrefix:            "v1",
+		CommonPrefix: "v1",
 		PathSegmentValidator: func(s string) bool {
 			for _, r := range s {
 				if r < 'a' || r > 'z' {

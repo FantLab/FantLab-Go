@@ -5,10 +5,16 @@ import (
 	"net/http"
 )
 
+type ContextKey string
+
+const (
+	ParamsKey = ContextKey("params")
+	PathKey   = ContextKey("path")
+)
+
 type httpRouter struct {
-	tree             map[string]*pathTrie
-	notFoundHandler  http.Handler
-	contextParamsKey interface{}
+	tree            map[string]*trie
+	notFoundHandler http.Handler
 }
 
 func (hr *httpRouter) ServeHTTP(w http.ResponseWriter, r *http.Request) {
@@ -19,27 +25,27 @@ func (hr *httpRouter) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	handler, params := trie.handlerForPath(r.URL.Path)
+	value, params := trie.handlerForPath(r.URL.Path)
 
-	if handler == nil {
+	if value == nil {
 		hr.notFoundHandler.ServeHTTP(w, r)
 		return
 	}
 
-	if hr.contextParamsKey != nil && len(params) > 0 {
-		r = r.WithContext(context.WithValue(r.Context(), hr.contextParamsKey, params))
+	r = r.WithContext(context.WithValue(r.Context(), PathKey, value.path))
+	if len(params) > 0 {
+		r = r.WithContext(context.WithValue(r.Context(), ParamsKey, params))
 	}
 
-	handler.ServeHTTP(w, r)
+	value.handler.ServeHTTP(w, r)
 }
 
 type Config struct {
-	RootGroup               *Group
-	NotFoundHandler         http.Handler
-	RequestContextParamsKey interface{}
-	CommonPrefix            string
-	PathSegmentValidator    func(string) bool
-	GlobalMiddlewares       []Middleware
+	RootGroup            *Group
+	NotFoundHandler      http.Handler
+	CommonPrefix         string
+	PathSegmentValidator func(string) bool
+	GlobalMiddlewares    []Middleware
 }
 
 func NewRouter(cfg *Config) (http.Handler, []*Endpoint) {
@@ -48,9 +54,8 @@ func NewRouter(cfg *Config) (http.Handler, []*Endpoint) {
 	}
 
 	router := &httpRouter{
-		tree:             make(map[string]*pathTrie),
-		notFoundHandler:  cfg.NotFoundHandler,
-		contextParamsKey: cfg.RequestContextParamsKey,
+		tree:            make(map[string]*trie),
+		notFoundHandler: cfg.NotFoundHandler,
 	}
 
 	var badEndpoints []*Endpoint
