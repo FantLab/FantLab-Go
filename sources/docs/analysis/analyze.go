@@ -102,8 +102,8 @@ func AnalyzeEndpoints(endpoints []routing.Endpoint, schemePrefix, schemePostfix 
 }
 
 func makeSchemeBuilder(modelComments commentsTable) *scheme.Builder {
-	return scheme.NewBuilder(
-		func(t reflect.Type, fieldName string) string {
+	return scheme.NewBuilder(&scheme.BuilderConfig{
+		GetComment: func(t reflect.Type, fieldName string) string {
 			typeName := t.String()
 			dotIndex := strings.LastIndex(typeName, ".") + 1
 			if dotIndex > 0 {
@@ -115,10 +115,23 @@ func makeSchemeBuilder(modelComments commentsTable) *scheme.Builder {
 			}
 			return ""
 		},
-		func(f reflect.StructField) bool {
+		IsValidField: func(f reflect.StructField) bool {
 			return isValidFieldName(f.Name)
 		},
-	)
+		GetFieldName: func(tag reflect.StructTag) string {
+			var jsonName string
+			for _, s := range strings.Split(tag.Get("protobuf"), ",") {
+				if strings.HasPrefix(s, "name") {
+					if jsonName == "" {
+						jsonName = strings.Split(s, "=")[1]
+					}
+				} else if strings.HasPrefix(s, "json") {
+					jsonName = strings.Split(s, "=")[1]
+				}
+			}
+			return jsonName
+		},
+	})
 }
 
 func collectFuncDecls(pkg *packages.Package) map[string]*ast.FuncDecl {

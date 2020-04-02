@@ -5,19 +5,26 @@ import (
 	"strings"
 )
 
-func NewBuilder(
-	getComment func(t reflect.Type, fieldName string) string,
-	isValidField func(f reflect.StructField) bool) *Builder {
+type BuilderConfig struct {
+	GetComment   func(reflect.Type, string) string
+	IsValidField func(reflect.StructField) bool
+	GetFieldName func(reflect.StructTag) string
+}
 
-	return &Builder{
-		getComment:   getComment,
-		isValidField: isValidField,
+func NewBuilder(cfg *BuilderConfig) *Builder {
+	if cfg == nil {
+		cfg = new(BuilderConfig)
 	}
+	if cfg.GetFieldName == nil {
+		cfg.GetFieldName = func(tag reflect.StructTag) string {
+			return strings.Split(tag.Get("json"), ",")[0]
+		}
+	}
+	return &Builder{cfg: cfg}
 }
 
 type Builder struct {
-	getComment   func(t reflect.Type, fieldName string) string
-	isValidField func(f reflect.StructField) bool
+	cfg *BuilderConfig
 }
 
 func (b *Builder) Make(t reflect.Type, prefix, postfix string) string {
@@ -50,14 +57,14 @@ func (b *Builder) walkType(ls *lines, superTypes []string, t reflect.Type) {
 
 			for i := 0; i < t.NumField(); i++ {
 				f := t.Field(i)
-				if b.isValidField != nil && !b.isValidField(f) {
+				if b.cfg.IsValidField != nil && !b.cfg.IsValidField(f) {
 					continue
 				}
 
 				ls.new(d + 1)
-				ls.current.builder.WriteString(strings.Split(f.Tag.Get("json"), ",")[0] + ": ")
-				if b.getComment != nil {
-					ls.current.comment = b.getComment(t, f.Name)
+				ls.current.builder.WriteString(b.cfg.GetFieldName(f.Tag) + ": ")
+				if b.cfg.GetComment != nil {
+					ls.current.comment = b.cfg.GetComment(t, f.Name)
 				}
 
 				b.walkType(ls, append(superTypes, t.String()), unptr(f.Type))
