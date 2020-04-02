@@ -2,14 +2,13 @@ package routes
 
 import (
 	"fantlab/base/httprouter"
-	"fantlab/base/httputils"
 	"fantlab/base/protobuf"
-	"fantlab/base/routing"
 	"fantlab/base/sharedconfig"
 	"fantlab/pb"
 	"fantlab/server/internal/app"
 	"fantlab/server/internal/config"
 	"fantlab/server/internal/logs"
+	"fantlab/server/routing"
 	"fmt"
 	"net/http"
 	"regexp"
@@ -87,35 +86,42 @@ func MakeHandler(appConfig *config.AppConfig, services *app.Services) (http.Hand
 	}
 }
 
+func catchPanicMiddleware(panicHandler func(interface{})) httprouter.Middleware {
+	return func(next http.Handler) http.Handler {
+		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			defer func() {
+				if p := recover(); p != nil {
+					if panicHandler != nil {
+						panicHandler(p)
+					}
+					protobuf.Handle(func(r *http.Request) (int, proto.Message) {
+						return http.StatusInternalServerError, &pb.Error_Response{
+							Status: pb.Error_SOMETHING_WENT_WRONG,
+						}
+					}).ServeHTTP(w, r)
+				}
+			}()
+			next.ServeHTTP(w, r)
+		})
+	}
+}
+
 func globalMiddlewares() []httprouter.Middleware {
 	if sharedconfig.IsDebug() {
 		return []httprouter.Middleware{
-			httputils.CatchPanic(func(w http.ResponseWriter, r *http.Request, err interface{}) {
-				logs.Logger().Error(fmt.Sprintf("%v", err))
-
-				protobuf.Handle(func(r *http.Request) (int, proto.Message) {
-					return http.StatusInternalServerError, &pb.Error_Response{
-						Status: pb.Error_SOMETHING_WENT_WRONG,
-					}
-				}).ServeHTTP(w, r)
+			catchPanicMiddleware(func(e interface{}) {
+				logs.Logger().Error(fmt.Sprintf("%v", e))
 			}),
 		}
-	} else {
-		return []httprouter.Middleware{
-			httputils.CatchPanic(func(w http.ResponseWriter, r *http.Request, err interface{}) {
-				protobuf.Handle(func(r *http.Request) (int, proto.Message) {
-					return http.StatusInternalServerError, &pb.Error_Response{
-						Status: pb.Error_SOMETHING_WENT_WRONG,
-					}
-				}).ServeHTTP(w, r)
-			}),
-			func(next http.Handler) http.Handler {
-				return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-					apmhttp.Wrap(next, apmhttp.WithServerRequestName(func(r *http.Request) string {
-						return r.Context().Value(httprouter.PathKey).(string)
-					}), apmhttp.WithPanicPropagation()).ServeHTTP(w, r)
-				})
-			},
-		}
+	}
+	return []httprouter.Middleware{
+		catchPanicMiddleware(nil),
+		func(next http.Handler) http.Handler {
+			return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+				apmhttp.Wrap(next, apmhttp.WithServerRequestName(func(r *http.Request) string {
+					return r.Context().Value(httprouter.PathKey).(string)
+				}), apmhttp.WithPanicPropagation()).ServeHTTP(w, r)
+			})
+		},
 	}
 }

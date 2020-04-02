@@ -1,8 +1,8 @@
 package docs
 
 import (
-	"fantlab/base/routing"
 	"fantlab/docs/analysis"
+	"fantlab/server/routing"
 	"io"
 	"strconv"
 	"strings"

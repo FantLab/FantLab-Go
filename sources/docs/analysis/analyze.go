@@ -1,8 +1,8 @@
 package analysis
 
 import (
-	"fantlab/base/routing"
 	"fantlab/docs/scheme"
+	"fantlab/server/routing"
 	"go/ast"
 	"reflect"
 	"strings"

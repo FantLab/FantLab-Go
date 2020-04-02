@@ -1,12 +1,12 @@
 package routes
 
 import (
-	"fantlab/base/routing"
 	"fantlab/pb"
 	"fantlab/server/internal/app"
 	"fantlab/server/internal/config"
 	"fantlab/server/internal/endpoints"
 	"fantlab/server/internal/middlewares"
+	"fantlab/server/routing"
 	"net/http"
 )
 
