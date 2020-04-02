@@ -2,8 +2,8 @@ package endpoints
 
 import (
 	"fantlab/base/dbtools"
-	"fantlab/base/utils"
 	"fantlab/pb"
+	"fantlab/server/internal/helpers"
 	"fmt"
 	"net/http"
 	"strings"
@@ -25,7 +25,7 @@ func (api *API) SetWorkGenres(r *http.Request) (int, proto.Message) {
 		return api.badParam("id")
 	}
 
-	genreIds := utils.ParseUints(strings.Split(params.GenredIds, ","))
+	genreIds := helpers.ParseUints(strings.Split(params.GenredIds, ","))
 
 	if genreIds == nil {
 		return api.badParam("genres")

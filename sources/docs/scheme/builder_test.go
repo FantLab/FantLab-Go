@@ -27,7 +27,7 @@ func Test_make(t *testing.T) {
 			Text string `json:"text,omitempty"`
 		}
 
-		s := new(Builder).Make(reflect.TypeOf(new(x)), "", "")
+		s := NewBuilder(nil).Make(reflect.TypeOf(new(x)), "", "")
 
 		assert.True(t, isSchemeEquals(t, s, `
 		{
@@ -46,7 +46,7 @@ func Test_make(t *testing.T) {
 			} `json:"text,omitempty"`
 		}
 
-		s := new(Builder).Make(reflect.TypeOf(new(x)), "", "")
+		s := NewBuilder(nil).Make(reflect.TypeOf(new(x)), "", "")
 
 		assert.True(t, isSchemeEquals(t, s, `
 		{
@@ -65,7 +65,7 @@ func Test_make(t *testing.T) {
 			Children []x `json:"children,omitempty"`
 		}
 
-		s := new(Builder).Make(reflect.TypeOf(new(x)), "", "")
+		s := NewBuilder(nil).Make(reflect.TypeOf(new(x)), "", "")
 
 		assert.True(t, isSchemeEquals(t, s, `
 		{
@@ -88,7 +88,7 @@ func Test_make(t *testing.T) {
 			Children []x `json:"children,omitempty"`
 		}
 
-		s := new(Builder).Make(reflect.TypeOf(new(x)), "", "")
+		s := NewBuilder(nil).Make(reflect.TypeOf(new(x)), "", "")
 
 		assert.True(t, isSchemeEquals(t, s, `
 		{
@@ -114,9 +114,11 @@ func Test_make(t *testing.T) {
 			} `json:"text,omitempty"`
 		}
 
-		b := NewBuilder(func(t reflect.Type, fieldName string) string {
-			return " # comment"
-		}, nil)
+		b := NewBuilder(&BuilderConfig{
+			GetComment: func(t reflect.Type, fieldName string) string {
+				return " # comment"
+			},
+		})
 
 		s := b.Make(reflect.TypeOf(new(x)), "", "")
 

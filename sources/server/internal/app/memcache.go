@@ -13,6 +13,13 @@ const (
 	articleLikeCountKey = "blog:topic:likes:%d"
 )
 
+func (s *Services) InvalidateUserCache(ctx context.Context, userId uint64) {
+	if s.memcache == nil {
+		return
+	}
+	_ = s.memcache.Delete(ctx, userCacheKeyPrefix+strconv.FormatUint(userId, 10))
+}
+
 func (s *Services) DeleteUserCache(ctx context.Context, userId uint64) error {
 	if s.memcache == nil {
 		return nil

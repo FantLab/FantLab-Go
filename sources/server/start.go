@@ -2,28 +2,33 @@ package server
 
 import (
 	"context"
-	"database/sql"
 	"expvar"
 	"fantlab/base/anyserver"
 	"fantlab/base/codeflow"
+	"fantlab/base/dbtools"
+	"fantlab/base/dbtools/sqldb"
+	"fantlab/base/dbtools/sqlr"
 	"fantlab/base/edsign"
 	"fantlab/base/httprouter"
-	"fantlab/base/logs/logger"
 	"fantlab/base/memcacheclient"
 	"fantlab/base/redisclient"
-	"fantlab/base/sharedconfig"
 	"fantlab/docs"
 	"fantlab/server/internal/app"
 	"fantlab/server/internal/config"
+	"fantlab/server/internal/logs"
 	"fantlab/server/internal/routes"
 	"fmt"
-	"log"
 	"net/http"
 	"net/http/pprof"
 	"os"
 	"time"
 
-	_ "github.com/go-sql-driver/mysql"
+	"go.uber.org/zap"
+
+	"github.com/gomodule/redigo/redis"
+	"go.elastic.co/apm/module/apmredigo"
+	"go.elastic.co/apm/module/apmsql"
+	_ "go.elastic.co/apm/module/apmsql/mysql"
 )
 
 func GenerateDocs() {
@@ -31,9 +36,7 @@ func GenerateDocs() {
 }
 
 func Start() {
-	logWriter := log.New(os.Stderr, "", 0)
-
-	apiServer := makeAPIServer(logWriter)
+	apiServer := makeAPIServer()
 
 	var monitoringServer *anyserver.Server
 
@@ -42,16 +45,16 @@ func Start() {
 	}
 
 	anyserver.RunWithGracefulShutdown(func(err error) {
-		logWriter.Println(err)
+		logs.Logger().Error(err.Error())
 	}, apiServer, monitoringServer)
 
 	time.Sleep(1 * time.Second)
 }
 
-func makeAPIServer(logWriter *log.Logger) (server *anyserver.Server) {
+func makeAPIServer() (server *anyserver.Server) {
 	server = new(anyserver.Server)
 
-	var mysqlDB *sql.DB
+	var mysqlDB sqlr.DB
 	var redisClient redisclient.Client
 	var memcacheClient memcacheclient.Client
 	var cryptoCoder *edsign.Coder
@@ -59,15 +62,28 @@ func makeAPIServer(logWriter *log.Logger) (server *anyserver.Server) {
 
 	server.SetupError = codeflow.Try(
 		func() error { // мускуль
-			db, err := sql.Open("mysql", os.Getenv("MYSQL_URL"))
+			db, err := apmsql.Open("mysql", os.Getenv("MYSQL_URL"))
 			if err == nil {
 				err = db.Ping()
 			}
 			if err != nil {
 				return fmt.Errorf("MySQL setup error: %v", err)
 			}
-			mysqlDB = db
+
 			server.DisposeBag = append(server.DisposeBag, db.Close)
+
+			mysqlDB = sqlr.Log(sqldb.New(db), func(ctx context.Context, entry sqlr.LogEntry) {
+				logger := logs.WithAPM(ctx)
+				logger.Info(
+					entry.Query(),
+					zap.Duration("duration", entry.Duration),
+					zap.Int64("rows", entry.Rows),
+				)
+				if entry.Err != nil && !dbtools.IsNotFoundError(entry.Err) {
+					logger.Error(entry.Err.Error())
+				}
+			})
+
 			return nil
 		},
 		func() error { // редис (опционально)
@@ -76,7 +92,9 @@ func makeAPIServer(logWriter *log.Logger) (server *anyserver.Server) {
 				return nil
 			}
 
-			client, close := redisclient.NewPool(serverAddr, 8)
+			client, close := redisclient.NewPoolClient(serverAddr, 8, func(pool *redis.Pool, ctx context.Context) (redis.Conn, error) {
+				return apmredigo.Wrap(pool.Get()).WithContext(ctx), nil
+			})
 			err := client.Perform(context.Background(), func(conn redisclient.Conn) error {
 				_, err := conn.Do("PING")
 				return err
@@ -84,8 +102,13 @@ func makeAPIServer(logWriter *log.Logger) (server *anyserver.Server) {
 			if err != nil {
 				return fmt.Errorf("Redis setup error: %v", err)
 			}
-			redisClient = client
+
 			server.DisposeBag = append(server.DisposeBag, close)
+
+			redisClient = redisclient.Log(client, func(ctx context.Context, err error) {
+				logs.WithAPM(ctx).Error(err.Error())
+			})
+
 			return nil
 		},
 		func() error { // мемкэш (опционально)
@@ -99,7 +122,15 @@ func makeAPIServer(logWriter *log.Logger) (server *anyserver.Server) {
 			if err != nil {
 				return fmt.Errorf("Memcache setup error: %v", err)
 			}
-			memcacheClient = client
+
+			memcacheClient = memcacheclient.APM(memcacheclient.Log(client, func(ctx context.Context, entry *memcacheclient.LogEntry) {
+				logger := logs.WithAPM(ctx)
+				logger.Info(fmt.Sprintf("%s %s", entry.Operation, entry.Key))
+				if entry.Err != nil && !memcacheclient.IsNotFoundError(entry.Err) {
+					logger.Error(entry.Err.Error())
+				}
+			}), "db.memcache")
+
 			return nil
 		},
 		func() error { // криптокодер для jwt-like токенов
@@ -137,25 +168,14 @@ func makeAPIServer(logWriter *log.Logger) (server *anyserver.Server) {
 		return
 	}
 
-	var requestToString func(r *logger.Request) string
-	if sharedconfig.IsDebug() {
-		requestToString = logger.Console
-	} else {
-		requestToString = logger.JSON
-	}
-
 	httpHandler, markAsUnavailable := routes.MakeHandler(
 		appConfig,
 		app.MakeServices(mysqlDB, redisClient, memcacheClient, cryptoCoder),
-		func(r *logger.Request) {
-			logWriter.Println(requestToString(r))
-		},
 	)
 
 	httpServer := &http.Server{
-		Addr:     ":" + os.Getenv("PORT"),
-		Handler:  httpHandler,
-		ErrorLog: logWriter,
+		Addr:    ":" + os.Getenv("PORT"),
+		Handler: httpHandler,
 	}
 
 	server.Start = func() error {
@@ -175,6 +195,11 @@ func makeAPIServer(logWriter *log.Logger) (server *anyserver.Server) {
 }
 
 func makeMonitoringServer() (server *anyserver.Server) {
+	port := os.Getenv("MONITORING_PORT")
+	if port == "" {
+		return nil
+	}
+
 	server = new(anyserver.Server)
 
 	var httpHandler http.Handler
@@ -195,19 +220,16 @@ func makeMonitoringServer() (server *anyserver.Server) {
 		routerConfig := &httprouter.Config{
 			RootGroup: rootGroup,
 			NotFoundHandler: http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-				http.Error(w, "not found", http.StatusNotFound)
+				http.Error(w, http.StatusText(http.StatusNotFound), http.StatusNotFound)
 			}),
-			RequestContextParamsKey: nil,
-			CommonPrefix:            "debug",
-			PathSegmentValidator:    nil,
-			GlobalMiddlewares:       []httprouter.Middleware{},
+			CommonPrefix: "debug",
 		}
 
 		httpHandler, _ = httprouter.NewRouter(routerConfig)
 	}
 
 	httpServer := &http.Server{
-		Addr:    ":" + os.Getenv("MONITORING_PORT"),
+		Addr:    ":" + port,
 		Handler: httpHandler,
 	}
 

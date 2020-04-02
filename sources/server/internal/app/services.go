@@ -1,8 +1,6 @@
 package app
 
 import (
-	"database/sql"
-	"fantlab/base/dbtools/sqldb"
 	"fantlab/base/dbtools/sqlr"
 	"fantlab/base/edsign"
 	"fantlab/base/memcacheclient"
@@ -13,12 +11,12 @@ import (
 
 type contextKey string
 
-func MakeServices(mysqlDB *sql.DB, redisClient redisclient.Client, memcacheClient memcacheclient.Client, cryptoCoder *edsign.Coder) *Services {
+func MakeServices(mysqlDB sqlr.DB, redisClient redisclient.Client, memcacheClient memcacheclient.Client, cryptoCoder *edsign.Coder) *Services {
 	return &Services{
 		cryptoCoder:  cryptoCoder,
-		db:           db.NewDB(sqlr.Log(sqldb.New(mysqlDB), logDB())),
+		db:           db.NewDB(mysqlDB),
 		redis:        redisClient,
-		memcache:     memcacheclient.Log(memcacheClient, logMemcache()),
+		memcache:     memcacheClient,
 		localStorage: ttlcache.NewWithDefaultExpireFunc(),
 	}
 }
