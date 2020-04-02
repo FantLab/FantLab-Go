@@ -3,7 +3,6 @@ package endpoints
 import (
 	"fantlab/base/protobuf/pbutils"
 	"fantlab/base/reflectutils"
-	"fantlab/base/utils"
 	"fantlab/base/uuid"
 	"fantlab/pb"
 	"fantlab/server/internal/app"
@@ -135,7 +134,7 @@ func (api *API) makeAuthResponse(r *http.Request, issuedAt time.Time, userId uin
 			Login:             userInfo.Login,
 			Gender:            helpers.GetGender(userId, userInfo.Gender),
 			Class:             helpers.GetUserClass(userInfo.Class),
-			AvailableForumIds: utils.ParseUints(strings.Split(userInfo.AvailableForums, ",")),
+			AvailableForumIds: helpers.ParseUints(strings.Split(userInfo.AvailableForums, ",")),
 			Permissions:       permissions,
 		},
 	}
