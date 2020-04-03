@@ -20,9 +20,9 @@ func main() {
 	}
 
 	if *genkeys {
-		pub, priv, _ := edsign.GenerateNewKeyPair()
-		fmt.Fprintln(os.Stdout, "Public key:", pub)
-		fmt.Fprintln(os.Stdout, "Private key:", priv)
+		keyPair, _ := edsign.GenerateNewKeyPair()
+		fmt.Fprintln(os.Stdout, "Public key:", keyPair.PublicKey)
+		fmt.Fprintln(os.Stdout, "Private key:", keyPair.PrivateKey)
 		return
 	}
 

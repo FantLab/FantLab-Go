@@ -134,9 +134,12 @@ func makeAPIServer() (server *anyserver.Server) {
 			return nil
 		},
 		func() error { // криптокодер для jwt-like токенов
-			coder, err := edsign.NewCoder64(os.Getenv("SIGN_PUB_KEY"), os.Getenv("SIGN_PRIV_KEY"))
+			coder, err := edsign.NewFileCoder64(os.Getenv("JWT_PUBLIC_KEY_FILE"), os.Getenv("JWT_PRIVATE_KEY_FILE"))
 			if err != nil {
-				return fmt.Errorf("JWT setup error: %v", err)
+				coder, err = edsign.NewCoder64(os.Getenv("JWT_PUB_KEY"), os.Getenv("JWT_PRIV_KEY"))
+				if err != nil {
+					return fmt.Errorf("JWT setup error: %v", err)
+				}
 			}
 			cryptoCoder = coder
 			return nil
