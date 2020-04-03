@@ -3,72 +3,38 @@ package edsign
 import (
 	"bytes"
 	"crypto/ed25519"
-	"crypto/rand"
 	"encoding/base64"
 	"errors"
 )
 
 var (
-	ErrKey   = errors.New("edsign: invalid public or private key")
 	ErrInput = errors.New("edsign: invalid input")
 	ErrSign  = errors.New("edsign: signature check failed")
 )
 
-const dot = '.'
-
-var (
-	b64     = base64.RawURLEncoding
-	signLen = b64.EncodedLen(ed25519.SignatureSize)
-)
-
-func GenerateNewKeyPair() (string, string, error) {
-	pubKey, privKey, err := ed25519.GenerateKey(rand.Reader)
-	if err != nil {
-		return "", "", nil
-	}
-	return base64.StdEncoding.EncodeToString(pubKey), base64.StdEncoding.EncodeToString(privKey), nil
-}
+var signatureSize = base64.RawURLEncoding.EncodedLen(ed25519.SignatureSize)
 
 type Coder struct {
 	publicKey  ed25519.PublicKey
 	privateKey ed25519.PrivateKey
 }
 
-func NewCoder64(publicKey, privateKey string) (*Coder, error) {
-	pubKey, err := base64.StdEncoding.DecodeString(publicKey)
-	if err != nil {
-		return nil, err
-	}
-	privKey, err := base64.StdEncoding.DecodeString(privateKey)
-	if err != nil {
-		return nil, err
-	}
-	return NewCoder(pubKey, privKey)
-}
-
-func NewCoder(publicKey, privateKey []byte) (*Coder, error) {
-	if len(publicKey) != ed25519.PublicKeySize || len(privateKey) != ed25519.PrivateKeySize {
-		return nil, ErrKey
-	}
-	return &Coder{publicKey: publicKey, privateKey: privateKey}, nil
-}
-
 func (c *Coder) Encode(input []byte) []byte {
-	dataLen := b64.EncodedLen(len(input))
-	output := make([]byte, dataLen+1+signLen)
-	b64.Encode(output, input)
-	output[dataLen] = dot
-	sign := ed25519.Sign(c.privateKey, output[:dataLen])
-	b64.Encode(output[dataLen+1:], sign)
+	size := base64.RawURLEncoding.EncodedLen(len(input))
+	output := make([]byte, size+1+signatureSize)
+	base64.RawURLEncoding.Encode(output, input)
+	output[size] = '.'
+	sign := ed25519.Sign(c.privateKey, output[:size])
+	base64.RawURLEncoding.Encode(output[size+1:], sign)
 	return output
 }
 
 func (c *Coder) Decode(input []byte) ([]byte, error) {
-	dotIndex := bytes.IndexByte(input, dot)
+	dotIndex := bytes.IndexByte(input, '.')
 	if dotIndex < 2 {
 		return nil, ErrInput
 	}
-	sign, err := b64.DecodeString(string(input[dotIndex+1:]))
+	sign, err := base64.RawURLEncoding.DecodeString(string(input[dotIndex+1:]))
 	if err != nil {
 		return nil, err
 	}
@@ -76,7 +42,7 @@ func (c *Coder) Decode(input []byte) ([]byte, error) {
 	if !ed25519.Verify(c.publicKey, output64, sign) {
 		return nil, ErrSign
 	}
-	output, err := b64.DecodeString(string(output64))
+	output, err := base64.RawURLEncoding.DecodeString(string(output64))
 	if err != nil {
 		return nil, err
 	}

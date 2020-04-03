@@ -4,22 +4,25 @@ services:
   go-api:
     image: ${TAG}
     ports:
-        - ${PORT}:${PORT}
-        - ${MONITORING_PORT}:${MONITORING_PORT}
+      - ${PORT}:${PORT}
+      - ${MONITORING_PORT}:${MONITORING_PORT}
     networks:
-        - general
+      - general
     environment:
-        PORT: ${PORT}
-        MONITORING_PORT: ${MONITORING_PORT}
-        DB_ADDRESS: ${DB_ADDRESS}
-        MC_ADDRESS: ${MC_ADDRESS}
-        RDS_ADDRESS: ${RDS_ADDRESS}
-        MYSQL_URL: ${MYSQL_URL}
-        IMAGES_BASE_URL: ${IMAGES_BASE_URL}
-        SIGN_PUB_KEY: ${SIGN_PUB_KEY}
-        SIGN_PRIV_KEY: ${SIGN_PRIV_KEY}
-        ELASTIC_APM_SERVER_URL: ${ELASTIC_APM_SERVER_URL}
-        ELASTIC_APM_SERVICE_NAME: ${ELASTIC_APM_SERVICE_NAME}
+      JWT_PUBLIC_KEY_FILE: /run/secrets/flgo_jwt_public_key
+      JWT_PRIVATE_KEY_FILE: /run/secrets/flgo_jwt_private_key
+      PORT: ${PORT}
+      MONITORING_PORT: ${MONITORING_PORT}
+      DB_ADDRESS: ${DB_ADDRESS}
+      MC_ADDRESS: ${MC_ADDRESS}
+      RDS_ADDRESS: ${RDS_ADDRESS}
+      MYSQL_URL: ${MYSQL_URL}
+      IMAGES_BASE_URL: ${IMAGES_BASE_URL}
+      ELASTIC_APM_SERVER_URL: ${ELASTIC_APM_SERVER_URL}
+      ELASTIC_APM_SERVICE_NAME: ${ELASTIC_APM_SERVICE_NAME}
+    secrets:
+      - flgo_jwt_public_key
+      - flgo_jwt_private_key
     healthcheck:
       test: ['CMD', 'curl', '-sS', 'localhost:${PORT}/ping']
       interval: 10s
@@ -38,5 +41,11 @@ services:
         window: 120s
 
 networks:
-    general:
-        driver: overlay
+  general:
+    driver: overlay
+
+secrets:
+  flgo_jwt_public_key:
+    external: true
+  flgo_jwt_private_key:
+    external: true
