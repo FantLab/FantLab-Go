@@ -15,7 +15,7 @@ func (api *API) ShowBlogs(r *http.Request) (int, proto.Message) {
 		Page uint64 `http:"page,query"`
 		// кол-во записей на странице (по умолчанию - 5)
 		Limit uint64 `http:"limit,query"`
-		// сортировать по (кол-ву тем в блоге - article, кол-ву подписчиков - subscriber, дате обновления - update (по умолчанию))
+		// сортировать по (кол-ву тем в блоге - article, кол-ву подписчиков - subscriber, дате обновления от новых к старым - update (по умолчанию))
 		SortBy string `http:"sort,query"`
 	}{
 		Page:   1,
@@ -30,6 +30,9 @@ func (api *API) ShowBlogs(r *http.Request) (int, proto.Message) {
 	}
 	if !helpers.IsValidLimit(params.Limit) {
 		return api.badParam("limit")
+	}
+	if !(params.SortBy == "article" || params.SortBy == "subscriber" || params.SortBy == "update") {
+		return api.badParam("sort")
 	}
 
 	dbResponse, err := api.services.DB().FetchBlogs(

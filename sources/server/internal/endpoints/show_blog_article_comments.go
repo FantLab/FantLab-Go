@@ -5,7 +5,6 @@ import (
 	"fantlab/pb"
 	"fantlab/server/internal/converters"
 	"net/http"
-	"strings"
 	"time"
 
 	"google.golang.org/protobuf/proto"
@@ -13,17 +12,17 @@ import (
 
 func (api *API) BlogArticleComments(r *http.Request) (int, proto.Message) {
 	params := struct {
-		// айди статьи
+		// id статьи
 		ArticleId uint64 `http:"id,path"`
 		// дата, после которой искать сообщения (в формате RFC3339)
 		After string `http:"after,query"`
 		// кол-во комментариев верхнего уровня (по умолчанию - 10, [5, 20])
 		Count uint64 `http:"count,query"`
-		// Сортировка (asc, dec, по умолчанию - asc)
-		Sort string `http:"sort,query"`
+		// порядок выдачи (0 - от новых к старым, 1 - наоборот; по умолчанию - 0)
+		SortAsc uint8 `http:"sortAsc,query"`
 	}{
-		Count: api.config.BlogArticleCommentsInPage,
-		Sort:  "asc",
+		Count:   api.config.BlogArticleCommentsInPage,
+		SortAsc: 0,
 	}
 
 	api.bindParams(&params, r)
@@ -34,11 +33,8 @@ func (api *API) BlogArticleComments(r *http.Request) (int, proto.Message) {
 	if params.Count < 5 || params.Count > 20 {
 		return api.badParam("count")
 	}
-
-	sort := "ASC"
-
-	if strings.ToLower(params.Sort) == "desc" {
-		sort = "DESC"
+	if !(params.SortAsc == 0 || params.SortAsc == 1) {
+		return api.badParam("sortAsc")
 	}
 
 	var err error
@@ -68,7 +64,7 @@ func (api *API) BlogArticleComments(r *http.Request) (int, proto.Message) {
 		r.Context(),
 		params.ArticleId,
 		after,
-		sort,
+		params.SortAsc == 1,
 		uint8(params.Count),
 	)
 

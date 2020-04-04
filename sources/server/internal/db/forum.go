@@ -195,11 +195,11 @@ func (db *DB) FetchTopicStarterCanEditFirstMessage(ctx context.Context, messageI
 	return canEdit == 1, nil
 }
 
-func (db *DB) FetchTopicMessages(ctx context.Context, availableForums []uint64, topicID, limit, offset uint64, asc bool) (response *ForumTopicMessagesDBResponse, err error) {
+func (db *DB) FetchTopicMessages(ctx context.Context, availableForums []uint64, topicID uint64, limit, offset int64, sortAsc bool) (response *ForumTopicMessagesDBResponse, err error) {
 	var shortTopic ShortForumTopic
 	var pinnedFirstMessage ForumMessage
 	var messages []ForumMessage
-	var count uint64
+	var count int64
 
 	err = codeflow.Try(
 		func() error {
@@ -209,19 +209,32 @@ func (db *DB) FetchTopicMessages(ctx context.Context, availableForums []uint64, 
 			return db.engine.Read(ctx, sqlr.NewQuery(queries.ForumTopicMessagesCount).WithArgs(topicID)).Scan(&count)
 		},
 		func() error {
-			finalOffset := int64(offset)
-			if !asc {
-				finalOffset = int64(count) - int64(offset) - int64(limit)
-			}
-
+			var minNumber int64
+			var maxNumber int64
 			var sortDirection string
-			if asc {
+			if sortAsc {
+				maxNumber = offset + limit
+				minNumber = maxNumber - (limit - 1)
+				if minNumber > count {
+					minNumber = count + 1
+				}
+				if maxNumber > count {
+					maxNumber = count
+				}
 				sortDirection = "ASC"
 			} else {
+				maxNumber = count - offset
+				minNumber = maxNumber - (limit - 1)
+				if minNumber < 0 {
+					minNumber = 0
+				}
+				if maxNumber < 0 {
+					maxNumber = -1
+				}
 				sortDirection = "DESC"
 			}
 
-			return db.engine.Read(ctx, sqlr.NewQuery(queries.ForumTopicMessages).Inject(sortDirection).WithArgs(topicID, finalOffset+1, finalOffset+int64(limit))).Scan(&messages)
+			return db.engine.Read(ctx, sqlr.NewQuery(queries.ForumTopicMessages).Inject(sortDirection).WithArgs(topicID, minNumber, maxNumber)).Scan(&messages)
 		},
 	)
 
@@ -234,7 +247,7 @@ func (db *DB) FetchTopicMessages(ctx context.Context, availableForums []uint64, 
 			Topic:              shortTopic,
 			PinnedFirstMessage: pinnedFirstMessage,
 			Messages:           messages,
-			TotalMessagesCount: count,
+			TotalMessagesCount: uint64(count),
 		}
 	}
 
