@@ -3,6 +3,7 @@ package endpoints
 import (
 	"fantlab/base/dbtools"
 	"fantlab/pb"
+	"fantlab/server/internal/converters"
 	"fmt"
 	"net/http"
 	"strconv"
@@ -70,7 +71,7 @@ func (api *API) SaveForumMessageDraft(r *http.Request) (int, proto.Message) {
 		}
 	}
 
-	err = api.services.DB().InsertForumMessageDraft(r.Context(), params.Message, dbTopic.TopicId, user.UserId)
+	dbMessageDraft, err := api.services.DB().InsertForumMessageDraft(r.Context(), params.Message, dbTopic.TopicId, user.UserId)
 
 	if err != nil {
 		return http.StatusInternalServerError, &pb.Error_Response{
@@ -80,5 +81,7 @@ func (api *API) SaveForumMessageDraft(r *http.Request) (int, proto.Message) {
 
 	// TODO: загрузка аттачей
 
-	return http.StatusOK, &pb.Common_SuccessResponse{}
+	messageDraftResponse := converters.GetForumTopicMessageDraft(dbMessageDraft, api.config)
+
+	return http.StatusOK, messageDraftResponse
 }

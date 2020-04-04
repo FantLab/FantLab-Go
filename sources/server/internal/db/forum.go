@@ -89,6 +89,19 @@ type ForumMessage struct {
 	Number      uint64    `db:"number"`
 }
 
+type ForumMessageDraft struct {
+	TopicId     uint64    `db:"topic_id"`
+	Message     string    `db:"message"`
+	DateOfAdd   time.Time `db:"date_of_add"`
+	DateOfEdit  time.Time `db:"date_of_edit"`
+	UserID      uint64    `db:"user_id"`
+	Login       string    `db:"login"`
+	Sex         uint8     `db:"sex"`
+	PhotoNumber uint64    `db:"photo_number"`
+	UserClass   uint8     `db:"user_class"`
+	Sign        string    `db:"sign"`
+}
+
 type ForumModerator struct {
 	UserID      uint64 `db:"user_id"`
 	Login       string `db:"login"`
@@ -290,22 +303,25 @@ func (db *DB) FetchUserIsForumModerator(ctx context.Context, userId, topicId uin
 	return userIsForumModerator == 1, nil
 }
 
-func (db *DB) InsertForumMessage(ctx context.Context, topic *ForumTopic, userId uint64, login, text string, isRed uint8, forumMessagesInPage uint64) error {
-	err := db.engine.InTransaction(func(rw sqlr.ReaderWriter) error {
-		var message ForumMessage
+func (db *DB) InsertForumMessage(ctx context.Context, topic *ForumTopic, userId uint64, login, text string, isRed uint8, forumMessagesInPage uint64) (*ForumMessage, error) {
+	var messageId uint64
+	var message ForumMessage
 
+	err := db.engine.InTransaction(func(rw sqlr.ReaderWriter) error {
 		return codeflow.Try(
 			func() error { // Создаем новое сообщение
 				// TODO Поле проставляется для подсчета баллов, однако в методе расчета абсолютно не учитывается нерусский текст
 				//  (например, если писать в "English forum", рейтинг никак не поменяется). Выглядит как очередной баг.
 				messageLength := len(helpers.RemoveImmeasurable(text))
-				return rw.Write(ctx, sqlr.NewQuery(queries.ForumInsertNewMessage).WithArgs(messageLength, topic.TopicId, userId, topic.ForumId, isRed, topic.TopicId)).Error
-			},
-			func() error { // Получаем данные свежесозданного сообщения
-				return rw.Read(ctx, sqlr.NewQuery(queries.ForumGetTopicLastMessage).WithArgs(topic.TopicId)).Scan(&message)
+				result := rw.Write(ctx, sqlr.NewQuery(queries.ForumInsertNewMessage).WithArgs(messageLength, topic.TopicId, userId, topic.ForumId, isRed, topic.TopicId))
+				messageId = uint64(result.LastInsertId)
+				return result.Error
 			},
 			func() error { // Сохраняем текст сообщения
-				return rw.Write(ctx, sqlr.NewQuery(queries.ForumSetMessageText).WithArgs(message.MessageID, text)).Error
+				return rw.Write(ctx, sqlr.NewQuery(queries.ForumSetMessageText).WithArgs(messageId, text)).Error
+			},
+			func() error { // Получаем сообщение
+				return rw.Read(ctx, sqlr.NewQuery(queries.ForumGetTopicMessage).WithArgs(messageId)).Scan(&message)
 			},
 			func() error { // Удаляем, если есть, черновик сообщения для данной темы
 				return rw.Write(ctx, sqlr.NewQuery(queries.ForumCancelTopicMessagePreview).WithArgs(userId, topic.TopicId)).Error
@@ -314,16 +330,22 @@ func (db *DB) InsertForumMessage(ctx context.Context, topic *ForumTopic, userId 
 				return rw.Write(ctx, sqlr.NewQuery(queries.ForumUpdateUserStat).WithArgs(userId)).Error
 			},
 			func() error { // Обновляем статистику форума
-				return updateForumStatAfterNewMessage(ctx, rw, topic, forumMessagesInPage, message.MessageID, userId, login)
+				return updateForumStatAfterNewMessage(ctx, rw, topic, forumMessagesInPage, messageId, userId, login)
 			},
 		)
 	})
 
 	if err != nil {
-		return err
+		return nil, err
 	}
 
-	return notifyForumTopicSubscribersAboutNewMessage(ctx, db.engine, topic.TopicId)
+	err = notifyForumTopicSubscribersAboutNewMessage(ctx, db.engine, topic.TopicId, messageId, message.DateOfAdd)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return &message, nil
 }
 
 func updateForumStatAfterNewMessage(ctx context.Context, rw sqlr.ReaderWriter, topic *ForumTopic, forumMessagesInPage, messageId, userId uint64, login string) error {
@@ -364,8 +386,7 @@ func updateForumStatAfterNewMessage(ctx context.Context, rw sqlr.ReaderWriter, t
 	)
 }
 
-func notifyForumTopicSubscribersAboutNewMessage(ctx context.Context, rw sqlr.ReaderWriter, topicId uint64) error {
-	var message ForumMessage
+func notifyForumTopicSubscribersAboutNewMessage(ctx context.Context, rw sqlr.ReaderWriter, topicId, messageId uint64, messageDate time.Time) error {
 	var topicSubscribers []uint64
 
 	type newForumAnswerEntry struct {
@@ -375,14 +396,8 @@ func notifyForumTopicSubscribersAboutNewMessage(ctx context.Context, rw sqlr.Rea
 		MessageDate time.Time `db:"date_of_add"`
 	}
 
-	err := codeflow.Try(
-		func() error { // Получаем данные сообщения
-			return rw.Read(ctx, sqlr.NewQuery(queries.ForumGetTopicLastMessage).WithArgs(topicId)).Scan(&message)
-		},
-		func() error { // Получаем список подписчиков на обновления темы
-			return rw.Read(ctx, sqlr.NewQuery(queries.ForumGetTopicSubscribers).WithArgs(topicId)).Scan(&topicSubscribers)
-		},
-	)
+	// Получаем список подписчиков на обновления темы
+	err := rw.Read(ctx, sqlr.NewQuery(queries.ForumGetTopicSubscribers).WithArgs(topicId)).Scan(&topicSubscribers)
 
 	if err != nil {
 		return err
@@ -394,8 +409,8 @@ func notifyForumTopicSubscribersAboutNewMessage(ctx context.Context, rw sqlr.Rea
 		entries = append(entries, newForumAnswerEntry{
 			TopicId:     topicId,
 			UserId:      userId,
-			MessageId:   message.MessageID,
-			MessageDate: message.DateOfAdd,
+			MessageId:   messageId,
+			MessageDate: messageDate,
 		})
 	}
 	err = rw.Write(ctx, sqlbuilder.InsertInto(queries.NewForumAnswersTable, entries...)).Error
@@ -405,7 +420,11 @@ func notifyForumTopicSubscribersAboutNewMessage(ctx context.Context, rw sqlr.Rea
 	}
 
 	// Обновляем статистику новых ответов в форуме для подписчиков
-	return rw.Write(ctx, sqlr.NewQuery(queries.ForumIncrementNewForumAnswersCount).WithArgs(topicSubscribers).FlatArgs()).Error
+	if len(topicSubscribers) > 0 {
+		return rw.Write(ctx, sqlr.NewQuery(queries.ForumIncrementNewForumAnswersCount).WithArgs(topicSubscribers).FlatArgs()).Error
+	}
+
+	return nil
 }
 
 func (db *DB) FetchForumTopicSubscribers(ctx context.Context, topicId uint64) (subscribers []uint64, err error) {
@@ -413,8 +432,10 @@ func (db *DB) FetchForumTopicSubscribers(ctx context.Context, topicId uint64) (s
 	return
 }
 
-func (db *DB) UpdateForumMessage(ctx context.Context, messageId, topicId uint64, text string, isRed uint8) error {
-	return db.engine.InTransaction(func(rw sqlr.ReaderWriter) error {
+func (db *DB) UpdateForumMessage(ctx context.Context, messageId, topicId uint64, text string, isRed uint8) (*ForumMessage, error) {
+	var message ForumMessage
+
+	err := db.engine.InTransaction(func(rw sqlr.ReaderWriter) error {
 		return codeflow.Try(
 			func() error { // Обновляем сообщение
 				// TODO Скорее всего, поле message_length проставляется здесь просто для отчетности. Реального
@@ -425,11 +446,20 @@ func (db *DB) UpdateForumMessage(ctx context.Context, messageId, topicId uint64,
 			func() error { // Сохраняем текст сообщения
 				return rw.Write(ctx, sqlr.NewQuery(queries.ForumSetMessageText).WithArgs(messageId, text)).Error
 			},
+			func() error { // Получаем сообщение
+				return rw.Read(ctx, sqlr.NewQuery(queries.ForumGetTopicMessage).WithArgs(messageId)).Scan(&message)
+			},
 			func() error { // Выставляем флаг для Cron-а о необходимости переиндексации Sphinx-ом
 				return rw.Write(ctx, sqlr.NewQuery(queries.ForumMarkTopicNeedSphinxReindex).WithArgs(topicId)).Error
 			},
 		)
 	})
+
+	if err != nil {
+		return nil, err
+	}
+
+	return &message, nil
 }
 
 func (db *DB) DeleteForumMessage(ctx context.Context, messageId, topicId, forumId uint64, messageDate time.Time, forumMessagesInPage uint64) error {
@@ -535,27 +565,66 @@ func notifyForumTopicSubscribersAboutMessageDeleting(ctx context.Context, rw sql
 	)
 }
 
-func (db *DB) InsertForumMessageDraft(ctx context.Context, message string, topicId, userId uint64) error {
-	return db.engine.Write(ctx, sqlr.NewQuery(queries.ForumInsertMessagePreview).WithArgs(message, userId, topicId, message)).Error
-}
+func (db *DB) InsertForumMessageDraft(ctx context.Context, message string, topicId, userId uint64) (*ForumMessageDraft, error) {
+	var messageDraft ForumMessageDraft
 
-func (db *DB) GetForumMessageDraft(ctx context.Context, topicId, userId uint64) (message string, err error) {
-	err = db.engine.Read(ctx, sqlr.NewQuery(queries.ForumGetMessagePreview).WithArgs(topicId, userId)).Scan(&message)
-	return
-}
-
-func (db *DB) ConfirmForumMessageDraft(ctx context.Context, topic *ForumTopic, userId uint64, login, text string, isRed uint8, forumMessagesInPage uint64) (err error) {
-	err = db.engine.InTransaction(func(rw sqlr.ReaderWriter) error {
+	err := db.engine.InTransaction(func(rw sqlr.ReaderWriter) error {
 		return codeflow.Try(
-			func() error {
-				return db.InsertForumMessage(ctx, topic, userId, login, text, isRed, forumMessagesInPage)
+			func() error { // Создаем черновик сообщения
+				return rw.Write(ctx, sqlr.NewQuery(queries.ForumInsertMessagePreview).WithArgs(message, userId, topicId, message)).Error
 			},
-			func() error {
-				return db.DeleteForumMessageDraft(ctx, topic.TopicId, userId)
+			func() error { // Получаем черновик
+				return rw.Read(ctx, sqlr.NewQuery(queries.ForumGetTopicMessagePreview).WithArgs(topicId, userId)).Scan(&messageDraft)
 			},
 		)
 	})
-	return
+
+	if err != nil {
+		return nil, err
+	}
+
+	return &messageDraft, nil
+}
+
+func (db *DB) GetForumMessageDraft(ctx context.Context, topicId, userId uint64) (*ForumMessageDraft, error) {
+	var messageDraft ForumMessageDraft
+
+	err := db.engine.Read(ctx, sqlr.NewQuery(queries.ForumGetTopicMessagePreview).WithArgs(topicId, userId)).Scan(&messageDraft)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return &messageDraft, nil
+}
+
+func (db *DB) ConfirmForumMessageDraft(ctx context.Context, topic *ForumTopic, userId uint64, login, text string, isRed uint8, forumMessagesInPage uint64) (*ForumMessage, error) {
+	var messageId uint64
+	var message ForumMessage
+
+	err := db.engine.InTransaction(func(rw sqlr.ReaderWriter) error {
+		return codeflow.Try(
+			func() error { // Создаем сообщение
+				message, err := db.InsertForumMessage(ctx, topic, userId, login, text, isRed, forumMessagesInPage)
+				if err == nil {
+					messageId = message.MessageID
+				}
+				return err
+			},
+			func() error { // Получаем сообщение
+				return rw.Read(ctx, sqlr.NewQuery(queries.ForumGetTopicMessage).WithArgs(messageId)).Scan(&message)
+			},
+			func() error { // Удаляем черновик
+				return db.engine.Write(ctx, sqlr.NewQuery(queries.ForumDeleteForumMessagePreview).WithArgs(topic.TopicId, userId)).Error
+			},
+		)
+	})
+
+	if err != nil {
+		return nil, err
+	}
+
+	return &message, nil
 }
 
 func (db *DB) DeleteForumMessageDraft(ctx context.Context, topicId, userId uint64) error {

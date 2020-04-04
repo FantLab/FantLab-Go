@@ -308,10 +308,11 @@ func (db *DB) FetchBlogTopicComment(ctx context.Context, commentId uint64) (comm
 	return
 }
 
-func (db *DB) InsertBlogTopicComment(ctx context.Context, topicId, userId, parentCommentId, parentUserId uint64, text string, blogArticleCommentsInPage uint64) error {
-	err := db.engine.InTransaction(func(rw sqlr.ReaderWriter) error {
-		var comment BlogTopicComment
+func (db *DB) InsertBlogTopicComment(ctx context.Context, topicId, userId, parentCommentId, parentUserId uint64, text string, blogArticleCommentsInPage uint64) (*BlogTopicComment, error) {
+	var commentId uint64
+	var comment BlogTopicComment
 
+	err := db.engine.InTransaction(func(rw sqlr.ReaderWriter) error {
 		return codeflow.Try(
 			func() error { // Создаем новый комментарий
 				// Примечания:
@@ -322,13 +323,15 @@ func (db *DB) InsertBlogTopicComment(ctx context.Context, topicId, userId, paren
 				//    комментария к "Регуляторам" Стивена Кинга, и те нельзя посмотреть, поскольку endpoint
 				//    https://fantlab.ru/discusswork396 стабильно падает с 500 ошибкой. Зачем все это находится в
 				//    таблице, относящейся к блогам - вопрос риторический. P.S. Функционал пытался сделать SHTrassEr.
-				return rw.Write(ctx, sqlr.NewQuery(queries.BlogTopicInsertNewMessage).WithArgs(topicId, userId, parentCommentId, 0, 0, time.Now())).Error
-			},
-			func() error { // Получаем данные свежесозданного комментария
-				return rw.Read(ctx, sqlr.NewQuery(queries.BlogGetTopicLastMessage).WithArgs(topicId)).Scan(&comment)
+				result := rw.Write(ctx, sqlr.NewQuery(queries.BlogTopicInsertNewMessage).WithArgs(topicId, userId, parentCommentId, 0, 0, time.Now()))
+				commentId = uint64(result.LastInsertId)
+				return result.Error
 			},
 			func() error { // Сохраняем текст комментария
-				return db.UpdateBlogTopicComment(ctx, comment.MessageId, text)
+				return rw.Write(ctx, sqlr.NewQuery(queries.BlogSetMessageText).WithArgs(commentId, text)).Error
+			},
+			func() error { // Получаем комментарий
+				return rw.Read(ctx, sqlr.NewQuery(queries.BlogGetTopicMessage).WithArgs(commentId)).Scan(&comment)
 			},
 			func() error { // Обновляем статистику статьи
 				return updateBlogTopicStatAfterNewMessage(ctx, rw, topicId)
@@ -337,10 +340,16 @@ func (db *DB) InsertBlogTopicComment(ctx context.Context, topicId, userId, paren
 	})
 
 	if err != nil {
-		return err
+		return nil, err
 	}
 
-	return notifyBlogTopicSubscribersAboutNewMessage(ctx, db.engine, topicId, parentUserId, blogArticleCommentsInPage)
+	err = notifyBlogTopicSubscribersAboutNewMessage(ctx, db.engine, topicId, commentId, parentUserId, blogArticleCommentsInPage)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return &comment, nil
 }
 
 func updateBlogTopicStatAfterNewMessage(ctx context.Context, rw sqlr.ReaderWriter, topicId uint64) error {
@@ -362,9 +371,8 @@ func updateBlogTopicStatAfterNewMessage(ctx context.Context, rw sqlr.ReaderWrite
 	)
 }
 
-func notifyBlogTopicSubscribersAboutNewMessage(ctx context.Context, rw sqlr.ReaderWriter, topicId, parentUserId, blogArticleCommentsInPage uint64) error {
+func notifyBlogTopicSubscribersAboutNewMessage(ctx context.Context, rw sqlr.ReaderWriter, topicId, commentId, parentUserId, blogArticleCommentsInPage uint64) error {
 	var topicSubscribers []uint64
-	var comment BlogTopicComment
 	var firstLevelCommentCount uint64
 
 	type newBlogMessageEntry struct {
@@ -387,13 +395,13 @@ func notifyBlogTopicSubscribersAboutNewMessage(ctx context.Context, rw sqlr.Read
 			return rw.Read(ctx, sqlr.NewQuery(queries.BlogGetTopicSubscribers).WithArgs(topicId, parentUserId)).Scan(&topicSubscribers)
 		},
 		func() error { // Инкрементим счетчик количества новых комментариев в блогах для подписчиков
-			return rw.Write(ctx, sqlr.NewQuery(queries.BlogIncrementNewBlogCommentsCount).WithArgs(topicSubscribers).FlatArgs()).Error
-		},
-		func() error { // Получаем данные комментария
-			return rw.Read(ctx, sqlr.NewQuery(queries.BlogGetTopicLastMessage).WithArgs(topicId)).Scan(&comment)
+			if len(topicSubscribers) != 0 {
+				return rw.Write(ctx, sqlr.NewQuery(queries.BlogIncrementNewBlogCommentsCount).WithArgs(topicSubscribers).FlatArgs()).Error
+			}
+			return nil
 		},
 		func() error { // Получаем количество комментариев первого уровня в данной статье
-			return rw.Read(ctx, sqlr.NewQuery(queries.BlogGetFirstLevelMessageCount).WithArgs(topicId, comment.MessageId)).Scan(&firstLevelCommentCount)
+			return rw.Read(ctx, sqlr.NewQuery(queries.BlogGetFirstLevelMessageCount).WithArgs(topicId, commentId)).Scan(&firstLevelCommentCount)
 		},
 	)
 
@@ -411,7 +419,7 @@ func notifyBlogTopicSubscribersAboutNewMessage(ctx context.Context, rw sqlr.Read
 	for _, userId := range usersToNotify {
 		entries = append(entries, newBlogMessageEntry{
 			UserId:       userId,
-			MessageId:    comment.MessageId,
+			MessageId:    commentId,
 			Endpoint:     endpoint,
 			ParentUserId: parentUserId,
 			MessageDate:  time.Now(),
@@ -449,9 +457,25 @@ func (db *DB) FetchUserIsCommunityModerator(ctx context.Context, userId, blogId,
 	return userIsCommunityTopicModerator == 1, nil
 }
 
-func (db *DB) UpdateBlogTopicComment(ctx context.Context, commentId uint64, text string) (err error) {
-	err = db.engine.Write(ctx, sqlr.NewQuery(queries.BlogSetMessageText).WithArgs(commentId, text)).Error
-	return
+func (db *DB) UpdateBlogTopicComment(ctx context.Context, commentId uint64, text string) (*BlogTopicComment, error) {
+	var comment BlogTopicComment
+
+	err := db.engine.InTransaction(func(rw sqlr.ReaderWriter) error {
+		return codeflow.Try(
+			func() error {
+				return rw.Write(ctx, sqlr.NewQuery(queries.BlogSetMessageText).WithArgs(commentId, text)).Error
+			},
+			func() error {
+				return rw.Read(ctx, sqlr.NewQuery(queries.BlogGetTopicMessage).WithArgs(commentId)).Scan(&comment)
+			},
+		)
+	})
+
+	if err != nil {
+		return nil, err
+	}
+
+	return &comment, nil
 }
 
 func (db *DB) DeleteBlogTopicComment(ctx context.Context, commentId, parentCommentId, topicId uint64) error {

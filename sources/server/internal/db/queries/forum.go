@@ -277,15 +277,30 @@ const (
 			topic_id = ?
 	`
 
-	ForumGetTopicLastMessage = `
-		SELECT 
-			* 
-		FROM 
-			f_messages 
+	ForumGetTopicMessage = `
+		SELECT
+			f.message_id,
+			f.topic_id,
+			f.date_of_add,
+			f.user_id,
+			u.login,
+			u.sex,
+			u.photo_number,
+			u.user_class,
+			u.sign,
+			m.message_text,
+			f.is_censored,
+			f.vote_plus,
+			ABS(f.vote_minus) AS vote_minus,
+			f.number
+		FROM
+			f_messages f
+		LEFT JOIN
+			users u ON u.user_id = f.user_id
+		LEFT JOIN
+			f_messages_text m ON m.message_id = f.message_id
 		WHERE
-			topic_id = ?
-		ORDER BY 
-			message_id DESC 
+			f.message_id = ?
 		LIMIT 1
 	`
 
@@ -535,13 +550,25 @@ const (
 			date_of_edit = NOW()
 	`
 
-	ForumGetMessagePreview = `
+	ForumGetTopicMessagePreview = `
 		SELECT
-			message
+			f.topic_id,
+			f.message,
+			f.date_of_add,
+			f.date_of_edit,
+			f.user_id,
+			u.login,
+			u.sex,
+			u.photo_number,
+			u.user_class,
+			u.sign
 		FROM
-			f_messages_preview
+			f_messages_preview f
+		LEFT JOIN
+			users u ON u.user_id = f.user_id
 		WHERE
-			topic_id = ? AND user_id = ?
+			f.topic_id = ? AND f.user_id = ?
+		LIMIT 1
 	`
 
 	ForumDeleteForumMessagePreview = `

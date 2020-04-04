@@ -162,14 +162,14 @@ func GetTopic(dbResponse *db.ForumTopicMessagesDBResponse, page, limit uint64, c
 	var pinnedMessage *pb.Forum_TopicMessage
 
 	if dbResponse.PinnedFirstMessage != (db.ForumMessage{}) {
-		pinnedMessage = convertMessage(dbResponse.PinnedFirstMessage, cfg)
+		pinnedMessage = convertMessage(&dbResponse.PinnedFirstMessage, cfg)
 	}
 
 	//noinspection GoPreferNilSlice
 	messages := []*pb.Forum_TopicMessage{}
 
 	for _, dbMessage := range dbResponse.Messages {
-		messages = append(messages, convertMessage(dbMessage, cfg))
+		messages = append(messages, convertMessage(&dbMessage, cfg))
 	}
 
 	pageCount := helpers.CalculatePageCount(dbResponse.TotalMessagesCount, limit)
@@ -186,7 +186,15 @@ func GetTopic(dbResponse *db.ForumTopicMessagesDBResponse, page, limit uint64, c
 	}
 }
 
-func convertMessage(dbMessage db.ForumMessage, cfg *config.AppConfig) *pb.Forum_TopicMessage {
+func GetForumTopicMessage(dbMessage *db.ForumMessage, cfg *config.AppConfig) *pb.Forum_ForumMessageResponse {
+	message := convertMessage(dbMessage, cfg)
+
+	return &pb.Forum_ForumMessageResponse{
+		Message: message,
+	}
+}
+
+func convertMessage(dbMessage *db.ForumMessage, cfg *config.AppConfig) *pb.Forum_TopicMessage {
 	text := dbMessage.MessageText
 
 	if dbMessage.IsCensored != 0 {
@@ -213,6 +221,29 @@ func convertMessage(dbMessage db.ForumMessage, cfg *config.AppConfig) *pb.Forum_
 		IsCensored: dbMessage.IsCensored == 1,
 		Stats: &pb.Forum_TopicMessage_Stats{
 			Rating: int64(dbMessage.VotePlus - dbMessage.VoteMinus),
+		},
+	}
+}
+
+func GetForumTopicMessageDraft(dbMessageDraft *db.ForumMessageDraft, cfg *config.AppConfig) *pb.Forum_ForumMessageDraftResponse {
+	gender := helpers.GetGender(dbMessageDraft.UserID, dbMessageDraft.Sex)
+	avatar := helpers.GetUserAvatarUrl(cfg.ImagesBaseURL, dbMessageDraft.UserID, dbMessageDraft.PhotoNumber)
+
+	return &pb.Forum_ForumMessageDraftResponse{
+		MessageDraft: &pb.Forum_TopicMessageDraft{
+			TopicId: dbMessageDraft.TopicId,
+			Creation: &pb.Common_Creation{
+				User: &pb.Common_UserLink{
+					Id:     dbMessageDraft.UserID,
+					Login:  dbMessageDraft.Login,
+					Gender: gender,
+					Avatar: avatar,
+					Class:  helpers.GetUserClass(dbMessageDraft.UserClass),
+					Sign:   dbMessageDraft.Sign,
+				},
+				Date: pbutils.TimestampProto(dbMessageDraft.DateOfAdd),
+			},
+			Text: dbMessageDraft.Message,
 		},
 	}
 }

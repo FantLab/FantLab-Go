@@ -910,6 +910,54 @@ func (x *Blog_BlogArticleCommentsResponse) GetTotalCount() uint64 {
 	return 0
 }
 
+type Blog_BlogArticleCommentResponse struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	// комментарий
+	Comment *Blog_Comment `protobuf:"bytes,1,opt,name=comment,proto3" json:"comment,omitempty"`
+}
+
+func (x *Blog_BlogArticleCommentResponse) Reset() {
+	*x = Blog_BlogArticleCommentResponse{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_proto_blog_proto_msgTypes[13]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *Blog_BlogArticleCommentResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*Blog_BlogArticleCommentResponse) ProtoMessage() {}
+
+func (x *Blog_BlogArticleCommentResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_blog_proto_msgTypes[13]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use Blog_BlogArticleCommentResponse.ProtoReflect.Descriptor instead.
+func (*Blog_BlogArticleCommentResponse) Descriptor() ([]byte, []int) {
+	return file_proto_blog_proto_rawDescGZIP(), []int{0, 12}
+}
+
+func (x *Blog_BlogArticleCommentResponse) GetComment() *Blog_Comment {
+	if x != nil {
+		return x.Comment
+	}
+	return nil
+}
+
 type Blog_Community_Stats struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
@@ -924,7 +972,7 @@ type Blog_Community_Stats struct {
 func (x *Blog_Community_Stats) Reset() {
 	*x = Blog_Community_Stats{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_proto_blog_proto_msgTypes[13]
+		mi := &file_proto_blog_proto_msgTypes[14]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -937,7 +985,7 @@ func (x *Blog_Community_Stats) String() string {
 func (*Blog_Community_Stats) ProtoMessage() {}
 
 func (x *Blog_Community_Stats) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_blog_proto_msgTypes[13]
+	mi := &file_proto_blog_proto_msgTypes[14]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -983,7 +1031,7 @@ type Blog_Article_Stats struct {
 func (x *Blog_Article_Stats) Reset() {
 	*x = Blog_Article_Stats{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_proto_blog_proto_msgTypes[14]
+		mi := &file_proto_blog_proto_msgTypes[15]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -996,7 +1044,7 @@ func (x *Blog_Article_Stats) String() string {
 func (*Blog_Article_Stats) ProtoMessage() {}
 
 func (x *Blog_Article_Stats) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_blog_proto_msgTypes[14]
+	mi := &file_proto_blog_proto_msgTypes[15]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1047,7 +1095,7 @@ type Blog_Blog_Stats struct {
 func (x *Blog_Blog_Stats) Reset() {
 	*x = Blog_Blog_Stats{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_proto_blog_proto_msgTypes[15]
+		mi := &file_proto_blog_proto_msgTypes[16]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -1060,7 +1108,7 @@ func (x *Blog_Blog_Stats) String() string {
 func (*Blog_Blog_Stats) ProtoMessage() {}
 
 func (x *Blog_Blog_Stats) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_blog_proto_msgTypes[15]
+	mi := &file_proto_blog_proto_msgTypes[16]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1097,7 +1145,7 @@ var file_proto_blog_proto_rawDesc = []byte{
 	0x74, 0x6f, 0x1a, 0x12, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x2f, 0x63, 0x6f, 0x6d, 0x6d, 0x6f, 0x6e,
 	0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x1a, 0x1f, 0x67, 0x6f, 0x6f, 0x67, 0x6c, 0x65, 0x2f, 0x70,
 	0x72, 0x6f, 0x74, 0x6f, 0x62, 0x75, 0x66, 0x2f, 0x74, 0x69, 0x6d, 0x65, 0x73, 0x74, 0x61, 0x6d,
-	0x70, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x22, 0xbc, 0x0f, 0x0a, 0x04, 0x42, 0x6c, 0x6f, 0x67,
+	0x70, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x22, 0x83, 0x10, 0x0a, 0x04, 0x42, 0x6c, 0x6f, 0x67,
 	0x1a, 0x89, 0x01, 0x0a, 0x0b, 0x4c, 0x61, 0x73, 0x74, 0x41, 0x72, 0x74, 0x69, 0x63, 0x6c, 0x65,
 	0x12, 0x0e, 0x0a, 0x02, 0x69, 0x64, 0x18, 0x01, 0x20, 0x01, 0x28, 0x04, 0x52, 0x02, 0x69, 0x64,
 	0x12, 0x14, 0x0a, 0x05, 0x74, 0x69, 0x74, 0x6c, 0x65, 0x18, 0x02, 0x20, 0x01, 0x28, 0x09, 0x52,
@@ -1221,8 +1269,13 @@ var file_proto_blog_proto_rawDesc = []byte{
 	0x6c, 0x6f, 0x67, 0x2e, 0x43, 0x6f, 0x6d, 0x6d, 0x65, 0x6e, 0x74, 0x52, 0x08, 0x63, 0x6f, 0x6d,
 	0x6d, 0x65, 0x6e, 0x74, 0x73, 0x12, 0x1f, 0x0a, 0x0b, 0x74, 0x6f, 0x74, 0x61, 0x6c, 0x5f, 0x63,
 	0x6f, 0x75, 0x6e, 0x74, 0x18, 0x02, 0x20, 0x01, 0x28, 0x04, 0x52, 0x0a, 0x74, 0x6f, 0x74, 0x61,
-	0x6c, 0x43, 0x6f, 0x75, 0x6e, 0x74, 0x42, 0x0c, 0x5a, 0x0a, 0x73, 0x6f, 0x75, 0x72, 0x63, 0x65,
-	0x73, 0x2f, 0x70, 0x62, 0x62, 0x06, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x33,
+	0x6c, 0x43, 0x6f, 0x75, 0x6e, 0x74, 0x1a, 0x45, 0x0a, 0x1a, 0x42, 0x6c, 0x6f, 0x67, 0x41, 0x72,
+	0x74, 0x69, 0x63, 0x6c, 0x65, 0x43, 0x6f, 0x6d, 0x6d, 0x65, 0x6e, 0x74, 0x52, 0x65, 0x73, 0x70,
+	0x6f, 0x6e, 0x73, 0x65, 0x12, 0x27, 0x0a, 0x07, 0x63, 0x6f, 0x6d, 0x6d, 0x65, 0x6e, 0x74, 0x18,
+	0x01, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x0d, 0x2e, 0x42, 0x6c, 0x6f, 0x67, 0x2e, 0x43, 0x6f, 0x6d,
+	0x6d, 0x65, 0x6e, 0x74, 0x52, 0x07, 0x63, 0x6f, 0x6d, 0x6d, 0x65, 0x6e, 0x74, 0x42, 0x0c, 0x5a,
+	0x0a, 0x73, 0x6f, 0x75, 0x72, 0x63, 0x65, 0x73, 0x2f, 0x70, 0x62, 0x62, 0x06, 0x70, 0x72, 0x6f,
+	0x74, 0x6f, 0x33,
 }
 
 var (
@@ -1237,7 +1290,7 @@ func file_proto_blog_proto_rawDescGZIP() []byte {
 	return file_proto_blog_proto_rawDescData
 }
 
-var file_proto_blog_proto_msgTypes = make([]protoimpl.MessageInfo, 16)
+var file_proto_blog_proto_msgTypes = make([]protoimpl.MessageInfo, 17)
 var file_proto_blog_proto_goTypes = []interface{}{
 	(*Blog)(nil),                             // 0: Blog
 	(*Blog_LastArticle)(nil),                 // 1: Blog.LastArticle
@@ -1252,44 +1305,46 @@ var file_proto_blog_proto_goTypes = []interface{}{
 	(*Blog_BlogArticleResponse)(nil),         // 10: Blog.BlogArticleResponse
 	(*Blog_BlogArticleLikeResponse)(nil),     // 11: Blog.BlogArticleLikeResponse
 	(*Blog_BlogArticleCommentsResponse)(nil), // 12: Blog.BlogArticleCommentsResponse
-	(*Blog_Community_Stats)(nil),             // 13: Blog.Community.Stats
-	(*Blog_Article_Stats)(nil),               // 14: Blog.Article.Stats
-	(*Blog_Blog_Stats)(nil),                  // 15: Blog.Blog.Stats
-	(*Common_UserLink)(nil),                  // 16: Common.UserLink
-	(*timestamp.Timestamp)(nil),              // 17: google.protobuf.Timestamp
-	(*Common_Creation)(nil),                  // 18: Common.Creation
-	(*Common_Pages)(nil),                     // 19: Common.Pages
+	(*Blog_BlogArticleCommentResponse)(nil),  // 13: Blog.BlogArticleCommentResponse
+	(*Blog_Community_Stats)(nil),             // 14: Blog.Community.Stats
+	(*Blog_Article_Stats)(nil),               // 15: Blog.Article.Stats
+	(*Blog_Blog_Stats)(nil),                  // 16: Blog.Blog.Stats
+	(*Common_UserLink)(nil),                  // 17: Common.UserLink
+	(*timestamp.Timestamp)(nil),              // 18: google.protobuf.Timestamp
+	(*Common_Creation)(nil),                  // 19: Common.Creation
+	(*Common_Pages)(nil),                     // 20: Common.Pages
 }
 var file_proto_blog_proto_depIdxs = []int32{
-	16, // 0: Blog.LastArticle.user:type_name -> Common.UserLink
-	17, // 1: Blog.LastArticle.date:type_name -> google.protobuf.Timestamp
-	13, // 2: Blog.Community.stats:type_name -> Blog.Community.Stats
+	17, // 0: Blog.LastArticle.user:type_name -> Common.UserLink
+	18, // 1: Blog.LastArticle.date:type_name -> google.protobuf.Timestamp
+	14, // 2: Blog.Community.stats:type_name -> Blog.Community.Stats
 	1,  // 3: Blog.Community.last_article:type_name -> Blog.LastArticle
-	18, // 4: Blog.Article.creation:type_name -> Common.Creation
-	14, // 5: Blog.Article.stats:type_name -> Blog.Article.Stats
-	16, // 6: Blog.Blog.user:type_name -> Common.UserLink
-	15, // 7: Blog.Blog.stats:type_name -> Blog.Blog.Stats
+	19, // 4: Blog.Article.creation:type_name -> Common.Creation
+	15, // 5: Blog.Article.stats:type_name -> Blog.Article.Stats
+	17, // 6: Blog.Blog.user:type_name -> Common.UserLink
+	16, // 7: Blog.Blog.stats:type_name -> Blog.Blog.Stats
 	1,  // 8: Blog.Blog.last_article:type_name -> Blog.LastArticle
-	18, // 9: Blog.Comment.creation:type_name -> Common.Creation
+	19, // 9: Blog.Comment.creation:type_name -> Common.Creation
 	5,  // 10: Blog.Comment.answers:type_name -> Blog.Comment
 	2,  // 11: Blog.CommunitiesResponse.main:type_name -> Blog.Community
 	2,  // 12: Blog.CommunitiesResponse.additional:type_name -> Blog.Community
 	2,  // 13: Blog.CommunityResponse.community:type_name -> Blog.Community
-	16, // 14: Blog.CommunityResponse.moderators:type_name -> Common.UserLink
-	16, // 15: Blog.CommunityResponse.authors:type_name -> Common.UserLink
+	17, // 14: Blog.CommunityResponse.moderators:type_name -> Common.UserLink
+	17, // 15: Blog.CommunityResponse.authors:type_name -> Common.UserLink
 	3,  // 16: Blog.CommunityResponse.articles:type_name -> Blog.Article
-	19, // 17: Blog.CommunityResponse.pages:type_name -> Common.Pages
+	20, // 17: Blog.CommunityResponse.pages:type_name -> Common.Pages
 	4,  // 18: Blog.BlogsResponse.blogs:type_name -> Blog.Blog
-	19, // 19: Blog.BlogsResponse.pages:type_name -> Common.Pages
+	20, // 19: Blog.BlogsResponse.pages:type_name -> Common.Pages
 	3,  // 20: Blog.BlogResponse.articles:type_name -> Blog.Article
-	19, // 21: Blog.BlogResponse.pages:type_name -> Common.Pages
+	20, // 21: Blog.BlogResponse.pages:type_name -> Common.Pages
 	3,  // 22: Blog.BlogArticleResponse.article:type_name -> Blog.Article
 	5,  // 23: Blog.BlogArticleCommentsResponse.comments:type_name -> Blog.Comment
-	24, // [24:24] is the sub-list for method output_type
-	24, // [24:24] is the sub-list for method input_type
-	24, // [24:24] is the sub-list for extension type_name
-	24, // [24:24] is the sub-list for extension extendee
-	0,  // [0:24] is the sub-list for field type_name
+	5,  // 24: Blog.BlogArticleCommentResponse.comment:type_name -> Blog.Comment
+	25, // [25:25] is the sub-list for method output_type
+	25, // [25:25] is the sub-list for method input_type
+	25, // [25:25] is the sub-list for extension type_name
+	25, // [25:25] is the sub-list for extension extendee
+	0,  // [0:25] is the sub-list for field type_name
 }
 
 func init() { file_proto_blog_proto_init() }
@@ -1456,7 +1511,7 @@ func file_proto_blog_proto_init() {
 			}
 		}
 		file_proto_blog_proto_msgTypes[13].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*Blog_Community_Stats); i {
+			switch v := v.(*Blog_BlogArticleCommentResponse); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -1468,7 +1523,7 @@ func file_proto_blog_proto_init() {
 			}
 		}
 		file_proto_blog_proto_msgTypes[14].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*Blog_Article_Stats); i {
+			switch v := v.(*Blog_Community_Stats); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -1480,6 +1535,18 @@ func file_proto_blog_proto_init() {
 			}
 		}
 		file_proto_blog_proto_msgTypes[15].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*Blog_Article_Stats); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_proto_blog_proto_msgTypes[16].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*Blog_Blog_Stats); i {
 			case 0:
 				return &v.state
@@ -1498,7 +1565,7 @@ func file_proto_blog_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: file_proto_blog_proto_rawDesc,
 			NumEnums:      0,
-			NumMessages:   16,
+			NumMessages:   17,
 			NumExtensions: 0,
 			NumServices:   0,
 		},

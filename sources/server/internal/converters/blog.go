@@ -296,3 +296,24 @@ func GetBlogArticleComments(entries []db.BlogTopicComment, totalCount uint64, cf
 
 	return response
 }
+
+func GetBlogArticleComment(dbComment *db.BlogTopicComment, cfg *config.AppConfig) *pb.Blog_BlogArticleCommentResponse {
+	comment := &pb.Blog_Comment{
+		Id: dbComment.MessageId,
+		Creation: &pb.Common_Creation{
+			User: &pb.Common_UserLink{
+				Id:     dbComment.UserId,
+				Login:  dbComment.UserLogin,
+				Gender: helpers.GetGender(dbComment.UserId, dbComment.UserSex),
+				Avatar: helpers.GetUserAvatarUrl(cfg.ImagesBaseURL, dbComment.UserId, dbComment.UserPhotoNumber),
+			},
+			Date: pbutils.TimestampProto(dbComment.DateOfAdd),
+		},
+		Text:       dbComment.Text,
+		IsCensored: dbComment.IsCensored > 0,
+	}
+
+	return &pb.Blog_BlogArticleCommentResponse{
+		Comment: comment,
+	}
+}
