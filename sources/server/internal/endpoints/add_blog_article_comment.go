@@ -3,6 +3,7 @@ package endpoints
 import (
 	"fantlab/base/dbtools"
 	"fantlab/pb"
+	"fantlab/server/internal/converters"
 	"net/http"
 	"strconv"
 
@@ -123,8 +124,8 @@ func (api *API) AddBlogArticleComment(r *http.Request) (int, proto.Message) {
 		}
 	}
 
-	err = api.services.DB().InsertBlogTopicComment(r.Context(), article.TopicId, user.UserId, params.ParentCommentId,
-		parentUserId, params.Comment, api.config.BlogArticleCommentsInPage)
+	dbComment, err := api.services.DB().InsertBlogTopicComment(r.Context(), article.TopicId, user.UserId,
+		params.ParentCommentId, parentUserId, params.Comment, api.config.BlogArticleCommentsInPage)
 
 	if err != nil {
 		return http.StatusInternalServerError, &pb.Error_Response{
@@ -142,5 +143,7 @@ func (api *API) AddBlogArticleComment(r *http.Request) (int, proto.Message) {
 
 	_ = api.services.DeleteUserCache(r.Context(), parentUserId)
 
-	return http.StatusOK, &pb.Common_SuccessResponse{}
+	commentResponse := converters.GetBlogArticleComment(dbComment, api.config)
+
+	return http.StatusOK, commentResponse
 }

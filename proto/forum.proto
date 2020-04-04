@@ -13,6 +13,15 @@ message Forum {
         string title = 2;
     }
 
+    message TopicMessageDraft {
+        // id темы
+        uint64 topic_id = 1;
+        // данные о создании
+        Common.Creation creation = 2;
+        // текст
+        string text = 3;
+    }
+
     message LastMessage {
         // id сообщения
         uint64 id = 1;
@@ -132,5 +141,15 @@ message Forum {
         repeated TopicMessage messages = 4;
         // страницы
         Common.Pages pages = 5;
+    }
+
+    message ForumMessageResponse {
+        // сообщение
+        TopicMessage message = 1;
+    }
+
+    message ForumMessageDraftResponse {
+        // черновик сообщения
+        TopicMessageDraft messageDraft = 1;
     }
 }

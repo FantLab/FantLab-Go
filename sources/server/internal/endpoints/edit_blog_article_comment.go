@@ -3,6 +3,7 @@ package endpoints
 import (
 	"fantlab/base/dbtools"
 	"fantlab/pb"
+	"fantlab/server/internal/converters"
 	"net/http"
 	"strconv"
 
@@ -108,7 +109,7 @@ func (api *API) EditBlogArticleComment(r *http.Request) (int, proto.Message) {
 		}
 	}
 
-	err = api.services.DB().UpdateBlogTopicComment(r.Context(), comment.MessageId, params.Comment)
+	dbComment, err := api.services.DB().UpdateBlogTopicComment(r.Context(), comment.MessageId, params.Comment)
 
 	if err != nil {
 		return http.StatusInternalServerError, &pb.Error_Response{
@@ -118,5 +119,7 @@ func (api *API) EditBlogArticleComment(r *http.Request) (int, proto.Message) {
 
 	// TODO Удалить файловый кеш
 
-	return http.StatusOK, &pb.Common_SuccessResponse{}
+	commentResponse := converters.GetBlogArticleComment(dbComment, api.config)
+
+	return http.StatusOK, commentResponse
 }

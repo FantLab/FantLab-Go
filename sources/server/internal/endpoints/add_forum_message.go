@@ -3,6 +3,7 @@ package endpoints
 import (
 	"fantlab/base/dbtools"
 	"fantlab/pb"
+	"fantlab/server/internal/converters"
 	"fantlab/server/internal/helpers"
 	"fmt"
 	"net/http"
@@ -88,7 +89,7 @@ func (api *API) AddForumMessage(r *http.Request) (int, proto.Message) {
 		isRed = 1
 	}
 
-	err = api.services.DB().InsertForumMessage(r.Context(), dbTopic, user.UserId, user.Login, formattedMessage, isRed, api.config.ForumMessagesInPage)
+	dbMessage, err := api.services.DB().InsertForumMessage(r.Context(), dbTopic, user.UserId, user.Login, formattedMessage, isRed, api.config.ForumMessagesInPage)
 
 	if err != nil {
 		return http.StatusInternalServerError, &pb.Error_Response{
@@ -107,5 +108,7 @@ func (api *API) AddForumMessage(r *http.Request) (int, proto.Message) {
 		_ = api.services.DeleteUserCache(r.Context(), user.UserId)
 	}
 
-	return http.StatusOK, &pb.Common_SuccessResponse{}
+	messageResponse := converters.GetForumTopicMessage(dbMessage, api.config)
+
+	return http.StatusOK, messageResponse
 }

@@ -3,6 +3,7 @@ package endpoints
 import (
 	"fantlab/base/dbtools"
 	"fantlab/pb"
+	"fantlab/server/internal/converters"
 	"fantlab/server/internal/helpers"
 	"fmt"
 	"google.golang.org/protobuf/proto"
@@ -128,7 +129,7 @@ func (api *API) EditForumMessage(r *http.Request) (int, proto.Message) {
 		isRed = 1
 	}
 
-	err = api.services.DB().UpdateForumMessage(r.Context(), dbMessage.MessageID, dbMessage.TopicId, formattedMessage, isRed)
+	dbMessage, err = api.services.DB().UpdateForumMessage(r.Context(), dbMessage.MessageID, dbMessage.TopicId, formattedMessage, isRed)
 
 	if err != nil {
 		return http.StatusInternalServerError, &pb.Error_Response{
@@ -136,5 +137,7 @@ func (api *API) EditForumMessage(r *http.Request) (int, proto.Message) {
 		}
 	}
 
-	return http.StatusOK, &pb.Common_SuccessResponse{}
+	messageResponse := converters.GetForumTopicMessage(dbMessage, api.config)
+
+	return http.StatusOK, messageResponse
 }

@@ -3,6 +3,7 @@ package endpoints
 import (
 	"fantlab/base/dbtools"
 	"fantlab/pb"
+	"fantlab/server/internal/converters"
 	"fantlab/server/internal/helpers"
 	"fmt"
 	"net/http"
@@ -57,7 +58,7 @@ func (api *API) ConfirmForumMessageDraft(r *http.Request) (int, proto.Message) {
 		}
 	}
 
-	message, err := api.services.DB().GetForumMessageDraft(r.Context(), dbTopic.TopicId, user.UserId)
+	dbMessageDraft, err := api.services.DB().GetForumMessageDraft(r.Context(), dbTopic.TopicId, user.UserId)
 
 	if err != nil {
 		if dbtools.IsNotFoundError(err) {
@@ -72,7 +73,7 @@ func (api *API) ConfirmForumMessageDraft(r *http.Request) (int, proto.Message) {
 		}
 	}
 
-	formattedMessage := helpers.FormatMessage(message)
+	formattedMessage := helpers.FormatMessage(dbMessageDraft.Message)
 
 	messageContainsModerTags := helpers.ContainsModerTags(formattedMessage)
 
@@ -101,7 +102,7 @@ func (api *API) ConfirmForumMessageDraft(r *http.Request) (int, proto.Message) {
 		isRed = 1
 	}
 
-	err = api.services.DB().ConfirmForumMessageDraft(r.Context(), dbTopic, user.UserId, user.Login, formattedMessage, isRed, api.config.ForumMessagesInPage)
+	dbMessage, err := api.services.DB().ConfirmForumMessageDraft(r.Context(), dbTopic, user.UserId, user.Login, formattedMessage, isRed, api.config.ForumMessagesInPage)
 
 	if err != nil {
 		return http.StatusInternalServerError, &pb.Error_Response{
@@ -122,5 +123,7 @@ func (api *API) ConfirmForumMessageDraft(r *http.Request) (int, proto.Message) {
 
 	// TODO Удалить директорию с аттачами черновика (./public/files/preview/m_{user_id}_{topic_id})
 
-	return http.StatusOK, &pb.Common_SuccessResponse{}
+	messageResponse := converters.GetForumTopicMessage(dbMessage, api.config)
+
+	return http.StatusOK, messageResponse
 }

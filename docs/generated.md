@@ -976,7 +976,7 @@
 
 
 
-**POST** [/v1/topics/{id}/message](../sources/server/internal/endpoints/add_forum_message.go#L14)
+**POST** [/v1/topics/{id}/message](../sources/server/internal/endpoints/add_forum_message.go#L15)
 
 Параметры запроса:
 
@@ -992,7 +992,31 @@
 Схема ответа:
 
 ```
-{}
+{
+  message: {            # сообщение
+    id: uint64          # id сообщения
+    creation: {         # данные о создании
+      user: {           # пользователь
+        id: uint64      # id пользователя
+        login: string   # логин
+        name: string    # имя
+        gender: int32   # пол
+        avatar: string  # аватар
+        class: int32    # класс
+        sign: string    # подпись на форуме
+      }
+      date: {           # дата создания
+        seconds: int64
+        nanos: int32
+      }
+    }
+    text: string        # текст
+    isCensored: bool    # текст изъят модератором?
+    stats: {            # статистика
+      rating: int64     # рейтинг
+    }
+  }
+}
 ```
 ---
 
@@ -1004,7 +1028,7 @@
 
 
 
-**PUT** [/v1/topics/{id}/message_draft](../sources/server/internal/endpoints/save_forum_message_draft.go#L13)
+**PUT** [/v1/topics/{id}/message_draft](../sources/server/internal/endpoints/save_forum_message_draft.go#L14)
 
 Параметры запроса:
 
@@ -1020,7 +1044,27 @@
 Схема ответа:
 
 ```
-{}
+{
+  messageDraft: {       # черновик сообщения
+    topicId: uint64     # id темы
+    creation: {         # данные о создании
+      user: {           # пользователь
+        id: uint64      # id пользователя
+        login: string   # логин
+        name: string    # имя
+        gender: int32   # пол
+        avatar: string  # аватар
+        class: int32    # класс
+        sign: string    # подпись на форуме
+      }
+      date: {           # дата создания
+        seconds: int64
+        nanos: int32
+      }
+    }
+    text: string        # текст
+  }
+}
 ```
 ---
 
@@ -1032,7 +1076,7 @@
 
 
 
-**POST** [/v1/topics/{id}/message_draft](../sources/server/internal/endpoints/confirm_forum_message_draft.go#L14)
+**POST** [/v1/topics/{id}/message_draft](../sources/server/internal/endpoints/confirm_forum_message_draft.go#L15)
 
 Параметры запроса:
 
@@ -1045,7 +1089,31 @@
 Схема ответа:
 
 ```
-{}
+{
+  message: {            # сообщение
+    id: uint64          # id сообщения
+    creation: {         # данные о создании
+      user: {           # пользователь
+        id: uint64      # id пользователя
+        login: string   # логин
+        name: string    # имя
+        gender: int32   # пол
+        avatar: string  # аватар
+        class: int32    # класс
+        sign: string    # подпись на форуме
+      }
+      date: {           # дата создания
+        seconds: int64
+        nanos: int32
+      }
+    }
+    text: string        # текст
+    isCensored: bool    # текст изъят модератором?
+    stats: {            # статистика
+      rating: int64     # рейтинг
+    }
+  }
+}
 ```
 ---
 
@@ -1110,7 +1178,7 @@
 
 
 
-**PUT** [/v1/forum_messages/{id}](../sources/server/internal/endpoints/edit_forum_message.go#L14)
+**PUT** [/v1/forum_messages/{id}](../sources/server/internal/endpoints/edit_forum_message.go#L15)
 
 Параметры запроса:
 
@@ -1126,7 +1194,31 @@
 Схема ответа:
 
 ```
-{}
+{
+  message: {            # сообщение
+    id: uint64          # id сообщения
+    creation: {         # данные о создании
+      user: {           # пользователь
+        id: uint64      # id пользователя
+        login: string   # логин
+        name: string    # имя
+        gender: int32   # пол
+        avatar: string  # аватар
+        class: int32    # класс
+        sign: string    # подпись на форуме
+      }
+      date: {           # дата создания
+        seconds: int64
+        nanos: int32
+      }
+    }
+    text: string        # текст
+    isCensored: bool    # текст изъят модератором?
+    stats: {            # статистика
+      rating: int64     # рейтинг
+    }
+  }
+}
 ```
 ---
 
@@ -1219,7 +1311,7 @@
 
 
 
-**POST** [/v1/blog_articles/{id}/comment](../sources/server/internal/endpoints/add_blog_article_comment.go#L12)
+**POST** [/v1/blog_articles/{id}/comment](../sources/server/internal/endpoints/add_blog_article_comment.go#L13)
 
 Параметры запроса:
 
@@ -1238,7 +1330,29 @@
 Схема ответа:
 
 ```
-{}
+{
+  comment: {            # комментарий
+    id: uint64          # id сообщения
+    creation: {         # данные о создании
+      user: {           # пользователь
+        id: uint64      # id пользователя
+        login: string   # логин
+        name: string    # имя
+        gender: int32   # пол
+        avatar: string  # аватар
+        class: int32    # класс
+        sign: string    # подпись на форуме
+      }
+      date: {           # дата создания
+        seconds: int64
+        nanos: int32
+      }
+    }
+    text: string        # текст сообщения
+    isCensored: bool    # текст изъят модератором?
+    answers: [...]      # ответы на комментарий
+  }
+}
 ```
 ---
 
@@ -1308,7 +1422,7 @@
 
 
 
-**PUT** [/v1/blog_article_comments/{id}](../sources/server/internal/endpoints/edit_blog_article_comment.go#L12)
+**PUT** [/v1/blog_article_comments/{id}](../sources/server/internal/endpoints/edit_blog_article_comment.go#L13)
 
 Параметры запроса:
 
@@ -1324,7 +1438,29 @@
 Схема ответа:
 
 ```
-{}
+{
+  comment: {            # комментарий
+    id: uint64          # id сообщения
+    creation: {         # данные о создании
+      user: {           # пользователь
+        id: uint64      # id пользователя
+        login: string   # логин
+        name: string    # имя
+        gender: int32   # пол
+        avatar: string  # аватар
+        class: int32    # класс
+        sign: string    # подпись на форуме
+      }
+      date: {           # дата создания
+        seconds: int64
+        nanos: int32
+      }
+    }
+    text: string        # текст сообщения
+    isCensored: bool    # текст изъят модератором?
+    answers: [...]      # ответы на комментарий
+  }
+}
 ```
 ---
 

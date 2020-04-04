@@ -148,4 +148,9 @@ message Blog {
         // общее ко-во комментариев у поста
         uint64 total_count = 2;
     }
+
+    message BlogArticleCommentResponse {
+        // комментарий
+        Comment comment = 1;
+    }
 }

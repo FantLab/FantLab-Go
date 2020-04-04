@@ -295,12 +295,25 @@ const (
 	`
 
 	BlogGetTopicMessage = `
-		SELECT
-			*
-		FROM
-			b_messages
+		SELECT 
+			m.message_id, 
+			m.topic_id,
+			m.parent_message_id, 
+			m.date_of_add,
+			m.is_censored, 
+			u.user_id, 
+			u.login, 
+			u.sex, 
+			u.photo_number, 
+			IF(m.is_censored, '', mt.message_text) AS content
+		FROM 
+			b_messages m
+		LEFT JOIN 
+			users u ON m.user_id = u.user_id
+		LEFT JOIN 
+			b_messages_text mt ON mt.message_id = m.message_id
 		WHERE
-			message_id = ?
+			m.message_id = ?
 	`
 
 	BlogTopicInsertNewMessage = `
@@ -316,18 +329,6 @@ const (
 			)
 		VALUES
 			(?, ?, ?, ?, ?, ?, 0)
-	`
-
-	BlogGetTopicLastMessage = `
-		SELECT
-			*
-		FROM
-			b_messages
-		WHERE
-			topic_id = ?
-		ORDER BY
-			message_id DESC
-		LIMIT 1
 	`
 
 	BlogSetMessageText = `
