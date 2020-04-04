@@ -13,7 +13,7 @@ func Test_UpdateForumTopicSubscribed(t *testing.T) {
 	execTable := make(dbstubs.StubExecTable)
 
 	execTable[sqlr.NewQuery(queries.ForumTopicSubscriptionInsert).WithArgs(2, 25).String()] = sqlr.Result{
-		Rows: 1,
+		RowsAffected: 1,
 	}
 
 	t.Run("positive", func(t *testing.T) {
@@ -26,7 +26,7 @@ func Test_UpdateForumTopicSubscribed(t *testing.T) {
 
 	t.Run("positive_2", func(t *testing.T) {
 		execTable[sqlr.NewQuery(queries.ForumTopicSubscriptionInsert).WithArgs(2, 25).String()] = sqlr.Result{
-			Rows: 0,
+			RowsAffected: 0,
 		}
 
 		db := NewDB(&dbstubs.StubDB{ExecTable: execTable})
@@ -53,15 +53,15 @@ func Test_UpdateForumTopicUnsubscribed(t *testing.T) {
 	execTable := make(dbstubs.StubExecTable)
 
 	execTable[sqlr.NewQuery(queries.ForumTopicSubscriptionDelete).WithArgs(25, 2).String()] = sqlr.Result{
-		Rows: 1,
+		RowsAffected: 1,
 	}
 
 	execTable[sqlr.NewQuery(queries.ForumTopicNewMessagesDelete).WithArgs(25, 2).String()] = sqlr.Result{
-		Rows: 1,
+		RowsAffected: 1,
 	}
 
 	execTable[sqlr.NewQuery(queries.ForumNewMessagesUpdate).WithArgs(2, 2).String()] = sqlr.Result{
-		Rows: 1,
+		RowsAffected: 1,
 	}
 
 	t.Run("positive", func(t *testing.T) {
@@ -98,7 +98,7 @@ func Test_UpdateForumTopicUnsubscribed(t *testing.T) {
 
 	t.Run("negative_3", func(t *testing.T) {
 		execTable[sqlr.NewQuery(queries.ForumTopicSubscriptionDelete).WithArgs(25, 2).String()] = sqlr.Result{
-			Rows: 0,
+			RowsAffected: 0,
 		}
 
 		db := NewDB(&dbstubs.StubDB{ExecTable: execTable})

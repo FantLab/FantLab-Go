@@ -5,8 +5,9 @@ import (
 )
 
 type Result struct {
-	Rows  int64
-	Error error
+	LastInsertId int64
+	RowsAffected int64
+	Error        error
 }
 
 type Rows interface {

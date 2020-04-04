@@ -52,7 +52,7 @@ func (l logRW) Write(ctx context.Context, q Query) Result {
 	result := l.rw.Write(ctx, q)
 	l.f(ctx, LogEntry{
 		Query:    q.String,
-		Rows:     result.Rows,
+		Rows:     result.RowsAffected,
 		Err:      result.Error,
 		Time:     t,
 		Duration: time.Since(t),

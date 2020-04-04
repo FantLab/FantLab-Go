@@ -21,7 +21,7 @@ func Test_LikeDislike(t *testing.T) {
 	t.Run("like_dislike", func(t *testing.T) {
 		{
 			stubDB.ExecTable[sqlr.NewQuery(queries.UpdateBlogTopicLikesCount).WithArgs(1).String()] = sqlr.Result{
-				Rows: 1,
+				RowsAffected: 1,
 			}
 		}
 
@@ -48,7 +48,7 @@ func Test_LikeDislike(t *testing.T) {
 			}
 
 			stubDB.ExecTable[sqlr.NewQuery(queries.DislikeBlogTopic).WithArgs(1, 1).String()] = sqlr.Result{
-				Rows: 1,
+				RowsAffected: 1,
 			}
 		}
 
@@ -70,11 +70,11 @@ func Test_LikeDislike(t *testing.T) {
 			}
 
 			stubDB.ExecTable[sqlr.NewQuery(queries.LikeBlogTopic).WithArgs(1, 1).String()] = sqlr.Result{
-				Rows: 1,
+				RowsAffected: 1,
 			}
 
 			stubDB.ExecTable[sqlr.NewQuery(queries.UpdateBlogTopicLikesCount).WithArgs(1).String()] = sqlr.Result{
-				Rows: 1,
+				RowsAffected: 1,
 			}
 		}
 

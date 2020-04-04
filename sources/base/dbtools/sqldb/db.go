@@ -40,20 +40,22 @@ type readerWriter struct {
 }
 
 func (rw readerWriter) Write(ctx context.Context, q sqlr.Query) sqlr.Result {
-	r, err := rw.sql.ExecContext(ctx, q.Text(), q.Args()...)
+	res, err := rw.sql.ExecContext(ctx, q.Text(), q.Args()...)
 
 	if err != nil {
 		return sqlr.Result{
-			Rows:  0,
 			Error: err,
 		}
 	}
 
-	n, err := r.RowsAffected()
+	var lastInsertId, rowsAffected int64
+
+	lastInsertId, _ = res.LastInsertId()
+	rowsAffected, _ = res.RowsAffected()
 
 	return sqlr.Result{
-		Rows:  n,
-		Error: err,
+		LastInsertId: lastInsertId,
+		RowsAffected: rowsAffected,
 	}
 }
 

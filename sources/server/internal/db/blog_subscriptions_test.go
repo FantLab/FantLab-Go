@@ -13,11 +13,11 @@ func Test_UpdateBlogSubscribed(t *testing.T) {
 	execTable := make(dbstubs.StubExecTable)
 
 	execTable[sqlr.NewQuery(queries.BlogSubscriptionInsert).WithArgs(2, 1).String()] = sqlr.Result{
-		Rows: 1,
+		RowsAffected: 1,
 	}
 
 	execTable[sqlr.NewQuery(queries.BlogSubscriberUpdate).WithArgs(1).String()] = sqlr.Result{
-		Rows: 1,
+		RowsAffected: 1,
 	}
 
 	t.Run("positive", func(t *testing.T) {
@@ -42,7 +42,7 @@ func Test_UpdateBlogSubscribed(t *testing.T) {
 
 	t.Run("negative_2", func(t *testing.T) {
 		execTable[sqlr.NewQuery(queries.BlogSubscriptionInsert).WithArgs(2, 1).String()] = sqlr.Result{
-			Rows: 0,
+			RowsAffected: 0,
 		}
 
 		db := NewDB(&dbstubs.StubDB{ExecTable: execTable})
@@ -69,11 +69,11 @@ func Test_UpdateBlogUnsubscribed(t *testing.T) {
 	execTable := make(dbstubs.StubExecTable)
 
 	execTable[sqlr.NewQuery(queries.BlogSubscriptionDelete).WithArgs(1, 2).String()] = sqlr.Result{
-		Rows: 1,
+		RowsAffected: 1,
 	}
 
 	execTable[sqlr.NewQuery(queries.BlogSubscriberUpdate).WithArgs(1).String()] = sqlr.Result{
-		Rows: 1,
+		RowsAffected: 1,
 	}
 
 	t.Run("positive", func(t *testing.T) {
@@ -86,7 +86,7 @@ func Test_UpdateBlogUnsubscribed(t *testing.T) {
 
 	t.Run("positive_2", func(t *testing.T) {
 		execTable[sqlr.NewQuery(queries.BlogSubscriberUpdate).WithArgs(1).String()] = sqlr.Result{
-			Rows: 0,
+			RowsAffected: 0,
 		}
 
 		db := NewDB(&dbstubs.StubDB{ExecTable: execTable})
@@ -110,7 +110,7 @@ func Test_UpdateBlogUnsubscribed(t *testing.T) {
 
 	t.Run("negative_2", func(t *testing.T) {
 		execTable[sqlr.NewQuery(queries.BlogSubscriptionDelete).WithArgs(1, 2).String()] = sqlr.Result{
-			Rows: 0,
+			RowsAffected: 0,
 		}
 
 		db := NewDB(&dbstubs.StubDB{ExecTable: execTable})
@@ -137,7 +137,7 @@ func Test_UpdateBlogTopicSubscribed(t *testing.T) {
 	execTable := make(dbstubs.StubExecTable)
 
 	execTable[sqlr.NewQuery(queries.BlogTopicSubscriptionInsert).WithArgs(2, 1).String()] = sqlr.Result{
-		Rows: 1,
+		RowsAffected: 1,
 	}
 
 	t.Run("positive", func(t *testing.T) {
@@ -150,7 +150,7 @@ func Test_UpdateBlogTopicSubscribed(t *testing.T) {
 
 	t.Run("positive_2", func(t *testing.T) {
 		execTable[sqlr.NewQuery(queries.BlogTopicSubscriptionInsert).WithArgs(2, 1).String()] = sqlr.Result{
-			Rows: 0,
+			RowsAffected: 0,
 		}
 
 		db := NewDB(&dbstubs.StubDB{ExecTable: execTable})
@@ -177,7 +177,7 @@ func Test_UpdateBlogTopicUnsubscribed(t *testing.T) {
 	execTable := make(dbstubs.StubExecTable)
 
 	execTable[sqlr.NewQuery(queries.BlogTopicSubscriptionDelete).WithArgs(1, 2).String()] = sqlr.Result{
-		Rows: 1,
+		RowsAffected: 1,
 	}
 
 	t.Run("positive", func(t *testing.T) {
@@ -190,7 +190,7 @@ func Test_UpdateBlogTopicUnsubscribed(t *testing.T) {
 
 	t.Run("positive_2", func(t *testing.T) {
 		execTable[sqlr.NewQuery(queries.BlogTopicSubscriptionDelete).WithArgs(1, 2).String()] = sqlr.Result{
-			Rows: 0,
+			RowsAffected: 0,
 		}
 
 		db := NewDB(&dbstubs.StubDB{ExecTable: execTable})
