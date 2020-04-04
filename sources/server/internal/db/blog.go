@@ -292,8 +292,14 @@ func (db *DB) FetchBlogTopicCommentsCount(ctx context.Context, topicId uint64) (
 	return
 }
 
-func (db *DB) FetchBlogTopicComments(ctx context.Context, topicId uint64, after time.Time, sort string, count uint8) (response []BlogTopicComment, err error) {
-	err = db.engine.Read(ctx, sqlr.NewQuery(queries.BlogTopicMessages).Inject(sort).WithArgs(topicId, after, count, blogArticleCommentsMaxDepth)).Scan(&response)
+func (db *DB) FetchBlogTopicComments(ctx context.Context, topicId uint64, after time.Time, sortAsc bool, count uint8) (response []BlogTopicComment, err error) {
+	var sortDirection string
+	if sortAsc {
+		sortDirection = "ASC"
+	} else {
+		sortDirection = "DESC"
+	}
+	err = db.engine.Read(ctx, sqlr.NewQuery(queries.BlogTopicMessages).Inject(sortDirection).WithArgs(topicId, after, count, blogArticleCommentsMaxDepth)).Scan(&response)
 	return
 }
 

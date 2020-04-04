@@ -188,12 +188,12 @@
 
 
 
-**GET** [/v1/topics/{id}](../sources/server/internal/endpoints/show_topic_messages.go#L15)
+**GET** [/v1/topics/{id}](../sources/server/internal/endpoints/show_topic_messages.go#L13)
 
 Параметры запроса:
 
 
-* **id** (path, uint64) - айди темы
+* **id** (path, uint64) - id темы
 
 
 * **page** (query, uint64) - номер страницы (по умолчанию - 1)
@@ -202,7 +202,7 @@
 * **limit** (query, uint64) - кол-во записей на странице (по умолчанию - 20)
 
 
-* **order** (query, string) - порядок выдачи (asc - по умолчанию, desc)
+* **sortAsc** (query, uint8) - порядок выдачи (0 - от новых к старым, 1 - наоборот; по умолчанию - 0)
 
 
 
@@ -553,7 +553,7 @@
 * **limit** (query, uint64) - кол-во записей на странице (по умолчанию - 5)
 
 
-* **sort** (query, string) - сортировать по (кол-ву тем в блоге - article, кол-ву подписчиков - subscriber, дате обновления - update (по умолчанию))
+* **sort** (query, string) - сортировать по (кол-ву тем в блоге - article, кол-ву подписчиков - subscriber, дате обновления от новых к старым - update (по умолчанию))
 
 
 
@@ -839,12 +839,12 @@
 
 
 
-**GET** [/v1/blog_articles/{id}/comments](../sources/server/internal/endpoints/blog_article_comments.go#L14)
+**GET** [/v1/blog_articles/{id}/comments](../sources/server/internal/endpoints/show_blog_article_comments.go#L13)
 
 Параметры запроса:
 
 
-* **id** (path, uint64) - айди статьи
+* **id** (path, uint64) - id статьи
 
 
 * **after** (query, string) - дата, после которой искать сообщения (в формате RFC3339)
@@ -853,7 +853,7 @@
 * **count** (query, uint64) - кол-во комментариев верхнего уровня (по умолчанию - 10, [5, 20])
 
 
-* **sort** (query, string) - Сортировка (asc, dec, по умолчанию - asc)
+* **sortAsc** (query, uint8) - порядок выдачи (0 - от новых к старым, 1 - наоборот; по умолчанию - 0)
 
 
 

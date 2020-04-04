@@ -5,27 +5,25 @@ import (
 	"fantlab/pb"
 	"fantlab/server/internal/converters"
 	"fantlab/server/internal/helpers"
+	"google.golang.org/protobuf/proto"
 	"net/http"
 	"strconv"
-	"strings"
-
-	"google.golang.org/protobuf/proto"
 )
 
 func (api *API) ShowTopicMessages(r *http.Request) (int, proto.Message) {
 	params := struct {
-		// айди темы
+		// id темы
 		TopicId uint64 `http:"id,path"`
 		// номер страницы (по умолчанию - 1)
 		Page uint64 `http:"page,query"`
 		// кол-во записей на странице (по умолчанию - 20)
 		Limit uint64 `http:"limit,query"`
-		// порядок выдачи (asc - по умолчанию, desc)
-		Order string `http:"order,query"`
+		// порядок выдачи (0 - от новых к старым, 1 - наоборот; по умолчанию - 0)
+		SortAsc uint8 `http:"sortAsc,query"`
 	}{
-		Page:  1,
-		Limit: api.config.ForumMessagesInPage,
-		Order: "asc",
+		Page:    1,
+		Limit:   api.config.ForumMessagesInPage,
+		SortAsc: 0,
 	}
 
 	api.bindParams(&params, r)
@@ -39,6 +37,9 @@ func (api *API) ShowTopicMessages(r *http.Request) (int, proto.Message) {
 	if !helpers.IsValidLimit(params.Limit) {
 		return api.badParam("limit")
 	}
+	if !(params.SortAsc == 0 || params.SortAsc == 1) {
+		return api.badParam("sortAsc")
+	}
 
 	availableForums := api.getAvailableForums(r)
 
@@ -46,9 +47,9 @@ func (api *API) ShowTopicMessages(r *http.Request) (int, proto.Message) {
 		r.Context(),
 		availableForums,
 		params.TopicId,
-		params.Limit,
-		params.Limit*(params.Page-1),
-		strings.ToUpper(params.Order) == "ASC",
+		int64(params.Limit),
+		int64(params.Limit*(params.Page-1)),
+		params.SortAsc == 1,
 	)
 
 	if err != nil {
