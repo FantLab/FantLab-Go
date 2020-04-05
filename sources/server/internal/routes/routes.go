@@ -46,6 +46,7 @@ func Tree(config *config.AppConfig, services *app.Services, pathParamGetter endp
 			g.Subgroup("С проверкой на бан", func(g *routing.Group) {
 				g.Middleware(middlewares.CheckBan(services))
 
+				g.Endpoint(http.MethodPost, "/file/upload", api.FileUpload, "Получение урла на загрузку файла")
 				g.Endpoint(http.MethodPost, "/topics/:id/message", api.AddForumMessage, "Создание нового сообщения в форуме")
 				g.Endpoint(http.MethodPut, "/topics/:id/message_draft", api.SaveForumMessageDraft, "Сохранение черновика сообщения в форуме")
 				g.Endpoint(http.MethodPost, "/topics/:id/message_draft", api.ConfirmForumMessageDraft, "Подтверждение черновика сообщения в форуме")

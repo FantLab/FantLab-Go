@@ -65,4 +65,9 @@ message Common {
     }
 
     message SuccessResponse {}
+
+    message FileUploadResponse {
+        // URL на загрузку файла
+        string url = 1;
+    }
 }

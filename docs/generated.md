@@ -971,6 +971,34 @@
 ## С проверкой на бан
 
 
+<details><summary>Получение урла на загрузку файла</summary>
+<p>
+
+Возвращает урл (удалить после привязки к форумам/блогам)
+
+
+**POST** [/v1/file/upload](../sources/server/internal/endpoints/file_upload.go#L12)
+
+Параметры запроса:
+
+
+* **path_to_file** (form, string) - Путь к файлу на сервере (напр. forum/14/image.jpg)
+
+
+
+
+Схема ответа:
+
+```
+{
+  url: string  # URL на загрузку файла
+}
+```
+---
+
+</p>
+</details>
+
 <details><summary>Создание нового сообщения в форуме</summary>
 <p>
 

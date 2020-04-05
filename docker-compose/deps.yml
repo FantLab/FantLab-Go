@@ -30,6 +30,19 @@ services:
     environment:
       MYSQL_DATABASE: fantlab
       MYSQL_ROOT_PASSWORD: pass
+  minio:
+    image: minio/minio
+    restart: unless-stopped
+    networks:
+      - flnetwork
+    ports:
+      - 9000:9000
+    environment:
+      MINIO_ACCESS_KEY: minio
+      MINIO_SECRET_KEY: minio123
+    command: server /data
+    volumes:
+      - flminio:/data
   adminer:
     image: adminer
     restart: unless-stopped
@@ -42,5 +55,6 @@ services:
 volumes:
   flsqldata:
   flredis:
+  flminio:
 networks:
   flnetwork:
