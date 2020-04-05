@@ -11,6 +11,10 @@ services:
     environment:
       JWT_PUBLIC_KEY_FILE: /run/secrets/flgo_jwt_public_key
       JWT_PRIVATE_KEY_FILE: /run/secrets/flgo_jwt_private_key
+      MINIO_ACCESS_KEY_FILE: /run/secrets/access_key
+      MINIO_SECRET_KEY_FILE: /run/secrets/secret_key
+      MINIO_BUCKET: ${MINIO_BUCKET}
+      MINIO_SERVER: ${MINIO_SERVER}
       PORT: ${PORT}
       MONITORING_PORT: ${MONITORING_PORT}
       DB_ADDRESS: ${DB_ADDRESS}
@@ -23,6 +27,8 @@ services:
     secrets:
       - flgo_jwt_public_key
       - flgo_jwt_private_key
+      - access_key
+      - secret_key
     healthcheck:
       test: ['CMD', 'curl', '-sS', 'localhost:${PORT}/ping']
       interval: 10s
@@ -48,4 +54,8 @@ secrets:
   flgo_jwt_public_key:
     external: true
   flgo_jwt_private_key:
+    external: true
+  access_key:
+    external: true
+  secret_key:
     external: true

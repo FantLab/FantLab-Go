@@ -2,6 +2,7 @@ package server
 
 import (
 	"context"
+	"errors"
 	"expvar"
 	"fantlab/base/anyserver"
 	"fantlab/base/codeflow"
@@ -18,6 +19,7 @@ import (
 	"fantlab/server/internal/logs"
 	"fantlab/server/internal/routes"
 	"fmt"
+	"io/ioutil"
 	"net/http"
 	"net/http/pprof"
 	"os"
@@ -26,6 +28,7 @@ import (
 	"go.uber.org/zap"
 
 	"github.com/gomodule/redigo/redis"
+	"github.com/minio/minio-go/v6"
 	"go.elastic.co/apm/module/apmredigo"
 	"go.elastic.co/apm/module/apmsql"
 	_ "go.elastic.co/apm/module/apmsql/mysql"
@@ -58,6 +61,8 @@ func makeAPIServer() (server *anyserver.Server) {
 	var redisClient redisclient.Client
 	var memcacheClient memcacheclient.Client
 	var cryptoCoder *edsign.Coder
+	var minioClient *minio.Client
+	var minioBucket string
 	var appConfig *config.AppConfig
 
 	server.SetupError = codeflow.Try(
@@ -144,6 +149,33 @@ func makeAPIServer() (server *anyserver.Server) {
 			cryptoCoder = coder
 			return nil
 		},
+		func() error { // minio
+			server := os.Getenv("MINIO_SERVER")
+			if len(server) == 0 {
+				return errors.New("Min.io setup error: server not found")
+			}
+
+			client, err := makeMinioWithSecrets(server, os.Getenv("MINIO_ACCESS_KEY_FILE"), os.Getenv("MINIO_SECRET_KEY_FILE"))
+			if err != nil {
+				client, err = minio.New(server, os.Getenv("MINIO_ACCESS_KEY"), os.Getenv("MINIO_SECRET_KEY"), false)
+				if err != nil {
+					return fmt.Errorf("Min.io setup error: %v", err)
+				}
+			}
+
+			minioBucket = os.Getenv("MINIO_BUCKET")
+			bucketExists, err := client.BucketExists(minioBucket)
+			if err != nil {
+				return fmt.Errorf("Min.io setup error: %v", err)
+			}
+			if !bucketExists {
+				return fmt.Errorf("Min.io setup error: bucket %s not found", minioBucket)
+			}
+
+			minioClient = client
+
+			return nil
+		},
 		func() error { // конфигурация бизнес-логики
 			// Все параметры заданы в config/main.cfg и config/misc.cfg Perl-бэка
 			appConfig = &config.AppConfig{
@@ -173,7 +205,7 @@ func makeAPIServer() (server *anyserver.Server) {
 
 	httpHandler, markAsUnavailable := routes.MakeHandler(
 		appConfig,
-		app.MakeServices(mysqlDB, redisClient, memcacheClient, cryptoCoder),
+		app.MakeServices(mysqlDB, redisClient, memcacheClient, cryptoCoder, minioClient, minioBucket),
 	)
 
 	httpServer := &http.Server{
@@ -195,6 +227,18 @@ func makeAPIServer() (server *anyserver.Server) {
 	server.ShutdownTimeout = 5 * time.Second
 
 	return
+}
+
+func makeMinioWithSecrets(server, accessKeyFile, secretKeyFile string) (*minio.Client, error) {
+	accessKey, err := ioutil.ReadFile(accessKeyFile)
+	if err != nil {
+		return nil, err
+	}
+	secretKey, err := ioutil.ReadFile(secretKeyFile)
+	if err != nil {
+		return nil, err
+	}
+	return minio.New(server, string(accessKey), string(secretKey), false)
 }
 
 func makeMonitoringServer() (server *anyserver.Server) {
