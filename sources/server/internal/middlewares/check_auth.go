@@ -18,7 +18,8 @@ func CheckAuth(next http.Handler) http.Handler {
 		} else {
 			protobuf.Handle(func(r *http.Request) (int, proto.Message) {
 				return http.StatusUnauthorized, &pb.Error_Response{
-					Status: pb.Error_AUTH_REQUIRED,
+					Status:  pb.Error_AUTH_REQUIRED,
+					Context: "Требуется авторизация",
 				}
 			}).ServeHTTP(w, r)
 		}
