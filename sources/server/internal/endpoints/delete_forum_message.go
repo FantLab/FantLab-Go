@@ -3,6 +3,7 @@ package endpoints
 import (
 	"fantlab/base/dbtools"
 	"fantlab/pb"
+	"fantlab/server/internal/app"
 	"google.golang.org/protobuf/proto"
 	"net/http"
 	"strconv"
@@ -78,7 +79,7 @@ func (api *API) DeleteForumMessage(r *http.Request) (int, proto.Message) {
 		}
 	}
 
-	dbFiles, err := api.services.DB().DeleteForumMessage(r.Context(), dbMessage.MessageID, dbMessage.TopicId, dbMessage.ForumId,
+	err = api.services.DB().DeleteForumMessage(r.Context(), dbMessage.MessageID, dbMessage.TopicId, dbMessage.ForumId,
 		dbMessage.DateOfAdd, api.config.ForumMessagesInPage)
 
 	if err != nil {
@@ -87,14 +88,22 @@ func (api *API) DeleteForumMessage(r *http.Request) (int, proto.Message) {
 		}
 	}
 
-	for _, dbFile := range dbFiles {
-		// Удаляем файл, ошибку игнорим
-		_ = api.services.DeleteFile(r.Context(), dbFile.FileName, dbFile.DateOfAdd)
+	files, err := api.services.GetFiles(r.Context(), app.ForumMessageFileGroup, dbMessage.MessageID)
+
+	if err != nil {
+		return http.StatusInternalServerError, &pb.Error_Response{
+			Status: pb.Error_SOMETHING_WENT_WRONG,
+		}
 	}
 
-	// TODO (FLGO-215):
+	for _, file := range files {
+		// Удаляем файл, ошибку игнорим
+		_ = api.services.DeleteFile(r.Context(), app.ForumMessageFileGroup, dbMessage.MessageID, file.Name)
+	}
+
+	// TODO:
 	//  - удалить кеш текста сообщения
-	//  - удалить Perl-аттачи сообщения
+	//  - удалить Perl-аттачи сообщения вместе с директорией
 
 	return http.StatusOK, &pb.Common_SuccessResponse{}
 }

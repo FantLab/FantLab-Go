@@ -4,22 +4,28 @@ import (
 	"fantlab/base/dbtools"
 	"fantlab/pb"
 	"fantlab/server/internal/app"
+	"fmt"
+	"google.golang.org/protobuf/proto"
 	"net/http"
 	"strconv"
-
-	"google.golang.org/protobuf/proto"
 )
 
-func (api *API) CancelForumMessageDraft(r *http.Request) (int, proto.Message) {
+func (api *API) GetForumMessageDraftFileUploadUrl(r *http.Request) (int, proto.Message) {
 	var params struct {
 		// id темы
 		TopicId uint64 `http:"id,path"`
+		// полное имя файла (с расширением)
+		FileName string `http:"file_name,query"`
 	}
 
 	api.bindParams(&params, r)
 
 	if params.TopicId == 0 {
 		return api.badParam("id")
+	}
+
+	if len(params.FileName) == 0 {
+		return api.badParam("file_name")
 	}
 
 	availableForums := api.getAvailableForums(r)
@@ -48,7 +54,7 @@ func (api *API) CancelForumMessageDraft(r *http.Request) (int, proto.Message) {
 
 	user := api.getUser(r)
 
-	dbMessageDraft, err := api.services.DB().FetchForumMessageDraft(r.Context(), dbTopic.TopicId, user.UserId)
+	dbMessageDraft, err := api.services.DB().FetchForumMessageDraft(r.Context(), params.TopicId, user.UserId)
 
 	if err != nil {
 		if dbtools.IsNotFoundError(err) {
@@ -63,14 +69,6 @@ func (api *API) CancelForumMessageDraft(r *http.Request) (int, proto.Message) {
 		}
 	}
 
-	err = api.services.DB().DeleteForumMessageDraft(r.Context(), dbTopic.TopicId, dbMessageDraft.DraftId, user.UserId)
-
-	if err != nil {
-		return http.StatusInternalServerError, &pb.Error_Response{
-			Status: pb.Error_SOMETHING_WENT_WRONG,
-		}
-	}
-
 	files, err := api.services.GetFiles(r.Context(), app.ForumMessageDraftFileGroup, dbMessageDraft.DraftId)
 
 	if err != nil {
@@ -79,14 +77,24 @@ func (api *API) CancelForumMessageDraft(r *http.Request) (int, proto.Message) {
 		}
 	}
 
-	for _, file := range files {
-		// Удаляем файл, ошибку игнорим
-		_ = api.services.DeleteFile(r.Context(), app.ForumMessageDraftFileGroup, dbMessageDraft.DraftId, file.Name)
+	fileCount := uint64(len(files))
+
+	if fileCount == api.config.MaxAttachCountPerMessage {
+		return http.StatusInternalServerError, &pb.Error_Response{
+			Status:  pb.Error_ACTION_PERMITTED,
+			Context: fmt.Sprintf("К сообщению уже приаттачено %d файлов, это максимум", fileCount),
+		}
 	}
 
-	// TODO:
-	//  - удалить кеш текста черновика (если есть)
-	//  - удалить Perl-аттачи черновика вместе с директорией (./public/files/preview/m_{user_id}_{topic_id})
+	uploadUrl, err := api.services.GetFileUploadUrl(r.Context(), app.ForumMessageDraftFileGroup, dbMessageDraft.DraftId, params.FileName)
 
-	return http.StatusOK, &pb.Common_SuccessResponse{}
+	if err != nil {
+		return http.StatusInternalServerError, &pb.Error_Response{
+			Status: pb.Error_SOMETHING_WENT_WRONG,
+		}
+	}
+
+	return http.StatusOK, &pb.Common_FileUploadResponse{
+		Url: uploadUrl,
+	}
 }

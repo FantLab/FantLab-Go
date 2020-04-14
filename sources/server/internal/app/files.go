@@ -2,40 +2,70 @@ package app
 
 import (
 	"context"
-	"fantlab/server/internal/helpers"
 	"fantlab/server/internal/logs"
-	"github.com/minio/minio-go/v6"
+	"fmt"
 	"path/filepath"
 	"time"
 )
 
-const MySqlDateTime = "2006-01-02 15:04:05"
+const (
+	ForumMessageFileGroup      = "forum_message"
+	ForumMessageDraftFileGroup = "forum_message_draft"
+)
 
-func (s *Services) UploadFile(ctx context.Context, filePath string, time time.Time) (uint64, error) {
-	_, fileName := filepath.Split(filePath)
-	objectName := getObjectName(fileName, time)
+type File struct {
+	Name string
+	Size uint64
+}
 
-	fileSize, err := s.minioClient.FPutObject(s.minioBucket, objectName, filePath, minio.PutObjectOptions{})
+func (s *Services) GetFileUploadUrl(ctx context.Context, fileGroup string, holderId uint64, fileName string) (string, error) {
+	objectName := fmt.Sprintf("%s/%d/%s", fileGroup, holderId, fileName)
+	expiry := 10 * time.Minute
+
+	url, err := s.minioClient.PresignedPutObject(s.minioBucket, objectName, expiry)
 
 	if err != nil {
 		logs.WithAPM(ctx).Error(err.Error())
+		return "", err
 	}
 
-	return uint64(fileSize), err
+	return url.String(), nil
 }
 
-func (s *Services) DeleteFile(ctx context.Context, fileName string, uploadTime time.Time) error {
-	objectName := getObjectName(fileName, uploadTime)
+func (s *Services) GetFiles(ctx context.Context, fileGroup string, holderId uint64) ([]File, error) {
+	doneCh := make(chan struct{})
+	defer close(doneCh)
 
+	prefix := fmt.Sprintf("%s/%d", fileGroup, holderId)
+
+	objectCh := s.minioClient.ListObjectsV2(s.minioBucket, prefix, true, doneCh)
+
+	var files []File
+	for object := range objectCh {
+		if object.Err != nil {
+			err := object.Err
+			logs.WithAPM(ctx).Error(err.Error())
+			return nil, err
+		}
+
+		_, fileName := filepath.Split(object.Key)
+		files = append(files, File{
+			Name: fileName,
+			Size: uint64(object.Size),
+		})
+	}
+
+	return files, nil
+}
+
+func (s *Services) DeleteFile(ctx context.Context, fileGroup string, holderId uint64, fileName string) error {
+	objectName := fmt.Sprintf("%s/%d/%s", fileGroup, holderId, fileName)
 	err := s.minioClient.RemoveObject(s.minioBucket, objectName)
+
 	if err != nil {
 		logs.WithAPM(ctx).Error(err.Error())
+		return err
 	}
 
-	return err
-}
-
-func getObjectName(fileName string, time time.Time) string {
-	base64 := helpers.GetBase64(time.Format(MySqlDateTime))
-	return base64 + "/" + fileName
+	return nil
 }

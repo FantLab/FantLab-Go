@@ -436,14 +436,6 @@ const (
 			file_group = 'forum' AND message_id = ?
 	`
 
-	ForumDeleteMessageMinioFiles = `
-		DELETE
-		FROM
-			files_minio
-		WHERE
-			file_group = 'forum' AND holder_id = ?
-	`
-
 	ForumMarkMessageDeleted = `
 		INSERT INTO
 			f_messages_deleted (message_id)
@@ -533,69 +525,5 @@ const (
 			new_forum_answers = new_forum_answers - 1
 		WHERE
 			user_id IN (?) AND new_forum_answers > 0
-	`
-
-	ForumGetMessageMinioFileCount = `
-		SELECT
-			COUNT(*)
-		FROM
-			files_minio
-		WHERE
-			file_group = 'forum' AND holder_id = ?
-	`
-
-	ForumGetMessageMinioFiles = `
-		SELECT
-			file_id,
-			file_group,
-			holder_id AS message_id,
-			file_name,
-			file_size,
-			date_of_add,
-			user_id
-		FROM
-			files_minio
-		WHERE
-			file_group = 'forum' AND holder_id = ?
-	`
-
-	ForumGetMessageMinioFile = `
-		SELECT
-			file_id,
-			file_group,
-			holder_id AS message_id,
-			file_name,
-			file_size,
-			date_of_add,
-			user_id
-		FROM
-			files_minio
-		WHERE
-			file_group = 'forum' AND holder_id = ? AND file_id = ?
-	`
-
-	// Ignore on duplicate (very unlikely): https://stackoverflow.com/a/4596409
-	ForumInsertMessageMinioFile = `
-		INSERT INTO
-			files_minio (
-				file_group,
-				holder_id,
-				file_name,
-				file_size,
-				date_of_add,
-				user_id
-			)
-		VALUES
-			('forum', ?, ?, ?, ?, ?)
-		ON DUPLICATE KEY UPDATE
-			file_id = file_id
-	`
-
-	ForumDeleteMessageMinioFile = `
-		DELETE
-		FROM
-			files_minio
-		WHERE
-			file_group = 'forum' AND holder_id = ? AND file_id = ?
 	`
 )

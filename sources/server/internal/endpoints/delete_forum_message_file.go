@@ -3,6 +3,7 @@ package endpoints
 import (
 	"fantlab/base/dbtools"
 	"fantlab/pb"
+	"fantlab/server/internal/app"
 	"fantlab/server/internal/converters"
 	"google.golang.org/protobuf/proto"
 	"net/http"
@@ -14,8 +15,8 @@ func (api *API) DeleteForumMessageFile(r *http.Request) (int, proto.Message) {
 	var params struct {
 		// id сообщения
 		MessageId uint64 `http:"id,path"`
-		// id файла
-		FileId uint64 `http:"file_id,form"`
+		// полное имя файла (с расширением)
+		FileName string `http:"file_name,form"`
 	}
 
 	api.bindParams(&params, r)
@@ -24,8 +25,8 @@ func (api *API) DeleteForumMessageFile(r *http.Request) (int, proto.Message) {
 		return api.badParam("id")
 	}
 
-	if params.FileId == 0 {
-		return api.badParam("file_id")
+	if len(params.FileName) == 0 {
+		return api.badParam("file_name")
 	}
 
 	availableForums := api.getAvailableForums(r)
@@ -45,18 +46,27 @@ func (api *API) DeleteForumMessageFile(r *http.Request) (int, proto.Message) {
 		}
 	}
 
-	dbFile, err := api.services.DB().FetchForumMessageFile(r.Context(), dbMessage.MessageID, params.FileId)
+	files, err := api.services.GetFiles(r.Context(), app.ForumMessageFileGroup, dbMessage.MessageID)
 
 	if err != nil {
-		if dbtools.IsNotFoundError(err) {
-			return http.StatusNotFound, &pb.Error_Response{
-				Status:  pb.Error_NOT_FOUND,
-				Context: strconv.FormatUint(params.FileId, 10),
-			}
-		}
-
 		return http.StatusInternalServerError, &pb.Error_Response{
 			Status: pb.Error_SOMETHING_WENT_WRONG,
+		}
+	}
+
+	fileExist := false
+
+	for _, file := range files {
+		if file.Name == params.FileName {
+			fileExist = true
+			break
+		}
+	}
+
+	if !fileExist {
+		return http.StatusForbidden, &pb.Error_Response{
+			Status:  pb.Error_ACTION_PERMITTED,
+			Context: "Не удалось найти аттач с таким именем",
 		}
 	}
 
@@ -119,16 +129,8 @@ func (api *API) DeleteForumMessageFile(r *http.Request) (int, proto.Message) {
 		}
 	}
 
-	dbMessage, err = api.services.DB().DeleteForumMessageFile(r.Context(), dbMessage.MessageID, dbFile.FileId)
-
-	if err != nil {
-		return http.StatusInternalServerError, &pb.Error_Response{
-			Status: pb.Error_SOMETHING_WENT_WRONG,
-		}
-	}
-
 	// Удаляем файл, ошибку игнорим
-	_ = api.services.DeleteFile(r.Context(), dbFile.FileName, dbFile.DateOfAdd)
+	_ = api.services.DeleteFile(r.Context(), app.ForumMessageFileGroup, dbMessage.MessageID, params.FileName)
 
 	messageResponse := converters.GetForumTopicMessage(dbMessage, api.config)
 

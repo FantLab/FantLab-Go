@@ -1080,7 +1080,7 @@
 
 
 
-**DELETE** [/v1/forum_messages/{id}](../sources/server/internal/endpoints/delete_forum_message.go#L12)
+**DELETE** [/v1/forum_messages/{id}](../sources/server/internal/endpoints/delete_forum_message.go#L13)
 
 Параметры запроса:
 
@@ -1100,12 +1100,12 @@
 </p>
 </details>
 
-<details><summary>Загрузка аттача к сообщению в форуме</summary>
+<details><summary>Получение URL для загрузки аттача к сообщению в форуме</summary>
 <p>
 
 
 
-**POST** [/v1/forum_messages/{id}/file](../sources/server/internal/endpoints/upload_forum_message_file.go#L16)
+**GET** [/v1/forum_messages/{id}/file_upload_url](../sources/server/internal/endpoints/get_forum_message_file_upload_url.go#L14)
 
 Параметры запроса:
 
@@ -1113,7 +1113,7 @@
 * **id** (path, uint64) - id сообщения
 
 
-* **file_path** (form, string) - локальный путь к файлу
+* **file_name** (query, string) - полное имя файла (с расширением)
 
 
 
@@ -1122,29 +1122,7 @@
 
 ```
 {
-  message: {            # сообщение
-    id: uint64          # id сообщения
-    creation: {         # данные о создании
-      user: {           # пользователь
-        id: uint64      # id пользователя
-        login: string   # логин
-        name: string    # имя
-        gender: int32   # пол
-        avatar: string  # аватар
-        class: int32    # класс
-        sign: string    # подпись на форуме
-      }
-      date: {           # дата создания
-        seconds: int64
-        nanos: int32
-      }
-    }
-    text: string        # текст
-    isCensored: bool    # текст изъят модератором?
-    stats: {            # статистика
-      rating: int64     # рейтинг
-    }
-  }
+  url: string  # URL на загрузку файла
 }
 ```
 ---
@@ -1157,7 +1135,7 @@
 
 
 
-**DELETE** [/v1/forum_messages/{id}/file](../sources/server/internal/endpoints/delete_forum_message_file.go#L13)
+**DELETE** [/v1/forum_messages/{id}/file](../sources/server/internal/endpoints/delete_forum_message_file.go#L14)
 
 Параметры запроса:
 
@@ -1165,7 +1143,7 @@
 * **id** (path, uint64) - id сообщения
 
 
-* **file_id** (form, uint64) - id файла
+* **file_name** (form, string) - полное имя файла (с расширением)
 
 
 
@@ -1306,7 +1284,7 @@
 
 
 
-**DELETE** [/v1/topics/{id}/message_draft](../sources/server/internal/endpoints/cancel_forum_message_draft.go#L12)
+**DELETE** [/v1/topics/{id}/message_draft](../sources/server/internal/endpoints/cancel_forum_message_draft.go#L13)
 
 Параметры запроса:
 
@@ -1326,12 +1304,12 @@
 </p>
 </details>
 
-<details><summary>Загрузка аттача к черновику сообщения в форуме</summary>
+<details><summary>Получение URL для загрузки аттача к черновику сообщения в форуме</summary>
 <p>
 
 
 
-**POST** [/v1/topics/{id}/message_draft/file](../sources/server/internal/endpoints/upload_forum_message_draft_file.go#L16)
+**GET** [/v1/topics/{id}/message_draft/file_upload_url](../sources/server/internal/endpoints/get_forum_message_draft_file_upload_url.go#L13)
 
 Параметры запроса:
 
@@ -1339,7 +1317,7 @@
 * **id** (path, uint64) - id темы
 
 
-* **file_path** (form, string) - локальный путь к файлу
+* **file_name** (query, string) - полное имя файла (с расширением)
 
 
 
@@ -1348,25 +1326,7 @@
 
 ```
 {
-  messageDraft: {       # черновик сообщения
-    topicId: uint64     # id темы
-    creation: {         # данные о создании
-      user: {           # пользователь
-        id: uint64      # id пользователя
-        login: string   # логин
-        name: string    # имя
-        gender: int32   # пол
-        avatar: string  # аватар
-        class: int32    # класс
-        sign: string    # подпись на форуме
-      }
-      date: {           # дата создания
-        seconds: int64
-        nanos: int32
-      }
-    }
-    text: string        # текст
-  }
+  url: string  # URL на загрузку файла
 }
 ```
 ---
@@ -1379,7 +1339,7 @@
 
 
 
-**DELETE** [/v1/topics/{id}/message_draft/file](../sources/server/internal/endpoints/delete_forum_message_draft_file.go#L12)
+**DELETE** [/v1/topics/{id}/message_draft/file](../sources/server/internal/endpoints/delete_forum_message_draft_file.go#L13)
 
 Параметры запроса:
 
@@ -1387,7 +1347,7 @@
 * **id** (path, uint64) - id темы
 
 
-* **file_id** (form, uint64) - id файла
+* **file_name** (form, string) - полное имя файла (с расширением)
 
 
 

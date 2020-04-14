@@ -3,21 +3,20 @@ package endpoints
 import (
 	"fantlab/base/dbtools"
 	"fantlab/pb"
-	"fantlab/server/internal/converters"
+	"fantlab/server/internal/app"
 	"fmt"
 	"google.golang.org/protobuf/proto"
 	"net/http"
-	"path/filepath"
 	"strconv"
 	"time"
 )
 
-func (api *API) UploadForumMessageFile(r *http.Request) (int, proto.Message) {
+func (api *API) GetForumMessageFileUploadUrl(r *http.Request) (int, proto.Message) {
 	var params struct {
 		// id сообщения
 		MessageId uint64 `http:"id,path"`
-		// локальный путь к файлу
-		FilePath string `http:"file_path,form"`
+		// полное имя файла (с расширением)
+		FileName string `http:"file_name,query"`
 	}
 
 	api.bindParams(&params, r)
@@ -26,8 +25,8 @@ func (api *API) UploadForumMessageFile(r *http.Request) (int, proto.Message) {
 		return api.badParam("id")
 	}
 
-	if len(params.FilePath) == 0 {
-		return api.badParam("file_path")
+	if len(params.FileName) == 0 {
+		return api.badParam("file_name")
 	}
 
 	availableForums := api.getAvailableForums(r)
@@ -106,7 +105,7 @@ func (api *API) UploadForumMessageFile(r *http.Request) (int, proto.Message) {
 		}
 	}
 
-	uploadedFileCount, err := api.services.DB().FetchForumMessageFileCount(r.Context(), dbMessage.MessageID)
+	files, err := api.services.GetFiles(r.Context(), app.ForumMessageFileGroup, dbMessage.MessageID)
 
 	if err != nil {
 		return http.StatusInternalServerError, &pb.Error_Response{
@@ -114,16 +113,16 @@ func (api *API) UploadForumMessageFile(r *http.Request) (int, proto.Message) {
 		}
 	}
 
-	if uploadedFileCount >= api.config.MaxAttachCountPerMessage {
+	fileCount := uint64(len(files))
+
+	if fileCount == api.config.MaxAttachCountPerMessage {
 		return http.StatusInternalServerError, &pb.Error_Response{
 			Status:  pb.Error_ACTION_PERMITTED,
-			Context: fmt.Sprintf("К сообщению уже приаттачено %d файлов, это максимум", uploadedFileCount),
+			Context: fmt.Sprintf("К сообщению уже приаттачено %d файлов, это максимум", fileCount),
 		}
 	}
 
-	now := time.Now()
-
-	fileSize, err := api.services.UploadFile(r.Context(), params.FilePath, now)
+	uploadUrl, err := api.services.GetFileUploadUrl(r.Context(), app.ForumMessageFileGroup, dbMessage.MessageID, params.FileName)
 
 	if err != nil {
 		return http.StatusInternalServerError, &pb.Error_Response{
@@ -131,36 +130,7 @@ func (api *API) UploadForumMessageFile(r *http.Request) (int, proto.Message) {
 		}
 	}
 
-	_, fileName := filepath.Split(params.FilePath)
-
-	// Снова читаем из базы количество приаттаченных файлов на случай, если параллельный запрос уже успел залить файл
-	uploadedFileCount, err = api.services.DB().FetchForumMessageFileCount(r.Context(), dbMessage.MessageID)
-
-	if err != nil {
-		return http.StatusInternalServerError, &pb.Error_Response{
-			Status: pb.Error_SOMETHING_WENT_WRONG,
-		}
+	return http.StatusOK, &pb.Common_FileUploadResponse{
+		Url: uploadUrl,
 	}
-
-	if uploadedFileCount >= api.config.MaxAttachCountPerMessage {
-		// Удаляем только что залитый файл, потенциальную ошибку игнорируем
-		_ = api.services.DeleteFile(r.Context(), fileName, now)
-
-		return http.StatusInternalServerError, &pb.Error_Response{
-			Status:  pb.Error_ACTION_PERMITTED,
-			Context: fmt.Sprintf("К сообщению уже приаттачено %d файлов, это максимум", uploadedFileCount),
-		}
-	}
-
-	dbMessage, err = api.services.DB().InsertForumMessageFile(r.Context(), dbMessage.MessageID, fileName, fileSize, now, user.UserId)
-
-	if err != nil {
-		return http.StatusInternalServerError, &pb.Error_Response{
-			Status: pb.Error_SOMETHING_WENT_WRONG,
-		}
-	}
-
-	messageResponse := converters.GetForumTopicMessage(dbMessage, api.config)
-
-	return http.StatusOK, messageResponse
 }

@@ -3,6 +3,7 @@ package endpoints
 import (
 	"fantlab/base/dbtools"
 	"fantlab/pb"
+	"fantlab/server/internal/app"
 	"fantlab/server/internal/converters"
 	"google.golang.org/protobuf/proto"
 	"net/http"
@@ -13,8 +14,8 @@ func (api *API) DeleteForumMessageDraftFile(r *http.Request) (int, proto.Message
 	var params struct {
 		// id темы
 		TopicId uint64 `http:"id,path"`
-		// id файла
-		FileId uint64 `http:"file_id,form"`
+		// полное имя файла (с расширением)
+		FileName string `http:"file_name,form"`
 	}
 
 	api.bindParams(&params, r)
@@ -23,8 +24,8 @@ func (api *API) DeleteForumMessageDraftFile(r *http.Request) (int, proto.Message
 		return api.badParam("id")
 	}
 
-	if params.FileId == 0 {
-		return api.badParam("file_id")
+	if len(params.FileName) == 0 {
+		return api.badParam("file_name")
 	}
 
 	availableForums := api.getAvailableForums(r)
@@ -68,31 +69,32 @@ func (api *API) DeleteForumMessageDraftFile(r *http.Request) (int, proto.Message
 		}
 	}
 
-	dbFile, err := api.services.DB().FetchForumMessageDraftFile(r.Context(), dbMessageDraft.DraftId, params.FileId)
+	files, err := api.services.GetFiles(r.Context(), app.ForumMessageDraftFileGroup, dbMessageDraft.DraftId)
 
 	if err != nil {
-		if dbtools.IsNotFoundError(err) {
-			return http.StatusNotFound, &pb.Error_Response{
-				Status:  pb.Error_NOT_FOUND,
-				Context: strconv.FormatUint(params.FileId, 10),
-			}
-		}
-
 		return http.StatusInternalServerError, &pb.Error_Response{
 			Status: pb.Error_SOMETHING_WENT_WRONG,
 		}
 	}
 
-	dbMessageDraft, err = api.services.DB().DeleteForumMessageDraftFile(r.Context(), dbMessageDraft.DraftId, dbFile.FileId, dbTopic.TopicId, user.UserId)
+	fileExist := false
 
-	if err != nil {
-		return http.StatusInternalServerError, &pb.Error_Response{
-			Status: pb.Error_SOMETHING_WENT_WRONG,
+	for _, file := range files {
+		if file.Name == params.FileName {
+			fileExist = true
+			break
+		}
+	}
+
+	if !fileExist {
+		return http.StatusForbidden, &pb.Error_Response{
+			Status:  pb.Error_ACTION_PERMITTED,
+			Context: "Не удалось найти аттач с таким именем",
 		}
 	}
 
 	// Удаляем файл, ошибку игнорим
-	_ = api.services.DeleteFile(r.Context(), dbFile.FileName, dbFile.DateOfAdd)
+	_ = api.services.DeleteFile(r.Context(), app.ForumMessageDraftFileGroup, dbMessageDraft.DraftId, params.FileName)
 
 	messageDraftResponse := converters.GetForumTopicMessageDraft(dbMessageDraft, api.config)
 

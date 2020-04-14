@@ -89,16 +89,6 @@ type ForumMessage struct {
 	Number      uint64    `db:"number"`
 }
 
-type ForumMessageFile struct {
-	FileId    uint64    `db:"file_id"`
-	FileGroup string    `db:"file_group"`
-	MessageId uint64    `db:"message_id"`
-	FileName  string    `db:"file_name"`
-	FileSize  uint64    `db:"file_size"`
-	DateOfAdd time.Time `db:"date_of_add"`
-	UserId    uint64    `db:"user_id"`
-}
-
 type ForumModerator struct {
 	UserID      uint64 `db:"user_id"`
 	Login       string `db:"login"`
@@ -459,10 +449,8 @@ func (db *DB) UpdateForumMessage(ctx context.Context, messageId, topicId uint64,
 	return &message, nil
 }
 
-func (db *DB) DeleteForumMessage(ctx context.Context, messageId, topicId, forumId uint64, messageDate time.Time, forumMessagesInPage uint64) ([]ForumMessageFile, error) {
-	var files []ForumMessageFile
-
-	err := db.engine.InTransaction(func(rw sqlr.ReaderWriter) error {
+func (db *DB) DeleteForumMessage(ctx context.Context, messageId, topicId, forumId uint64, messageDate time.Time, forumMessagesInPage uint64) error {
+	return db.engine.InTransaction(func(rw sqlr.ReaderWriter) error {
 		return codeflow.Try(
 			func() error { // Удаляем сообщение
 				return rw.Write(ctx, sqlr.NewQuery(queries.ForumDeleteMessage).WithArgs(messageId)).Error
@@ -472,12 +460,6 @@ func (db *DB) DeleteForumMessage(ctx context.Context, messageId, topicId, forumI
 			},
 			func() error { // Удаляем записи об аттачах сообщения
 				return rw.Write(ctx, sqlr.NewQuery(queries.ForumDeleteMessageFiles).WithArgs(messageId)).Error
-			},
-			func() error { // Получаем записи об аттачах сообщения в Minio
-				return rw.Read(ctx, sqlr.NewQuery(queries.ForumGetMessageMinioFiles).WithArgs(messageId)).Scan(&files)
-			},
-			func() error { // Удаляем записи об аттачах сообщения в Minio
-				return rw.Write(ctx, sqlr.NewQuery(queries.ForumDeleteMessageMinioFiles).WithArgs(messageId)).Error
 			},
 			func() error {
 				// Записываем сообщение в список удаленных. Таблица чистится при переиндексации форума Sphinx-ом
@@ -503,12 +485,6 @@ func (db *DB) DeleteForumMessage(ctx context.Context, messageId, topicId, forumI
 			},
 		)
 	})
-
-	if err != nil {
-		return nil, err
-	}
-
-	return files, nil
 }
 
 func updateTopicStatAfterMessageDeleting(ctx context.Context, rw sqlr.ReaderWriter, topicId uint64) error {
@@ -574,72 +550,4 @@ func notifyForumTopicSubscribersAboutMessageDeleting(ctx context.Context, rw sql
 			return rw.Write(ctx, sqlr.NewQuery(queries.ForumDecrementNewForumAnswersCount).WithArgs(topicSubscribers).FlatArgs()).Error
 		},
 	)
-}
-
-func (db *DB) FetchForumMessageFileCount(ctx context.Context, messageId uint64) (uint64, error) {
-	var count uint64
-
-	err := db.engine.Read(ctx, sqlr.NewQuery(queries.ForumGetMessageMinioFileCount).WithArgs(messageId)).Error()
-
-	if err != nil {
-		return 0, err
-	}
-
-	return count, nil
-}
-
-func (db *DB) FetchForumMessageFile(ctx context.Context, messageId, fileId uint64) (*ForumMessageFile, error) {
-	var file ForumMessageFile
-
-	err := db.engine.Read(ctx, sqlr.NewQuery(queries.ForumGetMessageMinioFile).WithArgs(messageId, fileId)).Scan(&file)
-
-	if err != nil {
-		return nil, err
-	}
-
-	return &file, nil
-}
-
-func (db *DB) InsertForumMessageFile(ctx context.Context, messageId uint64, fileName string, fileSize uint64, fileDate time.Time, userId uint64) (*ForumMessage, error) {
-	var message ForumMessage
-
-	err := db.engine.InTransaction(func(rw sqlr.ReaderWriter) error {
-		return codeflow.Try(
-			func() error { // Создаем запись о новом аттаче
-				return rw.Write(ctx, sqlr.NewQuery(queries.ForumInsertMessageMinioFile).WithArgs(messageId, fileName, fileSize, fileDate, userId)).Error
-			},
-			func() error { // Получаем сообщение
-				// TODO Возвращать в т.ч. список аттачей сообщения
-				return rw.Read(ctx, sqlr.NewQuery(queries.ForumGetTopicMessage).WithArgs(messageId)).Scan(&message)
-			},
-		)
-	})
-
-	if err != nil {
-		return nil, err
-	}
-
-	return &message, nil
-}
-
-func (db *DB) DeleteForumMessageFile(ctx context.Context, messageId, fileId uint64) (*ForumMessage, error) {
-	var message ForumMessage
-
-	err := db.engine.InTransaction(func(rw sqlr.ReaderWriter) error {
-		return codeflow.Try(
-			func() error { // Удаляем запись об аттаче
-				return rw.Write(ctx, sqlr.NewQuery(queries.ForumDeleteMessageMinioFile).WithArgs(messageId, fileId)).Error
-			},
-			func() error { // Получаем сообщение
-				// TODO Возвращать в т.ч. список аттачей сообщения
-				return rw.Read(ctx, sqlr.NewQuery(queries.ForumGetTopicMessage).WithArgs(messageId)).Scan(&message)
-			},
-		)
-	})
-
-	if err != nil {
-		return nil, err
-	}
-
-	return &message, nil
 }

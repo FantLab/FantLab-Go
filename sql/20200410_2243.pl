@@ -34,28 +34,6 @@ else {
     say "table auth_tokens already exists";
 }
 
-unless (table('files_mimio')) {
-    schema()->do('DROP TABLE IF EXISTS `files_minio`;');
-    say "table files_minio dropped";
-    schema()->do(qq{
-        CREATE TABLE `files_minio` (
-            `file_id`     int(4) NOT NULL AUTO_INCREMENT,
-            `file_group`  varchar(255) NOT NULL,
-            `holder_id`   int(4) NOT NULL,
-            `file_name`   varchar(255) NOT NULL,
-            `file_size`   int(4) NOT NULL,
-            `date_of_add` datetime NOT NULL,
-            `user_id`     int(4) NOT NULL,
-            PRIMARY KEY (`file_id`),
-            CONSTRAINT `holder_file_unique` UNIQUE(`file_group`, `holder_id`, `date_of_add`, `file_name`)
-        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
-    });
-    say "table files_minio created";
-}
-else {
-    say "table files_minio already exists";
-}
-
 # Create constraints. Don't DROP it because:
 # 1. Action has complex syntax of check for existence
 # 2. Adding will throw non-fatal 'Duplicate key name X' error if already exist
