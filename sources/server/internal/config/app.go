@@ -21,4 +21,5 @@ type AppConfig struct {
 	BlogArticleCommentsInPage  uint64
 	CensorshipText             string
 	BotUserId                  uint64
+	MaxAttachCountPerMessage   uint64
 }

@@ -78,7 +78,7 @@ func (api *API) DeleteForumMessage(r *http.Request) (int, proto.Message) {
 		}
 	}
 
-	err = api.services.DB().DeleteForumMessage(r.Context(), dbMessage.MessageID, dbMessage.TopicId, dbMessage.ForumId,
+	dbFiles, err := api.services.DB().DeleteForumMessage(r.Context(), dbMessage.MessageID, dbMessage.TopicId, dbMessage.ForumId,
 		dbMessage.DateOfAdd, api.config.ForumMessagesInPage)
 
 	if err != nil {
@@ -87,9 +87,14 @@ func (api *API) DeleteForumMessage(r *http.Request) (int, proto.Message) {
 		}
 	}
 
+	for _, dbFile := range dbFiles {
+		// Удаляем файл, ошибку игнорим
+		_ = api.services.DeleteFile(r.Context(), dbFile.FileName, dbFile.DateOfAdd)
+	}
+
 	// TODO (FLGO-215):
 	//  - удалить кеш текста сообщения
-	//  - удалить директорию с аттачами сообщения
+	//  - удалить Perl-аттачи сообщения
 
 	return http.StatusOK, &pb.Common_SuccessResponse{}
 }

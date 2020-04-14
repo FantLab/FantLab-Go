@@ -971,34 +971,6 @@
 ## С проверкой на бан
 
 
-<details><summary>Получение урла на загрузку файла</summary>
-<p>
-
-Возвращает урл (удалить после привязки к форумам/блогам)
-
-
-**POST** [/v1/file/upload](../sources/server/internal/endpoints/file_upload.go#L12)
-
-Параметры запроса:
-
-
-* **path_to_file** (form, string) - Путь к файлу на сервере (напр. forum/14/image.jpg)
-
-
-
-
-Схема ответа:
-
-```
-{
-  url: string  # URL на загрузку файла
-}
-```
----
-
-</p>
-</details>
-
 <details><summary>Создание нового сообщения в форуме</summary>
 <p>
 
@@ -1013,6 +985,187 @@
 
 
 * **message** (form, string) - текст сообщения
+
+
+
+
+Схема ответа:
+
+```
+{
+  message: {            # сообщение
+    id: uint64          # id сообщения
+    creation: {         # данные о создании
+      user: {           # пользователь
+        id: uint64      # id пользователя
+        login: string   # логин
+        name: string    # имя
+        gender: int32   # пол
+        avatar: string  # аватар
+        class: int32    # класс
+        sign: string    # подпись на форуме
+      }
+      date: {           # дата создания
+        seconds: int64
+        nanos: int32
+      }
+    }
+    text: string        # текст
+    isCensored: bool    # текст изъят модератором?
+    stats: {            # статистика
+      rating: int64     # рейтинг
+    }
+  }
+}
+```
+---
+
+</p>
+</details>
+
+<details><summary>Редактирование сообщения в форуме</summary>
+<p>
+
+
+
+**PUT** [/v1/forum_messages/{id}](../sources/server/internal/endpoints/edit_forum_message.go#L15)
+
+Параметры запроса:
+
+
+* **id** (path, uint64) - id сообщения
+
+
+* **message** (form, string) - новый текст сообщения
+
+
+
+
+Схема ответа:
+
+```
+{
+  message: {            # сообщение
+    id: uint64          # id сообщения
+    creation: {         # данные о создании
+      user: {           # пользователь
+        id: uint64      # id пользователя
+        login: string   # логин
+        name: string    # имя
+        gender: int32   # пол
+        avatar: string  # аватар
+        class: int32    # класс
+        sign: string    # подпись на форуме
+      }
+      date: {           # дата создания
+        seconds: int64
+        nanos: int32
+      }
+    }
+    text: string        # текст
+    isCensored: bool    # текст изъят модератором?
+    stats: {            # статистика
+      rating: int64     # рейтинг
+    }
+  }
+}
+```
+---
+
+</p>
+</details>
+
+<details><summary>Удаление сообщения в форуме</summary>
+<p>
+
+
+
+**DELETE** [/v1/forum_messages/{id}](../sources/server/internal/endpoints/delete_forum_message.go#L12)
+
+Параметры запроса:
+
+
+* **id** (path, uint64) - id сообщения
+
+
+
+
+Схема ответа:
+
+```
+{}
+```
+---
+
+</p>
+</details>
+
+<details><summary>Загрузка аттача к сообщению в форуме</summary>
+<p>
+
+
+
+**POST** [/v1/forum_messages/{id}/file](../sources/server/internal/endpoints/upload_forum_message_file.go#L16)
+
+Параметры запроса:
+
+
+* **id** (path, uint64) - id сообщения
+
+
+* **file_path** (form, string) - локальный путь к файлу
+
+
+
+
+Схема ответа:
+
+```
+{
+  message: {            # сообщение
+    id: uint64          # id сообщения
+    creation: {         # данные о создании
+      user: {           # пользователь
+        id: uint64      # id пользователя
+        login: string   # логин
+        name: string    # имя
+        gender: int32   # пол
+        avatar: string  # аватар
+        class: int32    # класс
+        sign: string    # подпись на форуме
+      }
+      date: {           # дата создания
+        seconds: int64
+        nanos: int32
+      }
+    }
+    text: string        # текст
+    isCensored: bool    # текст изъят модератором?
+    stats: {            # статистика
+      rating: int64     # рейтинг
+    }
+  }
+}
+```
+---
+
+</p>
+</details>
+
+<details><summary>Удаление аттача сообщения в форуме</summary>
+<p>
+
+
+
+**DELETE** [/v1/forum_messages/{id}/file](../sources/server/internal/endpoints/delete_forum_message_file.go#L13)
+
+Параметры запроса:
+
+
+* **id** (path, uint64) - id сообщения
+
+
+* **file_id** (form, uint64) - id файла
 
 
 
@@ -1173,48 +1326,20 @@
 </p>
 </details>
 
-<details><summary>Подписка/отписка от темы форума</summary>
+<details><summary>Загрузка аттача к черновику сообщения в форуме</summary>
 <p>
 
 
 
-**PUT** [/v1/topics/{id}/subscription](../sources/server/internal/endpoints/toggle_forum_topic_subscription.go#L12)
+**POST** [/v1/topics/{id}/message_draft/file](../sources/server/internal/endpoints/upload_forum_message_draft_file.go#L16)
 
 Параметры запроса:
 
 
-* **id** (path, uint64) - айди темы
+* **id** (path, uint64) - id темы
 
 
-* **subscribe** (form, bool) - подписаться - true, отписаться - false
-
-
-
-
-Схема ответа:
-
-```
-{}
-```
----
-
-</p>
-</details>
-
-<details><summary>Редактирование сообщения в форуме</summary>
-<p>
-
-
-
-**PUT** [/v1/forum_messages/{id}](../sources/server/internal/endpoints/edit_forum_message.go#L15)
-
-Параметры запроса:
-
-
-* **id** (path, uint64) - id сообщения
-
-
-* **message** (form, string) - новый текст сообщения
+* **file_path** (form, string) - локальный путь к файлу
 
 
 
@@ -1223,8 +1348,8 @@
 
 ```
 {
-  message: {            # сообщение
-    id: uint64          # id сообщения
+  messageDraft: {       # черновик сообщения
+    topicId: uint64     # id темы
     creation: {         # данные о создании
       user: {           # пользователь
         id: uint64      # id пользователя
@@ -1241,10 +1366,6 @@
       }
     }
     text: string        # текст
-    isCensored: bool    # текст изъят модератором?
-    stats: {            # статистика
-      rating: int64     # рейтинг
-    }
   }
 }
 ```
@@ -1253,17 +1374,20 @@
 </p>
 </details>
 
-<details><summary>Удаление сообщения в форуме</summary>
+<details><summary>Удаление аттача черновика сообщения в форуме</summary>
 <p>
 
 
 
-**DELETE** [/v1/forum_messages/{id}](../sources/server/internal/endpoints/delete_forum_message.go#L12)
+**DELETE** [/v1/topics/{id}/message_draft/file](../sources/server/internal/endpoints/delete_forum_message_draft_file.go#L12)
 
 Параметры запроса:
 
 
-* **id** (path, uint64) - id сообщения
+* **id** (path, uint64) - id темы
+
+
+* **file_id** (form, uint64) - id файла
 
 
 
@@ -1271,52 +1395,44 @@
 Схема ответа:
 
 ```
-{}
+{
+  messageDraft: {       # черновик сообщения
+    topicId: uint64     # id темы
+    creation: {         # данные о создании
+      user: {           # пользователь
+        id: uint64      # id пользователя
+        login: string   # логин
+        name: string    # имя
+        gender: int32   # пол
+        avatar: string  # аватар
+        class: int32    # класс
+        sign: string    # подпись на форуме
+      }
+      date: {           # дата создания
+        seconds: int64
+        nanos: int32
+      }
+    }
+    text: string        # текст
+  }
+}
 ```
 ---
 
 </p>
 </details>
 
-<details><summary>Вступление/выход из сообщества</summary>
+<details><summary>Подписка/отписка от темы форума</summary>
 <p>
 
 
 
-**PUT** [/v1/communities/{id}/subscription](../sources/server/internal/endpoints/toggle_community_subscription.go#L12)
+**PUT** [/v1/topics/{id}/subscription](../sources/server/internal/endpoints/toggle_forum_topic_subscription.go#L12)
 
 Параметры запроса:
 
 
-* **id** (path, uint64) - айди сообщества
-
-
-* **subscribe** (form, bool) - подписаться - true, отписаться - false
-
-
-
-
-Схема ответа:
-
-```
-{}
-```
----
-
-</p>
-</details>
-
-<details><summary>Подписка/отписка от блога</summary>
-<p>
-
-
-
-**PUT** [/v1/blogs/{id}/subscription](../sources/server/internal/endpoints/toogle_blog_subscription.go#L12)
-
-Параметры запроса:
-
-
-* **id** (path, uint64) - айди блога
+* **id** (path, uint64) - айди темы
 
 
 * **subscribe** (form, bool) - подписаться - true, отписаться - false
@@ -1380,64 +1496,6 @@
     isCensored: bool    # текст изъят модератором?
     answers: [...]      # ответы на комментарий
   }
-}
-```
----
-
-</p>
-</details>
-
-<details><summary>Подписка/отписка от статьи в блоге</summary>
-<p>
-
-
-
-**PUT** [/v1/blog_articles/{id}/subscription](../sources/server/internal/endpoints/toogle_article_subscription.go#L12)
-
-Параметры запроса:
-
-
-* **id** (path, uint64) - айди статьи
-
-
-* **subscribe** (form, bool) - подписаться - true, отписаться - false
-
-
-
-
-Схема ответа:
-
-```
-{}
-```
----
-
-</p>
-</details>
-
-<details><summary>Лайк/дизлайк статьи в блоге</summary>
-<p>
-
-
-
-**PUT** [/v1/blog_articles/{id}/like](../sources/server/internal/endpoints/toggle_article_like.go#L11)
-
-Параметры запроса:
-
-
-* **id** (path, uint64) - айди статьи
-
-
-* **like** (form, bool) - лайк - true, dislike - false
-
-
-
-
-Схема ответа:
-
-```
-{
-  likeCount: uint64  # количество лайков
 }
 ```
 ---
@@ -1514,6 +1572,120 @@
 
 ```
 {}
+```
+---
+
+</p>
+</details>
+
+<details><summary>Вступление/выход из сообщества</summary>
+<p>
+
+
+
+**PUT** [/v1/communities/{id}/subscription](../sources/server/internal/endpoints/toggle_community_subscription.go#L12)
+
+Параметры запроса:
+
+
+* **id** (path, uint64) - айди сообщества
+
+
+* **subscribe** (form, bool) - подписаться - true, отписаться - false
+
+
+
+
+Схема ответа:
+
+```
+{}
+```
+---
+
+</p>
+</details>
+
+<details><summary>Подписка/отписка от блога</summary>
+<p>
+
+
+
+**PUT** [/v1/blogs/{id}/subscription](../sources/server/internal/endpoints/toogle_blog_subscription.go#L12)
+
+Параметры запроса:
+
+
+* **id** (path, uint64) - айди блога
+
+
+* **subscribe** (form, bool) - подписаться - true, отписаться - false
+
+
+
+
+Схема ответа:
+
+```
+{}
+```
+---
+
+</p>
+</details>
+
+<details><summary>Подписка/отписка от статьи в блоге</summary>
+<p>
+
+
+
+**PUT** [/v1/blog_articles/{id}/subscription](../sources/server/internal/endpoints/toogle_article_subscription.go#L12)
+
+Параметры запроса:
+
+
+* **id** (path, uint64) - айди статьи
+
+
+* **subscribe** (form, bool) - подписаться - true, отписаться - false
+
+
+
+
+Схема ответа:
+
+```
+{}
+```
+---
+
+</p>
+</details>
+
+<details><summary>Лайк/дизлайк статьи в блоге</summary>
+<p>
+
+
+
+**PUT** [/v1/blog_articles/{id}/like](../sources/server/internal/endpoints/toggle_article_like.go#L11)
+
+Параметры запроса:
+
+
+* **id** (path, uint64) - айди статьи
+
+
+* **like** (form, bool) - лайк - true, dislike - false
+
+
+
+
+Схема ответа:
+
+```
+{
+  likeCount: uint64  # количество лайков
+}
 ```
 ---
 

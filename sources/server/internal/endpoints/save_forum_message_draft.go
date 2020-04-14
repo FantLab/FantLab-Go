@@ -79,8 +79,6 @@ func (api *API) SaveForumMessageDraft(r *http.Request) (int, proto.Message) {
 		}
 	}
 
-	// TODO: загрузка аттачей
-
 	messageDraftResponse := converters.GetForumTopicMessageDraft(dbMessageDraft, api.config)
 
 	return http.StatusOK, messageDraftResponse
