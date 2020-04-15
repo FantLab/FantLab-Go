@@ -31,6 +31,7 @@ func Tree(config *config.AppConfig, services *app.Services, pathParamGetter endp
 		g.Endpoint(http.MethodGet, "/work/:id/classification", api.GetWorkClassification, "Классификация произведения")
 		g.Endpoint(http.MethodGet, "/work/:id/subworks", api.GetWorkSubWorks, "Иерархия произведений, входящих в запрашиваемое")
 		g.Endpoint(http.MethodGet, "/blog_articles/:id/comments", api.BlogArticleComments, "Комментарии к статье в блоге")
+		g.Endpoint(http.MethodGet, "/users/:id/bookcases", api.ShowBookcases, "Список книжных полок")
 	})
 
 	g.Subgroup("Для зарегистрированных пользователей", func(g *routing.Group) {

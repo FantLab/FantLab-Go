@@ -891,6 +891,44 @@
 </p>
 </details>
 
+<details><summary>Список книжных полок</summary>
+<p>
+
+
+
+**GET** [/v1/users/{id}/bookcases](../sources/server/internal/endpoints/show_bookcases.go#L13)
+
+Параметры запроса:
+
+
+* **id** (path, uint64) - id пользователя
+
+
+
+
+Схема ответа:
+
+```
+{
+  bookcaseBlocks: [{     # список блоков книжных полок
+    title: string        # название блока
+    bookcases: [{        # книжные полки
+      id: uint64         # id книжной полки
+      isPrivate: bool    # приватная?
+      type: int32        # тип
+      title: string      # название
+      comment: string    # комментарий
+      index: uint64      # порядковый номер
+      itemCount: uint64  # количество элементов
+    }]
+  }]
+}
+```
+---
+
+</p>
+</details>
+
 
 ## Для зарегистрированных пользователей
 
@@ -1105,7 +1143,7 @@
 
 
 
-**GET** [/v1/forum_messages/{id}/file_upload_url](../sources/server/internal/endpoints/get_forum_message_file_upload_url.go#L14)
+**GET** [/v1/forum_messages/{id}/file_upload_url](../sources/server/internal/endpoints/get_forum_message_file_upload_url.go#L15)
 
 Параметры запроса:
 
@@ -1135,7 +1173,7 @@
 
 
 
-**DELETE** [/v1/forum_messages/{id}/file](../sources/server/internal/endpoints/delete_forum_message_file.go#L14)
+**DELETE** [/v1/forum_messages/{id}/file](../sources/server/internal/endpoints/delete_forum_message_file.go#L15)
 
 Параметры запроса:
 
@@ -1309,7 +1347,7 @@
 
 
 
-**GET** [/v1/topics/{id}/message_draft/file_upload_url](../sources/server/internal/endpoints/get_forum_message_draft_file_upload_url.go#L13)
+**GET** [/v1/topics/{id}/message_draft/file_upload_url](../sources/server/internal/endpoints/get_forum_message_draft_file_upload_url.go#L14)
 
 Параметры запроса:
 
@@ -1339,7 +1377,7 @@
 
 
 
-**DELETE** [/v1/topics/{id}/message_draft/file](../sources/server/internal/endpoints/delete_forum_message_draft_file.go#L13)
+**DELETE** [/v1/topics/{id}/message_draft/file](../sources/server/internal/endpoints/delete_forum_message_draft_file.go#L14)
 
 Параметры запроса:
 
