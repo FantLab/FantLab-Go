@@ -202,7 +202,6 @@ func GetBlog(dbResponse *db.BlogTopicsDBResponse, viewCounts []uint64, page, lim
 				},
 				Date: pbutils.TimestampProto(dbBlogTopic.DateOfAdd),
 			},
-			Text: dbBlogTopic.MessageText,
 			Tags: dbBlogTopic.Tags,
 			Stats: &pb.Blog_Article_Stats{
 				LikeCount:    dbBlogTopic.LikesCount,

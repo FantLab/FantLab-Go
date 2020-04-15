@@ -215,14 +215,11 @@ const (
 			u.login,
 			u.sex,
 			u.photo_number,
-			t.message_text,
 			b.tags,
 			b.likes_count,
 			b.comments_count
 		FROM
 			b_topics b
-		JOIN
-			b_topics_text t ON t.message_id = b.topic_id
 		LEFT JOIN
 			users u ON u.user_id = b.user_id
 		WHERE
