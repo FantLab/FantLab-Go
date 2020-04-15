@@ -88,18 +88,7 @@ func (api *API) DeleteForumMessage(r *http.Request) (int, proto.Message) {
 		}
 	}
 
-	files, err := api.services.GetFiles(r.Context(), app.ForumMessageFileGroup, dbMessage.MessageID)
-
-	if err != nil {
-		return http.StatusInternalServerError, &pb.Error_Response{
-			Status: pb.Error_SOMETHING_WENT_WRONG,
-		}
-	}
-
-	for _, file := range files {
-		// Удаляем файл, ошибку игнорим
-		_ = api.services.DeleteFile(r.Context(), app.ForumMessageFileGroup, dbMessage.MessageID, file.Name)
-	}
+	api.services.DeleteFiles(r.Context(), app.ForumMessageFileGroup, dbMessage.MessageID)
 
 	// TODO:
 	//  - удалить кеш текста сообщения

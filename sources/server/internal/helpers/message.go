@@ -13,7 +13,7 @@ var (
 	nonRussianCharactersRegex = regexp.MustCompile(`[^А-Яа-я]`)
 )
 
-// Чистим сообщение от лишних пробельных символов
+// Чистит сообщение от лишних пробельных символов
 func FormatMessage(message string) string {
 	result := message
 
@@ -31,17 +31,17 @@ func FormatMessage(message string) string {
 	return result
 }
 
-// Проверяем сообщение на наличие тегов [moder]...[/moder], поиск регистронезависимый
+// Проверяет сообщение на наличие тегов [moder]...[/moder], поиск регистронезависимый
 func ContainsModerTags(message string) bool {
 	return moderTagsRegex.MatchString(message)
 }
 
-// Удаляем теги [moder]...[/moder], поиск регистронезависимый
+// Удаляет теги [moder]...[/moder], поиск регистронезависимый
 func RemoveModerTags(message string) string {
 	return moderTagsRegex.ReplaceAllString(message, "$1")
 }
 
-// Удаляем символы, которые не будут участвовать в вычислении длины сообщения
+// Удаляет символы, которые не будут участвовать в вычислении длины сообщения
 func RemoveImmeasurable(message string) string {
 	result := message
 

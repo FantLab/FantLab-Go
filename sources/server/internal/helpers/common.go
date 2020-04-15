@@ -1,5 +1,13 @@
 package helpers
 
+import "regexp"
+
+var fileNameRegex = regexp.MustCompile(`^(\S |[^/])+$`)
+
+func IsValidFileName(fileName string) bool {
+	return fileNameRegex.MatchString(fileName)
+}
+
 func IsValidLimit(limit uint64) bool {
 	return limit >= 5 && limit <= 50
 }

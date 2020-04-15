@@ -4,6 +4,7 @@ import (
 	"fantlab/base/dbtools"
 	"fantlab/pb"
 	"fantlab/server/internal/app"
+	"fantlab/server/internal/helpers"
 	"fmt"
 	"google.golang.org/protobuf/proto"
 	"net/http"
@@ -24,7 +25,7 @@ func (api *API) GetForumMessageDraftFileUploadUrl(r *http.Request) (int, proto.M
 		return api.badParam("id")
 	}
 
-	if len(params.FileName) == 0 {
+	if !helpers.IsValidFileName(params.FileName) {
 		return api.badParam("file_name")
 	}
 
@@ -79,10 +80,10 @@ func (api *API) GetForumMessageDraftFileUploadUrl(r *http.Request) (int, proto.M
 
 	fileCount := uint64(len(files))
 
-	if fileCount == api.config.MaxAttachCountPerMessage {
+	if fileCount >= api.config.MaxAttachCountPerMessage {
 		return http.StatusInternalServerError, &pb.Error_Response{
 			Status:  pb.Error_ACTION_PERMITTED,
-			Context: fmt.Sprintf("К сообщению уже приаттачено %d файлов, это максимум", fileCount),
+			Context: fmt.Sprintf("К сообщению уже приаттачено %d файлов, это максимум", api.config.MaxAttachCountPerMessage),
 		}
 	}
 

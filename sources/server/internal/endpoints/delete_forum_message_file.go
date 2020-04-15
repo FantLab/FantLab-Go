@@ -5,6 +5,7 @@ import (
 	"fantlab/pb"
 	"fantlab/server/internal/app"
 	"fantlab/server/internal/converters"
+	"fantlab/server/internal/helpers"
 	"google.golang.org/protobuf/proto"
 	"net/http"
 	"strconv"
@@ -25,7 +26,7 @@ func (api *API) DeleteForumMessageFile(r *http.Request) (int, proto.Message) {
 		return api.badParam("id")
 	}
 
-	if len(params.FileName) == 0 {
+	if !helpers.IsValidFileName(params.FileName) {
 		return api.badParam("file_name")
 	}
 
@@ -129,8 +130,7 @@ func (api *API) DeleteForumMessageFile(r *http.Request) (int, proto.Message) {
 		}
 	}
 
-	// Удаляем файл, ошибку игнорим
-	_ = api.services.DeleteFile(r.Context(), app.ForumMessageFileGroup, dbMessage.MessageID, params.FileName)
+	api.services.DeleteFile(r.Context(), app.ForumMessageFileGroup, dbMessage.MessageID, params.FileName)
 
 	messageResponse := converters.GetForumTopicMessage(dbMessage, api.config)
 
