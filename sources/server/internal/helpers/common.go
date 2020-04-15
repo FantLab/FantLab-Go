@@ -2,7 +2,8 @@ package helpers
 
 import "regexp"
 
-var fileNameRegex = regexp.MustCompile(`^(\S |[^/])+$`)
+// Любые непробельные символы, кроме / (чтобы не создавать проблем с путями в URL), + пробел
+var fileNameRegex = regexp.MustCompile(`^[^\f\n\r\t\v/]+$`)
 
 func IsValidFileName(fileName string) bool {
 	return fileNameRegex.MatchString(fileName)
