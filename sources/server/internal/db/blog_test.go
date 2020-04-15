@@ -586,7 +586,7 @@ func Test_FetchBlogTopics(t *testing.T) {
 
 	now := time.Now()
 
-	queryTable[sqlr.NewQuery(queries.BlogTopics).WithArgs(1).String()] = &dbstubs.StubRows{
+	queryTable[sqlr.NewQuery(queries.BlogTopics).WithArgs(1, 1, 0).String()] = &dbstubs.StubRows{
 		Values: [][]interface{}{
 			{52, "Авторские колонки", now, 1, "creator", 1, 19, "Новый раздел авторских колонок...", "авторские колонки", 29},
 		},

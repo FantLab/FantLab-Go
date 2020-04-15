@@ -247,7 +247,6 @@ func (db *DB) FetchIsUserReadOnly(ctx context.Context, userId, topicId, blogId u
 	return
 }
 
-// TODO Почему не используются limit/offset?
 func (db *DB) FetchBlogTopics(ctx context.Context, blogID, limit, offset uint64) (response *BlogTopicsDBResponse, err error) {
 	var topics []BlogTopic
 	var count uint64
@@ -258,7 +257,7 @@ func (db *DB) FetchBlogTopics(ctx context.Context, blogID, limit, offset uint64)
 			return err
 		},
 		func() error {
-			return db.engine.Read(ctx, sqlr.NewQuery(queries.BlogTopics).WithArgs(blogID)).Scan(&topics)
+			return db.engine.Read(ctx, sqlr.NewQuery(queries.BlogTopics).WithArgs(blogID, limit, offset)).Scan(&topics)
 		},
 		func() error {
 			return db.engine.Read(ctx, sqlr.NewQuery(queries.BlogTopicCount).WithArgs(blogID)).Scan(&count)
