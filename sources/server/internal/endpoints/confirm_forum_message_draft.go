@@ -58,7 +58,7 @@ func (api *API) ConfirmForumMessageDraft(r *http.Request) (int, proto.Message) {
 		}
 	}
 
-	dbMessageDraft, err := api.services.DB().GetForumMessageDraft(r.Context(), dbTopic.TopicId, user.UserId)
+	dbMessageDraft, err := api.services.DB().FetchForumMessageDraft(r.Context(), dbTopic.TopicId, user.UserId)
 
 	if err != nil {
 		if dbtools.IsNotFoundError(err) {

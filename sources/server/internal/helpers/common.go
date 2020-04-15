@@ -1,17 +1,11 @@
 package helpers
 
-import "strconv"
+import "regexp"
 
-func ParseUints(ss []string) []uint64 {
-	var xs []uint64
-	for _, s := range ss {
-		x, err := strconv.ParseUint(s, 10, 0)
-		if err != nil {
-			return nil
-		}
-		xs = append(xs, x)
-	}
-	return xs
+var fileNameRegex = regexp.MustCompile(`^(\S |[^/])+$`)
+
+func IsValidFileName(fileName string) bool {
+	return fileNameRegex.MatchString(fileName)
 }
 
 func IsValidLimit(limit uint64) bool {

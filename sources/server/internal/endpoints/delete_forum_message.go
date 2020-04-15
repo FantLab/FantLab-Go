@@ -3,6 +3,7 @@ package endpoints
 import (
 	"fantlab/base/dbtools"
 	"fantlab/pb"
+	"fantlab/server/internal/app"
 	"google.golang.org/protobuf/proto"
 	"net/http"
 	"strconv"
@@ -87,9 +88,11 @@ func (api *API) DeleteForumMessage(r *http.Request) (int, proto.Message) {
 		}
 	}
 
-	// TODO (FLGO-215):
+	api.services.DeleteFiles(r.Context(), app.ForumMessageFileGroup, dbMessage.MessageID)
+
+	// TODO:
 	//  - удалить кеш текста сообщения
-	//  - удалить директорию с аттачами сообщения
+	//  - удалить Perl-аттачи сообщения вместе с директорией
 
 	return http.StatusOK, &pb.Common_SuccessResponse{}
 }
