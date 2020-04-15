@@ -29,7 +29,9 @@ func SetStructValues(output interface{}, tagName string, valueGetter func(string
 func setValueToField(value string, field reflect.Value) {
 	switch field.Kind() {
 	case reflect.String:
-		field.SetString(value)
+		if value != "" {
+			field.SetString(value)
+		}
 	case reflect.Bool:
 		x, err := strconv.ParseBool(value)
 		if err == nil {

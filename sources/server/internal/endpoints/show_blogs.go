@@ -19,7 +19,7 @@ func (api *API) ShowBlogs(r *http.Request) (int, proto.Message) {
 		SortBy string `http:"sort,query"`
 	}{
 		Page:   1,
-		Limit:  api.config.BlogTopicsInPage,
+		Limit:  api.config.BlogsInPage,
 		SortBy: "update",
 	}
 

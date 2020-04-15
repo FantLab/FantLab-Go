@@ -21,7 +21,7 @@ func (api *API) ShowCommunity(r *http.Request) (int, proto.Message) {
 		Limit uint64 `http:"limit,query"`
 	}{
 		Page:  1,
-		Limit: api.config.BlogTopicsInPage,
+		Limit: api.config.BlogsInPage,
 	}
 
 	api.bindParams(&params, r)

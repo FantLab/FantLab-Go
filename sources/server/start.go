@@ -190,7 +190,7 @@ func makeAPIServer() (server *anyserver.Server) {
 				// реализован хардкодом в Auth.pm)
 				DefaultAccessToForums:     []uint64{1, 2, 3, 5, 6, 7, 8, 10, 12, 13, 14, 15, 16, 17, 22},
 				BlogsInPage:               50,
-				BlogTopicsInPage:          5,
+				BlogTopicsInPage:          20,
 				BlogArticleCommentsInPage: 10,
 				CensorshipText:            "Сообщение изъято модератором",
 				BotUserId:                 2, // Р. Букашка

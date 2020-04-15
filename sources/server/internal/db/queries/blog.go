@@ -229,6 +229,8 @@ const (
 			b.blog_id = ? AND b.is_opened = 1
 		ORDER BY
 			b.date_of_add DESC
+		LIMIT ?
+		OFFSET ?
 	`
 
 	BlogTopicCount = `
