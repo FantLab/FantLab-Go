@@ -24,4 +24,15 @@ const (
 	UserBlock          = "SELECT block, date_of_block_end, block_reason FROM " + UsersTable + " WHERE user_id = ? LIMIT 1"
 	FetchAuthTokenById = "SELECT * FROM " + AuthTokensTable + " WHERE token_id = ? LIMIT 1"
 	DeleteAuthToken    = "DELETE FROM " + AuthTokensTable + " WHERE token_id = ?"
+
+	UserGetInfo = `
+		SELECT
+			user_id,
+			login,
+			email
+		FROM
+			users
+		WHERE
+			user_id = ?
+	`
 )

@@ -16,6 +16,12 @@ type UserLoginInfo struct {
 	NewHash string `db:"new_password_hash"`
 }
 
+type User struct {
+	UserId uint64 `db:"user_id"`
+	Login  string `db:"login"`
+	Email  string `db:"email"`
+}
+
 type UserInfo struct {
 	Login                string `db:"login"`
 	Gender               uint8  `db:"sex"`
@@ -42,6 +48,18 @@ type AuthTokenEntry struct {
 func (db *DB) FetchUserLoginInfo(ctx context.Context, login string) (data UserLoginInfo, err error) {
 	err = db.engine.Read(ctx, sqlr.NewQuery(queries.UserLoginInfo).WithArgs(login, login)).Scan(&data)
 	return
+}
+
+func (db *DB) FetchUser(ctx context.Context, userId uint64) (User, error) {
+	var user User
+
+	err := db.engine.Read(ctx, sqlr.NewQuery(queries.UserGetInfo).WithArgs(userId)).Scan(&user)
+
+	if err != nil {
+		return User{}, err
+	}
+
+	return user, nil
 }
 
 func (db *DB) FetchUserInfo(ctx context.Context, userId uint64) (data UserInfo, err error) {

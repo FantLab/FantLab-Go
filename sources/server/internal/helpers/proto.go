@@ -153,3 +153,20 @@ func GetWorkType(rawWorkType uint64) pb.Work_WorkType {
 		return pb.Work_WORK_TYPE_UNKNOWN
 	}
 }
+
+func GetBookcaseType(rawBookcaseType string) pb.Bookcase_BookcaseType {
+	switch rawBookcaseType {
+	case "read":
+		return pb.Bookcase_BOOKCASE_TYPE_READ
+	case "wait":
+		return pb.Bookcase_BOOKCASE_TYPE_WAIT
+	case "buy":
+		return pb.Bookcase_BOOKCASE_TYPE_BUY
+	case "sale":
+		return pb.Bookcase_BOOKCASE_TYPE_SALE
+	case "free":
+		return pb.Bookcase_BOOKCASE_TYPE_FREE
+	default:
+		return pb.Bookcase_BOOKCASE_TYPE_UNKNOWN
+	}
+}

@@ -1,0 +1,48 @@
+syntax = "proto3";
+
+option go_package = "sources/pb";
+
+message Bookcase {
+    enum BookcaseType {
+        BOOKCASE_TYPE_UNKNOWN = 0;
+        // Прочитать
+        BOOKCASE_TYPE_READ = 1;
+        // Ожидаю
+        BOOKCASE_TYPE_WAIT = 2;
+        // Куплю
+        BOOKCASE_TYPE_BUY = 3;
+        // Продам
+        BOOKCASE_TYPE_SALE = 4;
+        // Прочее
+        BOOKCASE_TYPE_FREE = 5;
+    }
+
+    message Bookcase {
+        // id книжной полки
+        uint64 id = 1;
+        // приватная?
+        bool is_private = 2;
+        // тип
+        BookcaseType type = 3;
+        // название
+        string title = 4;
+        // комментарий
+        string comment = 5;
+        // порядковый номер
+        uint64 index = 6;
+        // количество элементов
+        uint64 item_count = 7;
+    }
+
+    message BookcaseBlock {
+        // название блока
+        string title = 1;
+        // книжные полки
+        repeated Bookcase bookcases = 2;
+    }
+
+    message BookcaseBlocksResponse {
+        // список блоков книжных полок
+        repeated BookcaseBlock bookcase_blocks = 1;
+    }
+}
