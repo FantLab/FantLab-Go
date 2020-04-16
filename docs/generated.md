@@ -1690,6 +1690,37 @@
 </p>
 </details>
 
+<details><summary>Создание первичных книжных полок</summary>
+<p>
+
+
+
+**POST** [/v1/bookcases/create](../sources/server/internal/endpoints/create_default_bookcases.go#L10)
+
+
+Схема ответа:
+
+```
+{
+  bookcaseBlocks: [{     # список блоков книжных полок
+    title: string        # название блока
+    bookcases: [{        # книжные полки
+      id: uint64         # id книжной полки
+      isPrivate: bool    # приватная?
+      type: int32        # тип
+      title: string      # название
+      comment: string    # комментарий
+      index: uint64      # порядковый номер
+      itemCount: uint64  # количество элементов
+    }]
+  }]
+}
+```
+---
+
+</p>
+</details>
+
 
 ## Для философов
 

@@ -1,7 +1,11 @@
 package queries
 
 const (
-	BookcaseGetUserBookcases = `
+	BookcasesTable = "bookcase"
+)
+
+const (
+	BookcaseGetBookcases = `
 		SELECT
 			b.bookcase_id,
 			b.bookcase_type,
