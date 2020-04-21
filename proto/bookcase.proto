@@ -2,6 +2,8 @@ syntax = "proto3";
 
 option go_package = "sources/pb";
 
+import "proto/common.proto";
+
 message Bookcase {
     enum BookcaseType {
         BOOKCASE_TYPE_UNKNOWN = 0;
@@ -15,6 +17,24 @@ message Bookcase {
         BOOKCASE_TYPE_SALE = 4;
         // Прочее
         BOOKCASE_TYPE_FREE = 5;
+    }
+
+    enum FilmType {
+        FILM_TYPE_UNKNOWN = 0;
+        // Фильм
+        FILM_TYPE_FILM = 1;
+        // Сериал
+        FILM_TYPE_SERIES = 2;
+        // Эпизод
+        FILM_TYPE_EPISODE = 3;
+        // Документальный
+        FILM_TYPE_DOCUMENTARY = 4;
+        // Анимационный
+        FILM_TYPE_ANIMATION = 5;
+        // Короткометражный
+        FILM_TYPE_SHORT = 6;
+        // Телеспектакль
+        FILM_TYPE_SPECTACLE = 7;
     }
 
     message Bookcase {
@@ -44,5 +64,45 @@ message Bookcase {
     message BookcaseBlocksResponse {
         // список блоков книжных полок
         repeated BookcaseBlock bookcase_blocks = 1;
+    }
+
+    message Film {
+        // id фильма
+        uint64 id = 1;
+        // тип (фильм/сериал/etc; может отсутствовать, если не задан)
+        FilmType type = 2;
+        // URL постера
+        string poster = 3;
+        // название фильма на русском языке
+        string title = 4;
+        // название фильма в оригинале
+        string original_title = 5;
+        // год выпуска (для всего, кроме сериалов)
+        uint64 year = 6;
+        // год старта трансляции (для сериалов)
+        uint64 start_year = 7;
+        // год окончания трансляции (для сериалов)
+        uint64 end_year = 8;
+        // страны производства
+        string countries = 9;
+        // жанры
+        string genres = 10;
+        // режиссеры
+        string directors = 11;
+        // сценаристы
+        string screen_writers = 12;
+        // актеры
+        string actors = 13;
+        // описание
+        string description = 14;
+        // комментарий
+        string comment = 15;
+    }
+
+    message FilmBookcaseResponse {
+        // список фильмов на полке
+        repeated Film films = 1;
+        // страницы
+        Common.Pages pages = 2;
     }
 }

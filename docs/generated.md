@@ -929,6 +929,62 @@
 </p>
 </details>
 
+<details><summary>Содержимое кинополки</summary>
+<p>
+
+
+
+**GET** [/v1/film_bookcases/{id}](../sources/server/internal/endpoints/show_bookcase.go#L15)
+
+Параметры запроса:
+
+
+* **id** (path, uint64) - id книжной полки
+
+
+* **page** (query, uint64) - номер страницы (>0, по умолчанию - 1)
+
+
+* **limit** (query, uint64) - кол-во элементов на странице ([5..50], по умолчанию - 50)
+
+
+* **sort** (query, string) - сортировать по: порядку - order (по умолчанию), названию - title, оригинальному названию - orig_title
+
+
+
+
+Схема ответа:
+
+```
+{
+  films: [{                # список фильмов на полке
+    id: uint64             # id фильма
+    type: int32            # тип (фильм/сериал/etc; может отсутствовать, если не задан)
+    poster: string         # URL постера
+    title: string          # название фильма на русском языке
+    originalTitle: string  # название фильма в оригинале
+    year: uint64           # год выпуска (для всего, кроме сериалов)
+    startYear: uint64      # год старта трансляции (для сериалов)
+    endYear: uint64        # год окончания трансляции (для сериалов)
+    countries: string      # страны производства
+    genres: string         # жанры
+    directors: string      # режиссеры
+    screenWriters: string  # сценаристы
+    actors: string         # актеры
+    description: string    # описание
+    comment: string        # комментарий
+  }]
+  pages: {                 # страницы
+    current: uint64        # текущая
+    count: uint64          # количество
+  }
+}
+```
+---
+
+</p>
+</details>
+
 
 ## Для зарегистрированных пользователей
 
