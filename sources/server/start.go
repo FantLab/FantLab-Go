@@ -195,6 +195,7 @@ func makeAPIServer() (server *anyserver.Server) {
 				CensorshipText:            "Сообщение изъято модератором",
 				BotUserId:                 2, // Р. Букашка
 				MaxAttachCountPerMessage:  10,
+				BookcaseItemInPage:        50,
 			}
 			return nil
 		},

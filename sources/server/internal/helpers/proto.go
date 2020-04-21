@@ -2,6 +2,20 @@ package helpers
 
 import "fantlab/pb"
 
+var (
+	FilmTypeMap = map[uint64]pb.Bookcase_FilmType{
+		// В таблице фильмов есть записи с type = 1, но с точки зрения сервера такого типа просто не существует:
+		// https://github.com/parserpro/fantlab/blob/f1e3aa00c05b0fd332259f4c580dcb07523fecd5/pm/Film.pm#L11-L18
+		10: pb.Bookcase_FILM_TYPE_FILM,
+		20: pb.Bookcase_FILM_TYPE_SERIES,
+		21: pb.Bookcase_FILM_TYPE_EPISODE,
+		30: pb.Bookcase_FILM_TYPE_DOCUMENTARY,
+		40: pb.Bookcase_FILM_TYPE_ANIMATION,
+		50: pb.Bookcase_FILM_TYPE_SHORT,
+		60: pb.Bookcase_FILM_TYPE_SPECTACLE,
+	}
+)
+
 func GetUserClass(rawUserClass uint8) pb.Common_UserClass {
 	switch rawUserClass {
 	case 0:

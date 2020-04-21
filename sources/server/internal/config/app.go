@@ -22,4 +22,5 @@ type AppConfig struct {
 	CensorshipText             string
 	BotUserId                  uint64
 	MaxAttachCountPerMessage   uint64
+	BookcaseItemInPage         uint64
 }
