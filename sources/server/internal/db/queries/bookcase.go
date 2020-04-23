@@ -47,10 +47,39 @@ const (
 		LIMIT 1
 	`
 
+	BookcaseGetEditionBookcaseItems = `
+		SELECT
+			e.edition_id,
+			e.name,
+			e.autors,
+			e.type,
+			e.year,
+			e.publisher,
+			e.description,
+			e.correct,
+			e.plan_date,
+			e.ozon_id,
+			e.ozon_cost,
+			e.ozon_available,
+			e.labirint_id,
+			e.labirint_cost,
+			e.labirint_available,
+			bi.item_comment AS 'comment'
+		FROM
+			bookcase_items bi
+		LEFT JOIN
+			editions e ON e.edition_id = bi.item_id
+		WHERE
+			bi.bookcase_id = ?
+		ORDER BY
+			%s
+		LIMIT ?
+		OFFSET ?
+	`
+
 	BookcaseGetFilmBookcaseItems = `
 		SELECT
-			bi.item_id AS 'film_id',
-			bi.item_comment AS 'comment',
+			f.film_id,
 			f.name,
 			f.rusname,
 			f.type,
@@ -61,7 +90,8 @@ const (
 			f.director,
 			f.screenwriter,
 			f.actors,
-			f.description
+			f.description,
+			bi.item_comment AS 'comment'
 		FROM
 			bookcase_items bi
 		LEFT JOIN
@@ -74,7 +104,7 @@ const (
 		OFFSET ?
 	`
 
-	BookcaseGetFilmBookcaseItemCount = `
+	BookcaseGetBookcaseItemCount = `
 		SELECT
 			COUNT(*)
 		FROM

@@ -16,6 +16,13 @@ const (
 )
 
 var (
+	EditionSortMap = map[string]string{
+		"order":  "item_sort",
+		"author": "autors",
+		"title":  "name",
+		"year":   "year",
+	}
+
 	FilmSortMap = map[string]string{
 		"order":      "item_sort",
 		"title":      "rusname",
@@ -35,9 +42,27 @@ type Bookcase struct {
 	ItemCount       uint64 `db:"item_count"`
 }
 
+type Edition struct {
+	EditionId         uint64 `db:"edition_id"`
+	Name              string `db:"name"`
+	Autors            string `db:"autors"`
+	Type              uint64 `db:"type"`
+	Year              uint64 `db:"year"`
+	Publisher         string `db:"publisher"`
+	Description       string `db:"description"`
+	Correct           uint64 `db:"correct"`
+	PlanDate          string `db:"plan_date"`
+	OzonId            uint64 `db:"ozon_id"`
+	OzonCost          uint64 `db:"ozon_cost"`
+	OzonAvailable     uint8  `db:"ozon_available"`
+	LabirintId        uint64 `db:"labirint_id"`
+	LabirintCost      uint64 `db:"labirint_cost"`
+	LabirintAvailable uint8  `db:"labirint_available"`
+	Comment           string `db:"comment"`
+}
+
 type Film struct {
 	FilmId       uint64 `db:"film_id"`
-	Comment      string `db:"comment"`
 	Name         string `db:"name"`
 	RusName      string `db:"rusname"`
 	Type         uint64 `db:"type"`
@@ -49,6 +74,12 @@ type Film struct {
 	ScreenWriter string `db:"screenwriter"`
 	Actors       string `db:"actors"`
 	Description  string `db:"description"`
+	Comment      string `db:"comment"`
+}
+
+type EditionBookcaseDbResponse struct {
+	Editions   []Edition
+	TotalCount uint64
 }
 
 type FilmBookcaseDbResponse struct {
@@ -87,6 +118,34 @@ func (db *DB) FetchBookcase(ctx context.Context, bookcaseType string, bookcaseId
 	return bookcase, nil
 }
 
+func (db *DB) FetchEditionBookcase(ctx context.Context, bookcaseId, limit, offset uint64, sort string) (EditionBookcaseDbResponse, error) {
+	var editions []Edition
+	var count uint64
+
+	err := db.engine.InTransaction(func(rw sqlr.ReaderWriter) error {
+		return codeflow.Try(
+			func() error { // Получаем список изданий на полке
+				sortOrder := EditionSortMap[sort]
+				return rw.Read(ctx, sqlr.NewQuery(queries.BookcaseGetEditionBookcaseItems).WithArgs(bookcaseId, limit, offset).Inject(sortOrder)).Scan(&editions)
+			},
+			func() error { // Получаем общее количество изданий на полке
+				return rw.Read(ctx, sqlr.NewQuery(queries.BookcaseGetBookcaseItemCount).WithArgs(bookcaseId)).Scan(&count)
+			},
+		)
+	})
+
+	if err != nil {
+		return EditionBookcaseDbResponse{}, err
+	}
+
+	response := EditionBookcaseDbResponse{
+		Editions:   editions,
+		TotalCount: count,
+	}
+
+	return response, nil
+}
+
 func (db *DB) FetchFilmBookcase(ctx context.Context, bookcaseId, limit, offset uint64, sort string) (FilmBookcaseDbResponse, error) {
 	var films []Film
 	var count uint64
@@ -98,7 +157,7 @@ func (db *DB) FetchFilmBookcase(ctx context.Context, bookcaseId, limit, offset u
 				return rw.Read(ctx, sqlr.NewQuery(queries.BookcaseGetFilmBookcaseItems).WithArgs(bookcaseId, limit, offset).Inject(sortOrder)).Scan(&films)
 			},
 			func() error { // Получаем общее количество фильмов на полке
-				return rw.Read(ctx, sqlr.NewQuery(queries.BookcaseGetFilmBookcaseItemCount).WithArgs(bookcaseId)).Scan(&count)
+				return rw.Read(ctx, sqlr.NewQuery(queries.BookcaseGetBookcaseItemCount).WithArgs(bookcaseId)).Scan(&count)
 			},
 		)
 	})
