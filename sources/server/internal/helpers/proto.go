@@ -3,6 +3,27 @@ package helpers
 import "fantlab/pb"
 
 var (
+	EditionTypeMap = map[uint64]pb.Bookcase_EditionType{
+		10: pb.Bookcase_EDITION_TYPE_AUTHOR_BOOK,
+		11: pb.Bookcase_EDITION_TYPE_AUTHOR_COMPILATION,
+		12: pb.Bookcase_EDITION_TYPE_COMPILATION,
+		15: pb.Bookcase_EDITION_TYPE_ANTHOLOGY,
+		16: pb.Bookcase_EDITION_TYPE_CHRESTOMATHY,
+		20: pb.Bookcase_EDITION_TYPE_MAGAZINE,
+		21: pb.Bookcase_EDITION_TYPE_FANZINE,
+		22: pb.Bookcase_EDITION_TYPE_ALMANAC,
+		25: pb.Bookcase_EDITION_TYPE_NEWSPAPER,
+		30: pb.Bookcase_EDITION_TYPE_AUDIOBOOK,
+		32: pb.Bookcase_EDITION_TYPE_ILLUSTRATED_ALBUM,
+		34: pb.Bookcase_EDITION_TYPE_FILM_STRIP,
+	}
+
+	EditionCorrectnessLevelMap = map[uint64]pb.Bookcase_EditionCorrectnessLevel{
+		0: pb.Bookcase_EDITION_CORRECTNESS_LEVEL_RED,
+		1: pb.Bookcase_EDITION_CORRECTNESS_LEVEL_ORANGE,
+		2: pb.Bookcase_EDITION_CORRECTNESS_LEVEL_GREEN,
+	}
+
 	FilmTypeMap = map[uint64]pb.Bookcase_FilmType{
 		// В таблице фильмов есть записи с type = 1, но с точки зрения сервера такого типа просто не существует:
 		// https://github.com/parserpro/fantlab/blob/f1e3aa00c05b0fd332259f4c580dcb07523fecd5/pm/Film.pm#L11-L18

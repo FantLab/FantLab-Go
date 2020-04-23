@@ -929,12 +929,80 @@
 </p>
 </details>
 
+<details><summary>Содержимое полки с изданиями</summary>
+<p>
+
+
+
+**GET** [/v1/edition_bookcases/{id}](../sources/server/internal/endpoints/show_edition_bookcase.go#L15)
+
+Параметры запроса:
+
+
+* **id** (path, uint64) - id книжной полки
+
+
+* **page** (query, uint64) - номер страницы (>0, по умолчанию - 1)
+
+
+* **limit** (query, uint64) - кол-во элементов на странице ([5..50], по умолчанию - 50)
+
+
+* **sort** (query, string) - сортировать по: порядку - order (по умолчанию), автору - author, названию - title, году - year
+
+
+
+
+Схема ответа:
+
+```
+{
+  bookcase: {                # информация о полке
+    id: uint64               # id книжной полки
+    isPrivate: bool          # приватная?
+    type: int32              # тип
+    title: string            # название
+    comment: string          # комментарий
+  }
+  editions: [{               # список изданий на полке
+    id: uint64               # id издания
+    type: int32              # тип (авторская книга/сборник/etc; может отсутствовать, если не задан)
+    correctnessLevel: int32  # уровень проверенности
+    cover: string            # URL обложки
+    authors: string          # авторы
+    title: string            # название
+    year: uint64             # год публикации
+    publishers: string       # издательства
+    description: string      # описание
+    offers: {                # предложения в магазинах
+      ozon: {                # предложение на Озоне
+        url: string          # URL предложения
+        price: uint64        # цена
+      }
+      labirint: {            # предложение на Лабиринте
+        url: string          # URL предложения
+        price: uint64        # цена
+      }
+    }
+    comment: string          # комментарий
+  }]
+  pages: {                   # страницы
+    current: uint64          # текущая
+    count: uint64            # количество
+  }
+}
+```
+---
+
+</p>
+</details>
+
 <details><summary>Содержимое кинополки</summary>
 <p>
 
 
 
-**GET** [/v1/film_bookcases/{id}](../sources/server/internal/endpoints/show_bookcase.go#L15)
+**GET** [/v1/film_bookcases/{id}](../sources/server/internal/endpoints/show_film_bookcase.go#L15)
 
 Параметры запроса:
 
@@ -957,6 +1025,13 @@
 
 ```
 {
+  bookcase: {              # информация о полке
+    id: uint64             # id книжной полки
+    isPrivate: bool        # приватная?
+    type: int32            # тип
+    title: string          # название
+    comment: string        # комментарий
+  }
   films: [{                # список фильмов на полке
     id: uint64             # id фильма
     type: int32            # тип (фильм/сериал/etc; может отсутствовать, если не задан)

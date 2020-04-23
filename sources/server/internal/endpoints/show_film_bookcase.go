@@ -77,7 +77,7 @@ func (api *API) ShowFilmBookcase(r *http.Request) (int, proto.Message) {
 		}
 	}
 
-	filmBookcase := converters.GetFilmBookcase(dbResponse, params.Page, params.Limit, api.config)
+	filmBookcase := converters.GetFilmBookcase(dbResponse, dbBookcase, params.Page, params.Limit, api.config)
 
 	return http.StatusOK, filmBookcase
 }
