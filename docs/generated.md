@@ -1924,6 +1924,31 @@
 </p>
 </details>
 
+<details><summary>Удаление книжной полки</summary>
+<p>
+
+
+
+**DELETE** [/v1/bookcases/{id}](../sources/server/internal/endpoints/delete_bookcase.go#L11)
+
+Параметры запроса:
+
+
+* **id** (path, uint64) - id книжной полки
+
+
+
+
+Схема ответа:
+
+```
+{}
+```
+---
+
+</p>
+</details>
+
 
 ## Для философов
 

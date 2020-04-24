@@ -43,7 +43,7 @@ func (api *API) ShowFilmBookcase(r *http.Request) (int, proto.Message) {
 		return api.badParam("sort")
 	}
 
-	dbBookcase, err := api.services.DB().FetchBookcase(r.Context(), db.BookcaseFilmType, params.BookcaseId)
+	dbBookcase, err := api.services.DB().FetchTypedBookcase(r.Context(), db.BookcaseFilmType, params.BookcaseId)
 
 	if err != nil {
 		if dbtools.IsNotFoundError(err) {

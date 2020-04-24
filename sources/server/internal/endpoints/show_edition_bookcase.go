@@ -43,7 +43,7 @@ func (api *API) ShowEditionBookcase(r *http.Request) (int, proto.Message) {
 		return api.badParam("sort")
 	}
 
-	dbBookcase, err := api.services.DB().FetchBookcase(r.Context(), db.BookcaseEditionType, params.BookcaseId)
+	dbBookcase, err := api.services.DB().FetchTypedBookcase(r.Context(), db.BookcaseEditionType, params.BookcaseId)
 
 	if err != nil {
 		if dbtools.IsNotFoundError(err) {
