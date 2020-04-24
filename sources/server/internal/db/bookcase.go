@@ -17,16 +17,26 @@ const (
 
 var (
 	EditionSortMap = map[string]string{
-		"order":  "item_sort",
-		"author": "autors",
-		"title":  "name",
-		"year":   "year",
+		"order":  "bi.item_sort",
+		"author": "e.autors",
+		"title":  "e.name",
+		"year":   "e.year",
+	}
+
+	WorkSortMap = map[string]string{
+		"order":      "bi.item_sort",
+		"author":     "a.shortrusname",
+		"title":      "w.rusname",
+		"orig_title": "w.name",
+		"year":       "w.year",
+		"mark_count": "ws.markcount DESC",
+		"avg_mark":   "ws.midmark DESC",
 	}
 
 	FilmSortMap = map[string]string{
-		"order":      "item_sort",
-		"title":      "rusname",
-		"orig_title": "name",
+		"order":      "bi.item_sort",
+		"title":      "f.rusname",
+		"orig_title": "f.name",
 	}
 )
 
@@ -61,6 +71,33 @@ type Edition struct {
 	Comment           string `db:"comment"`
 }
 
+type Work struct {
+	WorkId        uint64  `db:"work_id"`
+	Name          string  `db:"name"`
+	AltName       string  `db:"altname"`
+	RusName       string  `db:"rusname"`
+	Year          int64   `db:"year"` // не uint64, поскольку может быть отрицательным (до н.э.)
+	BonusText     string  `db:"bonus_text"`
+	Description   string  `db:"description"`
+	Published     uint8   `db:"published"`
+	WorkTypeId    uint64  `db:"work_type_id"`
+	AutorId       uint64  `db:"autor_id"`
+	Autor2Id      uint64  `db:"autor2_id"`
+	Autor3Id      uint64  `db:"autor3_id"`
+	Autor4Id      uint64  `db:"autor4_id"`
+	Autor5Id      uint64  `db:"autor5_id"`
+	MidMark       float64 `db:"midmark"`
+	MarkCount     uint64  `db:"markcount"`
+	ResponseCount uint64  `db:"response_count"`
+	Comment       string  `db:"comment"`
+}
+
+type Autor struct {
+	AutorId  uint64 `db:"autor_id"`
+	RusName  string `db:"rusname"`
+	IsOpened uint8  `db:"is_opened"`
+}
+
 type Film struct {
 	FilmId       uint64 `db:"film_id"`
 	Name         string `db:"name"`
@@ -80,6 +117,14 @@ type Film struct {
 type EditionBookcaseDbResponse struct {
 	Editions   []Edition
 	TotalCount uint64
+}
+
+type WorkBookcaseDbResponse struct {
+	Works            []Work
+	Autors           map[uint64]Autor
+	OwnWorkMarks     map[uint64]uint64
+	OwnWorkResponses map[uint64]uint64
+	TotalCount       uint64
 }
 
 type FilmBookcaseDbResponse struct {
@@ -141,6 +186,85 @@ func (db *DB) FetchEditionBookcase(ctx context.Context, bookcaseId, limit, offse
 	response := EditionBookcaseDbResponse{
 		Editions:   editions,
 		TotalCount: count,
+	}
+
+	return response, nil
+}
+
+func (db *DB) FetchWorkBookcase(ctx context.Context, bookcaseId, limit, offset uint64, sort string, userId uint64) (WorkBookcaseDbResponse, error) {
+	var works []Work
+	var workIds []uint64
+	var autorIds []uint64
+	var autors []Autor
+	var autorsMap = map[uint64]Autor{}
+	var ownWorkMarks = map[uint64]uint64{}
+	var ownWorkResponses = map[uint64]uint64{}
+	var count uint64
+
+	err := db.engine.InTransaction(func(rw sqlr.ReaderWriter) error {
+		return codeflow.Try(
+			func() error { // Получаем список произведений на полке
+				sortOrder := WorkSortMap[sort]
+				err := rw.Read(ctx, sqlr.NewQuery(queries.BookcaseGetWorkBookcaseItems).WithArgs(bookcaseId, limit, offset).Inject(sortOrder)).Scan(&works)
+				if err == nil {
+					for _, work := range works {
+						workIds = append(workIds, work.WorkId)
+						autorIds = append(autorIds, work.AutorId)
+						if work.Autor2Id != 0 {
+							autorIds = append(autorIds, work.Autor2Id)
+						}
+						if work.Autor3Id != 0 {
+							autorIds = append(autorIds, work.Autor3Id)
+						}
+						if work.Autor4Id != 0 {
+							autorIds = append(autorIds, work.Autor4Id)
+						}
+						if work.Autor5Id != 0 {
+							autorIds = append(autorIds, work.Autor5Id)
+						}
+					}
+				}
+				return err
+			},
+			func() error { // Получаем данные по авторам
+				err := rw.Read(ctx, sqlr.NewQuery(queries.BookcaseGetWorksAutors).WithArgs(autorIds).FlatArgs()).Scan(&autors)
+				if err == nil {
+					for _, autor := range autors {
+						autorsMap[autor.AutorId] = autor
+					}
+				}
+				return err
+			},
+			func() error {
+				if userId != 0 { // Получаем список оценок самого пользователя произведениям с полки
+					return rw.Read(ctx, sqlr.NewQuery(queries.BookcaseGetOwnWorkMarks).WithArgs(workIds, userId).FlatArgs()).Scan(&ownWorkMarks)
+				} else {
+					return nil
+				}
+			},
+			func() error {
+				if userId != 0 { // Получаем список произведений с полки, на которые пользователь написал отзыв
+					return rw.Read(ctx, sqlr.NewQuery(queries.BookcaseGetOwnWorkResponses).WithArgs(workIds, userId).FlatArgs()).Scan(&ownWorkResponses)
+				} else {
+					return nil
+				}
+			},
+			func() error { // Получаем общее количество произведений на полке
+				return rw.Read(ctx, sqlr.NewQuery(queries.BookcaseGetBookcaseItemCount).WithArgs(bookcaseId)).Scan(&count)
+			},
+		)
+	})
+
+	if err != nil {
+		return WorkBookcaseDbResponse{}, err
+	}
+
+	response := WorkBookcaseDbResponse{
+		Works:            works,
+		Autors:           autorsMap,
+		OwnWorkMarks:     ownWorkMarks,
+		OwnWorkResponses: ownWorkResponses,
+		TotalCount:       count,
 	}
 
 	return response, nil

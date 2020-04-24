@@ -133,7 +133,7 @@ func (api *API) makeAuthResponse(r *http.Request, issuedAt time.Time, userId uin
 			UserId:            userId,
 			Login:             userInfo.Login,
 			Gender:            helpers.GetGender(userId, userInfo.Gender),
-			Class:             helpers.GetUserClass(userInfo.Class),
+			Class:             helpers.UserClassMap[userInfo.Class],
 			AvailableForumIds: helpers.ParseUints(strings.Split(userInfo.AvailableForums, ",")),
 			Permissions:       permissions,
 		},

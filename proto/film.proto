@@ -1,0 +1,23 @@
+syntax = "proto3";
+
+option go_package = "sources/pb";
+
+// TODO Список взят из Film.pm; если он изменится в основном репозитории, здесь тоже придется дорабатывать
+// https://github.com/parserpro/fantlab/blob/2933533d76806584d52533b6026b8a3411193732/pm/Film.pm#L11-L18
+enum FilmType {
+    FILM_TYPE_UNKNOWN = 0;
+    // Фильм
+    FILM_TYPE_FILM = 1;
+    // Сериал
+    FILM_TYPE_SERIES = 2;
+    // Эпизод
+    FILM_TYPE_EPISODE = 3;
+    // Документальный
+    FILM_TYPE_DOCUMENTARY = 4;
+    // Анимационный
+    FILM_TYPE_ANIMATION = 5;
+    // Короткометражный
+    FILM_TYPE_SHORT = 6;
+    // Телеспектакль
+    FILM_TYPE_SPECTACLE = 7;
+}

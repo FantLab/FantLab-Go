@@ -12,7 +12,7 @@ import (
 	"google.golang.org/protobuf/proto"
 )
 
-func (api *API) ShowEditionBookcase(r *http.Request) (int, proto.Message) {
+func (api *API) ShowWorkBookcase(r *http.Request) (int, proto.Message) {
 	params := struct {
 		// id книжной полки
 		BookcaseId uint64 `http:"id,path"`
@@ -20,7 +20,7 @@ func (api *API) ShowEditionBookcase(r *http.Request) (int, proto.Message) {
 		Page uint64 `http:"page,query"`
 		// кол-во элементов на странице ([5..50], по умолчанию - 50)
 		Limit uint64 `http:"limit,query"`
-		// сортировать по: порядку - order (по умолчанию), автору - author, названию - title, году - year
+		// сортировать по: порядку - order (по умолчанию), автору - author, названию - title, оригинальному названию - orig_title, году - year, количеству оценок - mark_count, средней оценке - avg_mark
 		SortBy string `http:"sort,query"`
 	}{
 		Page:   1,
@@ -39,11 +39,11 @@ func (api *API) ShowEditionBookcase(r *http.Request) (int, proto.Message) {
 	if !helpers.IsValidLimit(params.Limit) {
 		return api.badParam("limit")
 	}
-	if _, ok := db.EditionSortMap[params.SortBy]; !ok {
+	if _, ok := db.WorkSortMap[params.SortBy]; !ok {
 		return api.badParam("sort")
 	}
 
-	dbBookcase, err := api.services.DB().FetchBookcase(r.Context(), db.BookcaseEditionType, params.BookcaseId)
+	dbBookcase, err := api.services.DB().FetchBookcase(r.Context(), db.BookcaseWorkType, params.BookcaseId)
 
 	if err != nil {
 		if dbtools.IsNotFoundError(err) {
@@ -69,7 +69,7 @@ func (api *API) ShowEditionBookcase(r *http.Request) (int, proto.Message) {
 
 	offset := params.Limit * (params.Page - 1)
 
-	dbResponse, err := api.services.DB().FetchEditionBookcase(r.Context(), dbBookcase.BookcaseId, params.Limit, offset, params.SortBy)
+	dbResponse, err := api.services.DB().FetchWorkBookcase(r.Context(), dbBookcase.BookcaseId, params.Limit, offset, params.SortBy, userId)
 
 	if err != nil {
 		return http.StatusInternalServerError, &pb.Error_Response{
@@ -77,7 +77,7 @@ func (api *API) ShowEditionBookcase(r *http.Request) (int, proto.Message) {
 		}
 	}
 
-	editionBookcase := converters.GetEditionBookcase(dbResponse, dbBookcase, params.Page, params.Limit, api.config)
+	editionBookcase := converters.GetWorkBookcase(dbResponse, dbBookcase, params.Page, params.Limit)
 
 	return http.StatusOK, editionBookcase
 }

@@ -64,7 +64,7 @@ const (
 			e.labirint_id,
 			e.labirint_cost,
 			e.labirint_available,
-			bi.item_comment AS 'comment'
+			bi.item_comment AS comment
 		FROM
 			bookcase_items bi
 		LEFT JOIN
@@ -75,6 +75,75 @@ const (
 			%s
 		LIMIT ?
 		OFFSET ?
+	`
+
+	BookcaseGetWorkBookcaseItems = `
+		SELECT
+			w.work_id,
+			w.name,
+			w.altname,
+			w.rusname,
+			w.year,
+			w.bonus_text,
+			w.description,
+			w.published,
+			w.work_type_id,
+			w.autor_id,
+			w.autor2_id,
+			w.autor3_id,
+			w.autor4_id,
+			w.autor5_id,
+			ws.midmark,
+			ws.markcount,
+			COUNT(r.work_id) AS response_count,
+			bi.item_comment AS comment
+		FROM
+			bookcase_items bi
+		JOIN
+			works w ON w.work_id = bi.item_id
+		LEFT JOIN
+			work_stats ws ON ws.work_id = w.work_id
+		LEFT JOIN
+			responses r ON r.work_id = w.work_id
+		WHERE
+			bi.bookcase_id = ?
+		GROUP BY
+			w.work_id
+		ORDER BY
+			%s
+		LIMIT ?
+		OFFSET ?
+	`
+
+	BookcaseGetWorksAutors = `
+		SELECT
+			autor_id,
+			rusname,
+			is_opened
+		FROM
+			autors
+		WHERE
+			autor_id IN (?)
+	`
+
+	BookcaseGetOwnWorkMarks = `
+		SELECT
+			work_id,
+			mark
+		FROM
+			marks2
+		WHERE
+			work_id IN (?) AND user_id = ?
+	`
+
+	BookcaseGetOwnWorkResponses = `
+		SELECT
+			work_id,
+			1
+		FROM
+			responses
+		WHERE
+			work_id IN (?) AND user_id = ?
 	`
 
 	BookcaseGetFilmBookcaseItems = `
@@ -91,7 +160,7 @@ const (
 			f.screenwriter,
 			f.actors,
 			f.description,
-			bi.item_comment AS 'comment'
+			bi.item_comment AS comment
 		FROM
 			bookcase_items bi
 		LEFT JOIN

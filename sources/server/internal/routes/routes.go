@@ -33,6 +33,7 @@ func Tree(config *config.AppConfig, services *app.Services, pathParamGetter endp
 		g.Endpoint(http.MethodGet, "/blog_articles/:id/comments", api.BlogArticleComments, "Комментарии к статье в блоге")
 		g.Endpoint(http.MethodGet, "/users/:id/bookcases", api.ShowBookcases, "Список книжных полок")
 		g.Endpoint(http.MethodGet, "/edition_bookcases/:id", api.ShowEditionBookcase, "Содержимое полки с изданиями")
+		g.Endpoint(http.MethodGet, "/work_bookcases/:id", api.ShowWorkBookcase, "Содержимое полки с произведениями")
 		g.Endpoint(http.MethodGet, "/film_bookcases/:id", api.ShowFilmBookcase, "Содержимое кинополки")
 	})
 
