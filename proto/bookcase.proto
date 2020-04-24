@@ -3,6 +3,9 @@ syntax = "proto3";
 option go_package = "sources/pb";
 
 import "proto/common.proto";
+import "proto/edition.proto";
+import "proto/work.proto";
+import "proto/film.proto";
 
 message Bookcase {
     enum BookcaseType {
@@ -17,62 +20,6 @@ message Bookcase {
         BOOKCASE_TYPE_SALE = 4;
         // Прочее
         BOOKCASE_TYPE_FREE = 5;
-    }
-
-    enum EditionCorrectnessLevel {
-        EDITION_CORRECTNESS_LEVEL_UNKNOWN = 0;
-        // Издание проверено
-        EDITION_CORRECTNESS_LEVEL_GREEN = 1;
-        // Издание требует верификации
-        EDITION_CORRECTNESS_LEVEL_ORANGE = 2;
-        // Издание не проверено
-        EDITION_CORRECTNESS_LEVEL_RED = 3;
-    }
-
-    enum EditionType {
-        EDITION_TYPE_UNKNOWN = 0;
-        // Авторская книга
-        EDITION_TYPE_AUTHOR_BOOK = 1;
-        // Авторский сборник
-        EDITION_TYPE_AUTHOR_COMPILATION = 2;
-        // Сборник
-        EDITION_TYPE_COMPILATION = 3;
-        // Антология
-        EDITION_TYPE_ANTHOLOGY = 4;
-        // Хрестоматия
-        EDITION_TYPE_CHRESTOMATHY = 5;
-        // Журнал
-        EDITION_TYPE_MAGAZINE = 6;
-        // Фэнзин
-        EDITION_TYPE_FANZINE = 7;
-        // Альманах
-        EDITION_TYPE_ALMANAC = 8;
-        // Газета
-        EDITION_TYPE_NEWSPAPER = 9;
-        // Аудиокнига
-        EDITION_TYPE_AUDIOBOOK = 10;
-        // Иллюстрированный альбом
-        EDITION_TYPE_ILLUSTRATED_ALBUM = 11;
-        // Диафильм
-        EDITION_TYPE_FILM_STRIP = 12;
-    }
-
-    enum FilmType {
-        FILM_TYPE_UNKNOWN = 0;
-        // Фильм
-        FILM_TYPE_FILM = 1;
-        // Сериал
-        FILM_TYPE_SERIES = 2;
-        // Эпизод
-        FILM_TYPE_EPISODE = 3;
-        // Документальный
-        FILM_TYPE_DOCUMENTARY = 4;
-        // Анимационный
-        FILM_TYPE_ANIMATION = 5;
-        // Короткометражный
-        FILM_TYPE_SHORT = 6;
-        // Телеспектакль
-        FILM_TYPE_SPECTACLE = 7;
     }
 
     message Bookcase {
@@ -117,21 +64,21 @@ message Bookcase {
         string comment = 5;
     }
 
-    message Offer {
-        // URL предложения
-        string url = 1;
-        // цена
-        uint64 price = 2;
-    }
-
-    message Offers {
-        // предложение на Озоне
-        Offer ozon = 1;
-        // предложение на Лабиринте
-        Offer labirint = 2;
-    }
-
     message Edition {
+        message Offers {
+            message Offer {
+                // URL предложения
+                string url = 1;
+                // цена
+                uint64 price = 2;
+            }
+
+            // предложение на Озоне
+            Offer ozon = 1;
+            // предложение на Лабиринте
+            Offer labirint = 2;
+        }
+
         // id издания
         uint64 id = 1;
         // тип (авторская книга/сборник/etc; может отсутствовать, если не задан)
@@ -150,10 +97,12 @@ message Bookcase {
         string publishers = 8;
         // описание
         string description = 9;
+        // планируемая дата издания (если издание еще не опубликовано)
+        string planned_publication_date = 10;
         // предложения в магазинах
-        Offers offers = 10;
+        Offers offers = 11;
         // комментарий
-        string comment = 11;
+        string comment = 12;
     }
 
     message EditionBookcaseResponse {
@@ -165,6 +114,67 @@ message Bookcase {
         Common.Pages pages = 3;
     }
 
+    message Work {
+        message Author {
+            // id автора
+            uint64 id = 1;
+            // имя на русском языке
+            string name = 2;
+            // страница открыта?
+            bool is_opened = 3;
+        }
+
+        message Stats {
+            // средняя оценка
+            double average_mark = 1;
+            // количество оценок
+            uint64 mark_count = 2;
+            // количество отзывов
+            uint64 response_count = 3;
+        }
+
+        message Own {
+            // собственная оценка произведению
+            uint64 mark = 1;
+            // опубликован отзыв?
+            bool is_response_published = 2;
+        }
+
+        // id произведения
+        uint64 id = 1;
+        // тип (роман/сборник/etc; может отсутствовать)
+        WorkType type = 2;
+        // авторы
+        repeated Author authors = 3;
+        // название на русском языке
+        string title = 4;
+        // название в оригинале
+        string original_title = 5;
+        // альтернативные названия
+        string alternative_titles = 6;
+        // примечание
+        string note = 7;
+        // год
+        int64 year = 8;
+        // описание
+        string description = 9;
+        // опубликовано?
+        bool is_published = 10;
+        // статистика
+        Stats stats = 11;
+        // персональное
+        Own own = 12;
+    }
+
+    message WorkBookcaseResponse {
+        // информация о полке
+        BookcaseInfo bookcase = 1;
+        // список произведений на полке
+        repeated Work works = 2;
+        // страницы
+        Common.Pages pages = 3;
+    }
+
     message Film {
         // id фильма
         uint64 id = 1;
@@ -172,9 +182,9 @@ message Bookcase {
         FilmType type = 2;
         // URL постера
         string poster = 3;
-        // название фильма на русском языке
+        // название на русском языке
         string title = 4;
-        // название фильма в оригинале
+        // название в оригинале
         string original_title = 5;
         // год выпуска (для всего, кроме сериалов)
         uint64 year = 6;

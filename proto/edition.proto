@@ -1,0 +1,43 @@
+syntax = "proto3";
+
+option go_package = "sources/pb";
+
+// TODO Список взят из main.cfg; если он изменится в основном репозитории, здесь тоже придется дорабатывать
+// https://github.com/parserpro/fantlab/blob/2933533d76806584d52533b6026b8a3411193732/config/main.cfg#L283-L299
+enum EditionType {
+    EDITION_TYPE_UNKNOWN = 0;
+    // Авторская книга
+    EDITION_TYPE_AUTHOR_BOOK = 1;
+    // Авторский сборник
+    EDITION_TYPE_AUTHOR_COMPILATION = 2;
+    // Сборник
+    EDITION_TYPE_COMPILATION = 3;
+    // Антология
+    EDITION_TYPE_ANTHOLOGY = 4;
+    // Хрестоматия
+    EDITION_TYPE_CHRESTOMATHY = 5;
+    // Журнал
+    EDITION_TYPE_MAGAZINE = 6;
+    // Фэнзин
+    EDITION_TYPE_FANZINE = 7;
+    // Альманах
+    EDITION_TYPE_ALMANAC = 8;
+    // Газета
+    EDITION_TYPE_NEWSPAPER = 9;
+    // Аудиокнига
+    EDITION_TYPE_AUDIOBOOK = 10;
+    // Иллюстрированный альбом
+    EDITION_TYPE_ILLUSTRATED_ALBUM = 11;
+    // Диафильм
+    EDITION_TYPE_FILM_STRIP = 12;
+}
+
+enum EditionCorrectnessLevel {
+    EDITION_CORRECTNESS_LEVEL_UNKNOWN = 0;
+    // Издание проверено
+    EDITION_CORRECTNESS_LEVEL_GREEN = 1;
+    // Издание требует верификации
+    EDITION_CORRECTNESS_LEVEL_ORANGE = 2;
+    // Издание не проверено
+    EDITION_CORRECTNESS_LEVEL_RED = 3;
+}

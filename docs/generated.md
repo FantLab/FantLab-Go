@@ -957,38 +957,110 @@
 
 ```
 {
-  bookcase: {                # информация о полке
-    id: uint64               # id книжной полки
-    isPrivate: bool          # приватная?
-    type: int32              # тип
-    title: string            # название
-    comment: string          # комментарий
+  bookcase: {                       # информация о полке
+    id: uint64                      # id книжной полки
+    isPrivate: bool                 # приватная?
+    type: int32                     # тип
+    title: string                   # название
+    comment: string                 # комментарий
   }
-  editions: [{               # список изданий на полке
-    id: uint64               # id издания
-    type: int32              # тип (авторская книга/сборник/etc; может отсутствовать, если не задан)
-    correctnessLevel: int32  # уровень проверенности
-    cover: string            # URL обложки
-    authors: string          # авторы
-    title: string            # название
-    year: uint64             # год публикации
-    publishers: string       # издательства
-    description: string      # описание
-    offers: {                # предложения в магазинах
-      ozon: {                # предложение на Озоне
-        url: string          # URL предложения
-        price: uint64        # цена
+  editions: [{                      # список изданий на полке
+    id: uint64                      # id издания
+    type: int32                     # тип (авторская книга/сборник/etc; может отсутствовать, если не задан)
+    correctnessLevel: int32         # уровень проверенности
+    cover: string                   # URL обложки
+    authors: string                 # авторы
+    title: string                   # название
+    year: uint64                    # год публикации
+    publishers: string              # издательства
+    description: string             # описание
+    plannedPublicationDate: string  # планируемая дата издания (если издание еще не опубликовано)
+    offers: {                       # предложения в магазинах
+      ozon: {                       # предложение на Озоне
+        url: string                 # URL предложения
+        price: uint64               # цена
       }
-      labirint: {            # предложение на Лабиринте
-        url: string          # URL предложения
-        price: uint64        # цена
+      labirint: {                   # предложение на Лабиринте
+        url: string                 # URL предложения
+        price: uint64               # цена
       }
     }
-    comment: string          # комментарий
+    comment: string                 # комментарий
   }]
-  pages: {                   # страницы
-    current: uint64          # текущая
-    count: uint64            # количество
+  pages: {                          # страницы
+    current: uint64                 # текущая
+    count: uint64                   # количество
+  }
+}
+```
+---
+
+</p>
+</details>
+
+<details><summary>Содержимое полки с произведениями</summary>
+<p>
+
+
+
+**GET** [/v1/work_bookcases/{id}](../sources/server/internal/endpoints/show_work_bookcase.go#L15)
+
+Параметры запроса:
+
+
+* **id** (path, uint64) - id книжной полки
+
+
+* **page** (query, uint64) - номер страницы (>0, по умолчанию - 1)
+
+
+* **limit** (query, uint64) - кол-во элементов на странице ([5..50], по умолчанию - 50)
+
+
+* **sort** (query, string) - сортировать по: порядку - order (по умолчанию), автору - author, названию - title, оригинальному названию - orig_title, году - year, количеству оценок - mark_count, средней оценке - avg_mark
+
+
+
+
+Схема ответа:
+
+```
+{
+  bookcase: {                    # информация о полке
+    id: uint64                   # id книжной полки
+    isPrivate: bool              # приватная?
+    type: int32                  # тип
+    title: string                # название
+    comment: string              # комментарий
+  }
+  works: [{                      # список произведений на полке
+    id: uint64                   # id произведения
+    type: int32                  # тип (роман/сборник/etc; может отсутствовать)
+    authors: [{                  # авторы
+      id: uint64                 # id автора
+      name: string               # имя на русском языке
+      isOpened: bool             # страница открыта?
+    }]
+    title: string                # название на русском языке
+    originalTitle: string        # название в оригинале
+    alternativeTitles: string    # альтернативные названия
+    note: string                 # примечание
+    year: int64                  # год
+    description: string          # описание
+    isPublished: bool            # опубликовано?
+    stats: {                     # статистика
+      averageMark: float64       # средняя оценка
+      markCount: uint64          # количество оценок
+      responseCount: uint64      # количество отзывов
+    }
+    own: {                       # персональное
+      mark: uint64               # собственная оценка произведению
+      isResponsePublished: bool  # опубликован отзыв?
+    }
+  }]
+  pages: {                       # страницы
+    current: uint64              # текущая
+    count: uint64                # количество
   }
 }
 ```
@@ -1036,8 +1108,8 @@
     id: uint64             # id фильма
     type: int32            # тип (фильм/сериал/etc; может отсутствовать, если не задан)
     poster: string         # URL постера
-    title: string          # название фильма на русском языке
-    originalTitle: string  # название фильма в оригинале
+    title: string          # название на русском языке
+    originalTitle: string  # название в оригинале
     year: uint64           # год выпуска (для всего, кроме сериалов)
     startYear: uint64      # год старта трансляции (для сериалов)
     endYear: uint64        # год окончания трансляции (для сериалов)

@@ -39,7 +39,7 @@ func (api *API) ShowFilmBookcase(r *http.Request) (int, proto.Message) {
 	if !helpers.IsValidLimit(params.Limit) {
 		return api.badParam("limit")
 	}
-	if !(params.SortBy == "order" || params.SortBy == "title" || params.SortBy == "orig_title") {
+	if _, ok := db.FilmSortMap[params.SortBy]; !ok {
 		return api.badParam("sort")
 	}
 
@@ -58,12 +58,12 @@ func (api *API) ShowFilmBookcase(r *http.Request) (int, proto.Message) {
 		}
 	}
 
-	user := api.getUser(r)
+	userId := api.getUserId(r)
 
-	if dbBookcase.BookcaseShared == 0 && (user == nil || user.UserId != dbBookcase.UserId) {
-		return http.StatusForbidden, &pb.Error_Response{
-			Status:  pb.Error_ACTION_PERMITTED,
-			Context: "Приватная книжная полка",
+	if dbBookcase.BookcaseShared == 0 && userId != dbBookcase.UserId {
+		return http.StatusNotFound, &pb.Error_Response{
+			Status:  pb.Error_NOT_FOUND,
+			Context: strconv.FormatUint(params.BookcaseId, 10),
 		}
 	}
 

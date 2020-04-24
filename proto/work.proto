@@ -2,71 +2,80 @@ syntax = "proto3";
 
 option go_package = "sources/pb";
 
-message Work {
-    enum WorkType {
-        WORK_TYPE_UNKNOWN = 0;
-        // Роман
-        WORK_TYPE_NOVEL = 1;
-        // Сборник
-        WORK_TYPE_COLLECTION = 2;
-        // Цикл
-        WORK_TYPE_CYCLE = 3;
-        // Стихотворение
-        WORK_TYPE_POEM = 4;
-        // Произведение (прочее)
-        WORK_TYPE_OTHER = 5;
-        // Сказка
-        WORK_TYPE_TALE = 6;
-        // Эссе
-        WORK_TYPE_ESSAY = 7;
-        // Статья
-        WORK_TYPE_ARTICLE = 8;
-        // Роман-эпопея
-        WORK_TYPE_EPIC = 9;
-        // Антология
-        WORK_TYPE_ANTOLOGY = 10;
-        // Пьеса
-        WORK_TYPE_PIECE = 11;
-        // Киносценарий
-        WORK_TYPE_SCENARIO = 12;
-        // Документальное произведение
-        WORK_TYPE_DOCUMENTAL = 13;
-        // Микрорассказ
-        WORK_TYPE_MICROSTORY = 14;
-        // Диссертация
-        WORK_TYPE_DISSER = 15;
-        // Монография
-        WORK_TYPE_MONOGRAPHY = 16;
-        // Учебное издание
-        WORK_TYPE_STUDY = 17;
-        // Энциклопедия/справочник
-        WORK_TYPE_ENCYCLOPEDY = 18;
-        // Журнал
-        WORK_TYPE_MAGAZINE = 19;
-        // Комикс
-        WORK_TYPE_COMIX = 20;
-        // Манга
-        WORK_TYPE_MANGA = 21;
-        // Графический роман
-        WORK_TYPE_GRAPHICNOVEL = 22;
-        // Повесть
-        WORK_TYPE_STORY = 23;
-        // Рассказ
-        WORK_TYPE_SHORTSTORY = 24;
-        // Очерк
-        WORK_TYPE_SKETCH = 25;
-        // Репортаж
-        WORK_TYPE_REPORTAGE = 26;
-        // Условный цикл
-        WORK_TYPE_CONDITIONALCYCLE = 27;
-        // Отрывок
-        WORK_TYPE_EXCERPT = 28;
-        // Интервью
-        WORK_TYPE_INTERVIEW = 29;
-        // Рецензия
-        WORK_TYPE_REVIEW = 30;
-    }
+// TODO Список взят из таблицы work_types; если он изменится в базе, здесь тоже придется дорабатывать
+enum WorkType {
+    WORK_TYPE_UNKNOWN = 0;
+    // Роман
+    WORK_TYPE_NOVEL = 1;
+    // Сборник
+    WORK_TYPE_COMPILATION = 2;
+    // Цикл
+    WORK_TYPE_SERIES = 3;
+    // Стихотворение
+    WORK_TYPE_VERSE = 4;
+    // Произведение (прочее)
+    WORK_TYPE_OTHER = 5;
+    // Сказка
+    WORK_TYPE_FAIRY_TALE = 6;
+    // Эссе
+    WORK_TYPE_ESSAY = 7;
+    // Статья
+    WORK_TYPE_ARTICLE = 8;
+    // Роман-эпопея
+    WORK_TYPE_EPIC_NOVEL = 9;
+    // Антология
+    WORK_TYPE_ANTHOLOGY = 10;
+    // Пьеса
+    WORK_TYPE_PLAY = 11;
+    // Киносценарий
+    WORK_TYPE_SCREENPLAY = 12;
+    // Документальное произведение
+    WORK_TYPE_DOCUMENTARY = 13;
+    // Микрорассказ
+    WORK_TYPE_MICROTALE = 14;
+    // Диссертация
+    WORK_TYPE_DISSERTATION = 15;
+    // Монография
+    WORK_TYPE_MONOGRAPH = 16;
+    // Учебное издание
+    WORK_TYPE_EDUCATIONAL_PUBLICATION = 17;
+    // Энциклопедия/справочник
+    WORK_TYPE_ENCYCLOPEDIA = 18;
+    // Журнал
+    WORK_TYPE_MAGAZINE = 19;
+    // Поэма
+    WORK_TYPE_POEM = 20;
+    // Стихотворения
+    WORK_TYPE_POETRY = 21;
+    // Стихотворение в прозе
+    WORK_TYPE_PROSE_VERSE = 22;
+    // Комикс
+    WORK_TYPE_COMIC_BOOK = 23;
+    // Манга
+    WORK_TYPE_MANGA = 24;
+    // Графический роман
+    WORK_TYPE_GRAPHIC_NOVEL = 25;
+    // Повесть
+    WORK_TYPE_NOVELETTE = 26;
+    // Рассказ
+    WORK_TYPE_STORY = 27;
+    // Очерк
+    WORK_TYPE_FEATURE_ARTICLE = 28;
+    // Репортаж
+    WORK_TYPE_REPORTAGE = 29;
+    // Условный цикл
+    WORK_TYPE_CONDITIONAL_SERIES = 30;
+    // Отрывок
+    WORK_TYPE_EXCERPT = 31;
+    // Интервью
+    WORK_TYPE_INTERVIEW = 32;
+    // Рецензия
+    WORK_TYPE_REVIEW = 33;
+    // Научно-популярная книга
+    WORK_TYPE_POPULAR_SCIENCE_BOOK = 34;
+}
 
+message Work {
     enum PublishStatus {
         PUBLISH_STATUS_UNKNOWN = 0;
         // Не закончено
