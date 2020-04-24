@@ -43,6 +43,23 @@ const (
 		FROM
 			bookcase
 		WHERE
+			bookcase_id = ?
+		LIMIT 1
+	`
+
+	BookcaseGetTypedBookcase = `
+		SELECT
+			bookcase_id,
+			user_id,
+			bookcase_type,
+			bookcase_group,
+			bookcase_name,
+			bookcase_comment,
+			bookcase_shared,
+			sort
+		FROM
+			bookcase
+		WHERE
 			bookcase_type = ? AND bookcase_id = ?
 		LIMIT 1
 	`
@@ -178,6 +195,24 @@ const (
 			COUNT(*)
 		FROM
 			bookcase_items
+		WHERE
+			bookcase_id = ?
+	`
+
+	BookcaseDeleteBookcaseItems = `
+		DELETE
+			bi
+		FROM
+			bookcase_items bi,
+			bookcase b
+		WHERE
+			bi.bookcase_id = b.bookcase_id AND b.bookcase_id = ?
+	`
+
+	BookcaseDeleteBookcase = `
+		DELETE
+		FROM
+			bookcase
 		WHERE
 			bookcase_id = ?
 	`

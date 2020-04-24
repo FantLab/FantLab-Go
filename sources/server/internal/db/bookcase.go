@@ -151,10 +151,22 @@ func (db *DB) FetchBookcases(ctx context.Context, userId uint64, isOwner bool) (
 	return bookcases, nil
 }
 
-func (db *DB) FetchBookcase(ctx context.Context, bookcaseType string, bookcaseId uint64) (Bookcase, error) {
+func (db *DB) FetchBookcase(ctx context.Context, bookcaseId uint64) (Bookcase, error) {
 	var bookcase Bookcase
 
-	err := db.engine.Read(ctx, sqlr.NewQuery(queries.BookcaseGetBookcase).WithArgs(bookcaseType, bookcaseId)).Scan(&bookcase)
+	err := db.engine.Read(ctx, sqlr.NewQuery(queries.BookcaseGetBookcase).WithArgs(bookcaseId)).Scan(&bookcase)
+
+	if err != nil {
+		return Bookcase{}, err
+	}
+
+	return bookcase, nil
+}
+
+func (db *DB) FetchTypedBookcase(ctx context.Context, bookcaseType string, bookcaseId uint64) (Bookcase, error) {
+	var bookcase Bookcase
+
+	err := db.engine.Read(ctx, sqlr.NewQuery(queries.BookcaseGetTypedBookcase).WithArgs(bookcaseType, bookcaseId)).Scan(&bookcase)
 
 	if err != nil {
 		return Bookcase{}, err
@@ -383,4 +395,17 @@ func (db *DB) InsertDefaultBookcases(ctx context.Context, userId uint64) ([]Book
 	}
 
 	return bookcases, nil
+}
+
+func (db *DB) DeleteBookcase(ctx context.Context, bookcaseId uint64) error {
+	return db.engine.InTransaction(func(rw sqlr.ReaderWriter) error {
+		return codeflow.Try(
+			func() error { // Удаляем содержимое полки
+				return rw.Write(ctx, sqlr.NewQuery(queries.BookcaseDeleteBookcaseItems).WithArgs(bookcaseId)).Error
+			},
+			func() error { // Удаляем саму полку
+				return rw.Write(ctx, sqlr.NewQuery(queries.BookcaseDeleteBookcase).WithArgs(bookcaseId)).Error
+			},
+		)
+	})
 }
