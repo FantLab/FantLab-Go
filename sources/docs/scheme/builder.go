@@ -6,9 +6,10 @@ import (
 )
 
 type BuilderConfig struct {
-	GetComment   func(reflect.Type, string) string
-	IsValidField func(reflect.StructField) bool
-	GetFieldName func(reflect.StructTag) string
+	GetComment           func(reflect.Type, string) string
+	IsValidField         func(reflect.StructField) bool
+	GetFieldName         func(reflect.StructTag) string
+	CustomStructStringer func(reflect.Type) string
 }
 
 func NewBuilder(cfg *BuilderConfig) *Builder {
@@ -42,6 +43,13 @@ func (b *Builder) Make(t reflect.Type, prefix, postfix string) string {
 func (b *Builder) walkType(ls *lines, superTypes []string, t reflect.Type) {
 	switch t.Kind() {
 	case reflect.Struct:
+		if b.cfg.CustomStructStringer != nil {
+			if s := b.cfg.CustomStructStringer(t); s != "" {
+				ls.current.builder.WriteString(s)
+				return
+			}
+		}
+
 		for _, st := range superTypes {
 			if st == t.String() {
 				ls.current.builder.WriteString("...")

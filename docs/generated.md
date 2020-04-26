@@ -86,10 +86,7 @@
           sign: string          # подпись на форуме
         }
         text: string            # текст
-        date: {                 # дата и время создания
-          seconds: int64
-          nanos: int32
-        }
+        date: timestamp         # дата и время создания
       }
     }]
   }]
@@ -139,10 +136,7 @@
         class: int32        # класс
         sign: string        # подпись на форуме
       }
-      date: {               # дата создания
-        seconds: int64
-        nanos: int32
-      }
+      date: timestamp       # дата создания
     }
     isClosed: bool          # тема закрыта?
     isPinned: bool          # тема закреплена?
@@ -166,10 +160,7 @@
         sign: string        # подпись на форуме
       }
       text: string          # текст
-      date: {               # дата и время создания
-        seconds: int64
-        nanos: int32
-      }
+      date: timestamp       # дата и время создания
     }
   }]
   pages: {                  # страницы
@@ -225,10 +216,7 @@
         class: int32          # класс
         sign: string          # подпись на форуме
       }
-      date: {                 # дата создания
-        seconds: int64
-        nanos: int32
-      }
+      date: timestamp         # дата создания
     }
     isClosed: bool            # тема закрыта?
     isPinned: bool            # тема закреплена?
@@ -252,10 +240,7 @@
         sign: string          # подпись на форуме
       }
       text: string            # текст
-      date: {                 # дата и время создания
-        seconds: int64
-        nanos: int32
-      }
+      date: timestamp         # дата и время создания
     }
   }
   forum: {                    # форум, в который входит тема
@@ -291,10 +276,7 @@
         sign: string          # подпись на форуме
       }
       text: string            # текст
-      date: {                 # дата и время создания
-        seconds: int64
-        nanos: int32
-      }
+      date: timestamp         # дата и время создания
     }
   }
   pinnedMessage: {            # закрепленное сообщение, если есть
@@ -309,10 +291,7 @@
         class: int32          # класс
         sign: string          # подпись на форуме
       }
-      date: {                 # дата создания
-        seconds: int64
-        nanos: int32
-      }
+      date: timestamp         # дата создания
     }
     text: string              # текст
     isCensored: bool          # текст изъят модератором?
@@ -332,10 +311,7 @@
         class: int32          # класс
         sign: string          # подпись на форуме
       }
-      date: {                 # дата создания
-        seconds: int64
-        nanos: int32
-      }
+      date: timestamp         # дата создания
     }
     text: string              # текст
     isCensored: bool          # текст изъят модератором?
@@ -388,10 +364,7 @@
         class: int32              # класс
         sign: string              # подпись на форуме
       }
-      date: {                     # дата создания
-        seconds: int64
-        nanos: int32
-      }
+      date: timestamp             # дата создания
     }
   }]
   additional: [{                  # дополнительные рубрики
@@ -416,10 +389,7 @@
         class: int32              # класс
         sign: string              # подпись на форуме
       }
-      date: {                     # дата создания
-        seconds: int64
-        nanos: int32
-      }
+      date: timestamp             # дата создания
     }
   }]
 }
@@ -476,10 +446,7 @@
         class: int32              # класс
         sign: string              # подпись на форуме
       }
-      date: {                     # дата создания
-        seconds: int64
-        nanos: int32
-      }
+      date: timestamp             # дата создания
     }
   }
   moderators: [{                  # модераторы
@@ -513,10 +480,7 @@
         class: int32              # класс
         sign: string              # подпись на форуме
       }
-      date: {                     # дата создания
-        seconds: int64
-        nanos: int32
-      }
+      date: timestamp             # дата создания
     }
     text: string                  # текст
     tags: string                  # теги
@@ -590,10 +554,7 @@
         class: int32           # класс
         sign: string           # подпись на форуме
       }
-      date: {                  # дата создания
-        seconds: int64
-        nanos: int32
-      }
+      date: timestamp          # дата создания
     }
   }]
   pages: {                     # страницы
@@ -645,10 +606,7 @@
         class: int32        # класс
         sign: string        # подпись на форуме
       }
-      date: {               # дата создания
-        seconds: int64
-        nanos: int32
-      }
+      date: timestamp       # дата создания
     }
     text: string            # текст
     tags: string            # теги
@@ -701,10 +659,7 @@
         class: int32        # класс
         sign: string        # подпись на форуме
       }
-      date: {               # дата создания
-        seconds: int64
-        nanos: int32
-      }
+      date: timestamp       # дата создания
     }
     text: string            # текст
     tags: string            # теги
@@ -874,10 +829,7 @@
         class: int32    # класс
         sign: string    # подпись на форуме
       }
-      date: {           # дата создания
-        seconds: int64
-        nanos: int32
-      }
+      date: timestamp   # дата создания
     }
     text: string        # текст сообщения
     isCensored: bool    # текст изъят модератором?
@@ -1246,10 +1198,7 @@
         class: int32    # класс
         sign: string    # подпись на форуме
       }
-      date: {           # дата создания
-        seconds: int64
-        nanos: int32
-      }
+      date: timestamp   # дата создания
     }
     text: string        # текст
     isCensored: bool    # текст изъят модератором?
@@ -1298,10 +1247,7 @@
         class: int32    # класс
         sign: string    # подпись на форуме
       }
-      date: {           # дата создания
-        seconds: int64
-        nanos: int32
-      }
+      date: timestamp   # дата создания
     }
     text: string        # текст
     isCensored: bool    # текст изъят модератором?
@@ -1405,10 +1351,7 @@
         class: int32    # класс
         sign: string    # подпись на форуме
       }
-      date: {           # дата создания
-        seconds: int64
-        nanos: int32
-      }
+      date: timestamp   # дата создания
     }
     text: string        # текст
     isCensored: bool    # текст изъят модератором?
@@ -1457,10 +1400,7 @@
         class: int32    # класс
         sign: string    # подпись на форуме
       }
-      date: {           # дата создания
-        seconds: int64
-        nanos: int32
-      }
+      date: timestamp   # дата создания
     }
     text: string        # текст
   }
@@ -1502,10 +1442,7 @@
         class: int32    # класс
         sign: string    # подпись на форуме
       }
-      date: {           # дата создания
-        seconds: int64
-        nanos: int32
-      }
+      date: timestamp   # дата создания
     }
     text: string        # текст
     isCensored: bool    # текст изъят модератором?
@@ -1609,10 +1546,7 @@
         class: int32    # класс
         sign: string    # подпись на форуме
       }
-      date: {           # дата создания
-        seconds: int64
-        nanos: int32
-      }
+      date: timestamp   # дата создания
     }
     text: string        # текст
   }
@@ -1688,10 +1622,7 @@
         class: int32    # класс
         sign: string    # подпись на форуме
       }
-      date: {           # дата создания
-        seconds: int64
-        nanos: int32
-      }
+      date: timestamp   # дата создания
     }
     text: string        # текст сообщения
     isCensored: bool    # текст изъят модератором?
@@ -1738,10 +1669,7 @@
         class: int32    # класс
         sign: string    # подпись на форуме
       }
-      date: {           # дата создания
-        seconds: int64
-        nanos: int32
-      }
+      date: timestamp   # дата создания
     }
     text: string        # текст сообщения
     isCensored: bool    # текст изъят модератором?
