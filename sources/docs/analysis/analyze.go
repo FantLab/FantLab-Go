@@ -131,6 +131,12 @@ func makeSchemeBuilder(modelComments commentsTable) *scheme.Builder {
 			}
 			return jsonName
 		},
+		CustomStructStringer: func(t reflect.Type) string {
+			if t.Name() == "Timestamp" {
+				return "timestamp"
+			}
+			return ""
+		},
 	})
 }
 
