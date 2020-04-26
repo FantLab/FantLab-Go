@@ -12,6 +12,7 @@ import (
 	"fantlab/base/edsign"
 	"fantlab/base/httprouter"
 	"fantlab/base/memcacheclient"
+	"fantlab/base/protobuf"
 	"fantlab/base/redisclient"
 	"fantlab/docs"
 	"fantlab/server/internal/app"
@@ -39,6 +40,10 @@ func GenerateDocs() {
 }
 
 func Start() {
+	protobuf.HandleError = func(ctx context.Context, err error) {
+		logs.WithAPM(ctx).Error(err.Error())
+	}
+
 	apiServer := makeAPIServer()
 
 	var monitoringServer *anyserver.Server
