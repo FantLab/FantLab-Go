@@ -7,35 +7,34 @@ import (
 	"google.golang.org/protobuf/proto"
 )
 
-const protoContentType = "application/x-protobuf"
+const (
+	pbContentType   = "application/x-protobuf"
+	jsonContentType = "application/json; charset=utf-8"
+)
 
-func render(w http.ResponseWriter, r *http.Request, code int, pb proto.Message) {
-	acceptProto := r.Header.Get("Accept") == protoContentType
+func marshal(msg proto.Message, usePB bool) ([]byte, error) {
+	if usePB {
+		return proto.Marshal(msg)
+	}
+	return protojson.Marshal(msg)
+}
 
-	if acceptProto {
-		w.Header().Set("Content-Type", protoContentType)
+func render(w http.ResponseWriter, r *http.Request, code int, msg proto.Message) error {
+	usePB := r.Header.Get("Accept") == pbContentType
+
+	if usePB {
+		w.Header().Set("Content-Type", pbContentType)
 	} else {
-		w.Header().Set("Content-Type", "application/json; charset=utf-8")
+		w.Header().Set("Content-Type", jsonContentType)
 	}
 
 	w.Header().Set("X-Content-Type-Options", "nosniff")
 
 	w.WriteHeader(code)
 
-	var data []byte
-	var err error
-
-	if acceptProto {
-		data, err = proto.Marshal(pb)
-	} else {
-		data, err = protojson.Marshal(pb)
-	}
-
+	data, err := marshal(msg, usePB)
 	if err == nil {
 		_, err = w.Write(data)
 	}
-
-	if err != nil {
-		panic(err)
-	}
+	return err
 }
