@@ -22,10 +22,40 @@ type t_group struct {
 	Endpoints []t_endpoint
 }
 
-const markdownTemplate = `
-# Список методов
+type t_enum_case struct {
+	Num  int
+	Name string
+}
 
-{{range .}}
+type t_enum struct {
+	Name  string
+	Cases []t_enum_case
+}
+
+type t_content struct {
+	Enums  []t_enum
+	Groups []t_group
+}
+
+const markdownTemplate = `
+# Константы
+
+{{range .Enums}}
+<details><summary>{{.Name}}</summary>
+<p>
+
+| Int | String |
+| --- | --- |{{range .Cases}}
+| {{.Num}} | {{.Name}} |{{end}}
+---
+
+</p>
+</details>
+{{end}}
+
+# Эндпойнты
+
+{{range .Groups}}
 ## {{.Info}}
 
 {{range .Endpoints}}

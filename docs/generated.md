@@ -1,5 +1,186 @@
 
-# Список методов
+# Константы
+
+
+<details><summary>Bookcase_BookcaseType</summary>
+<p>
+
+| Int | String |
+| --- | --- |
+| 0 | BOOKCASE_TYPE_UNKNOWN |
+| 1 | BOOKCASE_TYPE_READ |
+| 2 | BOOKCASE_TYPE_WAIT |
+| 3 | BOOKCASE_TYPE_BUY |
+| 4 | BOOKCASE_TYPE_SALE |
+| 5 | BOOKCASE_TYPE_FREE |
+---
+
+</p>
+</details>
+
+<details><summary>Common_Gender</summary>
+<p>
+
+| Int | String |
+| --- | --- |
+| 0 | GENDER_UNKNOWN |
+| 1 | GENDER_MALE |
+| 2 | GENDER_FEMALE |
+---
+
+</p>
+</details>
+
+<details><summary>Common_UserClass</summary>
+<p>
+
+| Int | String |
+| --- | --- |
+| 0 | USERCLASS_UNKNOWN |
+| 1 | USERCLASS_BEGINNER |
+| 2 | USERCLASS_ACTIVIST |
+| 3 | USERCLASS_AUTHORITY |
+| 4 | USERCLASS_PHILOSOPHER |
+| 5 | USERCLASS_MASTER |
+| 6 | USERCLASS_GRANDMASTER |
+| 7 | USERCLASS_PEACEKEEPER |
+| 8 | USERCLASS_PEACEMAKER |
+---
+
+</p>
+</details>
+
+<details><summary>EditionCorrectnessLevel</summary>
+<p>
+
+| Int | String |
+| --- | --- |
+| 0 | EDITION_CORRECTNESS_LEVEL_UNKNOWN |
+| 1 | EDITION_CORRECTNESS_LEVEL_GREEN |
+| 2 | EDITION_CORRECTNESS_LEVEL_ORANGE |
+| 3 | EDITION_CORRECTNESS_LEVEL_RED |
+---
+
+</p>
+</details>
+
+<details><summary>EditionType</summary>
+<p>
+
+| Int | String |
+| --- | --- |
+| 0 | EDITION_TYPE_UNKNOWN |
+| 1 | EDITION_TYPE_AUTHOR_BOOK |
+| 2 | EDITION_TYPE_AUTHOR_COMPILATION |
+| 3 | EDITION_TYPE_COMPILATION |
+| 4 | EDITION_TYPE_ANTHOLOGY |
+| 5 | EDITION_TYPE_CHRESTOMATHY |
+| 6 | EDITION_TYPE_MAGAZINE |
+| 7 | EDITION_TYPE_FANZINE |
+| 8 | EDITION_TYPE_ALMANAC |
+| 9 | EDITION_TYPE_NEWSPAPER |
+| 10 | EDITION_TYPE_AUDIOBOOK |
+| 11 | EDITION_TYPE_ILLUSTRATED_ALBUM |
+| 12 | EDITION_TYPE_FILM_STRIP |
+---
+
+</p>
+</details>
+
+<details><summary>FilmType</summary>
+<p>
+
+| Int | String |
+| --- | --- |
+| 0 | FILM_TYPE_UNKNOWN |
+| 1 | FILM_TYPE_FILM |
+| 2 | FILM_TYPE_SERIES |
+| 3 | FILM_TYPE_EPISODE |
+| 4 | FILM_TYPE_DOCUMENTARY |
+| 5 | FILM_TYPE_ANIMATION |
+| 6 | FILM_TYPE_SHORT |
+| 7 | FILM_TYPE_SPECTACLE |
+---
+
+</p>
+</details>
+
+<details><summary>Forum_Topic_Type</summary>
+<p>
+
+| Int | String |
+| --- | --- |
+| 0 | UNKNOWN_TYPE |
+| 1 | TOPIC |
+| 2 | POLL |
+---
+
+</p>
+</details>
+
+<details><summary>WorkType</summary>
+<p>
+
+| Int | String |
+| --- | --- |
+| 0 | WORK_TYPE_UNKNOWN |
+| 1 | WORK_TYPE_NOVEL |
+| 2 | WORK_TYPE_COMPILATION |
+| 3 | WORK_TYPE_SERIES |
+| 4 | WORK_TYPE_VERSE |
+| 5 | WORK_TYPE_OTHER |
+| 6 | WORK_TYPE_FAIRY_TALE |
+| 7 | WORK_TYPE_ESSAY |
+| 8 | WORK_TYPE_ARTICLE |
+| 9 | WORK_TYPE_EPIC_NOVEL |
+| 10 | WORK_TYPE_ANTHOLOGY |
+| 11 | WORK_TYPE_PLAY |
+| 12 | WORK_TYPE_SCREENPLAY |
+| 13 | WORK_TYPE_DOCUMENTARY |
+| 14 | WORK_TYPE_MICROTALE |
+| 15 | WORK_TYPE_DISSERTATION |
+| 16 | WORK_TYPE_MONOGRAPH |
+| 17 | WORK_TYPE_EDUCATIONAL_PUBLICATION |
+| 18 | WORK_TYPE_ENCYCLOPEDIA |
+| 19 | WORK_TYPE_MAGAZINE |
+| 20 | WORK_TYPE_POEM |
+| 21 | WORK_TYPE_POETRY |
+| 22 | WORK_TYPE_PROSE_VERSE |
+| 23 | WORK_TYPE_COMIC_BOOK |
+| 24 | WORK_TYPE_MANGA |
+| 25 | WORK_TYPE_GRAPHIC_NOVEL |
+| 26 | WORK_TYPE_NOVELETTE |
+| 27 | WORK_TYPE_STORY |
+| 28 | WORK_TYPE_FEATURE_ARTICLE |
+| 29 | WORK_TYPE_REPORTAGE |
+| 30 | WORK_TYPE_CONDITIONAL_SERIES |
+| 31 | WORK_TYPE_EXCERPT |
+| 32 | WORK_TYPE_INTERVIEW |
+| 33 | WORK_TYPE_REVIEW |
+| 34 | WORK_TYPE_POPULAR_SCIENCE_BOOK |
+---
+
+</p>
+</details>
+
+<details><summary>Work_PublishStatus</summary>
+<p>
+
+| Int | String |
+| --- | --- |
+| 0 | PUBLISH_STATUS_UNKNOWN |
+| 1 | PUBLISH_STATUS_NOT_FINISHED |
+| 2 | PUBLISH_STATUS_NOT_PUBLISHED |
+| 3 | PUBLISH_STATUS_NETWORK_PUBLICATION |
+| 4 | PUBLISH_STATUS_AVAILABLE_ONLINE |
+| 5 | PUBLISH_STATUS_PLANNED_BY_THE_AUTHOR |
+---
+
+</p>
+</details>
+
+
+# Эндпойнты
 
 
 ## Общедоступные
@@ -50,43 +231,43 @@
 
 ```
 {
-  forumBlocks: [{               # список блоков форумов
-    id: uint64                  # id блока форумов
-    title: string               # название
-    forums: [{                  # форумы
-      id: uint64                # id форума
-      title: string             # название
-      forumDescription: string  # описание
-      moderators: [{            # модераторы
-        id: uint64              # id пользователя
-        login: string           # логин
-        name: string            # имя
-        gender: int32           # пол
-        avatar: string          # аватар
-        class: int32            # класс
-        sign: string            # подпись на форуме
+  forumBlocks: [{                         # список блоков форумов
+    id: uint64                            # id блока форумов
+    title: string                         # название
+    forums: [{                            # форумы
+      id: uint64                          # id форума
+      title: string                       # название
+      forumDescription: string            # описание
+      moderators: [{                      # модераторы
+        id: uint64                        # id пользователя
+        login: string                     # логин
+        name: string                      # имя
+        gender: enum (Common_Gender)      # пол
+        avatar: string                    # аватар
+        class: enum (Common_UserClass)    # класс
+        sign: string                      # подпись на форуме
       }]
-      stats: {                  # статистика
-        topicCount: uint64      # количество тем
-        messageCount: uint64    # количество сообщений
+      stats: {                            # статистика
+        topicCount: uint64                # количество тем
+        messageCount: uint64              # количество сообщений
       }
-      lastMessage: {            # последнее сообщение
-        id: uint64              # id сообщения
-        topic: {                # тема, в которую входит сообщение
-          id: uint64            # id темы
-          title: string         # название
+      lastMessage: {                      # последнее сообщение
+        id: uint64                        # id сообщения
+        topic: {                          # тема, в которую входит сообщение
+          id: uint64                      # id темы
+          title: string                   # название
         }
-        user: {                 # автор
-          id: uint64            # id пользователя
-          login: string         # логин
-          name: string          # имя
-          gender: int32         # пол
-          avatar: string        # аватар
-          class: int32          # класс
-          sign: string          # подпись на форуме
+        user: {                           # автор
+          id: uint64                      # id пользователя
+          login: string                   # логин
+          name: string                    # имя
+          gender: enum (Common_Gender)    # пол
+          avatar: string                  # аватар
+          class: enum (Common_UserClass)  # класс
+          sign: string                    # подпись на форуме
         }
-        text: string            # текст
-        date: timestamp         # дата и время создания
+        text: string                      # текст
+        date: timestamp                   # дата и время создания
       }
     }]
   }]
@@ -122,50 +303,50 @@
 
 ```
 {
-  topics: [{                # список тем
-    id: uint64              # id темы
-    title: string           # название
-    topicType: int32        # тип
-    creation: {             # данные о создании
-      user: {               # пользователь
-        id: uint64          # id пользователя
-        login: string       # логин
-        name: string        # имя
-        gender: int32       # пол
-        avatar: string      # аватар
-        class: int32        # класс
-        sign: string        # подпись на форуме
+  topics: [{                            # список тем
+    id: uint64                          # id темы
+    title: string                       # название
+    topicType: enum (Forum_Topic_Type)  # тип
+    creation: {                         # данные о создании
+      user: {                           # пользователь
+        id: uint64                      # id пользователя
+        login: string                   # логин
+        name: string                    # имя
+        gender: enum (Common_Gender)    # пол
+        avatar: string                  # аватар
+        class: enum (Common_UserClass)  # класс
+        sign: string                    # подпись на форуме
       }
-      date: timestamp       # дата создания
+      date: timestamp                   # дата создания
     }
-    isClosed: bool          # тема закрыта?
-    isPinned: bool          # тема закреплена?
-    stats: {                # статистика
-      messageCount: uint64  # количество сообщений
-      viewCount: uint64     # количество просмотров
+    isClosed: bool                      # тема закрыта?
+    isPinned: bool                      # тема закреплена?
+    stats: {                            # статистика
+      messageCount: uint64              # количество сообщений
+      viewCount: uint64                 # количество просмотров
     }
-    lastMessage: {          # последнее сообщение
-      id: uint64            # id сообщения
-      topic: {              # тема, в которую входит сообщение
-        id: uint64          # id темы
-        title: string       # название
+    lastMessage: {                      # последнее сообщение
+      id: uint64                        # id сообщения
+      topic: {                          # тема, в которую входит сообщение
+        id: uint64                      # id темы
+        title: string                   # название
       }
-      user: {               # автор
-        id: uint64          # id пользователя
-        login: string       # логин
-        name: string        # имя
-        gender: int32       # пол
-        avatar: string      # аватар
-        class: int32        # класс
-        sign: string        # подпись на форуме
+      user: {                           # автор
+        id: uint64                      # id пользователя
+        login: string                   # логин
+        name: string                    # имя
+        gender: enum (Common_Gender)    # пол
+        avatar: string                  # аватар
+        class: enum (Common_UserClass)  # класс
+        sign: string                    # подпись на форуме
       }
-      text: string          # текст
-      date: timestamp       # дата и время создания
+      text: string                      # текст
+      date: timestamp                   # дата и время создания
     }
   }]
-  pages: {                  # страницы
-    current: uint64         # текущая
-    count: uint64           # количество
+  pages: {                              # страницы
+    current: uint64                     # текущая
+    count: uint64                       # количество
   }
 }
 ```
@@ -202,126 +383,126 @@
 
 ```
 {
-  topic: {                    # тема
-    id: uint64                # id темы
-    title: string             # название
-    topicType: int32          # тип
-    creation: {               # данные о создании
-      user: {                 # пользователь
-        id: uint64            # id пользователя
-        login: string         # логин
-        name: string          # имя
-        gender: int32         # пол
-        avatar: string        # аватар
-        class: int32          # класс
-        sign: string          # подпись на форуме
+  topic: {                              # тема
+    id: uint64                          # id темы
+    title: string                       # название
+    topicType: enum (Forum_Topic_Type)  # тип
+    creation: {                         # данные о создании
+      user: {                           # пользователь
+        id: uint64                      # id пользователя
+        login: string                   # логин
+        name: string                    # имя
+        gender: enum (Common_Gender)    # пол
+        avatar: string                  # аватар
+        class: enum (Common_UserClass)  # класс
+        sign: string                    # подпись на форуме
       }
-      date: timestamp         # дата создания
+      date: timestamp                   # дата создания
     }
-    isClosed: bool            # тема закрыта?
-    isPinned: bool            # тема закреплена?
-    stats: {                  # статистика
-      messageCount: uint64    # количество сообщений
-      viewCount: uint64       # количество просмотров
+    isClosed: bool                      # тема закрыта?
+    isPinned: bool                      # тема закреплена?
+    stats: {                            # статистика
+      messageCount: uint64              # количество сообщений
+      viewCount: uint64                 # количество просмотров
     }
-    lastMessage: {            # последнее сообщение
-      id: uint64              # id сообщения
-      topic: {                # тема, в которую входит сообщение
-        id: uint64            # id темы
-        title: string         # название
+    lastMessage: {                      # последнее сообщение
+      id: uint64                        # id сообщения
+      topic: {                          # тема, в которую входит сообщение
+        id: uint64                      # id темы
+        title: string                   # название
       }
-      user: {                 # автор
-        id: uint64            # id пользователя
-        login: string         # логин
-        name: string          # имя
-        gender: int32         # пол
-        avatar: string        # аватар
-        class: int32          # класс
-        sign: string          # подпись на форуме
+      user: {                           # автор
+        id: uint64                      # id пользователя
+        login: string                   # логин
+        name: string                    # имя
+        gender: enum (Common_Gender)    # пол
+        avatar: string                  # аватар
+        class: enum (Common_UserClass)  # класс
+        sign: string                    # подпись на форуме
       }
-      text: string            # текст
-      date: timestamp         # дата и время создания
+      text: string                      # текст
+      date: timestamp                   # дата и время создания
     }
   }
-  forum: {                    # форум, в который входит тема
-    id: uint64                # id форума
-    title: string             # название
-    forumDescription: string  # описание
-    moderators: [{            # модераторы
-      id: uint64              # id пользователя
-      login: string           # логин
-      name: string            # имя
-      gender: int32           # пол
-      avatar: string          # аватар
-      class: int32            # класс
-      sign: string            # подпись на форуме
+  forum: {                              # форум, в который входит тема
+    id: uint64                          # id форума
+    title: string                       # название
+    forumDescription: string            # описание
+    moderators: [{                      # модераторы
+      id: uint64                        # id пользователя
+      login: string                     # логин
+      name: string                      # имя
+      gender: enum (Common_Gender)      # пол
+      avatar: string                    # аватар
+      class: enum (Common_UserClass)    # класс
+      sign: string                      # подпись на форуме
     }]
-    stats: {                  # статистика
-      topicCount: uint64      # количество тем
-      messageCount: uint64    # количество сообщений
+    stats: {                            # статистика
+      topicCount: uint64                # количество тем
+      messageCount: uint64              # количество сообщений
     }
-    lastMessage: {            # последнее сообщение
-      id: uint64              # id сообщения
-      topic: {                # тема, в которую входит сообщение
-        id: uint64            # id темы
-        title: string         # название
+    lastMessage: {                      # последнее сообщение
+      id: uint64                        # id сообщения
+      topic: {                          # тема, в которую входит сообщение
+        id: uint64                      # id темы
+        title: string                   # название
       }
-      user: {                 # автор
-        id: uint64            # id пользователя
-        login: string         # логин
-        name: string          # имя
-        gender: int32         # пол
-        avatar: string        # аватар
-        class: int32          # класс
-        sign: string          # подпись на форуме
+      user: {                           # автор
+        id: uint64                      # id пользователя
+        login: string                   # логин
+        name: string                    # имя
+        gender: enum (Common_Gender)    # пол
+        avatar: string                  # аватар
+        class: enum (Common_UserClass)  # класс
+        sign: string                    # подпись на форуме
       }
-      text: string            # текст
-      date: timestamp         # дата и время создания
+      text: string                      # текст
+      date: timestamp                   # дата и время создания
     }
   }
-  pinnedMessage: {            # закрепленное сообщение, если есть
-    id: uint64                # id сообщения
-    creation: {               # данные о создании
-      user: {                 # пользователь
-        id: uint64            # id пользователя
-        login: string         # логин
-        name: string          # имя
-        gender: int32         # пол
-        avatar: string        # аватар
-        class: int32          # класс
-        sign: string          # подпись на форуме
+  pinnedMessage: {                      # закрепленное сообщение, если есть
+    id: uint64                          # id сообщения
+    creation: {                         # данные о создании
+      user: {                           # пользователь
+        id: uint64                      # id пользователя
+        login: string                   # логин
+        name: string                    # имя
+        gender: enum (Common_Gender)    # пол
+        avatar: string                  # аватар
+        class: enum (Common_UserClass)  # класс
+        sign: string                    # подпись на форуме
       }
-      date: timestamp         # дата создания
+      date: timestamp                   # дата создания
     }
-    text: string              # текст
-    isCensored: bool          # текст изъят модератором?
-    stats: {                  # статистика
-      rating: int64           # рейтинг
+    text: string                        # текст
+    isCensored: bool                    # текст изъят модератором?
+    stats: {                            # статистика
+      rating: int64                     # рейтинг
     }
   }
-  messages: [{                # сообщения
-    id: uint64                # id сообщения
-    creation: {               # данные о создании
-      user: {                 # пользователь
-        id: uint64            # id пользователя
-        login: string         # логин
-        name: string          # имя
-        gender: int32         # пол
-        avatar: string        # аватар
-        class: int32          # класс
-        sign: string          # подпись на форуме
+  messages: [{                          # сообщения
+    id: uint64                          # id сообщения
+    creation: {                         # данные о создании
+      user: {                           # пользователь
+        id: uint64                      # id пользователя
+        login: string                   # логин
+        name: string                    # имя
+        gender: enum (Common_Gender)    # пол
+        avatar: string                  # аватар
+        class: enum (Common_UserClass)  # класс
+        sign: string                    # подпись на форуме
       }
-      date: timestamp         # дата создания
+      date: timestamp                   # дата создания
     }
-    text: string              # текст
-    isCensored: bool          # текст изъят модератором?
-    stats: {                  # статистика
-      rating: int64           # рейтинг
+    text: string                        # текст
+    isCensored: bool                    # текст изъят модератором?
+    stats: {                            # статистика
+      rating: int64                     # рейтинг
     }
   }]
-  pages: {                    # страницы
-    current: uint64           # текущая
-    count: uint64             # количество
+  pages: {                              # страницы
+    current: uint64                     # текущая
+    count: uint64                       # количество
   }
 }
 ```
@@ -342,54 +523,54 @@
 
 ```
 {
-  main: [{                        # основные рубрики
-    id: uint64                    # id рубрики
-    title: string                 # название
-    communityDescription: string  # описание
-    rules: string                 # правила
-    avatar: string                # аватар
-    stats: {                      # статистика
-      articleCount: uint64        # количество статей
-      subscriberCount: uint64     # количество подписчиков
+  main: [{                              # основные рубрики
+    id: uint64                          # id рубрики
+    title: string                       # название
+    communityDescription: string        # описание
+    rules: string                       # правила
+    avatar: string                      # аватар
+    stats: {                            # статистика
+      articleCount: uint64              # количество статей
+      subscriberCount: uint64           # количество подписчиков
     }
-    lastArticle: {                # последняя статья
-      id: uint64                  # id статьи
-      title: string               # название
-      user: {                     # автор
-        id: uint64                # id пользователя
-        login: string             # логин
-        name: string              # имя
-        gender: int32             # пол
-        avatar: string            # аватар
-        class: int32              # класс
-        sign: string              # подпись на форуме
+    lastArticle: {                      # последняя статья
+      id: uint64                        # id статьи
+      title: string                     # название
+      user: {                           # автор
+        id: uint64                      # id пользователя
+        login: string                   # логин
+        name: string                    # имя
+        gender: enum (Common_Gender)    # пол
+        avatar: string                  # аватар
+        class: enum (Common_UserClass)  # класс
+        sign: string                    # подпись на форуме
       }
-      date: timestamp             # дата создания
+      date: timestamp                   # дата создания
     }
   }]
-  additional: [{                  # дополнительные рубрики
-    id: uint64                    # id рубрики
-    title: string                 # название
-    communityDescription: string  # описание
-    rules: string                 # правила
-    avatar: string                # аватар
-    stats: {                      # статистика
-      articleCount: uint64        # количество статей
-      subscriberCount: uint64     # количество подписчиков
+  additional: [{                        # дополнительные рубрики
+    id: uint64                          # id рубрики
+    title: string                       # название
+    communityDescription: string        # описание
+    rules: string                       # правила
+    avatar: string                      # аватар
+    stats: {                            # статистика
+      articleCount: uint64              # количество статей
+      subscriberCount: uint64           # количество подписчиков
     }
-    lastArticle: {                # последняя статья
-      id: uint64                  # id статьи
-      title: string               # название
-      user: {                     # автор
-        id: uint64                # id пользователя
-        login: string             # логин
-        name: string              # имя
-        gender: int32             # пол
-        avatar: string            # аватар
-        class: int32              # класс
-        sign: string              # подпись на форуме
+    lastArticle: {                      # последняя статья
+      id: uint64                        # id статьи
+      title: string                     # название
+      user: {                           # автор
+        id: uint64                      # id пользователя
+        login: string                   # логин
+        name: string                    # имя
+        gender: enum (Common_Gender)    # пол
+        avatar: string                  # аватар
+        class: enum (Common_UserClass)  # класс
+        sign: string                    # подпись на форуме
       }
-      date: timestamp             # дата создания
+      date: timestamp                   # дата создания
     }
   }]
 }
@@ -424,75 +605,75 @@
 
 ```
 {
-  community: {                    # рубрика
-    id: uint64                    # id рубрики
-    title: string                 # название
-    communityDescription: string  # описание
-    rules: string                 # правила
-    avatar: string                # аватар
-    stats: {                      # статистика
-      articleCount: uint64        # количество статей
-      subscriberCount: uint64     # количество подписчиков
+  community: {                          # рубрика
+    id: uint64                          # id рубрики
+    title: string                       # название
+    communityDescription: string        # описание
+    rules: string                       # правила
+    avatar: string                      # аватар
+    stats: {                            # статистика
+      articleCount: uint64              # количество статей
+      subscriberCount: uint64           # количество подписчиков
     }
-    lastArticle: {                # последняя статья
-      id: uint64                  # id статьи
-      title: string               # название
-      user: {                     # автор
-        id: uint64                # id пользователя
-        login: string             # логин
-        name: string              # имя
-        gender: int32             # пол
-        avatar: string            # аватар
-        class: int32              # класс
-        sign: string              # подпись на форуме
+    lastArticle: {                      # последняя статья
+      id: uint64                        # id статьи
+      title: string                     # название
+      user: {                           # автор
+        id: uint64                      # id пользователя
+        login: string                   # логин
+        name: string                    # имя
+        gender: enum (Common_Gender)    # пол
+        avatar: string                  # аватар
+        class: enum (Common_UserClass)  # класс
+        sign: string                    # подпись на форуме
       }
-      date: timestamp             # дата создания
+      date: timestamp                   # дата создания
     }
   }
-  moderators: [{                  # модераторы
-    id: uint64                    # id пользователя
-    login: string                 # логин
-    name: string                  # имя
-    gender: int32                 # пол
-    avatar: string                # аватар
-    class: int32                  # класс
-    sign: string                  # подпись на форуме
+  moderators: [{                        # модераторы
+    id: uint64                          # id пользователя
+    login: string                       # логин
+    name: string                        # имя
+    gender: enum (Common_Gender)        # пол
+    avatar: string                      # аватар
+    class: enum (Common_UserClass)      # класс
+    sign: string                        # подпись на форуме
   }]
-  authors: [{                     # авторы
-    id: uint64                    # id пользователя
-    login: string                 # логин
-    name: string                  # имя
-    gender: int32                 # пол
-    avatar: string                # аватар
-    class: int32                  # класс
-    sign: string                  # подпись на форуме
+  authors: [{                           # авторы
+    id: uint64                          # id пользователя
+    login: string                       # логин
+    name: string                        # имя
+    gender: enum (Common_Gender)        # пол
+    avatar: string                      # аватар
+    class: enum (Common_UserClass)      # класс
+    sign: string                        # подпись на форуме
   }]
-  articles: [{                    # статьи
-    id: uint64                    # id статьи
-    title: string                 # название
-    creation: {                   # данные о создании
-      user: {                     # пользователь
-        id: uint64                # id пользователя
-        login: string             # логин
-        name: string              # имя
-        gender: int32             # пол
-        avatar: string            # аватар
-        class: int32              # класс
-        sign: string              # подпись на форуме
+  articles: [{                          # статьи
+    id: uint64                          # id статьи
+    title: string                       # название
+    creation: {                         # данные о создании
+      user: {                           # пользователь
+        id: uint64                      # id пользователя
+        login: string                   # логин
+        name: string                    # имя
+        gender: enum (Common_Gender)    # пол
+        avatar: string                  # аватар
+        class: enum (Common_UserClass)  # класс
+        sign: string                    # подпись на форуме
       }
-      date: timestamp             # дата создания
+      date: timestamp                   # дата создания
     }
-    text: string                  # текст
-    tags: string                  # теги
-    stats: {                      # статистика
-      likeCount: uint64           # количество лайков
-      viewCount: uint64           # количество просмотров
-      commentCount: uint64        # количество комментариев
+    text: string                        # текст
+    tags: string                        # теги
+    stats: {                            # статистика
+      likeCount: uint64                 # количество лайков
+      viewCount: uint64                 # количество просмотров
+      commentCount: uint64              # количество комментариев
     }
   }]
-  pages: {                        # страницы
-    current: uint64               # текущая
-    count: uint64                 # количество
+  pages: {                              # страницы
+    current: uint64                     # текущая
+    count: uint64                       # количество
   }
 }
 ```
@@ -526,40 +707,40 @@
 
 ```
 {
-  blogs: [{                    # блоги
-    id: uint64                 # id блога
-    user: {                    # автор
-      id: uint64               # id пользователя
-      login: string            # логин
-      name: string             # имя
-      gender: int32            # пол
-      avatar: string           # аватар
-      class: int32             # класс
-      sign: string             # подпись на форуме
+  blogs: [{                             # блоги
+    id: uint64                          # id блога
+    user: {                             # автор
+      id: uint64                        # id пользователя
+      login: string                     # логин
+      name: string                      # имя
+      gender: enum (Common_Gender)      # пол
+      avatar: string                    # аватар
+      class: enum (Common_UserClass)    # класс
+      sign: string                      # подпись на форуме
     }
-    isClosed: bool             # блог закрыт?
-    stats: {                   # статистика
-      articleCount: uint64     # количество статей
-      subscriberCount: uint64  # количество подписчиков
+    isClosed: bool                      # блог закрыт?
+    stats: {                            # статистика
+      articleCount: uint64              # количество статей
+      subscriberCount: uint64           # количество подписчиков
     }
-    lastArticle: {             # последняя статья
-      id: uint64               # id статьи
-      title: string            # название
-      user: {                  # автор
-        id: uint64             # id пользователя
-        login: string          # логин
-        name: string           # имя
-        gender: int32          # пол
-        avatar: string         # аватар
-        class: int32           # класс
-        sign: string           # подпись на форуме
+    lastArticle: {                      # последняя статья
+      id: uint64                        # id статьи
+      title: string                     # название
+      user: {                           # автор
+        id: uint64                      # id пользователя
+        login: string                   # логин
+        name: string                    # имя
+        gender: enum (Common_Gender)    # пол
+        avatar: string                  # аватар
+        class: enum (Common_UserClass)  # класс
+        sign: string                    # подпись на форуме
       }
-      date: timestamp          # дата создания
+      date: timestamp                   # дата создания
     }
   }]
-  pages: {                     # страницы
-    current: uint64            # текущая
-    count: uint64              # количество
+  pages: {                              # страницы
+    current: uint64                     # текущая
+    count: uint64                       # количество
   }
 }
 ```
@@ -593,32 +774,32 @@
 
 ```
 {
-  articles: [{              # статьи
-    id: uint64              # id статьи
-    title: string           # название
-    creation: {             # данные о создании
-      user: {               # пользователь
-        id: uint64          # id пользователя
-        login: string       # логин
-        name: string        # имя
-        gender: int32       # пол
-        avatar: string      # аватар
-        class: int32        # класс
-        sign: string        # подпись на форуме
+  articles: [{                          # статьи
+    id: uint64                          # id статьи
+    title: string                       # название
+    creation: {                         # данные о создании
+      user: {                           # пользователь
+        id: uint64                      # id пользователя
+        login: string                   # логин
+        name: string                    # имя
+        gender: enum (Common_Gender)    # пол
+        avatar: string                  # аватар
+        class: enum (Common_UserClass)  # класс
+        sign: string                    # подпись на форуме
       }
-      date: timestamp       # дата создания
+      date: timestamp                   # дата создания
     }
-    text: string            # текст
-    tags: string            # теги
-    stats: {                # статистика
-      likeCount: uint64     # количество лайков
-      viewCount: uint64     # количество просмотров
-      commentCount: uint64  # количество комментариев
+    text: string                        # текст
+    tags: string                        # теги
+    stats: {                            # статистика
+      likeCount: uint64                 # количество лайков
+      viewCount: uint64                 # количество просмотров
+      commentCount: uint64              # количество комментариев
     }
   }]
-  pages: {                  # страницы
-    current: uint64         # текущая
-    count: uint64           # количество
+  pages: {                              # страницы
+    current: uint64                     # текущая
+    count: uint64                       # количество
   }
 }
 ```
@@ -646,27 +827,27 @@
 
 ```
 {
-  article: {                # статья
-    id: uint64              # id статьи
-    title: string           # название
-    creation: {             # данные о создании
-      user: {               # пользователь
-        id: uint64          # id пользователя
-        login: string       # логин
-        name: string        # имя
-        gender: int32       # пол
-        avatar: string      # аватар
-        class: int32        # класс
-        sign: string        # подпись на форуме
+  article: {                            # статья
+    id: uint64                          # id статьи
+    title: string                       # название
+    creation: {                         # данные о создании
+      user: {                           # пользователь
+        id: uint64                      # id пользователя
+        login: string                   # логин
+        name: string                    # имя
+        gender: enum (Common_Gender)    # пол
+        avatar: string                  # аватар
+        class: enum (Common_UserClass)  # класс
+        sign: string                    # подпись на форуме
       }
-      date: timestamp       # дата создания
+      date: timestamp                   # дата создания
     }
-    text: string            # текст
-    tags: string            # теги
-    stats: {                # статистика
-      likeCount: uint64     # количество лайков
-      viewCount: uint64     # количество просмотров
-      commentCount: uint64  # количество комментариев
+    text: string                        # текст
+    tags: string                        # теги
+    stats: {                            # статистика
+      likeCount: uint64                 # количество лайков
+      viewCount: uint64                 # количество просмотров
+      commentCount: uint64              # количество комментариев
     }
   }
 }
@@ -768,19 +949,19 @@
 
 ```
 {
-  workId: uint64            # айди произведения, для которого был запрос
-  subworks: [{              # произведения, входящие в запрашиваемое
-    id: uint64              # идентификатор произведения
-    origName: string        # оригинальное название
-    rusName: string         # название на русском
-    year: uint64            # год публикации
-    workType: int32         # тип произведения
-    rating: float64         # рейтинг
-    marks: uint64           # кол-во оценок
-    reviews: uint64         # кол-во отзывов
-    plus: bool              # является ли произведение дополнительным
-    publishStatus: [int32]  # статус публикации (не закончено, в планах, etc.)
-    subworks: [...]         # дочерние произведения
+  workId: uint64                                # айди произведения, для которого был запрос
+  subworks: [{                                  # произведения, входящие в запрашиваемое
+    id: uint64                                  # идентификатор произведения
+    origName: string                            # оригинальное название
+    rusName: string                             # название на русском
+    year: uint64                                # год публикации
+    workType: enum (WorkType)                   # тип произведения
+    rating: float64                             # рейтинг
+    marks: uint64                               # кол-во оценок
+    reviews: uint64                             # кол-во отзывов
+    plus: bool                                  # является ли произведение дополнительным
+    publishStatus: [enum (Work_PublishStatus)]  # статус публикации (не закончено, в планах, etc.)
+    subworks: [...]                             # дочерние произведения
   }]
 }
 ```
@@ -817,25 +998,25 @@
 
 ```
 {
-  comments: [{          # список комментариев
-    id: uint64          # id сообщения
-    creation: {         # данные о создании
-      user: {           # пользователь
-        id: uint64      # id пользователя
-        login: string   # логин
-        name: string    # имя
-        gender: int32   # пол
-        avatar: string  # аватар
-        class: int32    # класс
-        sign: string    # подпись на форуме
+  comments: [{                          # список комментариев
+    id: uint64                          # id сообщения
+    creation: {                         # данные о создании
+      user: {                           # пользователь
+        id: uint64                      # id пользователя
+        login: string                   # логин
+        name: string                    # имя
+        gender: enum (Common_Gender)    # пол
+        avatar: string                  # аватар
+        class: enum (Common_UserClass)  # класс
+        sign: string                    # подпись на форуме
       }
-      date: timestamp   # дата создания
+      date: timestamp                   # дата создания
     }
-    text: string        # текст сообщения
-    isCensored: bool    # текст изъят модератором?
-    answers: [...]      # ответы на комментарий
+    text: string                        # текст сообщения
+    isCensored: bool                    # текст изъят модератором?
+    answers: [...]                      # ответы на комментарий
   }]
-  totalCount: uint64    # общее ко-во комментариев у поста
+  totalCount: uint64                    # общее ко-во комментариев у поста
 }
 ```
 ---
@@ -862,16 +1043,16 @@
 
 ```
 {
-  bookcaseBlocks: [{     # список блоков книжных полок
-    title: string        # название блока
-    bookcases: [{        # книжные полки
-      id: uint64         # id книжной полки
-      isPrivate: bool    # приватная?
-      type: int32        # тип
-      title: string      # название
-      comment: string    # комментарий
-      index: uint64      # порядковый номер
-      itemCount: uint64  # количество элементов
+  bookcaseBlocks: [{                      # список блоков книжных полок
+    title: string                         # название блока
+    bookcases: [{                         # книжные полки
+      id: uint64                          # id книжной полки
+      isPrivate: bool                     # приватная?
+      type: enum (Bookcase_BookcaseType)  # тип
+      title: string                       # название
+      comment: string                     # комментарий
+      index: uint64                       # порядковый номер
+      itemCount: uint64                   # количество элементов
     }]
   }]
 }
@@ -909,39 +1090,39 @@
 
 ```
 {
-  bookcase: {                       # информация о полке
-    id: uint64                      # id книжной полки
-    isPrivate: bool                 # приватная?
-    type: int32                     # тип
-    title: string                   # название
-    comment: string                 # комментарий
+  bookcase: {                                         # информация о полке
+    id: uint64                                        # id книжной полки
+    isPrivate: bool                                   # приватная?
+    type: enum (Bookcase_BookcaseType)                # тип
+    title: string                                     # название
+    comment: string                                   # комментарий
   }
-  editions: [{                      # список изданий на полке
-    id: uint64                      # id издания
-    type: int32                     # тип (авторская книга/сборник/etc; может отсутствовать, если не задан)
-    correctnessLevel: int32         # уровень проверенности
-    cover: string                   # URL обложки
-    authors: string                 # авторы
-    title: string                   # название
-    year: uint64                    # год публикации
-    publishers: string              # издательства
-    description: string             # описание
-    plannedPublicationDate: string  # планируемая дата издания (если издание еще не опубликовано)
-    offers: {                       # предложения в магазинах
-      ozon: {                       # предложение на Озоне
-        url: string                 # URL предложения
-        price: uint64               # цена
+  editions: [{                                        # список изданий на полке
+    id: uint64                                        # id издания
+    type: enum (EditionType)                          # тип (авторская книга/сборник/etc; может отсутствовать, если не задан)
+    correctnessLevel: enum (EditionCorrectnessLevel)  # уровень проверенности
+    cover: string                                     # URL обложки
+    authors: string                                   # авторы
+    title: string                                     # название
+    year: uint64                                      # год публикации
+    publishers: string                                # издательства
+    description: string                               # описание
+    plannedPublicationDate: string                    # планируемая дата издания (если издание еще не опубликовано)
+    offers: {                                         # предложения в магазинах
+      ozon: {                                         # предложение на Озоне
+        url: string                                   # URL предложения
+        price: uint64                                 # цена
       }
-      labirint: {                   # предложение на Лабиринте
-        url: string                 # URL предложения
-        price: uint64               # цена
+      labirint: {                                     # предложение на Лабиринте
+        url: string                                   # URL предложения
+        price: uint64                                 # цена
       }
     }
-    comment: string                 # комментарий
+    comment: string                                   # комментарий
   }]
-  pages: {                          # страницы
-    current: uint64                 # текущая
-    count: uint64                   # количество
+  pages: {                                            # страницы
+    current: uint64                                   # текущая
+    count: uint64                                     # количество
   }
 }
 ```
@@ -978,41 +1159,41 @@
 
 ```
 {
-  bookcase: {                    # информация о полке
-    id: uint64                   # id книжной полки
-    isPrivate: bool              # приватная?
-    type: int32                  # тип
-    title: string                # название
-    comment: string              # комментарий
+  bookcase: {                           # информация о полке
+    id: uint64                          # id книжной полки
+    isPrivate: bool                     # приватная?
+    type: enum (Bookcase_BookcaseType)  # тип
+    title: string                       # название
+    comment: string                     # комментарий
   }
-  works: [{                      # список произведений на полке
-    id: uint64                   # id произведения
-    type: int32                  # тип (роман/сборник/etc; может отсутствовать)
-    authors: [{                  # авторы
-      id: uint64                 # id автора
-      name: string               # имя на русском языке
-      isOpened: bool             # страница открыта?
+  works: [{                             # список произведений на полке
+    id: uint64                          # id произведения
+    type: enum (WorkType)               # тип (роман/сборник/etc; может отсутствовать)
+    authors: [{                         # авторы
+      id: uint64                        # id автора
+      name: string                      # имя на русском языке
+      isOpened: bool                    # страница открыта?
     }]
-    title: string                # название на русском языке
-    originalTitle: string        # название в оригинале
-    alternativeTitles: string    # альтернативные названия
-    note: string                 # примечание
-    year: int64                  # год
-    description: string          # описание
-    isPublished: bool            # опубликовано?
-    stats: {                     # статистика
-      averageMark: float64       # средняя оценка
-      markCount: uint64          # количество оценок
-      responseCount: uint64      # количество отзывов
+    title: string                       # название на русском языке
+    originalTitle: string               # название в оригинале
+    alternativeTitles: string           # альтернативные названия
+    note: string                        # примечание
+    year: int64                         # год
+    description: string                 # описание
+    isPublished: bool                   # опубликовано?
+    stats: {                            # статистика
+      averageMark: float64              # средняя оценка
+      markCount: uint64                 # количество оценок
+      responseCount: uint64             # количество отзывов
     }
-    own: {                       # персональное
-      mark: uint64               # собственная оценка произведению
-      isResponsePublished: bool  # опубликован отзыв?
+    own: {                              # персональное
+      mark: uint64                      # собственная оценка произведению
+      isResponsePublished: bool         # опубликован отзыв?
     }
   }]
-  pages: {                       # страницы
-    current: uint64              # текущая
-    count: uint64                # количество
+  pages: {                              # страницы
+    current: uint64                     # текущая
+    count: uint64                       # количество
   }
 }
 ```
@@ -1049,33 +1230,33 @@
 
 ```
 {
-  bookcase: {              # информация о полке
-    id: uint64             # id книжной полки
-    isPrivate: bool        # приватная?
-    type: int32            # тип
-    title: string          # название
-    comment: string        # комментарий
+  bookcase: {                           # информация о полке
+    id: uint64                          # id книжной полки
+    isPrivate: bool                     # приватная?
+    type: enum (Bookcase_BookcaseType)  # тип
+    title: string                       # название
+    comment: string                     # комментарий
   }
-  films: [{                # список фильмов на полке
-    id: uint64             # id фильма
-    type: int32            # тип (фильм/сериал/etc; может отсутствовать, если не задан)
-    poster: string         # URL постера
-    title: string          # название на русском языке
-    originalTitle: string  # название в оригинале
-    year: uint64           # год выпуска (для всего, кроме сериалов)
-    startYear: uint64      # год старта трансляции (для сериалов)
-    endYear: uint64        # год окончания трансляции (для сериалов)
-    countries: string      # страны производства
-    genres: string         # жанры
-    directors: string      # режиссеры
-    screenWriters: string  # сценаристы
-    actors: string         # актеры
-    description: string    # описание
-    comment: string        # комментарий
+  films: [{                             # список фильмов на полке
+    id: uint64                          # id фильма
+    type: enum (FilmType)               # тип (фильм/сериал/etc; может отсутствовать, если не задан)
+    poster: string                      # URL постера
+    title: string                       # название на русском языке
+    originalTitle: string               # название в оригинале
+    year: uint64                        # год выпуска (для всего, кроме сериалов)
+    startYear: uint64                   # год старта трансляции (для сериалов)
+    endYear: uint64                     # год окончания трансляции (для сериалов)
+    countries: string                   # страны производства
+    genres: string                      # жанры
+    directors: string                   # режиссеры
+    screenWriters: string               # сценаристы
+    actors: string                      # актеры
+    description: string                 # описание
+    comment: string                     # комментарий
   }]
-  pages: {                 # страницы
-    current: uint64        # текущая
-    count: uint64          # количество
+  pages: {                              # страницы
+    current: uint64                     # текущая
+    count: uint64                       # количество
   }
 }
 ```
@@ -1186,24 +1367,24 @@
 
 ```
 {
-  message: {            # сообщение
-    id: uint64          # id сообщения
-    creation: {         # данные о создании
-      user: {           # пользователь
-        id: uint64      # id пользователя
-        login: string   # логин
-        name: string    # имя
-        gender: int32   # пол
-        avatar: string  # аватар
-        class: int32    # класс
-        sign: string    # подпись на форуме
+  message: {                            # сообщение
+    id: uint64                          # id сообщения
+    creation: {                         # данные о создании
+      user: {                           # пользователь
+        id: uint64                      # id пользователя
+        login: string                   # логин
+        name: string                    # имя
+        gender: enum (Common_Gender)    # пол
+        avatar: string                  # аватар
+        class: enum (Common_UserClass)  # класс
+        sign: string                    # подпись на форуме
       }
-      date: timestamp   # дата создания
+      date: timestamp                   # дата создания
     }
-    text: string        # текст
-    isCensored: bool    # текст изъят модератором?
-    stats: {            # статистика
-      rating: int64     # рейтинг
+    text: string                        # текст
+    isCensored: bool                    # текст изъят модератором?
+    stats: {                            # статистика
+      rating: int64                     # рейтинг
     }
   }
 }
@@ -1235,24 +1416,24 @@
 
 ```
 {
-  message: {            # сообщение
-    id: uint64          # id сообщения
-    creation: {         # данные о создании
-      user: {           # пользователь
-        id: uint64      # id пользователя
-        login: string   # логин
-        name: string    # имя
-        gender: int32   # пол
-        avatar: string  # аватар
-        class: int32    # класс
-        sign: string    # подпись на форуме
+  message: {                            # сообщение
+    id: uint64                          # id сообщения
+    creation: {                         # данные о создании
+      user: {                           # пользователь
+        id: uint64                      # id пользователя
+        login: string                   # логин
+        name: string                    # имя
+        gender: enum (Common_Gender)    # пол
+        avatar: string                  # аватар
+        class: enum (Common_UserClass)  # класс
+        sign: string                    # подпись на форуме
       }
-      date: timestamp   # дата создания
+      date: timestamp                   # дата создания
     }
-    text: string        # текст
-    isCensored: bool    # текст изъят модератором?
-    stats: {            # статистика
-      rating: int64     # рейтинг
+    text: string                        # текст
+    isCensored: bool                    # текст изъят модератором?
+    stats: {                            # статистика
+      rating: int64                     # рейтинг
     }
   }
 }
@@ -1339,24 +1520,24 @@
 
 ```
 {
-  message: {            # сообщение
-    id: uint64          # id сообщения
-    creation: {         # данные о создании
-      user: {           # пользователь
-        id: uint64      # id пользователя
-        login: string   # логин
-        name: string    # имя
-        gender: int32   # пол
-        avatar: string  # аватар
-        class: int32    # класс
-        sign: string    # подпись на форуме
+  message: {                            # сообщение
+    id: uint64                          # id сообщения
+    creation: {                         # данные о создании
+      user: {                           # пользователь
+        id: uint64                      # id пользователя
+        login: string                   # логин
+        name: string                    # имя
+        gender: enum (Common_Gender)    # пол
+        avatar: string                  # аватар
+        class: enum (Common_UserClass)  # класс
+        sign: string                    # подпись на форуме
       }
-      date: timestamp   # дата создания
+      date: timestamp                   # дата создания
     }
-    text: string        # текст
-    isCensored: bool    # текст изъят модератором?
-    stats: {            # статистика
-      rating: int64     # рейтинг
+    text: string                        # текст
+    isCensored: bool                    # текст изъят модератором?
+    stats: {                            # статистика
+      rating: int64                     # рейтинг
     }
   }
 }
@@ -1388,21 +1569,21 @@
 
 ```
 {
-  messageDraft: {       # черновик сообщения
-    topicId: uint64     # id темы
-    creation: {         # данные о создании
-      user: {           # пользователь
-        id: uint64      # id пользователя
-        login: string   # логин
-        name: string    # имя
-        gender: int32   # пол
-        avatar: string  # аватар
-        class: int32    # класс
-        sign: string    # подпись на форуме
+  messageDraft: {                       # черновик сообщения
+    topicId: uint64                     # id темы
+    creation: {                         # данные о создании
+      user: {                           # пользователь
+        id: uint64                      # id пользователя
+        login: string                   # логин
+        name: string                    # имя
+        gender: enum (Common_Gender)    # пол
+        avatar: string                  # аватар
+        class: enum (Common_UserClass)  # класс
+        sign: string                    # подпись на форуме
       }
-      date: timestamp   # дата создания
+      date: timestamp                   # дата создания
     }
-    text: string        # текст
+    text: string                        # текст
   }
 }
 ```
@@ -1430,24 +1611,24 @@
 
 ```
 {
-  message: {            # сообщение
-    id: uint64          # id сообщения
-    creation: {         # данные о создании
-      user: {           # пользователь
-        id: uint64      # id пользователя
-        login: string   # логин
-        name: string    # имя
-        gender: int32   # пол
-        avatar: string  # аватар
-        class: int32    # класс
-        sign: string    # подпись на форуме
+  message: {                            # сообщение
+    id: uint64                          # id сообщения
+    creation: {                         # данные о создании
+      user: {                           # пользователь
+        id: uint64                      # id пользователя
+        login: string                   # логин
+        name: string                    # имя
+        gender: enum (Common_Gender)    # пол
+        avatar: string                  # аватар
+        class: enum (Common_UserClass)  # класс
+        sign: string                    # подпись на форуме
       }
-      date: timestamp   # дата создания
+      date: timestamp                   # дата создания
     }
-    text: string        # текст
-    isCensored: bool    # текст изъят модератором?
-    stats: {            # статистика
-      rating: int64     # рейтинг
+    text: string                        # текст
+    isCensored: bool                    # текст изъят модератором?
+    stats: {                            # статистика
+      rating: int64                     # рейтинг
     }
   }
 }
@@ -1534,21 +1715,21 @@
 
 ```
 {
-  messageDraft: {       # черновик сообщения
-    topicId: uint64     # id темы
-    creation: {         # данные о создании
-      user: {           # пользователь
-        id: uint64      # id пользователя
-        login: string   # логин
-        name: string    # имя
-        gender: int32   # пол
-        avatar: string  # аватар
-        class: int32    # класс
-        sign: string    # подпись на форуме
+  messageDraft: {                       # черновик сообщения
+    topicId: uint64                     # id темы
+    creation: {                         # данные о создании
+      user: {                           # пользователь
+        id: uint64                      # id пользователя
+        login: string                   # логин
+        name: string                    # имя
+        gender: enum (Common_Gender)    # пол
+        avatar: string                  # аватар
+        class: enum (Common_UserClass)  # класс
+        sign: string                    # подпись на форуме
       }
-      date: timestamp   # дата создания
+      date: timestamp                   # дата создания
     }
-    text: string        # текст
+    text: string                        # текст
   }
 }
 ```
@@ -1610,23 +1791,23 @@
 
 ```
 {
-  comment: {            # комментарий
-    id: uint64          # id сообщения
-    creation: {         # данные о создании
-      user: {           # пользователь
-        id: uint64      # id пользователя
-        login: string   # логин
-        name: string    # имя
-        gender: int32   # пол
-        avatar: string  # аватар
-        class: int32    # класс
-        sign: string    # подпись на форуме
+  comment: {                            # комментарий
+    id: uint64                          # id сообщения
+    creation: {                         # данные о создании
+      user: {                           # пользователь
+        id: uint64                      # id пользователя
+        login: string                   # логин
+        name: string                    # имя
+        gender: enum (Common_Gender)    # пол
+        avatar: string                  # аватар
+        class: enum (Common_UserClass)  # класс
+        sign: string                    # подпись на форуме
       }
-      date: timestamp   # дата создания
+      date: timestamp                   # дата создания
     }
-    text: string        # текст сообщения
-    isCensored: bool    # текст изъят модератором?
-    answers: [...]      # ответы на комментарий
+    text: string                        # текст сообщения
+    isCensored: bool                    # текст изъят модератором?
+    answers: [...]                      # ответы на комментарий
   }
 }
 ```
@@ -1657,23 +1838,23 @@
 
 ```
 {
-  comment: {            # комментарий
-    id: uint64          # id сообщения
-    creation: {         # данные о создании
-      user: {           # пользователь
-        id: uint64      # id пользователя
-        login: string   # логин
-        name: string    # имя
-        gender: int32   # пол
-        avatar: string  # аватар
-        class: int32    # класс
-        sign: string    # подпись на форуме
+  comment: {                            # комментарий
+    id: uint64                          # id сообщения
+    creation: {                         # данные о создании
+      user: {                           # пользователь
+        id: uint64                      # id пользователя
+        login: string                   # логин
+        name: string                    # имя
+        gender: enum (Common_Gender)    # пол
+        avatar: string                  # аватар
+        class: enum (Common_UserClass)  # класс
+        sign: string                    # подпись на форуме
       }
-      date: timestamp   # дата создания
+      date: timestamp                   # дата создания
     }
-    text: string        # текст сообщения
-    isCensored: bool    # текст изъят модератором?
-    answers: [...]      # ответы на комментарий
+    text: string                        # текст сообщения
+    isCensored: bool                    # текст изъят модератором?
+    answers: [...]                      # ответы на комментарий
   }
 }
 ```
@@ -1833,16 +2014,16 @@
 
 ```
 {
-  bookcaseBlocks: [{     # список блоков книжных полок
-    title: string        # название блока
-    bookcases: [{        # книжные полки
-      id: uint64         # id книжной полки
-      isPrivate: bool    # приватная?
-      type: int32        # тип
-      title: string      # название
-      comment: string    # комментарий
-      index: uint64      # порядковый номер
-      itemCount: uint64  # количество элементов
+  bookcaseBlocks: [{                      # список блоков книжных полок
+    title: string                         # название блока
+    bookcases: [{                         # книжные полки
+      id: uint64                          # id книжной полки
+      isPrivate: bool                     # приватная?
+      type: enum (Bookcase_BookcaseType)  # тип
+      title: string                       # название
+      comment: string                     # комментарий
+      index: uint64                       # порядковый номер
+      itemCount: uint64                   # количество элементов
     }]
   }]
 }
