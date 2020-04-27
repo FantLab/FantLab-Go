@@ -6,10 +6,11 @@ import (
 )
 
 type BuilderConfig struct {
-	GetComment           func(reflect.Type, string) string
-	IsValidField         func(reflect.StructField) bool
-	GetFieldName         func(reflect.StructTag) string
-	CustomStructStringer func(reflect.Type) string
+	GetComment            func(reflect.Type, string) string
+	IsValidField          func(reflect.StructField) bool
+	GetFieldName          func(reflect.StructTag) string
+	CustomStructFormatter func(reflect.Type) string
+	CustomIntFormatter    func(reflect.Type) string
 }
 
 func NewBuilder(cfg *BuilderConfig) *Builder {
@@ -43,8 +44,8 @@ func (b *Builder) Make(t reflect.Type, prefix, postfix string) string {
 func (b *Builder) walkType(ls *lines, superTypes []string, t reflect.Type) {
 	switch t.Kind() {
 	case reflect.Struct:
-		if b.cfg.CustomStructStringer != nil {
-			if s := b.cfg.CustomStructStringer(t); s != "" {
+		if b.cfg.CustomStructFormatter != nil {
+			if s := b.cfg.CustomStructFormatter(t); s != "" {
 				ls.current.builder.WriteString(s)
 				return
 			}
@@ -90,7 +91,6 @@ func (b *Builder) walkType(ls *lines, superTypes []string, t reflect.Type) {
 		b.walkType(ls, superTypes, unptr(t.Elem()))
 		ls.current.builder.WriteRune(']')
 	case
-		reflect.Bool,
 		reflect.Int,
 		reflect.Int8,
 		reflect.Int16,
@@ -100,7 +100,18 @@ func (b *Builder) walkType(ls *lines, superTypes []string, t reflect.Type) {
 		reflect.Uint8,
 		reflect.Uint16,
 		reflect.Uint32,
-		reflect.Uint64,
+		reflect.Uint64:
+
+		if b.cfg.CustomIntFormatter != nil {
+			if s := b.cfg.CustomIntFormatter(t); s != "" {
+				ls.current.builder.WriteString(s)
+				return
+			}
+		}
+
+		fallthrough
+	case
+		reflect.Bool,
 		reflect.Float32,
 		reflect.Float64,
 		reflect.String:

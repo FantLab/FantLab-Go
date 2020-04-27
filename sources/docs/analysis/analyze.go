@@ -3,6 +3,7 @@ package analysis
 import (
 	"fantlab/docs/scheme"
 	"fantlab/server/routing"
+	"fmt"
 	"go/ast"
 	"reflect"
 	"strings"
@@ -10,6 +11,7 @@ import (
 	"unicode"
 
 	"golang.org/x/tools/go/packages"
+	"google.golang.org/protobuf/reflect/protoreflect"
 )
 
 type ParamInfo struct {
@@ -44,7 +46,7 @@ func isValidFieldName(s string) bool {
 	return false
 }
 
-func AnalyzeEndpoints(endpoints []routing.Endpoint, schemePrefix, schemePostfix string) map[int]*EndpointInfo {
+func AnalyzeEndpoints(endpoints []routing.Endpoint, schemePrefix, schemePostfix string, enumsTable map[string]protoreflect.EnumValueDescriptors) map[int]*EndpointInfo {
 	loadPackagesOnce.Do(func() {
 		var wg sync.WaitGroup
 		wg.Add(2)
@@ -59,12 +61,12 @@ func AnalyzeEndpoints(endpoints []routing.Endpoint, schemePrefix, schemePostfix 
 		wg.Wait()
 	})
 
-	table := make(map[int]*EndpointInfo)
+	endpointsTable := make(map[int]*EndpointInfo)
 
 	modelComments := makeModelCommentsTable(protoModelsPackage, func(f *ast.Field) bool {
 		return isValidFieldName(f.Names[0].Name)
 	})
-	schemeBuilder := makeSchemeBuilder(modelComments)
+	schemeBuilder := makeSchemeBuilder(modelComments, enumsTable)
 	funcDecls := collectFuncDecls(endpointsPackage)
 
 	for index, endpoint := range endpoints {
@@ -86,7 +88,7 @@ func AnalyzeEndpoints(endpoints []routing.Endpoint, schemePrefix, schemePostfix 
 			params := getRequestParams(funcDecl, endpointsPackage)
 			scheme := schemeBuilder.Make(responseType, schemePrefix, schemePostfix)
 
-			table[index] = &EndpointInfo{
+			endpointsTable[index] = &EndpointInfo{
 				FilePath:            frame.File,
 				Line:                frame.Line,
 				Description:         funcDecl.Doc.Text(),
@@ -98,10 +100,10 @@ func AnalyzeEndpoints(endpoints []routing.Endpoint, schemePrefix, schemePostfix 
 		}
 	}
 
-	return table
+	return endpointsTable
 }
 
-func makeSchemeBuilder(modelComments commentsTable) *scheme.Builder {
+func makeSchemeBuilder(modelComments commentsTable, enumsTable map[string]protoreflect.EnumValueDescriptors) *scheme.Builder {
 	return scheme.NewBuilder(&scheme.BuilderConfig{
 		GetComment: func(t reflect.Type, fieldName string) string {
 			typeName := t.String()
@@ -131,9 +133,18 @@ func makeSchemeBuilder(modelComments commentsTable) *scheme.Builder {
 			}
 			return jsonName
 		},
-		CustomStructStringer: func(t reflect.Type) string {
+		CustomStructFormatter: func(t reflect.Type) string {
 			if t.Name() == "Timestamp" {
 				return "timestamp"
+			}
+			return ""
+		},
+		CustomIntFormatter: func(t reflect.Type) string {
+			if method, exists := t.MethodByName("Descriptor"); exists {
+				if _, exists = enumsTable[t.Name()]; !exists {
+					enumsTable[t.Name()] = method.Func.Call([]reflect.Value{reflect.Indirect(reflect.New(t))})[0].Interface().(protoreflect.EnumDescriptor).Values()
+				}
+				return fmt.Sprintf("enum (%s)", t.Name())
 			}
 			return ""
 		},

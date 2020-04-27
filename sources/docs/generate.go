@@ -4,19 +4,24 @@ import (
 	"fantlab/docs/analysis"
 	"fantlab/server/routing"
 	"io"
+	"sort"
 	"strconv"
 	"strings"
 	"text/template"
+
+	"google.golang.org/protobuf/reflect/protoreflect"
 )
 
 func Generate(w io.Writer, routes *routing.Group, basePath string) error {
 	t := template.Must(template.New("markdown").Parse(markdownTemplate))
-	data := getTemplateDataFromRoutes(routes, basePath)
-	return t.Execute(w, data)
+	content := getTemplateDataFromRoutes(routes, basePath)
+	return t.Execute(w, content)
 }
 
-func getTemplateDataFromRoutes(routes *routing.Group, basePath string) []t_group {
+func getTemplateDataFromRoutes(routes *routing.Group, basePath string) *t_content {
 	var groups []t_group
+
+	enumsTable := make(map[string]protoreflect.EnumValueDescriptors)
 
 	routes.Walk(func(group *routing.Group) {
 		endpoints := group.Endpoints()
@@ -26,7 +31,7 @@ func getTemplateDataFromRoutes(routes *routing.Group, basePath string) []t_group
 
 		g := t_group{Info: group.Info()}
 
-		infoTable := analysis.AnalyzeEndpoints(endpoints, "```\n", "\n```")
+		infoTable := analysis.AnalyzeEndpoints(endpoints, "```\n", "\n```", enumsTable)
 
 		for index, endpoint := range endpoints {
 			info := infoTable[index]
@@ -66,7 +71,30 @@ func getTemplateDataFromRoutes(routes *routing.Group, basePath string) []t_group
 		groups = append(groups, g)
 	})
 
-	return groups
+	var enums []t_enum
+	{
+		for name, values := range enumsTable {
+			var cases []t_enum_case
+			for i := 0; i < values.Len(); i++ {
+				value := values.Get(i)
+				value.Number()
+				cases = append(cases, t_enum_case{
+					Num:  int(value.Number()),
+					Name: string(value.Name()),
+				})
+			}
+			sort.Slice(cases, func(i, j int) bool { return cases[i].Num < cases[j].Num })
+			enums = append(enums, t_enum{
+				Name:  name,
+				Cases: cases,
+			})
+		}
+		sort.Slice(enums, func(i, j int) bool { return strings.Compare(enums[i].Name, enums[j].Name) < 0 })
+	}
+	return &t_content{
+		Enums:  enums,
+		Groups: groups,
+	}
 }
 
 func relativePathToFile(filePath string, line int) string {
