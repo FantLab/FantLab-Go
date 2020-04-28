@@ -52,6 +52,12 @@ type Bookcase struct {
 	ItemCount       uint64 `db:"item_count"`
 }
 
+type BookcaseItem struct {
+	BookcaseItemId uint64 `db:"bookcase_item_id"`
+	BookcaseId     uint64 `db:"bookcase_id"`
+	ItemId         uint64 `db:"item_id"`
+}
+
 type BookcaseEdition struct {
 	ItemId            uint64 `db:"item_id"`
 	EditionId         uint64 `db:"edition_id"`
@@ -178,16 +184,16 @@ func (db *DB) FetchTypedBookcase(ctx context.Context, bookcaseType string, bookc
 	return bookcase, nil
 }
 
-func (db *DB) FetchItemBookcase(ctx context.Context, bookcaseItemId uint64) (Bookcase, error) {
-	var bookcase Bookcase
+func (db *DB) FetchBookcaseItem(ctx context.Context, bookcaseItemId uint64) (BookcaseItem, error) {
+	var bookcaseItem BookcaseItem
 
-	err := db.engine.Read(ctx, sqlr.NewQuery(queries.BookcaseGetItemBookcase).WithArgs(bookcaseItemId)).Scan(&bookcase)
+	err := db.engine.Read(ctx, sqlr.NewQuery(queries.BookcaseGetBookcaseItem).WithArgs(bookcaseItemId)).Scan(&bookcaseItem)
 
 	if err != nil {
-		return Bookcase{}, err
+		return BookcaseItem{}, err
 	}
 
-	return bookcase, nil
+	return bookcaseItem, nil
 }
 
 func (db *DB) FetchEditionBookcase(ctx context.Context, bookcaseId, limit, offset uint64, sort string) (EditionBookcaseDbResponse, error) {
@@ -444,6 +450,36 @@ func (db *DB) InsertFilmBookcaseItem(ctx context.Context, bookcaseId, filmId uin
 
 func (db *DB) UpdateBookcaseItemComment(ctx context.Context, bookcaseItemId uint64, text string) error {
 	return db.engine.Write(ctx, sqlr.NewQuery(queries.BookcaseUpdateItemComment).WithArgs(text, bookcaseItemId)).Error
+}
+
+func (db *DB) DeleteEditionBookcaseItem(ctx context.Context, bookcaseItemId, editionId uint64) error {
+	return db.engine.InTransaction(func(rw sqlr.ReaderWriter) error {
+		return codeflow.Try(
+			func() error { // Удаляем издание с полки
+				return rw.Write(ctx, sqlr.NewQuery(queries.BookcaseDeleteItem).WithArgs(bookcaseItemId)).Error
+			},
+			func() error { // Выставляем флаг для Cron-а для пересчета популярности издания
+				return rw.Write(ctx, sqlr.NewQuery(queries.EditionSetPopularityFlag).WithArgs(editionId)).Error
+			},
+		)
+	})
+}
+
+func (db *DB) DeleteWorkBookcaseItem(ctx context.Context, bookcaseItemId, workId uint64) error {
+	return db.engine.InTransaction(func(rw sqlr.ReaderWriter) error {
+		return codeflow.Try(
+			func() error { // Удаляем произведение с полки
+				return rw.Write(ctx, sqlr.NewQuery(queries.BookcaseDeleteItem).WithArgs(bookcaseItemId)).Error
+			},
+			func() error { // Выставляем флаг для Cron-а для пересчета популярности произведения
+				return rw.Write(ctx, sqlr.NewQuery(queries.WorkSetPopularityFlag).WithArgs(workId)).Error
+			},
+		)
+	})
+}
+
+func (db *DB) DeleteFilmBookcaseItem(ctx context.Context, bookcaseItemId uint64) error {
+	return db.engine.Write(ctx, sqlr.NewQuery(queries.BookcaseDeleteItem).WithArgs(bookcaseItemId)).Error
 }
 
 func (db *DB) DeleteBookcase(ctx context.Context, bookcaseId uint64) error {

@@ -16,7 +16,10 @@ func GetCommunityAvatarUrl(baseURL string, communityId uint64) string {
 }
 
 func GetEditionCoverUrl(baseURL string, editionId uint64) string {
-	return fmt.Sprintf("%s/editions/big/%d", baseURL, editionId)
+	if editionId > 0 {
+		return fmt.Sprintf("%s/editions/big/%d", baseURL, editionId)
+	}
+	return ""
 }
 
 func GetOzonOfferUrl(ozonOfferId uint64) string {
