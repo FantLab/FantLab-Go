@@ -53,6 +53,7 @@ type Bookcase struct {
 }
 
 type Edition struct {
+	ItemId            uint64 `db:"item_id"`
 	EditionId         uint64 `db:"edition_id"`
 	Name              string `db:"name"`
 	Autors            string `db:"autors"`
@@ -72,6 +73,7 @@ type Edition struct {
 }
 
 type Work struct {
+	ItemId        uint64  `db:"item_id"`
 	WorkId        uint64  `db:"work_id"`
 	Name          string  `db:"name"`
 	AltName       string  `db:"altname"`
@@ -99,6 +101,7 @@ type Autor struct {
 }
 
 type Film struct {
+	ItemId       uint64 `db:"item_id"`
 	FilmId       uint64 `db:"film_id"`
 	Name         string `db:"name"`
 	RusName      string `db:"rusname"`
@@ -167,6 +170,18 @@ func (db *DB) FetchTypedBookcase(ctx context.Context, bookcaseType string, bookc
 	var bookcase Bookcase
 
 	err := db.engine.Read(ctx, sqlr.NewQuery(queries.BookcaseGetTypedBookcase).WithArgs(bookcaseType, bookcaseId)).Scan(&bookcase)
+
+	if err != nil {
+		return Bookcase{}, err
+	}
+
+	return bookcase, nil
+}
+
+func (db *DB) FetchItemBookcase(ctx context.Context, bookcaseItemId uint64) (Bookcase, error) {
+	var bookcase Bookcase
+
+	err := db.engine.Read(ctx, sqlr.NewQuery(queries.BookcaseGetItemBookcase).WithArgs(bookcaseItemId)).Scan(&bookcase)
 
 	if err != nil {
 		return Bookcase{}, err
@@ -395,6 +410,10 @@ func (db *DB) InsertDefaultBookcases(ctx context.Context, userId uint64) ([]Book
 	}
 
 	return bookcases, nil
+}
+
+func (db *DB) UpdateBookcaseItemComment(ctx context.Context, bookcaseItemId uint64, text string) error {
+	return db.engine.Write(ctx, sqlr.NewQuery(queries.BookcaseUpdateItemComment).WithArgs(text, bookcaseItemId)).Error
 }
 
 func (db *DB) DeleteBookcase(ctx context.Context, bookcaseId uint64) error {
