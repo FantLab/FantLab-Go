@@ -219,6 +219,88 @@
 </p>
 </details>
 
+<details><summary>Классификация произведения</summary>
+<p>
+
+
+
+**GET** [/v1/work/{id}/classification](../sources/server/internal/endpoints/get_work_classification.go#L11)
+
+Параметры запроса:
+
+
+* **id** (path, uint64) - айди произведения
+
+
+
+
+Схема ответа:
+
+```
+{
+  groups: [{                   # группы жанров
+    id: uint64                 # id группы жанров
+    name: string               # название
+    genres: [{                 # жанры
+      id: uint64               # id жанра
+      name: string             # название
+      info: string             # информация
+      subgenres: [...]         # поджанры
+      workCount: uint64        # количество произведений (опционально)
+      voteCount: uint64        # количество голосов (опционально)
+    }]
+  }]
+  classificationCount: uint64  # сколько раз пользователи классифицировали произведение
+}
+```
+---
+
+</p>
+</details>
+
+<details><summary>Иерархия произведений, входящих в запрашиваемое</summary>
+<p>
+
+
+
+**GET** [/v1/work/{id}/subworks](../sources/server/internal/endpoints/get_work_subworks.go#L11)
+
+Параметры запроса:
+
+
+* **id** (path, uint64) - айди произведения
+
+
+* **depth** (query, uint8) - глубина дерева (1 - 5, по умолчанию - 4)
+
+
+
+
+Схема ответа:
+
+```
+{
+  workId: uint64                                # айди произведения, для которого был запрос
+  subworks: [{                                  # произведения, входящие в запрашиваемое
+    id: uint64                                  # идентификатор произведения
+    origName: string                            # оригинальное название
+    rusName: string                             # название на русском
+    year: uint64                                # год публикации
+    workType: enum (WorkType)                   # тип произведения
+    rating: float64                             # рейтинг
+    marks: uint64                               # кол-во оценок
+    reviews: uint64                             # кол-во отзывов
+    plus: bool                                  # является ли произведение дополнительным
+    publishStatus: [enum (Work_PublishStatus)]  # статус публикации (не закончено, в планах, etc.)
+    subworks: [...]                             # дочерние произведения
+  }]
+}
+```
+---
+
+</p>
+</details>
+
 <details><summary>Список форумов</summary>
 <p>
 
@@ -888,88 +970,6 @@
 </p>
 </details>
 
-<details><summary>Классификация произведения</summary>
-<p>
-
-
-
-**GET** [/v1/work/{id}/classification](../sources/server/internal/endpoints/get_work_classification.go#L11)
-
-Параметры запроса:
-
-
-* **id** (path, uint64) - айди произведения
-
-
-
-
-Схема ответа:
-
-```
-{
-  groups: [{                   # группы жанров
-    id: uint64                 # id группы жанров
-    name: string               # название
-    genres: [{                 # жанры
-      id: uint64               # id жанра
-      name: string             # название
-      info: string             # информация
-      subgenres: [...]         # поджанры
-      workCount: uint64        # количество произведений (опционально)
-      voteCount: uint64        # количество голосов (опционально)
-    }]
-  }]
-  classificationCount: uint64  # сколько раз пользователи классифицировали произведение
-}
-```
----
-
-</p>
-</details>
-
-<details><summary>Иерархия произведений, входящих в запрашиваемое</summary>
-<p>
-
-
-
-**GET** [/v1/work/{id}/subworks](../sources/server/internal/endpoints/get_work_subworks.go#L11)
-
-Параметры запроса:
-
-
-* **id** (path, uint64) - айди произведения
-
-
-* **depth** (query, uint8) - глубина дерева (1 - 5, по умолчанию - 4)
-
-
-
-
-Схема ответа:
-
-```
-{
-  workId: uint64                                # айди произведения, для которого был запрос
-  subworks: [{                                  # произведения, входящие в запрашиваемое
-    id: uint64                                  # идентификатор произведения
-    origName: string                            # оригинальное название
-    rusName: string                             # название на русском
-    year: uint64                                # год публикации
-    workType: enum (WorkType)                   # тип произведения
-    rating: float64                             # рейтинг
-    marks: uint64                               # кол-во оценок
-    reviews: uint64                             # кол-во отзывов
-    plus: bool                                  # является ли произведение дополнительным
-    publishStatus: [enum (Work_PublishStatus)]  # статус публикации (не закончено, в планах, etc.)
-    subworks: [...]                             # дочерние произведения
-  }]
-}
-```
----
-
-</p>
-</details>
-
 <details><summary>Комментарии к статье в блоге</summary>
 <p>
 
@@ -1304,7 +1304,7 @@
 </details>
 
 
-## Для пользователей с валидной сессией
+## С проверкой на бан
 
 
 <details><summary>Классификация произведения пользователем</summary>
@@ -1344,10 +1344,6 @@
 
 </p>
 </details>
-
-
-## С проверкой на бан
-
 
 <details><summary>Создание нового сообщения в форуме</summary>
 <p>
@@ -2037,12 +2033,96 @@
 </p>
 </details>
 
+<details><summary>Добавление item-а на полку изданий</summary>
+<p>
+
+
+
+**POST** [/v1/edition_bookcases/{id}/items](../sources/server/internal/endpoints/add_edition_bookcase_item.go#L12)
+
+Параметры запроса:
+
+
+* **id** (path, uint64) - id полки с изданиями
+
+
+* **edition_id** (form, uint64) - id издания, которое необходимо добавить на полку
+
+
+
+
+Схема ответа:
+
+```
+{}
+```
+---
+
+</p>
+</details>
+
+<details><summary>Добавление item-а на полку произведений</summary>
+<p>
+
+
+
+**POST** [/v1/work_bookcases/{id}/items](../sources/server/internal/endpoints/add_work_bookcase_item.go#L12)
+
+Параметры запроса:
+
+
+* **id** (path, uint64) - id полки с произведениями
+
+
+* **work_id** (form, uint64) - id произведения, которое необходимо добавить на полку
+
+
+
+
+Схема ответа:
+
+```
+{}
+```
+---
+
+</p>
+</details>
+
+<details><summary>Добавление item-а на полку фильмов</summary>
+<p>
+
+
+
+**POST** [/v1/film_bookcases/{id}/items](../sources/server/internal/endpoints/add_film_bookcase_item.go#L12)
+
+Параметры запроса:
+
+
+* **id** (path, uint64) - id полки с фильмами
+
+
+* **film_id** (form, uint64) - id фильма, который необходимо добавить на полку
+
+
+
+
+Схема ответа:
+
+```
+{}
+```
+---
+
+</p>
+</details>
+
 <details><summary>Редактирование комментария к item-у книжной полки</summary>
 <p>
 
 
 
-**PUT** [/v1/bookcase_items/{id}/comment](../sources/server/internal/endpoints/edit_bookcase_item_comment.go#L12)
+**PUT** [/v1/bookcase_items/{id}/comment](../sources/server/internal/endpoints/edit_bookcase_item_comment.go#L13)
 
 Параметры запроса:
 

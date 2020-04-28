@@ -1,7 +1,18 @@
 package queries
 
 const (
-	WorkExists   = "SELECT 1 FROM works WHERE work_id = ?"
+	WorkExists = "SELECT 1 FROM works WHERE work_id = ?"
+
+	WorkGetWork = `
+		SELECT
+			work_id,
+			name
+		FROM
+			works
+		WHERE
+			work_id = ?
+	`
+
 	WorkUserMark = "SELECT mark FROM marks2 WHERE user_id = ? AND work_id = ?"
 	WorkChildren = `
 		WITH RECURSIVE CTE (work_id, parent_work_id, is_bonus, group_index, link, depth) AS (
@@ -37,5 +48,14 @@ const (
 		LEFT JOIN works w ON w.work_id = c.work_id
 		LEFT JOIN work_stats ws ON ws.work_id = w.work_id
 		ORDER BY c.group_index, w.year
+	`
+
+	WorkSetPopularityFlag = `
+		UPDATE
+			works
+		SET
+			popularity_need_recalc = 1
+		WHERE
+			work_id = ?
 	`
 )

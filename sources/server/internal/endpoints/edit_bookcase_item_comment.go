@@ -3,6 +3,7 @@ package endpoints
 import (
 	"fantlab/base/dbtools"
 	"fantlab/pb"
+	"fantlab/server/internal/converters"
 	"google.golang.org/protobuf/proto"
 	"net/http"
 	"strconv"
@@ -64,9 +65,7 @@ func (api *API) EditBookcaseItemComment(r *http.Request) (int, proto.Message) {
 		}
 	}
 
-	response := &pb.Bookcase_ItemCommentResponse{
-		Comment: text,
-	}
+	response := converters.GetItemComment(text)
 
 	return http.StatusOK, response
 }

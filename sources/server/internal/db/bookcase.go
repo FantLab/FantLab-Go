@@ -52,7 +52,7 @@ type Bookcase struct {
 	ItemCount       uint64 `db:"item_count"`
 }
 
-type Edition struct {
+type BookcaseEdition struct {
 	ItemId            uint64 `db:"item_id"`
 	EditionId         uint64 `db:"edition_id"`
 	Name              string `db:"name"`
@@ -72,7 +72,7 @@ type Edition struct {
 	Comment           string `db:"comment"`
 }
 
-type Work struct {
+type BookcaseWork struct {
 	ItemId        uint64  `db:"item_id"`
 	WorkId        uint64  `db:"work_id"`
 	Name          string  `db:"name"`
@@ -94,13 +94,13 @@ type Work struct {
 	Comment       string  `db:"comment"`
 }
 
-type Autor struct {
+type BookcaseAutor struct {
 	AutorId  uint64 `db:"autor_id"`
 	RusName  string `db:"rusname"`
 	IsOpened uint8  `db:"is_opened"`
 }
 
-type Film struct {
+type BookcaseFilm struct {
 	ItemId       uint64 `db:"item_id"`
 	FilmId       uint64 `db:"film_id"`
 	Name         string `db:"name"`
@@ -118,20 +118,20 @@ type Film struct {
 }
 
 type EditionBookcaseDbResponse struct {
-	Editions   []Edition
+	Editions   []BookcaseEdition
 	TotalCount uint64
 }
 
 type WorkBookcaseDbResponse struct {
-	Works            []Work
-	Autors           map[uint64]Autor
+	Works            []BookcaseWork
+	Autors           map[uint64]BookcaseAutor
 	OwnWorkMarks     map[uint64]uint64
 	OwnWorkResponses map[uint64]uint64
 	TotalCount       uint64
 }
 
 type FilmBookcaseDbResponse struct {
-	Films      []Film
+	Films      []BookcaseFilm
 	TotalCount uint64
 }
 
@@ -191,7 +191,7 @@ func (db *DB) FetchItemBookcase(ctx context.Context, bookcaseItemId uint64) (Boo
 }
 
 func (db *DB) FetchEditionBookcase(ctx context.Context, bookcaseId, limit, offset uint64, sort string) (EditionBookcaseDbResponse, error) {
-	var editions []Edition
+	var editions []BookcaseEdition
 	var count uint64
 
 	err := db.engine.InTransaction(func(rw sqlr.ReaderWriter) error {
@@ -219,11 +219,11 @@ func (db *DB) FetchEditionBookcase(ctx context.Context, bookcaseId, limit, offse
 }
 
 func (db *DB) FetchWorkBookcase(ctx context.Context, bookcaseId, limit, offset uint64, sort string, userId uint64) (WorkBookcaseDbResponse, error) {
-	var works []Work
+	var works []BookcaseWork
 	var workIds []uint64
 	var autorIds []uint64
-	var autors []Autor
-	var autorsMap = map[uint64]Autor{}
+	var autors []BookcaseAutor
+	var autorsMap = map[uint64]BookcaseAutor{}
 	var ownWorkMarks = map[uint64]uint64{}
 	var ownWorkResponses = map[uint64]uint64{}
 	var count uint64
@@ -298,7 +298,7 @@ func (db *DB) FetchWorkBookcase(ctx context.Context, bookcaseId, limit, offset u
 }
 
 func (db *DB) FetchFilmBookcase(ctx context.Context, bookcaseId, limit, offset uint64, sort string) (FilmBookcaseDbResponse, error) {
-	var films []Film
+	var films []BookcaseFilm
 	var count uint64
 
 	err := db.engine.InTransaction(func(rw sqlr.ReaderWriter) error {
@@ -410,6 +410,36 @@ func (db *DB) InsertDefaultBookcases(ctx context.Context, userId uint64) ([]Book
 	}
 
 	return bookcases, nil
+}
+
+func (db *DB) InsertEditionBookcaseItem(ctx context.Context, bookcaseId, editionId uint64) error {
+	return db.engine.InTransaction(func(rw sqlr.ReaderWriter) error {
+		return codeflow.Try(
+			func() error { // Добавляем издание на полку
+				return rw.Write(ctx, sqlr.NewQuery(queries.BookcaseInsertItem).WithArgs(bookcaseId, editionId, bookcaseId)).Error
+			},
+			func() error { // Выставляем флаг для Cron-а для пересчета популярности издания
+				return rw.Write(ctx, sqlr.NewQuery(queries.EditionSetPopularityFlag).WithArgs(editionId)).Error
+			},
+		)
+	})
+}
+
+func (db *DB) InsertWorkBookcaseItem(ctx context.Context, bookcaseId, workId uint64) error {
+	return db.engine.InTransaction(func(rw sqlr.ReaderWriter) error {
+		return codeflow.Try(
+			func() error { // Добавляем произведение на полку
+				return rw.Write(ctx, sqlr.NewQuery(queries.BookcaseInsertItem).WithArgs(bookcaseId, workId, bookcaseId)).Error
+			},
+			func() error { // Выставляем флаг для Cron-а для пересчета популярности произведения
+				return rw.Write(ctx, sqlr.NewQuery(queries.WorkSetPopularityFlag).WithArgs(workId)).Error
+			},
+		)
+	})
+}
+
+func (db *DB) InsertFilmBookcaseItem(ctx context.Context, bookcaseId, filmId uint64) error {
+	return db.engine.Write(ctx, sqlr.NewQuery(queries.BookcaseInsertItem).WithArgs(bookcaseId, filmId, bookcaseId)).Error
 }
 
 func (db *DB) UpdateBookcaseItemComment(ctx context.Context, bookcaseItemId uint64, text string) error {

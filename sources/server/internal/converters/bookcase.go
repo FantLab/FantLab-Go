@@ -182,7 +182,7 @@ func GetWorkBookcase(dbResponse db.WorkBookcaseDbResponse, dbBookcase db.Bookcas
 	}
 }
 
-func getWorkAuthors(work db.Work, autors map[uint64]db.Autor) []*pb.Bookcase_Work_Author {
+func getWorkAuthors(work db.BookcaseWork, autors map[uint64]db.BookcaseAutor) []*pb.Bookcase_Work_Author {
 	author := autors[work.AutorId]
 	authors := []*pb.Bookcase_Work_Author{
 		{
@@ -284,5 +284,11 @@ func GetFilmBookcase(dbResponse db.FilmBookcaseDbResponse, dbBookcase db.Bookcas
 			Current: page,
 			Count:   pageCount,
 		},
+	}
+}
+
+func GetItemComment(comment string) *pb.Bookcase_ItemCommentResponse {
+	return &pb.Bookcase_ItemCommentResponse{
+		Comment: comment,
 	}
 }
