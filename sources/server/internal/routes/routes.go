@@ -69,6 +69,7 @@ func Tree(config *config.AppConfig, services *app.Services, pathParamGetter endp
 				g.Endpoint(http.MethodPut, "/blog_articles/:id/subscription", api.ToggleArticleSubscription, "Подписка/отписка от статьи в блоге")
 				g.Endpoint(http.MethodPut, "/blog_articles/:id/like", api.ToggleArticleLike, "Лайк/дизлайк статьи в блоге")
 				g.Endpoint(http.MethodPost, "/bookcases/create", api.CreateDefaultBookcases, "Создание первичных книжных полок")
+				g.Endpoint(http.MethodPut, "/bookcase_items/:id/comment", api.EditBookcaseItemComment, "Редактирование комментария к item-у книжной полки")
 				g.Endpoint(http.MethodDelete, "/bookcases/:id", api.DeleteBookcase, "Удаление книжной полки")
 
 				g.Subgroup("Для философов", func(g *routing.Group) {

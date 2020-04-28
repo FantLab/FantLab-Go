@@ -98,6 +98,7 @@ func GetEditionBookcase(dbResponse db.EditionBookcaseDbResponse, dbBookcase db.B
 		}
 
 		edition := &pb.Bookcase_Edition{
+			ItemId:                 dbEdition.ItemId,
 			Id:                     dbEdition.EditionId,
 			Type:                   helpers.EditionTypeMap[dbEdition.Type],
 			CorrectnessLevel:       helpers.EditionCorrectnessLevelMap[dbEdition.Correct],
@@ -150,6 +151,7 @@ func GetWorkBookcase(dbResponse db.WorkBookcaseDbResponse, dbBookcase db.Bookcas
 			IsResponsePublished: dbResponse.OwnWorkResponses[dbWork.WorkId] == 1,
 		}
 		work := &pb.Bookcase_Work{
+			ItemId:            dbWork.ItemId,
 			Id:                dbWork.WorkId,
 			Type:              helpers.WorkTypeMap[dbWork.WorkTypeId],
 			Authors:           getWorkAuthors(dbWork, dbResponse.Autors),
@@ -162,6 +164,7 @@ func GetWorkBookcase(dbResponse db.WorkBookcaseDbResponse, dbBookcase db.Bookcas
 			IsPublished:       dbWork.Published == 1,
 			Stats:             stats,
 			Own:               own,
+			Comment:           dbWork.Comment,
 		}
 
 		works = append(works, work)
@@ -251,6 +254,7 @@ func GetFilmBookcase(dbResponse db.FilmBookcaseDbResponse, dbBookcase db.Bookcas
 		}
 
 		film := &pb.Bookcase_Film{
+			ItemId:        dbFilm.ItemId,
 			Id:            dbFilm.FilmId,
 			Type:          helpers.FilmTypeMap[dbFilm.Type],
 			Poster:        poster,

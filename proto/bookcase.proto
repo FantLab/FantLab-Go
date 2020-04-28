@@ -79,30 +79,32 @@ message Bookcase {
             Offer labirint = 2;
         }
 
+        // id item-а на полке
+        uint64 item_id = 1;
         // id издания
-        uint64 id = 1;
+        uint64 id = 2;
         // тип (авторская книга/сборник/etc; может отсутствовать, если не задан)
-        EditionType type = 2;
+        EditionType type = 3;
         // уровень проверенности
-        EditionCorrectnessLevel correctness_level = 3;
+        EditionCorrectnessLevel correctness_level = 4;
         // URL обложки
-        string cover = 4;
+        string cover = 5;
         // авторы
-        string authors = 5;
+        string authors = 6;
         // название
-        string title = 6;
+        string title = 7;
         // год публикации
-        uint64 year = 7;
+        uint64 year = 8;
         // издательства
-        string publishers = 8;
+        string publishers = 9;
         // описание
-        string description = 9;
+        string description = 10;
         // планируемая дата издания (если издание еще не опубликовано)
-        string planned_publication_date = 10;
+        string planned_publication_date = 11;
         // предложения в магазинах
-        Offers offers = 11;
+        Offers offers = 12;
         // комментарий
-        string comment = 12;
+        string comment = 13;
     }
 
     message EditionBookcaseResponse {
@@ -140,30 +142,34 @@ message Bookcase {
             bool is_response_published = 2;
         }
 
+        // id item-а на полке
+        uint64 item_id = 1;
         // id произведения
-        uint64 id = 1;
+        uint64 id = 2;
         // тип (роман/сборник/etc; может отсутствовать)
-        WorkType type = 2;
+        WorkType type = 3;
         // авторы
-        repeated Author authors = 3;
+        repeated Author authors = 4;
         // название на русском языке
-        string title = 4;
+        string title = 5;
         // название в оригинале
-        string original_title = 5;
+        string original_title = 6;
         // альтернативные названия
-        string alternative_titles = 6;
+        string alternative_titles = 7;
         // примечание
-        string note = 7;
+        string note = 8;
         // год
-        int64 year = 8;
+        int64 year = 9;
         // описание
-        string description = 9;
+        string description = 10;
         // опубликовано?
-        bool is_published = 10;
+        bool is_published = 11;
         // статистика
-        Stats stats = 11;
+        Stats stats = 12;
         // персональное
-        Own own = 12;
+        Own own = 13;
+        // комментарий
+        string comment = 14;
     }
 
     message WorkBookcaseResponse {
@@ -176,36 +182,38 @@ message Bookcase {
     }
 
     message Film {
+        // id item-а на полке
+        uint64 item_id = 1;
         // id фильма
-        uint64 id = 1;
+        uint64 id = 2;
         // тип (фильм/сериал/etc; может отсутствовать, если не задан)
-        FilmType type = 2;
+        FilmType type = 3;
         // URL постера
-        string poster = 3;
+        string poster = 4;
         // название на русском языке
-        string title = 4;
+        string title = 5;
         // название в оригинале
-        string original_title = 5;
+        string original_title = 6;
         // год выпуска (для всего, кроме сериалов)
-        uint64 year = 6;
+        uint64 year = 7;
         // год старта трансляции (для сериалов)
-        uint64 start_year = 7;
+        uint64 start_year = 8;
         // год окончания трансляции (для сериалов)
-        uint64 end_year = 8;
+        uint64 end_year = 9;
         // страны производства
-        string countries = 9;
+        string countries = 10;
         // жанры
-        string genres = 10;
+        string genres = 11;
         // режиссеры
-        string directors = 11;
+        string directors = 12;
         // сценаристы
-        string screen_writers = 12;
+        string screen_writers = 13;
         // актеры
-        string actors = 13;
+        string actors = 14;
         // описание
-        string description = 14;
+        string description = 15;
         // комментарий
-        string comment = 15;
+        string comment = 16;
     }
 
     message FilmBookcaseResponse {
@@ -215,5 +223,10 @@ message Bookcase {
         repeated Film films = 2;
         // страницы
         Common.Pages pages = 3;
+    }
+
+    message ItemCommentResponse {
+        // текст комментария
+        string comment = 1;
     }
 }

@@ -1098,6 +1098,7 @@
     comment: string                                   # комментарий
   }
   editions: [{                                        # список изданий на полке
+    itemId: uint64                                    # id item-а на полке
     id: uint64                                        # id издания
     type: enum (EditionType)                          # тип (авторская книга/сборник/etc; может отсутствовать, если не задан)
     correctnessLevel: enum (EditionCorrectnessLevel)  # уровень проверенности
@@ -1167,6 +1168,7 @@
     comment: string                     # комментарий
   }
   works: [{                             # список произведений на полке
+    itemId: uint64                      # id item-а на полке
     id: uint64                          # id произведения
     type: enum (WorkType)               # тип (роман/сборник/etc; может отсутствовать)
     authors: [{                         # авторы
@@ -1190,6 +1192,7 @@
       mark: uint64                      # собственная оценка произведению
       isResponsePublished: bool         # опубликован отзыв?
     }
+    comment: string                     # комментарий
   }]
   pages: {                              # страницы
     current: uint64                     # текущая
@@ -1238,6 +1241,7 @@
     comment: string                     # комментарий
   }
   films: [{                             # список фильмов на полке
+    itemId: uint64                      # id item-а на полке
     id: uint64                          # id фильма
     type: enum (FilmType)               # тип (фильм/сериал/etc; может отсутствовать, если не задан)
     poster: string                      # URL постера
@@ -2026,6 +2030,36 @@
       itemCount: uint64                   # количество элементов
     }]
   }]
+}
+```
+---
+
+</p>
+</details>
+
+<details><summary>Редактирование комментария к item-у книжной полки</summary>
+<p>
+
+
+
+**PUT** [/v1/bookcase_items/{id}/comment](../sources/server/internal/endpoints/edit_bookcase_item_comment.go#L12)
+
+Параметры запроса:
+
+
+* **id** (path, uint64) - id item-а книжной полки
+
+
+* **comment** (form, string) - текст комментария
+
+
+
+
+Схема ответа:
+
+```
+{
+  comment: string  # текст комментария
 }
 ```
 ---

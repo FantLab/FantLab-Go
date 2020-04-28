@@ -64,8 +64,28 @@ const (
 		LIMIT 1
 	`
 
+	BookcaseGetItemBookcase = `
+		SELECT
+			b.bookcase_id,
+			b.user_id,
+			b.bookcase_type,
+			b.bookcase_group,
+			b.bookcase_name,
+			b.bookcase_comment,
+			b.bookcase_shared,
+			b.sort
+		FROM
+			bookcase b
+		LEFT JOIN
+			bookcase_items bi ON bi.bookcase_id = b.bookcase_id
+		WHERE
+			bi.bookcase_item_id = ?
+		LIMIT 1
+	`
+
 	BookcaseGetEditionBookcaseItems = `
 		SELECT
+			bi.bookcase_item_id AS item_id,
 			e.edition_id,
 			e.name,
 			e.autors,
@@ -96,6 +116,7 @@ const (
 
 	BookcaseGetWorkBookcaseItems = `
 		SELECT
+			bi.bookcase_item_id AS item_id,
 			w.work_id,
 			w.name,
 			w.altname,
@@ -165,6 +186,7 @@ const (
 
 	BookcaseGetFilmBookcaseItems = `
 		SELECT
+			bi.bookcase_item_id AS item_id,
 			f.film_id,
 			f.name,
 			f.rusname,
@@ -197,6 +219,15 @@ const (
 			bookcase_items
 		WHERE
 			bookcase_id = ?
+	`
+
+	BookcaseUpdateItemComment = `
+		UPDATE
+			bookcase_items
+		SET
+			item_comment = ?
+		WHERE
+			bookcase_item_id = ?
 	`
 
 	BookcaseDeleteBookcaseItems = `
