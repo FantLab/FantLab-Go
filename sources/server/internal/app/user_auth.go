@@ -6,8 +6,7 @@ import (
 )
 
 const (
-	userAuthKey        = contextKey("user_auth")
-	userCacheKeyPrefix = "users:user_id="
+	userAuthKey = contextKey("user_auth")
 )
 
 func SetUserAuth(claims *pb.Auth_Claims, ctx context.Context) context.Context {

@@ -425,7 +425,7 @@ func (db *DB) InsertEditionBookcaseItem(ctx context.Context, bookcaseId, edition
 				return rw.Write(ctx, sqlr.NewQuery(queries.BookcaseInsertItem).WithArgs(bookcaseId, editionId, bookcaseId)).Error
 			},
 			func() error { // Выставляем флаг для Cron-а для пересчета популярности издания
-				return rw.Write(ctx, sqlr.NewQuery(queries.EditionSetPopularityFlag).WithArgs(editionId)).Error
+				return rw.Write(ctx, sqlr.NewQuery(queries.EditionMarkEditionNeedPopularityRecalc).WithArgs(editionId)).Error
 			},
 		)
 	})
@@ -438,7 +438,7 @@ func (db *DB) InsertWorkBookcaseItem(ctx context.Context, bookcaseId, workId uin
 				return rw.Write(ctx, sqlr.NewQuery(queries.BookcaseInsertItem).WithArgs(bookcaseId, workId, bookcaseId)).Error
 			},
 			func() error { // Выставляем флаг для Cron-а для пересчета популярности произведения
-				return rw.Write(ctx, sqlr.NewQuery(queries.WorkSetPopularityFlag).WithArgs(workId)).Error
+				return rw.Write(ctx, sqlr.NewQuery(queries.WorkMarkWorkNeedPopularityRecalc).WithArgs(workId)).Error
 			},
 		)
 	})
@@ -459,7 +459,7 @@ func (db *DB) DeleteEditionBookcaseItem(ctx context.Context, bookcaseItemId, edi
 				return rw.Write(ctx, sqlr.NewQuery(queries.BookcaseDeleteItem).WithArgs(bookcaseItemId)).Error
 			},
 			func() error { // Выставляем флаг для Cron-а для пересчета популярности издания
-				return rw.Write(ctx, sqlr.NewQuery(queries.EditionSetPopularityFlag).WithArgs(editionId)).Error
+				return rw.Write(ctx, sqlr.NewQuery(queries.EditionMarkEditionNeedPopularityRecalc).WithArgs(editionId)).Error
 			},
 		)
 	})
@@ -472,7 +472,7 @@ func (db *DB) DeleteWorkBookcaseItem(ctx context.Context, bookcaseItemId, workId
 				return rw.Write(ctx, sqlr.NewQuery(queries.BookcaseDeleteItem).WithArgs(bookcaseItemId)).Error
 			},
 			func() error { // Выставляем флаг для Cron-а для пересчета популярности произведения
-				return rw.Write(ctx, sqlr.NewQuery(queries.WorkSetPopularityFlag).WithArgs(workId)).Error
+				return rw.Write(ctx, sqlr.NewQuery(queries.WorkMarkWorkNeedPopularityRecalc).WithArgs(workId)).Error
 			},
 		)
 	})

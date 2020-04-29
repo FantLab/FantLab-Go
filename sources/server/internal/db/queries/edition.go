@@ -11,7 +11,7 @@ const (
 			edition_id = ?
 	`
 
-	EditionSetPopularityFlag = `
+	EditionMarkEditionNeedPopularityRecalc = `
 		UPDATE
 			editions
 		SET

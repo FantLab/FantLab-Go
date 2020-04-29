@@ -1345,6 +1345,34 @@
 </p>
 </details>
 
+<details><summary>Редактирование отзыва на произведение</summary>
+<p>
+
+
+
+**PUT** [/v1/response/{id}](../sources/server/internal/endpoints/edit_response.go#L12)
+
+Параметры запроса:
+
+
+* **id** (path, uint64) - id отзыва
+
+
+* **response** (form, string) - новый текст отзыва
+
+
+
+
+Схема ответа:
+
+```
+{}
+```
+---
+
+</p>
+</details>
+
 <details><summary>Создание нового сообщения в форуме</summary>
 <p>
 
