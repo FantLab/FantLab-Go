@@ -6,6 +6,11 @@ import (
 	"fantlab/server/internal/db/queries"
 )
 
+type Work struct {
+	WorkId uint64 `db:"work_id"`
+	Name   string `db:"name"`
+}
+
 type WorkChild struct {
 	Id           uint64  `db:"work_id"`
 	ParentId     uint64  `db:"parent_work_id"`
@@ -28,6 +33,18 @@ func (db *DB) WorkExists(ctx context.Context, workId uint64) (bool, error) {
 	var workExists uint8
 	err := db.engine.Read(ctx, sqlr.NewQuery(queries.WorkExists).WithArgs(workId)).Scan(&workExists)
 	return workExists == 1, err
+}
+
+func (db *DB) FetchWork(ctx context.Context, workId uint64) (Work, error) {
+	var work Work
+
+	err := db.engine.Read(ctx, sqlr.NewQuery(queries.WorkGetWork).WithArgs(workId)).Scan(&work)
+
+	if err != nil {
+		return Work{}, err
+	}
+
+	return work, nil
 }
 
 func (db *DB) GetWorkUserMark(ctx context.Context, workId, userId uint64) (mark uint8, err error) {

@@ -221,6 +221,22 @@ const (
 			bookcase_id = ?
 	`
 
+	BookcaseInsertItem = `
+		INSERT IGNORE
+			bookcase_items (
+				bookcase_id,
+				item_id,
+				item_sort,
+				date_of_add
+			)
+		SELECT
+			?, ?, COALESCE(MAX(item_sort), 0) + 1, NOW()
+		FROM
+			bookcase_items
+		WHERE
+			bookcase_id = ?
+	`
+
 	BookcaseUpdateItemComment = `
 		UPDATE
 			bookcase_items

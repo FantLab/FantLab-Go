@@ -19,6 +19,8 @@ func Tree(config *config.AppConfig, services *app.Services, pathParamGetter endp
 
 	g.Subgroup("Общедоступные", func(g *routing.Group) {
 		g.Endpoint(http.MethodPost, "/auth/login", api.Login, "Логин")
+		g.Endpoint(http.MethodGet, "/work/:id/classification", api.GetWorkClassification, "Классификация произведения")
+		g.Endpoint(http.MethodGet, "/work/:id/subworks", api.GetWorkSubWorks, "Иерархия произведений, входящих в запрашиваемое")
 		g.Endpoint(http.MethodGet, "/forums", api.ShowForums, "Список форумов")
 		g.Endpoint(http.MethodGet, "/forums/:id", api.ShowForumTopics, "Список тем форума")
 		g.Endpoint(http.MethodGet, "/topics/:id", api.ShowTopicMessages, "Сообщения в теме форума")
@@ -28,8 +30,6 @@ func Tree(config *config.AppConfig, services *app.Services, pathParamGetter endp
 		g.Endpoint(http.MethodGet, "/blogs/:id", api.ShowBlog, "Список статей в блоге")
 		g.Endpoint(http.MethodGet, "/blog_articles/:id", api.ShowArticle, "Статья в блоге")
 		g.Endpoint(http.MethodGet, "/allgenres", api.ShowGenres, "Список жанров")
-		g.Endpoint(http.MethodGet, "/work/:id/classification", api.GetWorkClassification, "Классификация произведения")
-		g.Endpoint(http.MethodGet, "/work/:id/subworks", api.GetWorkSubWorks, "Иерархия произведений, входящих в запрашиваемое")
 		g.Endpoint(http.MethodGet, "/blog_articles/:id/comments", api.BlogArticleComments, "Комментарии к статье в блоге")
 		g.Endpoint(http.MethodGet, "/users/:id/bookcases", api.ShowBookcases, "Список книжных полок")
 		g.Endpoint(http.MethodGet, "/edition_bookcases/:id", api.ShowEditionBookcase, "Содержимое полки с изданиями")
@@ -45,11 +45,10 @@ func Tree(config *config.AppConfig, services *app.Services, pathParamGetter endp
 		g.Subgroup("Для пользователей с валидной сессией", func(g *routing.Group) {
 			g.Middleware(middlewares.CheckAuthExpiration)
 
-			g.Endpoint(http.MethodGet, "/work/:id/userclassification", api.GetUserWorkGenres, "Классификация произведения пользователем")
-
 			g.Subgroup("С проверкой на бан", func(g *routing.Group) {
 				g.Middleware(middlewares.CheckBan(services))
 
+				g.Endpoint(http.MethodGet, "/work/:id/userclassification", api.GetUserWorkGenres, "Классификация произведения пользователем")
 				g.Endpoint(http.MethodPost, "/topics/:id/message", api.AddForumMessage, "Создание нового сообщения в форуме")
 				g.Endpoint(http.MethodPut, "/forum_messages/:id", api.EditForumMessage, "Редактирование сообщения в форуме")
 				g.Endpoint(http.MethodDelete, "/forum_messages/:id", api.DeleteForumMessage, "Удаление сообщения в форуме")
@@ -69,6 +68,9 @@ func Tree(config *config.AppConfig, services *app.Services, pathParamGetter endp
 				g.Endpoint(http.MethodPut, "/blog_articles/:id/subscription", api.ToggleArticleSubscription, "Подписка/отписка от статьи в блоге")
 				g.Endpoint(http.MethodPut, "/blog_articles/:id/like", api.ToggleArticleLike, "Лайк/дизлайк статьи в блоге")
 				g.Endpoint(http.MethodPost, "/bookcases/create", api.CreateDefaultBookcases, "Создание первичных книжных полок")
+				g.Endpoint(http.MethodPost, "/edition_bookcases/:id/items", api.AddEditionBookcaseItem, "Добавление item-а на полку изданий")
+				g.Endpoint(http.MethodPost, "/work_bookcases/:id/items", api.AddWorkBookcaseItem, "Добавление item-а на полку произведений")
+				g.Endpoint(http.MethodPost, "/film_bookcases/:id/items", api.AddFilmBookcaseItem, "Добавление item-а на полку фильмов")
 				g.Endpoint(http.MethodPut, "/bookcase_items/:id/comment", api.EditBookcaseItemComment, "Редактирование комментария к item-у книжной полки")
 				g.Endpoint(http.MethodDelete, "/bookcases/:id", api.DeleteBookcase, "Удаление книжной полки")
 
