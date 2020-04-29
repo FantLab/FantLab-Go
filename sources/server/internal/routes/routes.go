@@ -31,10 +31,10 @@ func Tree(config *config.AppConfig, services *app.Services, pathParamGetter endp
 		g.Endpoint(http.MethodGet, "/blog_articles/:id", api.ShowArticle, "Статья в блоге")
 		g.Endpoint(http.MethodGet, "/allgenres", api.ShowGenres, "Список жанров")
 		g.Endpoint(http.MethodGet, "/blog_articles/:id/comments", api.BlogArticleComments, "Комментарии к статье в блоге")
-		g.Endpoint(http.MethodGet, "/users/:id/bookcases", api.ShowBookcases, "Список книжных полок")
+		g.Endpoint(http.MethodGet, "/users/:id/bookcases", api.ShowBookcases, "Список книжных полок пользователя")
 		g.Endpoint(http.MethodGet, "/edition_bookcases/:id", api.ShowEditionBookcase, "Содержимое полки с изданиями")
 		g.Endpoint(http.MethodGet, "/work_bookcases/:id", api.ShowWorkBookcase, "Содержимое полки с произведениями")
-		g.Endpoint(http.MethodGet, "/film_bookcases/:id", api.ShowFilmBookcase, "Содержимое кинополки")
+		g.Endpoint(http.MethodGet, "/film_bookcases/:id", api.ShowFilmBookcase, "Содержимое полки с фильмами")
 	})
 
 	g.Subgroup("Для зарегистрированных пользователей", func(g *routing.Group) {
@@ -72,6 +72,7 @@ func Tree(config *config.AppConfig, services *app.Services, pathParamGetter endp
 				g.Endpoint(http.MethodPost, "/work_bookcases/:id/items", api.AddWorkBookcaseItem, "Добавление item-а на полку произведений")
 				g.Endpoint(http.MethodPost, "/film_bookcases/:id/items", api.AddFilmBookcaseItem, "Добавление item-а на полку фильмов")
 				g.Endpoint(http.MethodPut, "/bookcase_items/:id/comment", api.EditBookcaseItemComment, "Редактирование комментария к item-у книжной полки")
+				g.Endpoint(http.MethodDelete, "/bookcase_items/:id", api.DeleteBookcaseItem, "Удаление item-а с книжной полки")
 				g.Endpoint(http.MethodDelete, "/bookcases/:id", api.DeleteBookcase, "Удаление книжной полки")
 
 				g.Subgroup("Для философов", func(g *routing.Group) {

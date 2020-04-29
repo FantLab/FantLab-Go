@@ -1024,7 +1024,7 @@
 </p>
 </details>
 
-<details><summary>Список книжных полок</summary>
+<details><summary>Список книжных полок пользователя</summary>
 <p>
 
 
@@ -1205,7 +1205,7 @@
 </p>
 </details>
 
-<details><summary>Содержимое кинополки</summary>
+<details><summary>Содержимое полки с фильмами</summary>
 <p>
 
 
@@ -2141,6 +2141,31 @@
 {
   comment: string  # текст комментария
 }
+```
+---
+
+</p>
+</details>
+
+<details><summary>Удаление item-а с книжной полки</summary>
+<p>
+
+
+
+**DELETE** [/v1/bookcase_items/{id}](../sources/server/internal/endpoints/delete_bookcase_item.go#L12)
+
+Параметры запроса:
+
+
+* **id** (path, uint64) - id item-а книжной полки
+
+
+
+
+Схема ответа:
+
+```
+{}
 ```
 ---
 

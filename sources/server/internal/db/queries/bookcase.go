@@ -64,23 +64,15 @@ const (
 		LIMIT 1
 	`
 
-	BookcaseGetItemBookcase = `
+	BookcaseGetBookcaseItem = `
 		SELECT
-			b.bookcase_id,
-			b.user_id,
-			b.bookcase_type,
-			b.bookcase_group,
-			b.bookcase_name,
-			b.bookcase_comment,
-			b.bookcase_shared,
-			b.sort
+			bookcase_item_id,
+			bookcase_id,
+			item_id
 		FROM
-			bookcase b
-		LEFT JOIN
-			bookcase_items bi ON bi.bookcase_id = b.bookcase_id
+			bookcase_items
 		WHERE
-			bi.bookcase_item_id = ?
-		LIMIT 1
+			bookcase_item_id = ?
 	`
 
 	BookcaseGetEditionBookcaseItems = `
@@ -254,6 +246,14 @@ const (
 			bookcase b
 		WHERE
 			bi.bookcase_id = b.bookcase_id AND b.bookcase_id = ?
+	`
+
+	BookcaseDeleteItem = `
+		DELETE
+		FROM
+			bookcase_items
+		WHERE
+			bookcase_item_id = ?
 	`
 
 	BookcaseDeleteBookcase = `

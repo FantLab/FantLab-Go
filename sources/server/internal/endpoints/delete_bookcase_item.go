@@ -3,19 +3,16 @@ package endpoints
 import (
 	"fantlab/base/dbtools"
 	"fantlab/pb"
-	"fantlab/server/internal/converters"
+	"fantlab/server/internal/db"
 	"google.golang.org/protobuf/proto"
 	"net/http"
 	"strconv"
-	"strings"
 )
 
-func (api *API) EditBookcaseItemComment(r *http.Request) (int, proto.Message) {
+func (api *API) DeleteBookcaseItem(r *http.Request) (int, proto.Message) {
 	var params struct {
 		// id item-а книжной полки
 		BookcaseItemId uint64 `http:"id,path"`
-		// текст комментария
-		Comment string `http:"comment,form"`
 	}
 
 	api.bindParams(&params, r)
@@ -70,9 +67,14 @@ func (api *API) EditBookcaseItemComment(r *http.Request) (int, proto.Message) {
 		}
 	}
 
-	text := strings.TrimSpace(params.Comment)
-
-	err = api.services.DB().UpdateBookcaseItemComment(r.Context(), dbBookcaseItem.BookcaseItemId, text)
+	switch dbBookcase.BookcaseType {
+	case db.BookcaseEditionType:
+		err = api.services.DB().DeleteEditionBookcaseItem(r.Context(), dbBookcaseItem.BookcaseItemId, dbBookcaseItem.ItemId)
+	case db.BookcaseWorkType:
+		err = api.services.DB().DeleteWorkBookcaseItem(r.Context(), dbBookcaseItem.BookcaseItemId, dbBookcaseItem.ItemId)
+	case db.BookcaseFilmType:
+		err = api.services.DB().DeleteFilmBookcaseItem(r.Context(), dbBookcaseItem.BookcaseItemId)
+	}
 
 	if err != nil {
 		return http.StatusInternalServerError, &pb.Error_Response{
@@ -80,7 +82,5 @@ func (api *API) EditBookcaseItemComment(r *http.Request) (int, proto.Message) {
 		}
 	}
 
-	response := converters.GetItemComment(text)
-
-	return http.StatusOK, response
+	return http.StatusOK, &pb.Common_SuccessResponse{}
 }
