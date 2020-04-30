@@ -11,16 +11,17 @@ const (
 
 	UserInfo = `
 		SELECT 
-			u.user_class, 
-			u.login, 
+			u.user_class,
+			u.login,
 			u.sex,
+			u.votecount,
 			g.can_edit_f_messages,
 			g.access_to_forums,
 			g.can_edit_responses
-		FROM ` + UserGroupsTable + ` g 
-		JOIN ` + UsersTable + ` u ON u.user_group_id = g.user_group_id 
-		WHERE 
-			u.user_id = ? 
+		FROM ` + UserGroupsTable + ` g
+		JOIN ` + UsersTable + ` u ON u.user_group_id = g.user_group_id
+		WHERE
+			u.user_id = ?
 		LIMIT 1
 	`
 
