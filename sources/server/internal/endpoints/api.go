@@ -133,12 +133,13 @@ func (api *API) makeAuthResponse(r *http.Request, issuedAt time.Time, userId uin
 		TokenId: uuid.Generate(issuedAt),
 		Issued:  pbutils.TimestampProto(issuedAt),
 		User: &pb.Auth_Claims_UserInfo{
-			UserId:            userId,
-			Login:             userInfo.Login,
-			Gender:            helpers.GetGender(userId, userInfo.Gender),
-			Class:             helpers.UserClassMap[userInfo.Class],
-			AvailableForumIds: helpers.ParseUints(strings.Split(userInfo.AvailableForums, ",")),
-			Permissions:       permissions,
+			UserId:             userId,
+			Login:              userInfo.Login,
+			Gender:             helpers.GetGender(userId, userInfo.Gender),
+			Class:              helpers.UserClassMap[userInfo.Class],
+			OwnResponsesRating: userInfo.VoteCount,
+			AvailableForumIds:  helpers.ParseUints(strings.Split(userInfo.AvailableForums, ",")),
+			Permissions:        permissions,
 		},
 	}
 

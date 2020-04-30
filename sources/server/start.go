@@ -184,10 +184,11 @@ func makeAPIServer() (server *anyserver.Server) {
 		func() error { // конфигурация бизнес-логики
 			// Все параметры заданы в config/main.cfg и config/misc.cfg Perl-бэка
 			appConfig = &config.AppConfig{
-				ImagesBaseURL:         os.Getenv("IMAGES_BASE_URL"),
-				ForumTopicsInPage:     20,
-				ForumMessagesInPage:   20,
-				MaxForumMessageLength: 20000,
+				ImagesBaseURL:                            os.Getenv("IMAGES_BASE_URL"),
+				MinUserOwnResponsesRatingForMinusAbility: 300,
+				ForumTopicsInPage:                        20,
+				ForumMessagesInPage:                      20,
+				MaxForumMessageLength:                    20000,
 				// В Perl-бэке указаны разные значения: при редактировании - 2_000с., там же в комментарии - 3_600с.,
 				// при удалении - 1_800c. Остановимся на часе.
 				MaxForumMessageEditTimeout: 3600,

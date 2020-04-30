@@ -26,6 +26,7 @@ type UserInfo struct {
 	Login                string `db:"login"`
 	Gender               uint8  `db:"sex"`
 	Class                uint8  `db:"user_class"`
+	VoteCount            uint64 `db:"votecount"`
 	CanEditForumMessages string `db:"can_edit_f_messages"`
 	AvailableForums      string `db:"access_to_forums"`
 	CanEditResponses     string `db:"can_edit_responses"`

@@ -50,6 +50,7 @@ func Tree(config *config.AppConfig, services *app.Services, pathParamGetter endp
 
 				g.Endpoint(http.MethodGet, "/work/:id/userclassification", api.GetUserWorkGenres, "Классификация произведения пользователем")
 				g.Endpoint(http.MethodPut, "/response/:id", api.EditResponse, "Редактирование отзыва на произведение")
+				g.Endpoint(http.MethodPut, "/response/:id/voting", api.VoteResponse, "Плюс/минус отзыву на произведение")
 				g.Endpoint(http.MethodDelete, "/response/:id", api.DeleteResponse, "Удаление отзыва на произведение")
 				g.Endpoint(http.MethodPost, "/topics/:id/message", api.AddForumMessage, "Создание нового сообщения в форуме")
 				g.Endpoint(http.MethodPut, "/forum_messages/:id", api.EditForumMessage, "Редактирование сообщения в форуме")
@@ -81,7 +82,7 @@ func Tree(config *config.AppConfig, services *app.Services, pathParamGetter endp
 					g.Middleware(middlewares.CheckMinLevel(pb.Common_USERCLASS_PHILOSOPHER))
 
 					g.Endpoint(http.MethodPut, "/work/:id/userclassification", api.SetWorkGenres, "Классификация произведения пользователем")
-					g.Endpoint(http.MethodPut, "/forum_messages/:id/voting", api.SetForumMessageVoting, "Плюс/минус посту в форуме")
+					g.Endpoint(http.MethodPut, "/forum_messages/:id/voting", api.VoteForumMessage, "Плюс/минус посту в форуме")
 				})
 			})
 		})

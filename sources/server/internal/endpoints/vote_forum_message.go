@@ -9,7 +9,7 @@ import (
 	"google.golang.org/protobuf/proto"
 )
 
-func (api *API) SetForumMessageVoting(r *http.Request) (int, proto.Message) {
+func (api *API) VoteForumMessage(r *http.Request) (int, proto.Message) {
 	var params struct {
 		// id сообщения
 		MessageId uint64 `http:"id,path"`

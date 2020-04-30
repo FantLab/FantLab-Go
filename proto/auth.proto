@@ -24,10 +24,12 @@ message Auth {
             Common.Gender gender = 3;
             // класс (уровень развития)
             Common.UserClass class = 4;
+            // количество баллов за собственные отзывы
+            uint64 own_responses_rating = 5;
             // список доступных форумов
-            repeated uint64 available_forum_ids = 5;
+            repeated uint64 available_forum_ids = 6;
             // список разрешений
-            repeated Permission permissions = 6;
+            repeated Permission permissions = 7;
         }
 
         // идентификатор токена

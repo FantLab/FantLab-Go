@@ -1373,6 +1373,36 @@
 </p>
 </details>
 
+<details><summary>Плюс/минус отзыву на произведение</summary>
+<p>
+
+
+
+**PUT** [/v1/response/{id}/voting](../sources/server/internal/endpoints/vote_response.go#L14)
+
+Параметры запроса:
+
+
+* **id** (path, uint64) - id отзыва
+
+
+* **vote** (form, string) - голос (плюс - plus, минус - minus)
+
+
+
+
+Схема ответа:
+
+```
+{
+  rating: int64  # рейтинг отзыва
+}
+```
+---
+
+</p>
+</details>
+
 <details><summary>Удаление отзыва на произведение</summary>
 <p>
 
@@ -2287,7 +2317,7 @@
 
 
 
-**PUT** [/v1/forum_messages/{id}/voting](../sources/server/internal/endpoints/toggle_forum_message_voting.go#L12)
+**PUT** [/v1/forum_messages/{id}/voting](../sources/server/internal/endpoints/vote_forum_message.go#L12)
 
 Параметры запроса:
 
