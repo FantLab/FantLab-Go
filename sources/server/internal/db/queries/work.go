@@ -58,4 +58,25 @@ const (
 		WHERE
 			work_id = ?
 	`
+
+	WorkGetRegisteredWorkAutorIds = `
+		SELECT
+			u.autor_id
+		FROM
+			works w
+		LEFT JOIN
+			users u ON (u.autor_id = w.autor_id OR u.autor_id = w.autor2_id OR u.autor_id = w.autor3_id OR u.autor_id = w.autor4_id OR u.autor_id = w.autor5_id)
+		WHERE
+			w.work_id = ?
+	`
+
+	WorkDecrementResponseCount = `
+		UPDATE
+			work_stats
+		SET
+			responsecount = responsecount - 1,
+			responsecount1 = responsecount1 - 1
+		WHERE
+			work_id = ?
+	`
 )

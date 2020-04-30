@@ -1373,6 +1373,31 @@
 </p>
 </details>
 
+<details><summary>Удаление отзыва на произведение</summary>
+<p>
+
+
+
+**DELETE** [/v1/response/{id}](../sources/server/internal/endpoints/delete_response.go#L11)
+
+Параметры запроса:
+
+
+* **id** (path, uint64) - id отзыва
+
+
+
+
+Схема ответа:
+
+```
+{}
+```
+---
+
+</p>
+</details>
+
 <details><summary>Создание нового сообщения в форуме</summary>
 <p>
 
