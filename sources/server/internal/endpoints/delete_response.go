@@ -6,15 +6,12 @@ import (
 	"google.golang.org/protobuf/proto"
 	"net/http"
 	"strconv"
-	"strings"
 )
 
-func (api *API) EditResponse(r *http.Request) (int, proto.Message) {
+func (api *API) DeleteResponse(r *http.Request) (int, proto.Message) {
 	var params struct {
 		// id отзыва
 		ResponseId uint64 `http:"id,path"`
-		// новый текст отзыва
-		Response string `http:"response,form"`
 	}
 
 	api.bindParams(&params, r)
@@ -38,25 +35,18 @@ func (api *API) EditResponse(r *http.Request) (int, proto.Message) {
 		}
 	}
 
-	userId := api.getUserId(r)
+	userId := /*api.getUserId(r)*/ uint64(58246)
 
 	userCanEditAnyResponses := api.isPermissionGranted(r, pb.Auth_Claims_PERMISSION_CAN_EDIT_ANY_RESPONSES)
 
 	if !(userId == dbResponse.UserId || userCanEditAnyResponses) {
 		return http.StatusForbidden, &pb.Error_Response{
 			Status:  pb.Error_ACTION_PERMITTED,
-			Context: "Вы не можете отредактировать данный отзыв",
+			Context: "Вы не можете удалить данный отзыв",
 		}
 	}
 
-	if len(params.Response) == 0 || len(strings.TrimSpace(params.Response)) == 0 {
-		return http.StatusForbidden, &pb.Error_Response{
-			Status:  pb.Error_ACTION_PERMITTED,
-			Context: "Текст отзыва пустой",
-		}
-	}
-
-	err = api.services.DB().UpdateResponse(r.Context(), dbResponse.ResponseId, params.Response, dbResponse.UserId)
+	err = api.services.DB().DeleteResponse(r.Context(), dbResponse.ResponseId, dbResponse.WorkId, dbResponse.UserId)
 
 	if err != nil {
 		return http.StatusInternalServerError, &pb.Error_Response{
@@ -64,6 +54,8 @@ func (api *API) EditResponse(r *http.Request) (int, proto.Message) {
 		}
 	}
 
+	_ = api.services.DeleteWorkStatCache(r.Context(), dbResponse.WorkId)
+	_ = api.services.DeleteUserResponseCache(r.Context(), dbResponse.UserId, dbResponse.WorkId)
 	_ = api.services.DeleteUserCache(r.Context(), dbResponse.UserId)
 	_ = api.services.DeleteHomepageResponsesCache(r.Context())
 

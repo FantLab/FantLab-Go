@@ -10,30 +10,34 @@ import (
 
 const (
 	userKey              = "users:user_id=%d"
+	workStatKey          = "workstat%d"
+	userResponseKey      = "user%dwork%dresp"
 	homepageResponsesKey = "last:responses:home"
 	articleLikeCountKey  = "blog:topic:likes:%d"
 )
 
 func (s *Services) DeleteUserCache(ctx context.Context, userId uint64) error {
-	if s.memcache == nil {
-		return nil
-	}
-	err := s.memcache.Delete(ctx, fmt.Sprintf(userKey, userId))
-	if err != nil && !memcacheclient.IsNotFoundError(err) {
-		return err
-	}
-	return nil
+	return s.deleteCache(ctx, func() string {
+		return fmt.Sprintf(userKey, userId)
+	})
+}
+
+func (s *Services) DeleteWorkStatCache(ctx context.Context, workId uint64) error {
+	return s.deleteCache(ctx, func() string {
+		return fmt.Sprintf(workStatKey, workId)
+	})
+}
+
+func (s *Services) DeleteUserResponseCache(ctx context.Context, userId, workId uint64) error {
+	return s.deleteCache(ctx, func() string {
+		return fmt.Sprintf(userResponseKey, userId, workId)
+	})
 }
 
 func (s *Services) DeleteHomepageResponsesCache(ctx context.Context) error {
-	if s.memcache == nil {
-		return nil
-	}
-	err := s.memcache.Delete(ctx, homepageResponsesKey)
-	if err != nil && !memcacheclient.IsNotFoundError(err) {
-		return err
-	}
-	return nil
+	return s.deleteCache(ctx, func() string {
+		return homepageResponsesKey
+	})
 }
 
 func (s *Services) GetBlogArticleLikeCountCache(ctx context.Context, articleId uint64) (uint64, error) {
@@ -54,4 +58,15 @@ func (s *Services) SetBlogArticleLikeCountCache(ctx context.Context, articleId, 
 	}
 	bytes := []byte(strconv.Itoa(int(likeCount)))
 	return s.memcache.Set(ctx, fmt.Sprintf(articleLikeCountKey, articleId), bytes, time.Now().Add(1*time.Hour))
+}
+
+func (s *Services) deleteCache(ctx context.Context, getKey func() string) error {
+	if s.memcache == nil {
+		return nil
+	}
+	err := s.memcache.Delete(ctx, getKey())
+	if err != nil && !memcacheclient.IsNotFoundError(err) {
+		return err
+	}
+	return nil
 }

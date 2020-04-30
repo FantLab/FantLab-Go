@@ -47,4 +47,13 @@ const (
 		WHERE
 			user_id = ?
 	`
+
+	UserDecrementResponseCount = `
+		UPDATE
+			users
+		SET
+			responsecount = responsecount - 1
+		WHERE
+			user_id = ?
+	`
 )
