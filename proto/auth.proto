@@ -11,6 +11,8 @@ message Auth {
             PERMISSION_UNKNOWN = 0;
             // может редактировать свои сообщения в форуме без ограничения по времени
             PERMISSION_CAN_EDIT_OWN_FORUM_MESSAGES = 1;
+            // может редактировать любые отзывы
+            PERMISSION_CAN_EDIT_ANY_RESPONSES = 2;
         }
 
         message UserInfo {

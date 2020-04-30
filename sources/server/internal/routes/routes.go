@@ -49,6 +49,7 @@ func Tree(config *config.AppConfig, services *app.Services, pathParamGetter endp
 				g.Middleware(middlewares.CheckBan(services))
 
 				g.Endpoint(http.MethodGet, "/work/:id/userclassification", api.GetUserWorkGenres, "Классификация произведения пользователем")
+				g.Endpoint(http.MethodPut, "/response/:id", api.EditResponse, "Редактирование отзыва на произведение")
 				g.Endpoint(http.MethodPost, "/topics/:id/message", api.AddForumMessage, "Создание нового сообщения в форуме")
 				g.Endpoint(http.MethodPut, "/forum_messages/:id", api.EditForumMessage, "Редактирование сообщения в форуме")
 				g.Endpoint(http.MethodDelete, "/forum_messages/:id", api.DeleteForumMessage, "Удаление сообщения в форуме")

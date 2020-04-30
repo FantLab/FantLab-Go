@@ -125,6 +125,9 @@ func (api *API) makeAuthResponse(r *http.Request, issuedAt time.Time, userId uin
 	if userInfo.CanEditForumMessages == "1" {
 		permissions = append(permissions, pb.Auth_Claims_PERMISSION_CAN_EDIT_OWN_FORUM_MESSAGES)
 	}
+	if userInfo.CanEditResponses == "1" {
+		permissions = append(permissions, pb.Auth_Claims_PERMISSION_CAN_EDIT_ANY_RESPONSES)
+	}
 
 	claims := &pb.Auth_Claims{
 		TokenId: uuid.Generate(issuedAt),

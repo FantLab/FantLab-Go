@@ -50,7 +50,7 @@ const (
 		ORDER BY c.group_index, w.year
 	`
 
-	WorkSetPopularityFlag = `
+	WorkMarkWorkNeedPopularityRecalc = `
 		UPDATE
 			works
 		SET

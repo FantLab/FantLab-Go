@@ -28,6 +28,7 @@ type UserInfo struct {
 	Class                uint8  `db:"user_class"`
 	CanEditForumMessages string `db:"can_edit_f_messages"`
 	AvailableForums      string `db:"access_to_forums"`
+	CanEditResponses     string `db:"can_edit_responses"`
 }
 
 type UserBlockInfo struct {

@@ -9,22 +9,27 @@ import (
 )
 
 const (
-	userKey             = "users:user_id=%d"
-	articleLikeCountKey = "blog:topic:likes:%d"
+	userKey              = "users:user_id=%d"
+	homepageResponsesKey = "last:responses:home"
+	articleLikeCountKey  = "blog:topic:likes:%d"
 )
-
-func (s *Services) InvalidateUserCache(ctx context.Context, userId uint64) {
-	if s.memcache == nil {
-		return
-	}
-	_ = s.memcache.Delete(ctx, userCacheKeyPrefix+strconv.FormatUint(userId, 10))
-}
 
 func (s *Services) DeleteUserCache(ctx context.Context, userId uint64) error {
 	if s.memcache == nil {
 		return nil
 	}
 	err := s.memcache.Delete(ctx, fmt.Sprintf(userKey, userId))
+	if err != nil && !memcacheclient.IsNotFoundError(err) {
+		return err
+	}
+	return nil
+}
+
+func (s *Services) DeleteHomepageResponsesCache(ctx context.Context) error {
+	if s.memcache == nil {
+		return nil
+	}
+	err := s.memcache.Delete(ctx, homepageResponsesKey)
 	if err != nil && !memcacheclient.IsNotFoundError(err) {
 		return err
 	}

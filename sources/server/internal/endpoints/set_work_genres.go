@@ -110,7 +110,7 @@ func (api *API) SetWorkGenres(r *http.Request) (int, proto.Message) {
 
 	// сбрасываем кэш юзера (для перла)
 
-	api.services.InvalidateUserCache(r.Context(), userId)
+	_ = api.services.DeleteUserCache(r.Context(), userId)
 
 	// успех
 
