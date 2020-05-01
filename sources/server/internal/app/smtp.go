@@ -8,7 +8,7 @@ import (
 )
 
 const (
-	privateMessageTemplate = `
+	pmMailTemplate = `
 To: {{.Email}}
 From: "{{.SiteName}}" <{{.SiteEmail}}>
 Content-Type: text/plain; charset=utf-8
@@ -24,7 +24,7 @@ Subject: Сообщение от "{{.Login}}"
 )
 
 var (
-	t = template.Must(template.New("private_message").Parse(privateMessageTemplate))
+	parsedPmMailTemplate = template.Must(template.New("private_message").Parse(pmMailTemplate))
 )
 
 type privateMessageMailData struct {
@@ -37,7 +37,7 @@ type privateMessageMailData struct {
 	Message   string
 }
 
-func (s *Services) SendPrivateMessageMail(ctx context.Context, fromUserId uint64, fromLogin string, toEmails []string, message string, cfg *config.AppConfig) error {
+func (s *Services) SendPrivateMessageMail(ctx context.Context, fromUserId uint64, fromLogin string, toEmails []string, message string, cfg *config.AppConfig) {
 	for _, toEmail := range toEmails {
 		data := privateMessageMailData{
 			SiteUrl:   cfg.SiteURL,
@@ -49,18 +49,10 @@ func (s *Services) SendPrivateMessageMail(ctx context.Context, fromUserId uint64
 			Message:   message,
 		}
 
-		msg, err := helpers.InflateTextTemplate(t, data)
+		msg, err := helpers.InflateTextTemplate(parsedPmMailTemplate, data)
 
-		if err != nil {
-			return err
-		}
-
-		err = s.smtp.SendMail(ctx, cfg.SiteEmail, toEmail, "private message", msg)
-
-		if err != nil {
-			return err
+		if err == nil {
+			_ = s.smtp.SendMail(ctx, cfg.SiteEmail, toEmail, "private message", msg)
 		}
 	}
-
-	return nil
 }

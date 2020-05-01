@@ -3,6 +3,8 @@ package smtpclient
 import (
 	"bytes"
 	"context"
+	"fantlab/base/codeflow"
+	"io"
 	"net/smtp"
 )
 
@@ -25,45 +27,34 @@ func (c *smtpClient) Ping() error {
 }
 
 func (c *smtpClient) SendMail(ctx context.Context, from, to, subject, msg string) error {
-	err := c.api.Mail(from)
-	err = c.resetIfError(err)
+	var wc io.WriteCloser
+
+	err := codeflow.Try(
+		func() error {
+			return c.api.Mail(from)
+		},
+		func() error {
+			return c.api.Rcpt(to)
+		},
+		func() error {
+			w, err := c.api.Data()
+			wc = w
+			return err
+		},
+		func() error {
+			buf := bytes.NewBufferString(msg)
+			_, err := buf.WriteTo(wc)
+			return err
+		},
+		func() error {
+			return wc.Close()
+		},
+	)
+
 	if err != nil {
+		_ = c.api.Reset()
 		return err
 	}
 
-	err = c.api.Rcpt(to)
-	err = c.resetIfError(err)
-	if err != nil {
-		return err
-	}
-
-	wc, err := c.api.Data()
-	err = c.resetIfError(err)
-	if err != nil {
-		return err
-	}
-
-	buf := bytes.NewBufferString(msg)
-	_, err = buf.WriteTo(wc)
-	if err != nil {
-		return err
-	}
-
-	err = wc.Close()
-	if err != nil {
-		return err
-	}
-
-	return nil
-}
-
-func (c *smtpClient) resetIfError(err error) error {
-	if err != nil {
-		err2 := c.api.Reset()
-		if err2 != nil {
-			return err2
-		}
-		return err
-	}
 	return nil
 }

@@ -13,24 +13,19 @@ import (
 )
 
 func (api *API) AddPrivateMessage(r *http.Request) (int, proto.Message) {
-	params := struct {
+	var params struct {
 		// id пользователя, которому отправляется сообщение
 		UserId uint64 `http:"id,path"`
 		// текст сообщения
 		Message string `http:"message,form"`
-		// отправить копию посредством Email? (да - 1, нет - 0)
-		SendCopyViaEmail uint8 `http:"send_copy_via_email, form"`
-	}{
-		SendCopyViaEmail: 0,
+		// отправить копию посредством Email?
+		SendCopyViaEmail bool `http:"send_copy_via_email, form"`
 	}
 
 	api.bindParams(&params, r)
 
 	if params.UserId == 0 {
 		return api.badParam("id")
-	}
-	if !(params.SendCopyViaEmail == 0 || params.SendCopyViaEmail == 1) {
-		return api.badParam("also_send_via_email")
 	}
 
 	dbUser, err := api.services.DB().FetchUser(r.Context(), params.UserId)
@@ -90,7 +85,12 @@ func (api *API) AddPrivateMessage(r *http.Request) (int, proto.Message) {
 		isRed = 1
 	}
 
-	dbMessage, err := api.services.DB().InsertPrivateMessage(r.Context(), user.UserId, dbUser.UserId, formattedMessage, isRed, params.SendCopyViaEmail)
+	var sendCopyViaEmail uint8
+	if params.SendCopyViaEmail {
+		sendCopyViaEmail = 1
+	}
+
+	dbMessage, err := api.services.DB().InsertPrivateMessage(r.Context(), user.UserId, dbUser.UserId, formattedMessage, isRed, sendCopyViaEmail)
 
 	if err != nil {
 		return http.StatusInternalServerError, &pb.Error_Response{
@@ -102,8 +102,8 @@ func (api *API) AddPrivateMessage(r *http.Request) (int, proto.Message) {
 
 	messageResponse := converters.GetPrivateMessage(dbMessage, api.config)
 
-	if params.SendCopyViaEmail == 1 || user.AlwaysCopyPrivateMessageViaEmail {
-		_ = api.services.SendPrivateMessageMail(r.Context(), user.UserId, user.Login, []string{dbUser.Email}, formattedMessage, api.config)
+	if params.SendCopyViaEmail || user.AlwaysCopyPrivateMessageViaEmail {
+		api.services.SendPrivateMessageMail(r.Context(), user.UserId, user.Login, []string{dbUser.Email}, formattedMessage, api.config)
 	}
 
 	return http.StatusOK, messageResponse

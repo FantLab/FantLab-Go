@@ -1323,7 +1323,7 @@
 * **message** (form, string) - текст сообщения
 
 
-* **send_copy_via_email** (form, uint8) - отправить копию посредством Email? (да - 1, нет - 0)
+* **send_copy_via_email** (form, bool) - отправить копию посредством Email?
 
 
 
