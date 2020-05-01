@@ -48,6 +48,7 @@ func Tree(config *config.AppConfig, services *app.Services, pathParamGetter endp
 			g.Subgroup("С проверкой на бан", func(g *routing.Group) {
 				g.Middleware(middlewares.CheckBan(services))
 
+				g.Endpoint(http.MethodPost, "/users/:id/private_message", api.AddPrivateMessage, "Создание нового сообщения в личной переписке")
 				g.Endpoint(http.MethodGet, "/work/:id/userclassification", api.GetUserWorkGenres, "Классификация произведения пользователем")
 				g.Endpoint(http.MethodPut, "/response/:id", api.EditResponse, "Редактирование отзыва на произведение")
 				g.Endpoint(http.MethodPut, "/response/:id/voting", api.VoteResponse, "Плюс/минус отзыву на произведение")

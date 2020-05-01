@@ -2,7 +2,6 @@ package queries
 
 const (
 	UsersTable      = "users"
-	UserGroupsTable = "user_groups"
 	AuthTokensTable = "auth_tokens"
 )
 
@@ -15,11 +14,17 @@ const (
 			u.login,
 			u.sex,
 			u.votecount,
+			g.can_edit_delete_f_messages,
 			g.can_edit_f_messages,
 			g.access_to_forums,
-			g.can_edit_responses
-		FROM ` + UserGroupsTable + ` g
-		JOIN ` + UsersTable + ` u ON u.user_group_id = g.user_group_id
+			g.can_edit_responses,
+			s.always_pm_by_email
+		FROM
+			users u
+		LEFT JOIN
+			user_groups g ON g.user_group_id = u.user_group_id
+		LEFT JOIN
+			user_settings s ON s.user_id = u.user_id
 		WHERE
 			u.user_id = ?
 		LIMIT 1

@@ -62,7 +62,7 @@ func (api *API) DeleteForumMessage(r *http.Request) (int, proto.Message) {
 	//  2. Пропущен хардкод про то, что creator и vad - модераторы
 
 	isTimeUp := uint64(time.Since(dbMessage.DateOfAdd).Seconds()) > api.config.MaxForumMessageEditTimeout
-	userCanEditOwnForumMessages := api.isPermissionGranted(r, pb.Auth_Claims_PERMISSION_CAN_EDIT_OWN_FORUM_MESSAGES)
+	userCanEditOwnForumMessages := api.isPermissionGranted(r, pb.Auth_Claims_PERMISSION_CAN_EDIT_OWN_FORUM_MESSAGES_WITHOUT_TIME_RESTRICTION)
 
 	// Еще не вышло время редактирования
 	//  или пользователь может редактировать свои сообщения без ограничения по времени

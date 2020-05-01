@@ -122,24 +122,28 @@ func (api *API) makeAuthResponse(r *http.Request, issuedAt time.Time, userId uin
 
 	var permissions []pb.Auth_Claims_Permission
 
-	if userInfo.CanEditForumMessages == "1" {
-		permissions = append(permissions, pb.Auth_Claims_PERMISSION_CAN_EDIT_OWN_FORUM_MESSAGES)
+	if userInfo.CanEditDeleteForumMessages == "1" {
+		permissions = append(permissions, pb.Auth_Claims_PERMISSION_CAN_MODERATE_PRIVATE_MESSAGES)
 	}
 	if userInfo.CanEditResponses == "1" {
 		permissions = append(permissions, pb.Auth_Claims_PERMISSION_CAN_EDIT_ANY_RESPONSES)
+	}
+	if userInfo.CanEditForumMessages == "1" {
+		permissions = append(permissions, pb.Auth_Claims_PERMISSION_CAN_EDIT_OWN_FORUM_MESSAGES_WITHOUT_TIME_RESTRICTION)
 	}
 
 	claims := &pb.Auth_Claims{
 		TokenId: uuid.Generate(issuedAt),
 		Issued:  pbutils.TimestampProto(issuedAt),
 		User: &pb.Auth_Claims_UserInfo{
-			UserId:             userId,
-			Login:              userInfo.Login,
-			Gender:             helpers.GetGender(userId, userInfo.Gender),
-			Class:              helpers.UserClassMap[userInfo.Class],
-			OwnResponsesRating: userInfo.VoteCount,
-			AvailableForumIds:  helpers.ParseUints(strings.Split(userInfo.AvailableForums, ",")),
-			Permissions:        permissions,
+			UserId:                           userId,
+			Login:                            userInfo.Login,
+			Gender:                           helpers.GetGender(userId, userInfo.Gender),
+			Class:                            helpers.UserClassMap[userInfo.Class],
+			OwnResponsesRating:               userInfo.VoteCount,
+			AvailableForumIds:                helpers.ParseUints(strings.Split(userInfo.AvailableForums, ",")),
+			AlwaysCopyPrivateMessageViaEmail: userInfo.AlwaysPMByEmail == 1,
+			Permissions:                      permissions,
 		},
 	}
 
