@@ -14,6 +14,7 @@ import (
 	"fantlab/base/memcacheclient"
 	"fantlab/base/protobuf"
 	"fantlab/base/redisclient"
+	"fantlab/base/smtpclient"
 	"fantlab/docs"
 	"fantlab/server/internal/app"
 	"fantlab/server/internal/config"
@@ -65,6 +66,7 @@ func makeAPIServer() (server *anyserver.Server) {
 	var mysqlDB sqlr.DB
 	var redisClient redisclient.Client
 	var memcacheClient memcacheclient.Client
+	var smtpClient smtpclient.Client
 	var cryptoCoder *edsign.Coder
 	var minioClient *minio.Client
 	var minioBucket string
@@ -143,6 +145,32 @@ func makeAPIServer() (server *anyserver.Server) {
 
 			return nil
 		},
+		func() error { // SMTP
+			smtpAddr := os.Getenv("SMTP_ADDRESS")
+			if len(smtpAddr) == 0 {
+				return errors.New("SMTP setup error: SMTP_ADDRESS variable is empty")
+			}
+
+			client, close, err := smtpclient.New(smtpAddr)
+			if err == nil {
+				err = client.Ping()
+			}
+			if err != nil {
+				return fmt.Errorf("SMTP setup error: %v", err)
+			}
+
+			server.DisposeBag = append(server.DisposeBag, close)
+
+			smtpClient = smtpclient.APM(smtpclient.Log(client, func(ctx context.Context, entry *smtpclient.LogEntry) {
+				logger := logs.WithAPM(ctx)
+				logger.Info(fmt.Sprintf("send email to: %s; subject: %s", entry.To, entry.Subject))
+				if entry.Err != nil {
+					logger.Error(entry.Err.Error())
+				}
+			}), "smtp")
+
+			return nil
+		},
 		func() error { // криптокодер для jwt-like токенов
 			coder, err := edsign.NewFileCoder64(os.Getenv("JWT_PUBLIC_KEY_FILE"), os.Getenv("JWT_PRIVATE_KEY_FILE"))
 			if err != nil {
@@ -184,6 +212,9 @@ func makeAPIServer() (server *anyserver.Server) {
 		func() error { // конфигурация бизнес-логики
 			// Все параметры заданы в config/main.cfg и config/misc.cfg Perl-бэка
 			appConfig = &config.AppConfig{
+				SiteURL:                                  os.Getenv("SITE_URL"),
+				SiteName:                                 "fantlab.ru",
+				SiteEmail:                                os.Getenv("SITE_EMAIL"),
 				ImagesBaseURL:                            os.Getenv("IMAGES_BASE_URL"),
 				MinUserOwnResponsesRatingForMinusAbility: 300,
 				ForumTopicsInPage:                        20,
@@ -213,7 +244,7 @@ func makeAPIServer() (server *anyserver.Server) {
 
 	httpHandler, markAsUnavailable := routes.MakeHandler(
 		appConfig,
-		app.MakeServices(mysqlDB, redisClient, memcacheClient, cryptoCoder, minioClient, minioBucket),
+		app.MakeServices(mysqlDB, redisClient, memcacheClient, smtpClient, cryptoCoder, minioClient, minioBucket),
 	)
 
 	httpServer := &http.Server{

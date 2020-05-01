@@ -10,6 +10,9 @@ const (
 )
 
 type AppConfig struct {
+	SiteURL                                  string
+	SiteName                                 string
+	SiteEmail                                string
 	ImagesBaseURL                            string
 	MinUserOwnResponsesRatingForMinusAbility uint64
 	ForumTopicsInPage                        uint64

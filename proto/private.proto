@@ -1,0 +1,26 @@
+syntax = "proto3";
+
+option go_package = "sources/pb";
+
+import "proto/common.proto";
+
+message Private {
+
+    message Message {
+        // id сообщения
+        uint64 id = 1;
+        // данные о создании
+        Common.Creation creation = 2;
+        // текст
+        string text = 3;
+        // номер сообщения
+        uint64 number = 4;
+        // прочитано?
+        bool is_read = 5;
+    }
+
+    message MessageResponse {
+        // сообщение
+        Message message = 1;
+    }
+}

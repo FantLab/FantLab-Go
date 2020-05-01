@@ -1307,6 +1307,56 @@
 ## С проверкой на бан
 
 
+<details><summary>Создание нового сообщения в личной переписке</summary>
+<p>
+
+
+
+**POST** [/v1/users/{id}/private_message](../sources/server/internal/endpoints/add_private_message.go#L15)
+
+Параметры запроса:
+
+
+* **id** (path, uint64) - id пользователя, которому отправляется сообщение
+
+
+* **message** (form, string) - текст сообщения
+
+
+* **send_copy_via_email** (form, bool) - отправить копию посредством Email?
+
+
+
+
+Схема ответа:
+
+```
+{
+  message: {                            # сообщение
+    id: uint64                          # id сообщения
+    creation: {                         # данные о создании
+      user: {                           # пользователь
+        id: uint64                      # id пользователя
+        login: string                   # логин
+        name: string                    # имя
+        gender: enum (Common_Gender)    # пол
+        avatar: string                  # аватар
+        class: enum (Common_UserClass)  # класс
+        sign: string                    # подпись на форуме
+      }
+      date: timestamp                   # дата создания
+    }
+    text: string                        # текст
+    number: uint64                      # номер сообщения
+    isRead: bool                        # прочитано?
+  }
+}
+```
+---
+
+</p>
+</details>
+
 <details><summary>Классификация произведения пользователем</summary>
 <p>
 
