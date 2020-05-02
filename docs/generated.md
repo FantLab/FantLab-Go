@@ -2140,7 +2140,45 @@
 
 
 
-**POST** [/v1/bookcases/create](../sources/server/internal/endpoints/create_default_bookcases.go#L10)
+**POST** [/v1/bookcases](../sources/server/internal/endpoints/create_default_bookcases.go#L10)
+
+
+Схема ответа:
+
+```
+{
+  bookcaseBlocks: [{                      # список блоков книжных полок
+    title: string                         # название блока
+    bookcases: [{                         # книжные полки
+      id: uint64                          # id книжной полки
+      isPrivate: bool                     # приватная?
+      type: enum (Bookcase_BookcaseType)  # тип
+      title: string                       # название
+      comment: string                     # комментарий
+      index: uint64                       # порядковый номер
+      itemCount: uint64                   # количество элементов
+    }]
+  }]
+}
+```
+---
+
+</p>
+</details>
+
+<details><summary>Изменение порядка сортировки книжных полок внутри блоков</summary>
+<p>
+
+
+
+**PUT** [/v1/bookcases/order](../sources/server/internal/endpoints/change_bookcases_order.go#L11)
+
+Параметры запроса:
+
+
+* **order** (form, string) - новый порядок сортировки в формате {"bookcaseId1":index1,...,"bookcaseIdN":indexN}, indexN > 0
+
+
 
 
 Схема ответа:

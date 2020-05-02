@@ -141,7 +141,7 @@ type FilmBookcaseDbResponse struct {
 	TotalCount uint64
 }
 
-func (db *DB) FetchBookcases(ctx context.Context, userId uint64, isOwner bool) ([]Bookcase, error) {
+func (db *DB) FetchAllUserBookcases(ctx context.Context, userId uint64, isOwner bool) ([]Bookcase, error) {
 	var bookcases []Bookcase
 
 	var availabilityCondition string
@@ -151,7 +151,19 @@ func (db *DB) FetchBookcases(ctx context.Context, userId uint64, isOwner bool) (
 		availabilityCondition = "bookcase_shared = 1"
 	}
 
-	err := db.engine.Read(ctx, sqlr.NewQuery(queries.BookcaseGetBookcases).WithArgs(userId).Inject(availabilityCondition)).Scan(&bookcases)
+	err := db.engine.Read(ctx, sqlr.NewQuery(queries.BookcaseGetAllUserBookcases).WithArgs(userId).Inject(availabilityCondition)).Scan(&bookcases)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return bookcases, nil
+}
+
+func (db *DB) FetchUserBookcases(ctx context.Context, userId uint64, bookcaseIds []uint64) ([]Bookcase, error) {
+	var bookcases []Bookcase
+
+	err := db.engine.Read(ctx, sqlr.NewQuery(queries.BookcaseGetUserBookcases).WithArgs(userId, bookcaseIds).FlatArgs()).Scan(&bookcases)
 
 	if err != nil {
 		return nil, err
@@ -406,7 +418,7 @@ func (db *DB) InsertDefaultBookcases(ctx context.Context, userId uint64) ([]Book
 				return rw.Write(ctx, sqlbuilder.InsertInto(queries.BookcasesTable, entries...)).Error
 			},
 			func() error { // Получаем полки
-				return rw.Read(ctx, sqlr.NewQuery(queries.BookcaseGetBookcases).WithArgs(userId).Inject("1")).Scan(&bookcases)
+				return rw.Read(ctx, sqlr.NewQuery(queries.BookcaseGetAllUserBookcases).WithArgs(userId).Inject("1")).Scan(&bookcases)
 			},
 		)
 	})
@@ -446,6 +458,27 @@ func (db *DB) InsertWorkBookcaseItem(ctx context.Context, bookcaseId, workId uin
 
 func (db *DB) InsertFilmBookcaseItem(ctx context.Context, bookcaseId, filmId uint64) error {
 	return db.engine.Write(ctx, sqlr.NewQuery(queries.BookcaseInsertItem).WithArgs(bookcaseId, filmId, bookcaseId)).Error
+}
+
+func (db *DB) UpdateBookcasesOrder(ctx context.Context, userId uint64, order map[uint64]uint64) ([]Bookcase, error) {
+	var bookcases []Bookcase
+
+	err := db.engine.InTransaction(func(rw sqlr.ReaderWriter) error {
+		for bookcaseId, index := range order {
+			// Обновляем порядок сортировки у полки
+			err := db.engine.Write(ctx, sqlr.NewQuery(queries.BookcaseUpdateSort).WithArgs(index, bookcaseId)).Error
+			if err != nil {
+				return err
+			}
+		}
+		return db.engine.Read(ctx, sqlr.NewQuery(queries.BookcaseGetAllUserBookcases).WithArgs(userId).Inject("1")).Scan(&bookcases)
+	})
+
+	if err != nil {
+		return nil, err
+	}
+
+	return bookcases, nil
 }
 
 func (db *DB) UpdateBookcaseItemComment(ctx context.Context, bookcaseItemId uint64, text string) error {
