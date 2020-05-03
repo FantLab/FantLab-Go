@@ -41,7 +41,7 @@ func (api *API) ShowBookcases(r *http.Request) (int, proto.Message) {
 
 	isOwner := user != nil && user.UserId == dbUser.UserId
 
-	dbBookcases, err := api.services.DB().FetchBookcases(r.Context(), dbUser.UserId, isOwner)
+	dbBookcases, err := api.services.DB().FetchAllUserBookcases(r.Context(), dbUser.UserId, isOwner)
 
 	if err != nil {
 		return http.StatusInternalServerError, &pb.Error_Response{

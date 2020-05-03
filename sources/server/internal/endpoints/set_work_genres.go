@@ -16,7 +16,7 @@ func (api *API) SetWorkGenres(r *http.Request) (int, proto.Message) {
 		// айди произведения
 		WorkId uint64 `http:"id,path"`
 		// айди жанров, разделённые запятыми
-		GenredIds string `http:"genres,form"`
+		GenreIds string `http:"genres,form"`
 	}
 
 	api.bindParams(&params, r)
@@ -25,7 +25,7 @@ func (api *API) SetWorkGenres(r *http.Request) (int, proto.Message) {
 		return api.badParam("id")
 	}
 
-	genreIds := helpers.ParseUints(strings.Split(params.GenredIds, ","))
+	genreIds := helpers.ParseUints(strings.Split(params.GenreIds, ","))
 
 	if genreIds == nil {
 		return api.badParam("genres")

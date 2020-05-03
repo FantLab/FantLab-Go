@@ -10,7 +10,7 @@ import (
 func (api *API) CreateDefaultBookcases(r *http.Request) (int, proto.Message) {
 	user := api.getUser(r)
 
-	dbBookcases, err := api.services.DB().FetchBookcases(r.Context(), user.UserId, true)
+	dbBookcases, err := api.services.DB().FetchAllUserBookcases(r.Context(), user.UserId, true)
 
 	if err != nil {
 		return http.StatusInternalServerError, &pb.Error_Response{

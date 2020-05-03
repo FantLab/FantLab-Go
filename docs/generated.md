@@ -2140,7 +2140,7 @@
 
 
 
-**POST** [/v1/bookcases/create](../sources/server/internal/endpoints/create_default_bookcases.go#L10)
+**POST** [/v1/bookcases](../sources/server/internal/endpoints/create_default_bookcases.go#L10)
 
 
 Схема ответа:
@@ -2160,6 +2160,31 @@
     }]
   }]
 }
+```
+---
+
+</p>
+</details>
+
+<details><summary>Изменение порядка сортировки книжных полок внутри блоков</summary>
+<p>
+
+
+
+**PUT** [/v1/bookcases/order](../sources/server/internal/endpoints/change_bookcases_order.go#L10)
+
+Параметры запроса:
+
+
+* **order** (form, string) - новый порядок сортировки в формате {"bookcaseId1":index1,...,"bookcaseIdN":indexN}, indexN > 0
+
+
+
+
+Схема ответа:
+
+```
+{}
 ```
 ---
 

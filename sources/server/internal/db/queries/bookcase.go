@@ -5,7 +5,7 @@ const (
 )
 
 const (
-	BookcaseGetBookcases = `
+	BookcaseGetAllUserBookcases = `
 		SELECT
 			b.bookcase_id,
 			b.user_id,
@@ -28,6 +28,16 @@ const (
 			b.bookcase_type,
 			b.sort,
 			b.date_of_add
+	`
+
+	BookcaseGetUserBookcasesSort = `
+		SELECT
+			bookcase_id,
+			sort
+		FROM
+			bookcase
+		WHERE
+			user_id = ? AND bookcase_id IN (?)
 	`
 
 	BookcaseGetBookcase = `
@@ -225,6 +235,15 @@ const (
 			?, ?, COALESCE(MAX(item_sort), 0) + 1, NOW()
 		FROM
 			bookcase_items
+		WHERE
+			bookcase_id = ?
+	`
+
+	BookcaseUpdateSort = `
+		UPDATE
+			bookcase
+		SET
+			sort = ?
 		WHERE
 			bookcase_id = ?
 	`
