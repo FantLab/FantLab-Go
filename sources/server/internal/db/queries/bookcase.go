@@ -30,15 +30,9 @@ const (
 			b.date_of_add
 	`
 
-	BookcaseGetUserBookcases = `
+	BookcaseGetUserBookcasesSort = `
 		SELECT
 			bookcase_id,
-			user_id,
-			bookcase_type,
-			bookcase_group,
-			bookcase_name,
-			bookcase_comment,
-			bookcase_shared,
 			sort
 		FROM
 			bookcase

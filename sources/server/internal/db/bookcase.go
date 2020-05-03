@@ -160,16 +160,16 @@ func (db *DB) FetchAllUserBookcases(ctx context.Context, userId uint64, isOwner 
 	return bookcases, nil
 }
 
-func (db *DB) FetchUserBookcases(ctx context.Context, userId uint64, bookcaseIds []uint64) ([]Bookcase, error) {
-	var bookcases []Bookcase
+func (db *DB) FetchUserBookcasesOrder(ctx context.Context, userId uint64, bookcaseIds []uint64) (map[uint64]uint64, error) {
+	bookcasesSort := map[uint64]uint64{}
 
-	err := db.engine.Read(ctx, sqlr.NewQuery(queries.BookcaseGetUserBookcases).WithArgs(userId, bookcaseIds).FlatArgs()).Scan(&bookcases)
+	err := db.engine.Read(ctx, sqlr.NewQuery(queries.BookcaseGetUserBookcasesSort).WithArgs(userId, bookcaseIds).FlatArgs()).Scan(&bookcasesSort)
 
 	if err != nil {
 		return nil, err
 	}
 
-	return bookcases, nil
+	return bookcasesSort, nil
 }
 
 func (db *DB) FetchBookcase(ctx context.Context, bookcaseId uint64) (Bookcase, error) {
@@ -460,10 +460,8 @@ func (db *DB) InsertFilmBookcaseItem(ctx context.Context, bookcaseId, filmId uin
 	return db.engine.Write(ctx, sqlr.NewQuery(queries.BookcaseInsertItem).WithArgs(bookcaseId, filmId, bookcaseId)).Error
 }
 
-func (db *DB) UpdateBookcasesOrder(ctx context.Context, userId uint64, order map[uint64]uint64) ([]Bookcase, error) {
-	var bookcases []Bookcase
-
-	err := db.engine.InTransaction(func(rw sqlr.ReaderWriter) error {
+func (db *DB) UpdateBookcasesOrder(ctx context.Context, userId uint64, order map[uint64]uint64) error {
+	return db.engine.InTransaction(func(rw sqlr.ReaderWriter) error {
 		for bookcaseId, index := range order {
 			// Обновляем порядок сортировки у полки
 			err := db.engine.Write(ctx, sqlr.NewQuery(queries.BookcaseUpdateSort).WithArgs(index, bookcaseId)).Error
@@ -471,14 +469,8 @@ func (db *DB) UpdateBookcasesOrder(ctx context.Context, userId uint64, order map
 				return err
 			}
 		}
-		return db.engine.Read(ctx, sqlr.NewQuery(queries.BookcaseGetAllUserBookcases).WithArgs(userId).Inject("1")).Scan(&bookcases)
+		return nil
 	})
-
-	if err != nil {
-		return nil, err
-	}
-
-	return bookcases, nil
 }
 
 func (db *DB) UpdateBookcaseItemComment(ctx context.Context, bookcaseItemId uint64, text string) error {

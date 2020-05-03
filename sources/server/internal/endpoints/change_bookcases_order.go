@@ -3,7 +3,6 @@ package endpoints
 import (
 	"encoding/json"
 	"fantlab/pb"
-	"fantlab/server/internal/converters"
 	"google.golang.org/protobuf/proto"
 	"net/http"
 )
@@ -34,7 +33,7 @@ func (api *API) ChangeBookcasesOrder(r *http.Request) (int, proto.Message) {
 		bookcaseIds = append(bookcaseIds, bookcaseId)
 	}
 
-	dbBookcases, err := api.services.DB().FetchUserBookcases(r.Context(), userId, bookcaseIds)
+	dbBookcasesOrder, err := api.services.DB().FetchUserBookcasesOrder(r.Context(), userId, bookcaseIds)
 
 	if err != nil {
 		return http.StatusInternalServerError, &pb.Error_Response{
@@ -42,28 +41,23 @@ func (api *API) ChangeBookcasesOrder(r *http.Request) (int, proto.Message) {
 		}
 	}
 
-	if len(dbBookcases) != len(bookcaseIds) {
+	if len(dbBookcasesOrder) != len(bookcaseIds) {
 		return http.StatusNotFound, &pb.Error_Response{
 			Status:  pb.Error_NOT_FOUND,
 			Context: "Не все id книжных полок указаны верно",
 		}
 	}
 
-	oldOrder := make(map[uint64]uint64, len(dbBookcases))
-	for _, dbBookcase := range dbBookcases {
-		oldOrder[dbBookcase.BookcaseId] = dbBookcase.Sort
-	}
-
 	// Оставляем только полки, у которых действительно изменился порядок сортировки, чтобы в дальнейшем не делать
 	// лишних запросов к базе
 	finalOrder := map[uint64]uint64{}
 	for bookcaseId, newIndex := range newOrder {
-		if oldOrder[bookcaseId] != newIndex {
+		if dbBookcasesOrder[bookcaseId] != newIndex {
 			finalOrder[bookcaseId] = newIndex
 		}
 	}
 
-	dbBookcases, err = api.services.DB().UpdateBookcasesOrder(r.Context(), userId, finalOrder)
+	err = api.services.DB().UpdateBookcasesOrder(r.Context(), userId, finalOrder)
 
 	if err != nil {
 		return http.StatusInternalServerError, &pb.Error_Response{
@@ -71,7 +65,5 @@ func (api *API) ChangeBookcasesOrder(r *http.Request) (int, proto.Message) {
 		}
 	}
 
-	bookcasesResponse := converters.GetBookcases(dbBookcases)
-
-	return http.StatusOK, bookcasesResponse
+	return http.StatusOK, &pb.Common_SuccessResponse{}
 }

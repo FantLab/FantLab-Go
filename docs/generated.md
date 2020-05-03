@@ -2171,7 +2171,7 @@
 
 
 
-**PUT** [/v1/bookcases/order](../sources/server/internal/endpoints/change_bookcases_order.go#L11)
+**PUT** [/v1/bookcases/order](../sources/server/internal/endpoints/change_bookcases_order.go#L10)
 
 Параметры запроса:
 
@@ -2184,20 +2184,7 @@
 Схема ответа:
 
 ```
-{
-  bookcaseBlocks: [{                      # список блоков книжных полок
-    title: string                         # название блока
-    bookcases: [{                         # книжные полки
-      id: uint64                          # id книжной полки
-      isPrivate: bool                     # приватная?
-      type: enum (Bookcase_BookcaseType)  # тип
-      title: string                       # название
-      comment: string                     # комментарий
-      index: uint64                       # порядковый номер
-      itemCount: uint64                   # количество элементов
-    }]
-  }]
-}
+{}
 ```
 ---
 
