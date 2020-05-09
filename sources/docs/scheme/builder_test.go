@@ -1,10 +1,11 @@
 package scheme
 
 import (
-	"fantlab/base/assert"
 	"reflect"
 	"strings"
 	"testing"
+
+	"github.com/FantLab/go-kit/assert"
 )
 
 func isSchemeEquals(t *testing.T, realScheme, expectedScheme string) bool {

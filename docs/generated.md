@@ -192,7 +192,7 @@
 Создаёт новый аутентификационный токен для пользователя на основе пары логин/пароль
 
 
-**POST** [/v1/auth/login](../sources/server/internal/endpoints/login.go#L15)
+**POST** [/v1/auth/login](../sources/apiserver/internal/endpoints/login.go#L14)
 
 Параметры запроса:
 
@@ -224,7 +224,7 @@
 
 
 
-**GET** [/v1/work/{id}/classification](../sources/server/internal/endpoints/get_work_classification.go#L11)
+**GET** [/v1/work/{id}/classification](../sources/apiserver/internal/endpoints/get_work_classification.go#L11)
 
 Параметры запроса:
 
@@ -263,7 +263,7 @@
 
 
 
-**GET** [/v1/work/{id}/subworks](../sources/server/internal/endpoints/get_work_subworks.go#L11)
+**GET** [/v1/work/{id}/subworks](../sources/apiserver/internal/endpoints/get_work_subworks.go#L11)
 
 Параметры запроса:
 
@@ -306,7 +306,7 @@
 
 
 
-**GET** [/v1/forums](../sources/server/internal/endpoints/show_forums.go#L11)
+**GET** [/v1/forums](../sources/apiserver/internal/endpoints/show_forums.go#L11)
 
 
 Схема ответа:
@@ -365,7 +365,7 @@
 
 
 
-**GET** [/v1/forums/{id}](../sources/server/internal/endpoints/show_forum_topics.go#L14)
+**GET** [/v1/forums/{id}](../sources/apiserver/internal/endpoints/show_forum_topics.go#L14)
 
 Параметры запроса:
 
@@ -442,7 +442,7 @@
 
 
 
-**GET** [/v1/topics/{id}](../sources/server/internal/endpoints/show_topic_messages.go#L13)
+**GET** [/v1/topics/{id}](../sources/apiserver/internal/endpoints/show_topic_messages.go#L14)
 
 Параметры запроса:
 
@@ -598,7 +598,7 @@
 
 
 
-**GET** [/v1/communities](../sources/server/internal/endpoints/show_communities.go#L11)
+**GET** [/v1/communities](../sources/apiserver/internal/endpoints/show_communities.go#L11)
 
 
 Схема ответа:
@@ -667,7 +667,7 @@
 
 
 
-**GET** [/v1/communities/{id}](../sources/server/internal/endpoints/show_community.go#L14)
+**GET** [/v1/communities/{id}](../sources/apiserver/internal/endpoints/show_community.go#L14)
 
 Параметры запроса:
 
@@ -769,7 +769,7 @@
 
 
 
-**GET** [/v1/blogs](../sources/server/internal/endpoints/show_blogs.go#L12)
+**GET** [/v1/blogs](../sources/apiserver/internal/endpoints/show_blogs.go#L12)
 
 Параметры запроса:
 
@@ -836,7 +836,7 @@
 
 
 
-**GET** [/v1/blogs/{id}](../sources/server/internal/endpoints/show_blog.go#L14)
+**GET** [/v1/blogs/{id}](../sources/apiserver/internal/endpoints/show_blog.go#L14)
 
 Параметры запроса:
 
@@ -895,7 +895,7 @@
 
 
 
-**GET** [/v1/blog_articles/{id}](../sources/server/internal/endpoints/show_article.go#L13)
+**GET** [/v1/blog_articles/{id}](../sources/apiserver/internal/endpoints/show_article.go#L13)
 
 Параметры запроса:
 
@@ -944,7 +944,7 @@
 
 
 
-**GET** [/v1/allgenres](../sources/server/internal/endpoints/show_genres.go#L11)
+**GET** [/v1/allgenres](../sources/apiserver/internal/endpoints/show_genres.go#L11)
 
 
 Схема ответа:
@@ -975,7 +975,7 @@
 
 
 
-**GET** [/v1/blog_articles/{id}/comments](../sources/server/internal/endpoints/show_blog_article_comments.go#L13)
+**GET** [/v1/blog_articles/{id}/comments](../sources/apiserver/internal/endpoints/show_blog_article_comments.go#L13)
 
 Параметры запроса:
 
@@ -1029,7 +1029,7 @@
 
 
 
-**GET** [/v1/users/{id}/bookcases](../sources/server/internal/endpoints/show_bookcases.go#L13)
+**GET** [/v1/users/{id}/bookcases](../sources/apiserver/internal/endpoints/show_bookcases.go#L13)
 
 Параметры запроса:
 
@@ -1067,7 +1067,7 @@
 
 
 
-**GET** [/v1/edition_bookcases/{id}](../sources/server/internal/endpoints/show_edition_bookcase.go#L15)
+**GET** [/v1/edition_bookcases/{id}](../sources/apiserver/internal/endpoints/show_edition_bookcase.go#L14)
 
 Параметры запроса:
 
@@ -1137,7 +1137,7 @@
 
 
 
-**GET** [/v1/work_bookcases/{id}](../sources/server/internal/endpoints/show_work_bookcase.go#L15)
+**GET** [/v1/work_bookcases/{id}](../sources/apiserver/internal/endpoints/show_work_bookcase.go#L14)
 
 Параметры запроса:
 
@@ -1210,7 +1210,7 @@
 
 
 
-**GET** [/v1/film_bookcases/{id}](../sources/server/internal/endpoints/show_film_bookcase.go#L15)
+**GET** [/v1/film_bookcases/{id}](../sources/apiserver/internal/endpoints/show_film_bookcase.go#L14)
 
 Параметры запроса:
 
@@ -1279,7 +1279,7 @@
 Продлевает сессию с помощью рефреш-токена
 
 
-**POST** [/v1/auth/refresh](../sources/server/internal/endpoints/refresh_auth.go#L17)
+**POST** [/v1/auth/refresh](../sources/apiserver/internal/endpoints/refresh_auth.go#L16)
 
 Параметры запроса:
 
@@ -1312,7 +1312,7 @@
 
 
 
-**POST** [/v1/users/{id}/private_message](../sources/server/internal/endpoints/add_private_message.go#L15)
+**POST** [/v1/users/{id}/private_message](../sources/apiserver/internal/endpoints/add_private_message.go#L15)
 
 Параметры запроса:
 
@@ -1362,7 +1362,7 @@
 
 
 
-**GET** [/v1/work/{id}/userclassification](../sources/server/internal/endpoints/get_user_work_genres.go#L11)
+**GET** [/v1/work/{id}/userclassification](../sources/apiserver/internal/endpoints/get_user_work_genres.go#L11)
 
 Параметры запроса:
 
@@ -1400,7 +1400,7 @@
 
 
 
-**PUT** [/v1/response/{id}](../sources/server/internal/endpoints/edit_response.go#L12)
+**PUT** [/v1/response/{id}](../sources/apiserver/internal/endpoints/edit_response.go#L13)
 
 Параметры запроса:
 
@@ -1428,7 +1428,7 @@
 
 
 
-**PUT** [/v1/response/{id}/voting](../sources/server/internal/endpoints/vote_response.go#L14)
+**PUT** [/v1/response/{id}/voting](../sources/apiserver/internal/endpoints/vote_response.go#L13)
 
 Параметры запроса:
 
@@ -1458,7 +1458,7 @@
 
 
 
-**DELETE** [/v1/response/{id}](../sources/server/internal/endpoints/delete_response.go#L11)
+**DELETE** [/v1/response/{id}](../sources/apiserver/internal/endpoints/delete_response.go#L12)
 
 Параметры запроса:
 
@@ -1483,7 +1483,7 @@
 
 
 
-**POST** [/v1/topics/{id}/message](../sources/server/internal/endpoints/add_forum_message.go#L15)
+**POST** [/v1/topics/{id}/message](../sources/apiserver/internal/endpoints/add_forum_message.go#L15)
 
 Параметры запроса:
 
@@ -1532,7 +1532,7 @@
 
 
 
-**PUT** [/v1/forum_messages/{id}](../sources/server/internal/endpoints/edit_forum_message.go#L15)
+**PUT** [/v1/forum_messages/{id}](../sources/apiserver/internal/endpoints/edit_forum_message.go#L16)
 
 Параметры запроса:
 
@@ -1581,7 +1581,7 @@
 
 
 
-**DELETE** [/v1/forum_messages/{id}](../sources/server/internal/endpoints/delete_forum_message.go#L13)
+**DELETE** [/v1/forum_messages/{id}](../sources/apiserver/internal/endpoints/delete_forum_message.go#L14)
 
 Параметры запроса:
 
@@ -1606,7 +1606,7 @@
 
 
 
-**GET** [/v1/forum_messages/{id}/file_upload_url](../sources/server/internal/endpoints/get_forum_message_file_upload_url.go#L15)
+**GET** [/v1/forum_messages/{id}/file_upload_url](../sources/apiserver/internal/endpoints/get_forum_message_file_upload_url.go#L16)
 
 Параметры запроса:
 
@@ -1636,7 +1636,7 @@
 
 
 
-**DELETE** [/v1/forum_messages/{id}/file](../sources/server/internal/endpoints/delete_forum_message_file.go#L15)
+**DELETE** [/v1/forum_messages/{id}/file](../sources/apiserver/internal/endpoints/delete_forum_message_file.go#L16)
 
 Параметры запроса:
 
@@ -1685,7 +1685,7 @@
 
 
 
-**PUT** [/v1/topics/{id}/message_draft](../sources/server/internal/endpoints/save_forum_message_draft.go#L14)
+**PUT** [/v1/topics/{id}/message_draft](../sources/apiserver/internal/endpoints/save_forum_message_draft.go#L14)
 
 Параметры запроса:
 
@@ -1730,7 +1730,7 @@
 
 
 
-**POST** [/v1/topics/{id}/message_draft](../sources/server/internal/endpoints/confirm_forum_message_draft.go#L15)
+**POST** [/v1/topics/{id}/message_draft](../sources/apiserver/internal/endpoints/confirm_forum_message_draft.go#L15)
 
 Параметры запроса:
 
@@ -1776,7 +1776,7 @@
 
 
 
-**DELETE** [/v1/topics/{id}/message_draft](../sources/server/internal/endpoints/cancel_forum_message_draft.go#L13)
+**DELETE** [/v1/topics/{id}/message_draft](../sources/apiserver/internal/endpoints/cancel_forum_message_draft.go#L13)
 
 Параметры запроса:
 
@@ -1801,7 +1801,7 @@
 
 
 
-**GET** [/v1/topics/{id}/message_draft/file_upload_url](../sources/server/internal/endpoints/get_forum_message_draft_file_upload_url.go#L14)
+**GET** [/v1/topics/{id}/message_draft/file_upload_url](../sources/apiserver/internal/endpoints/get_forum_message_draft_file_upload_url.go#L15)
 
 Параметры запроса:
 
@@ -1831,7 +1831,7 @@
 
 
 
-**DELETE** [/v1/topics/{id}/message_draft/file](../sources/server/internal/endpoints/delete_forum_message_draft_file.go#L14)
+**DELETE** [/v1/topics/{id}/message_draft/file](../sources/apiserver/internal/endpoints/delete_forum_message_draft_file.go#L15)
 
 Параметры запроса:
 
@@ -1876,7 +1876,7 @@
 
 
 
-**PUT** [/v1/topics/{id}/subscription](../sources/server/internal/endpoints/toggle_forum_topic_subscription.go#L12)
+**PUT** [/v1/topics/{id}/subscription](../sources/apiserver/internal/endpoints/toggle_forum_topic_subscription.go#L12)
 
 Параметры запроса:
 
@@ -1904,7 +1904,7 @@
 
 
 
-**POST** [/v1/blog_articles/{id}/comment](../sources/server/internal/endpoints/add_blog_article_comment.go#L13)
+**POST** [/v1/blog_articles/{id}/comment](../sources/apiserver/internal/endpoints/add_blog_article_comment.go#L13)
 
 Параметры запроса:
 
@@ -1954,7 +1954,7 @@
 
 
 
-**PUT** [/v1/blog_article_comments/{id}](../sources/server/internal/endpoints/edit_blog_article_comment.go#L13)
+**PUT** [/v1/blog_article_comments/{id}](../sources/apiserver/internal/endpoints/edit_blog_article_comment.go#L13)
 
 Параметры запроса:
 
@@ -2001,7 +2001,7 @@
 
 
 
-**DELETE** [/v1/blog_article_comments/{id}](../sources/server/internal/endpoints/delete_blog_article_comment.go#L12)
+**DELETE** [/v1/blog_article_comments/{id}](../sources/apiserver/internal/endpoints/delete_blog_article_comment.go#L12)
 
 Параметры запроса:
 
@@ -2026,7 +2026,7 @@
 
 
 
-**PUT** [/v1/communities/{id}/subscription](../sources/server/internal/endpoints/toggle_community_subscription.go#L12)
+**PUT** [/v1/communities/{id}/subscription](../sources/apiserver/internal/endpoints/toggle_community_subscription.go#L12)
 
 Параметры запроса:
 
@@ -2054,7 +2054,7 @@
 
 
 
-**PUT** [/v1/blogs/{id}/subscription](../sources/server/internal/endpoints/toogle_blog_subscription.go#L12)
+**PUT** [/v1/blogs/{id}/subscription](../sources/apiserver/internal/endpoints/toogle_blog_subscription.go#L12)
 
 Параметры запроса:
 
@@ -2082,7 +2082,7 @@
 
 
 
-**PUT** [/v1/blog_articles/{id}/subscription](../sources/server/internal/endpoints/toogle_article_subscription.go#L12)
+**PUT** [/v1/blog_articles/{id}/subscription](../sources/apiserver/internal/endpoints/toogle_article_subscription.go#L12)
 
 Параметры запроса:
 
@@ -2110,7 +2110,7 @@
 
 
 
-**PUT** [/v1/blog_articles/{id}/like](../sources/server/internal/endpoints/toggle_article_like.go#L11)
+**PUT** [/v1/blog_articles/{id}/like](../sources/apiserver/internal/endpoints/toggle_article_like.go#L12)
 
 Параметры запроса:
 
@@ -2140,7 +2140,7 @@
 
 
 
-**POST** [/v1/bookcases](../sources/server/internal/endpoints/create_default_bookcases.go#L10)
+**POST** [/v1/bookcases](../sources/apiserver/internal/endpoints/create_default_bookcases.go#L11)
 
 
 Схема ответа:
@@ -2171,7 +2171,7 @@
 
 
 
-**PUT** [/v1/bookcases/order](../sources/server/internal/endpoints/change_bookcases_order.go#L10)
+**PUT** [/v1/bookcases/order](../sources/apiserver/internal/endpoints/change_bookcases_order.go#L11)
 
 Параметры запроса:
 
@@ -2196,7 +2196,7 @@
 
 
 
-**POST** [/v1/edition_bookcases/{id}/items](../sources/server/internal/endpoints/add_edition_bookcase_item.go#L12)
+**POST** [/v1/edition_bookcases/{id}/items](../sources/apiserver/internal/endpoints/add_edition_bookcase_item.go#L12)
 
 Параметры запроса:
 
@@ -2224,7 +2224,7 @@
 
 
 
-**POST** [/v1/work_bookcases/{id}/items](../sources/server/internal/endpoints/add_work_bookcase_item.go#L12)
+**POST** [/v1/work_bookcases/{id}/items](../sources/apiserver/internal/endpoints/add_work_bookcase_item.go#L12)
 
 Параметры запроса:
 
@@ -2252,7 +2252,7 @@
 
 
 
-**POST** [/v1/film_bookcases/{id}/items](../sources/server/internal/endpoints/add_film_bookcase_item.go#L12)
+**POST** [/v1/film_bookcases/{id}/items](../sources/apiserver/internal/endpoints/add_film_bookcase_item.go#L12)
 
 Параметры запроса:
 
@@ -2280,7 +2280,7 @@
 
 
 
-**PUT** [/v1/bookcase_items/{id}/comment](../sources/server/internal/endpoints/edit_bookcase_item_comment.go#L13)
+**PUT** [/v1/bookcase_items/{id}/comment](../sources/apiserver/internal/endpoints/edit_bookcase_item_comment.go#L14)
 
 Параметры запроса:
 
@@ -2310,7 +2310,7 @@
 
 
 
-**DELETE** [/v1/bookcase_items/{id}](../sources/server/internal/endpoints/delete_bookcase_item.go#L12)
+**DELETE** [/v1/bookcase_items/{id}](../sources/apiserver/internal/endpoints/delete_bookcase_item.go#L12)
 
 Параметры запроса:
 
@@ -2335,7 +2335,7 @@
 
 
 
-**DELETE** [/v1/bookcases/{id}](../sources/server/internal/endpoints/delete_bookcase.go#L11)
+**DELETE** [/v1/bookcases/{id}](../sources/apiserver/internal/endpoints/delete_bookcase.go#L12)
 
 Параметры запроса:
 
@@ -2364,7 +2364,7 @@
 
 
 
-**PUT** [/v1/work/{id}/userclassification](../sources/server/internal/endpoints/set_work_genres.go#L14)
+**PUT** [/v1/work/{id}/userclassification](../sources/apiserver/internal/endpoints/set_work_genres.go#L14)
 
 Параметры запроса:
 
@@ -2392,7 +2392,7 @@
 
 
 
-**PUT** [/v1/forum_messages/{id}/voting](../sources/server/internal/endpoints/vote_forum_message.go#L12)
+**PUT** [/v1/forum_messages/{id}/voting](../sources/apiserver/internal/endpoints/vote_forum_message.go#L12)
 
 Параметры запроса:
 
