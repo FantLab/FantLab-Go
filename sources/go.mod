@@ -3,6 +3,7 @@ module fantlab
 go 1.14
 
 require (
+	github.com/FantLab/go-kit v0.0.0-20200509111316-198202768a1a
 	github.com/bradfitz/gomemcache v0.0.0-20190913173617-a41fca850d0b
 	github.com/golang/protobuf v1.4.0-rc.4
 	github.com/gomodule/redigo v2.0.0+incompatible

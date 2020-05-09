@@ -1,8 +1,8 @@
 package analysis
 
 import (
+	"fantlab/apiserver/routing"
 	"fantlab/docs/scheme"
-	"fantlab/server/routing"
 	"fmt"
 	"go/ast"
 	"reflect"
@@ -51,7 +51,7 @@ func AnalyzeEndpoints(endpoints []routing.Endpoint, schemePrefix, schemePostfix 
 		var wg sync.WaitGroup
 		wg.Add(2)
 		go func() {
-			endpointsPackage = loadPackage("fantlab/server/internal/endpoints")
+			endpointsPackage = loadPackage("fantlab/apiserver/internal/endpoints")
 			wg.Done()
 		}()
 		go func() {

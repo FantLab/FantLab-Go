@@ -1,11 +1,12 @@
 package main
 
 import (
-	"fantlab/base/edsign"
-	"fantlab/server"
+	"fantlab/apiserver"
 	"flag"
 	"fmt"
 	"os"
+
+	"github.com/FantLab/go-kit/crypto/signed"
 )
 
 var gendocs = flag.Bool("gendocs", false, "")
@@ -15,16 +16,16 @@ func main() {
 	flag.Parse()
 
 	if *gendocs {
-		server.GenerateDocs()
+		apiserver.GenerateDocs()
 		return
 	}
 
 	if *genkeys {
-		keyPair, _ := edsign.GenerateNewKeyPair()
-		fmt.Fprintln(os.Stdout, "Public key:", keyPair.PublicKey)
-		fmt.Fprintln(os.Stdout, "Private key:", keyPair.PrivateKey)
+		coder, _ := signed.Generate()
+		fmt.Fprintln(os.Stdout, "Public key:", coder.PublicKey())
+		fmt.Fprintln(os.Stdout, "Private key:", coder.PrivateKey())
 		return
 	}
 
-	server.Start()
+	apiserver.Start()
 }

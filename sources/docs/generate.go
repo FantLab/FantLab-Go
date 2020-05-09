@@ -1,8 +1,8 @@
 package docs
 
 import (
+	"fantlab/apiserver/routing"
 	"fantlab/docs/analysis"
-	"fantlab/server/routing"
 	"io"
 	"sort"
 	"strconv"

@@ -1,7 +1,7 @@
 package reflectutils
 
 import (
-	"fantlab/base/assert"
+	"github.com/FantLab/go-kit/assert"
 	"testing"
 )
 
