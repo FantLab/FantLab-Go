@@ -1,13 +1,13 @@
 package queries
 
 const (
-	FilmGetFilm = `
+	FilmGetFilms = `
 		SELECT
 			film_id,
 			name
 		FROM
 			films
 		WHERE
-			film_id = ?
+			film_id IN (?)
 	`
 )

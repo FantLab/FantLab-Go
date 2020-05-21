@@ -36,16 +36,16 @@ func (db *DB) WorkExists(ctx context.Context, workId uint64) (bool, error) {
 	return workExists == 1, err
 }
 
-func (db *DB) FetchWork(ctx context.Context, workId uint64) (Work, error) {
-	var work Work
+func (db *DB) FetchWorks(ctx context.Context, workIds []uint64) ([]Work, error) {
+	var works []Work
 
-	err := db.engine.Read(ctx, sqlapi.NewQuery(queries.WorkGetWork).WithArgs(workId)).Scan(&work)
+	err := db.engine.Read(ctx, sqlapi.NewQuery(queries.WorkGetWorks).WithArgs(workIds).FlatArgs()).Scan(&works)
 
 	if err != nil {
-		return Work{}, err
+		return nil, err
 	}
 
-	return work, nil
+	return works, nil
 }
 
 func (db *DB) GetWorkUserMark(ctx context.Context, workId, userId uint64) (mark uint8, err error) {

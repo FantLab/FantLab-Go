@@ -431,6 +431,68 @@ func (db *DB) InsertDefaultBookcases(ctx context.Context, userId uint64) ([]Book
 	return bookcases, nil
 }
 
+func (db *DB) InsertBookcase(ctx context.Context, userId uint64, bookcaseType, group, title, description string, isPrivate bool, items []map[uint64]string) error {
+	var maxSort uint64
+	var bookcaseId uint64
+
+	itemIds := make([]uint64, 0, len(items))
+
+	for _, item := range items {
+		for id := range item {
+			itemIds = append(itemIds, id)
+		}
+	}
+
+	type newBookcaseItemEntry struct {
+		BookcaseId  uint64    `db:"bookcase_id"`
+		ItemId      uint64    `db:"item_id"`
+		ItemSort    uint64    `db:"item_sort"`
+		ItemComment string    `db:"item_comment"`
+		DateOfAdd   time.Time `db:"date_of_add"`
+	}
+
+	return db.engine.InTransaction(func(rw sqlapi.ReaderWriter) error {
+		return codeflow.Try(
+			func() error { // Получаем предыдущий максимальный номер полки в группе
+				return rw.Read(ctx, sqlapi.NewQuery(queries.BookcaseGetMaxSortForType).WithArgs(userId, bookcaseType)).Scan(&maxSort)
+			},
+			func() error { // Создаем полку
+				result := rw.Write(ctx, sqlapi.NewQuery(queries.BookcaseInsertBookcase).
+					WithArgs(userId, bookcaseType, group, title, description, !isPrivate, maxSort+1, "default"))
+				if result.Error == nil {
+					bookcaseId = uint64(result.LastInsertId)
+				}
+				return result.Error
+			},
+			func() error { // Добавляем item-ы на полку
+				entries := make([]interface{}, 0, len(items))
+				for index, item := range items {
+					for id, comment := range item {
+						entries = append(entries, newBookcaseItemEntry{
+							BookcaseId:  bookcaseId,
+							ItemId:      id,
+							ItemSort:    uint64(index) + 1,
+							ItemComment: comment,
+							DateOfAdd:   time.Now(),
+						})
+					}
+				}
+				return rw.Write(ctx, sqlbuilder.InsertInto(queries.BookcaseItemsTable, entries...)).Error
+			},
+			func() error {
+				switch bookcaseType {
+				case BookcaseEditionType: // Выставляем флаг для Cron-а для пересчета популярности издания
+					return db.engine.Write(ctx, sqlapi.NewQuery(queries.EditionMarkEditionsNeedPopularityRecalc).WithArgs(itemIds).FlatArgs()).Error
+				case BookcaseWorkType: // Выставляем флаг для Cron-а для пересчета популярности произведения
+					return db.engine.Write(ctx, sqlapi.NewQuery(queries.WorkMarkWorksNeedPopularityRecalc).WithArgs(itemIds).FlatArgs()).Error
+				default:
+					return nil
+				}
+			},
+		)
+	})
+}
+
 func (db *DB) InsertEditionBookcaseItem(ctx context.Context, bookcaseId, editionId uint64) error {
 	return db.engine.InTransaction(func(rw sqlapi.ReaderWriter) error {
 		return codeflow.Try(
@@ -438,7 +500,7 @@ func (db *DB) InsertEditionBookcaseItem(ctx context.Context, bookcaseId, edition
 				return rw.Write(ctx, sqlapi.NewQuery(queries.BookcaseInsertItem).WithArgs(bookcaseId, editionId, bookcaseId)).Error
 			},
 			func() error { // Выставляем флаг для Cron-а для пересчета популярности издания
-				return rw.Write(ctx, sqlapi.NewQuery(queries.EditionMarkEditionNeedPopularityRecalc).WithArgs(editionId)).Error
+				return rw.Write(ctx, sqlapi.NewQuery(queries.EditionMarkEditionsNeedPopularityRecalc).WithArgs(editionId)).Error
 			},
 		)
 	})
@@ -451,7 +513,7 @@ func (db *DB) InsertWorkBookcaseItem(ctx context.Context, bookcaseId, workId uin
 				return rw.Write(ctx, sqlapi.NewQuery(queries.BookcaseInsertItem).WithArgs(bookcaseId, workId, bookcaseId)).Error
 			},
 			func() error { // Выставляем флаг для Cron-а для пересчета популярности произведения
-				return rw.Write(ctx, sqlapi.NewQuery(queries.WorkMarkWorkNeedPopularityRecalc).WithArgs(workId)).Error
+				return rw.Write(ctx, sqlapi.NewQuery(queries.WorkMarkWorksNeedPopularityRecalc).WithArgs(workId)).Error
 			},
 		)
 	})
@@ -461,7 +523,7 @@ func (db *DB) InsertFilmBookcaseItem(ctx context.Context, bookcaseId, filmId uin
 	return db.engine.Write(ctx, sqlapi.NewQuery(queries.BookcaseInsertItem).WithArgs(bookcaseId, filmId, bookcaseId)).Error
 }
 
-func (db *DB) UpdateBookcasesOrder(ctx context.Context, userId uint64, order map[uint64]uint64) error {
+func (db *DB) UpdateBookcasesOrder(ctx context.Context, order map[uint64]uint64) error {
 	return db.engine.InTransaction(func(rw sqlapi.ReaderWriter) error {
 		for bookcaseId, index := range order {
 			// Обновляем порядок сортировки у полки
@@ -485,7 +547,7 @@ func (db *DB) DeleteEditionBookcaseItem(ctx context.Context, bookcaseItemId, edi
 				return rw.Write(ctx, sqlapi.NewQuery(queries.BookcaseDeleteItem).WithArgs(bookcaseItemId)).Error
 			},
 			func() error { // Выставляем флаг для Cron-а для пересчета популярности издания
-				return rw.Write(ctx, sqlapi.NewQuery(queries.EditionMarkEditionNeedPopularityRecalc).WithArgs(editionId)).Error
+				return rw.Write(ctx, sqlapi.NewQuery(queries.EditionMarkEditionsNeedPopularityRecalc).WithArgs(editionId)).Error
 			},
 		)
 	})
@@ -498,7 +560,7 @@ func (db *DB) DeleteWorkBookcaseItem(ctx context.Context, bookcaseItemId, workId
 				return rw.Write(ctx, sqlapi.NewQuery(queries.BookcaseDeleteItem).WithArgs(bookcaseItemId)).Error
 			},
 			func() error { // Выставляем флаг для Cron-а для пересчета популярности произведения
-				return rw.Write(ctx, sqlapi.NewQuery(queries.WorkMarkWorkNeedPopularityRecalc).WithArgs(workId)).Error
+				return rw.Write(ctx, sqlapi.NewQuery(queries.WorkMarkWorksNeedPopularityRecalc).WithArgs(workId)).Error
 			},
 		)
 	})

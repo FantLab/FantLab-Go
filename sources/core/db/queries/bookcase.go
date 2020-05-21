@@ -1,7 +1,8 @@
 package queries
 
 const (
-	BookcasesTable = "bookcase"
+	BookcasesTable     = "bookcase"
+	BookcaseItemsTable = "bookcase_items"
 )
 
 const (
@@ -221,6 +222,32 @@ const (
 			bookcase_items
 		WHERE
 			bookcase_id = ?
+	`
+
+	BookcaseGetMaxSortForType = `
+		SELECT
+			MAX(sort)
+		FROM
+			bookcase
+		WHERE
+			user_id = ? AND bookcase_type = ?
+	`
+
+	BookcaseInsertBookcase = `
+		INSERT INTO
+			bookcase (
+				user_id,
+				bookcase_type,
+				bookcase_group,
+				bookcase_name,
+				bookcase_comment,
+				bookcase_shared,
+				sort,
+				date_of_add,
+				default_sort
+			)
+		VALUES
+			(?, ?, ?, ?, ?, ?, ?, NOW(), ?)
 	`
 
 	BookcaseInsertItem = `

@@ -3,14 +3,14 @@ package queries
 const (
 	WorkExists = "SELECT 1 FROM works WHERE work_id = ?"
 
-	WorkGetWork = `
+	WorkGetWorks = `
 		SELECT
 			work_id,
 			name
 		FROM
 			works
 		WHERE
-			work_id = ?
+			work_id IN (?)
 	`
 
 	WorkUserMark = "SELECT mark FROM marks2 WHERE user_id = ? AND work_id = ?"
@@ -50,13 +50,13 @@ const (
 		ORDER BY c.group_index, w.year
 	`
 
-	WorkMarkWorkNeedPopularityRecalc = `
+	WorkMarkWorksNeedPopularityRecalc = `
 		UPDATE
 			works
 		SET
 			popularity_need_recalc = 1
 		WHERE
-			work_id = ?
+			work_id IN (?)
 	`
 
 	WorkGetRegisteredWorkAutorIds = `

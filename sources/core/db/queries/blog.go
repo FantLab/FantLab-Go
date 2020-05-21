@@ -323,11 +323,10 @@ const (
 				parent_message_id,
 				message_length,
 				is_censored,
-				date_of_add,
-				topic_type
+				date_of_add
 			)
 		VALUES
-			(?, ?, ?, ?, ?, ?, 0)
+			(?, ?, ?, ?, ?, ?)
 	`
 
 	BlogSetMessageText = `

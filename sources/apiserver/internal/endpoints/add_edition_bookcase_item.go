@@ -43,18 +43,18 @@ func (api *API) AddEditionBookcaseItem(r *http.Request) (int, proto.Message) {
 
 	// TODO В Perl-бэке этой проверки нет, так что там можно добавить фантомное издание на полку. Оно будет учитываться
 	//  в счетчике содержимого в списке полок, но на самой полке отображаться не будет.
-	dbEdition, err := api.services.DB().FetchEdition(r.Context(), params.EditionId)
+	dbEditions, err := api.services.DB().FetchEditions(r.Context(), []uint64{params.EditionId})
 
 	if err != nil {
-		if db.IsNotFoundError(err) {
-			return http.StatusNotFound, &pb.Error_Response{
-				Status:  pb.Error_NOT_FOUND,
-				Context: strconv.FormatUint(params.EditionId, 10),
-			}
-		}
-
 		return http.StatusInternalServerError, &pb.Error_Response{
 			Status: pb.Error_SOMETHING_WENT_WRONG,
+		}
+	}
+
+	if len(dbEditions) == 0 {
+		return http.StatusNotFound, &pb.Error_Response{
+			Status:  pb.Error_NOT_FOUND,
+			Context: strconv.FormatUint(params.EditionId, 10),
 		}
 	}
 
@@ -74,7 +74,7 @@ func (api *API) AddEditionBookcaseItem(r *http.Request) (int, proto.Message) {
 		}
 	}
 
-	err = api.services.DB().InsertEditionBookcaseItem(r.Context(), dbBookcase.BookcaseId, dbEdition.EditionId)
+	err = api.services.DB().InsertEditionBookcaseItem(r.Context(), dbBookcase.BookcaseId, dbEditions[0].EditionId)
 
 	if err != nil {
 		return http.StatusInternalServerError, &pb.Error_Response{

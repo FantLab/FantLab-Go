@@ -43,18 +43,18 @@ func (api *API) AddWorkBookcaseItem(r *http.Request) (int, proto.Message) {
 
 	// TODO В Perl-бэке этой проверки нет, так что там можно добавить фантомное произведение на полку. Оно будет учитываться
 	//  в счетчике содержимого в списке полок, но на самой полке отображаться не будет.
-	dbWork, err := api.services.DB().FetchWork(r.Context(), params.WorkId)
+	dbWorks, err := api.services.DB().FetchWorks(r.Context(), []uint64{params.WorkId})
 
 	if err != nil {
-		if db.IsNotFoundError(err) {
-			return http.StatusNotFound, &pb.Error_Response{
-				Status:  pb.Error_NOT_FOUND,
-				Context: strconv.FormatUint(params.WorkId, 10),
-			}
-		}
-
 		return http.StatusInternalServerError, &pb.Error_Response{
 			Status: pb.Error_SOMETHING_WENT_WRONG,
+		}
+	}
+
+	if len(dbWorks) == 0 {
+		return http.StatusNotFound, &pb.Error_Response{
+			Status:  pb.Error_NOT_FOUND,
+			Context: strconv.FormatUint(params.WorkId, 10),
 		}
 	}
 
@@ -74,7 +74,7 @@ func (api *API) AddWorkBookcaseItem(r *http.Request) (int, proto.Message) {
 		}
 	}
 
-	err = api.services.DB().InsertWorkBookcaseItem(r.Context(), dbBookcase.BookcaseId, dbWork.WorkId)
+	err = api.services.DB().InsertWorkBookcaseItem(r.Context(), dbBookcase.BookcaseId, dbWorks[0].WorkId)
 
 	if err != nil {
 		return http.StatusInternalServerError, &pb.Error_Response{

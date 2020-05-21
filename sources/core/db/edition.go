@@ -12,14 +12,14 @@ type Edition struct {
 	Name      string `db:"name"`
 }
 
-func (db *DB) FetchEdition(ctx context.Context, editionId uint64) (Edition, error) {
-	var edition Edition
+func (db *DB) FetchEditions(ctx context.Context, editionIds []uint64) ([]Edition, error) {
+	var editions []Edition
 
-	err := db.engine.Read(ctx, sqlapi.NewQuery(queries.EditionGetEdition).WithArgs(editionId)).Scan(&edition)
+	err := db.engine.Read(ctx, sqlapi.NewQuery(queries.EditionGetEditions).WithArgs(editionIds).FlatArgs()).Scan(&editions)
 
 	if err != nil {
-		return Edition{}, err
+		return nil, err
 	}
 
-	return edition, nil
+	return editions, nil
 }

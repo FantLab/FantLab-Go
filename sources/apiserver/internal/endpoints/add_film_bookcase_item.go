@@ -43,18 +43,18 @@ func (api *API) AddFilmBookcaseItem(r *http.Request) (int, proto.Message) {
 
 	// TODO В Perl-бэке этой проверки нет, так что там можно добавить фантомное произведение на полку. Оно будет учитываться
 	//  в счетчике содержимого в списке полок, но на самой полке отображаться не будет.
-	dbFilm, err := api.services.DB().FetchFilm(r.Context(), params.FilmId)
+	dbFilms, err := api.services.DB().FetchFilms(r.Context(), []uint64{params.FilmId})
 
 	if err != nil {
-		if db.IsNotFoundError(err) {
-			return http.StatusNotFound, &pb.Error_Response{
-				Status:  pb.Error_NOT_FOUND,
-				Context: strconv.FormatUint(params.FilmId, 10),
-			}
-		}
-
 		return http.StatusInternalServerError, &pb.Error_Response{
 			Status: pb.Error_SOMETHING_WENT_WRONG,
+		}
+	}
+
+	if len(dbFilms) == 0 {
+		return http.StatusNotFound, &pb.Error_Response{
+			Status:  pb.Error_NOT_FOUND,
+			Context: strconv.FormatUint(params.FilmId, 10),
 		}
 	}
 
@@ -74,7 +74,7 @@ func (api *API) AddFilmBookcaseItem(r *http.Request) (int, proto.Message) {
 		}
 	}
 
-	err = api.services.DB().InsertFilmBookcaseItem(r.Context(), dbBookcase.BookcaseId, dbFilm.FilmId)
+	err = api.services.DB().InsertFilmBookcaseItem(r.Context(), dbBookcase.BookcaseId, dbFilms[0].FilmId)
 
 	if err != nil {
 		return http.StatusInternalServerError, &pb.Error_Response{
