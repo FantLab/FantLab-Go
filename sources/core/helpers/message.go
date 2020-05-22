@@ -1,6 +1,8 @@
 package helpers
 
-import "regexp"
+import (
+	"regexp"
+)
 
 var (
 	carriageReturnRegex       = regexp.MustCompile(`\r`)

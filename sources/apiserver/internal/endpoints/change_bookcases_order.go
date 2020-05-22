@@ -58,7 +58,7 @@ func (api *API) ChangeBookcasesOrder(r *http.Request) (int, proto.Message) {
 		}
 	}
 
-	err = api.services.DB().UpdateBookcasesOrder(r.Context(), userId, finalOrder)
+	err = api.services.DB().UpdateBookcasesOrder(r.Context(), finalOrder)
 
 	if err != nil {
 		return http.StatusInternalServerError, &pb.Error_Response{

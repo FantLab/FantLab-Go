@@ -1,22 +1,22 @@
 package queries
 
 const (
-	EditionGetEdition = `
+	EditionGetEditions = `
 		SELECT
 			edition_id,
 			name
 		FROM
 			editions
 		WHERE
-			edition_id = ?
+			edition_id IN (?)
 	`
 
-	EditionMarkEditionNeedPopularityRecalc = `
+	EditionMarkEditionsNeedPopularityRecalc = `
 		UPDATE
 			editions
 		SET
 			popularity_need_recalc = 1
 		WHERE
-			edition_id = ?
+			edition_id IN (?)
 	`
 )

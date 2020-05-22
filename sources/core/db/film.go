@@ -12,14 +12,14 @@ type Film struct {
 	Name   string `db:"name"`
 }
 
-func (db *DB) FetchFilm(ctx context.Context, filmId uint64) (Film, error) {
-	var film Film
+func (db *DB) FetchFilms(ctx context.Context, filmIds []uint64) ([]Film, error) {
+	var films []Film
 
-	err := db.engine.Read(ctx, sqlapi.NewQuery(queries.FilmGetFilm).WithArgs(filmId)).Scan(&film)
+	err := db.engine.Read(ctx, sqlapi.NewQuery(queries.FilmGetFilms).WithArgs(filmIds).FlatArgs()).Scan(&films)
 
 	if err != nil {
-		return Film{}, err
+		return nil, err
 	}
 
-	return film, nil
+	return films, nil
 }
