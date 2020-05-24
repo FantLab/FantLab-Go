@@ -23,6 +23,7 @@ import (
 	"github.com/minio/minio-go/v6"
 	"go.elastic.co/apm/module/apmredigo"
 	"go.elastic.co/apm/module/apmsql"
+	_ "go.elastic.co/apm/module/apmsql/mysql"
 	"go.uber.org/zap"
 )
 

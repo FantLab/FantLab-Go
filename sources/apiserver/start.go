@@ -15,8 +15,6 @@ import (
 
 	"github.com/FantLab/go-kit/anyserver"
 	"github.com/FantLab/go-kit/http/mux"
-
-	_ "go.elastic.co/apm/module/apmsql/mysql"
 )
 
 func GenerateDocs() {
@@ -61,18 +59,7 @@ func makeAPIServer() (server *anyserver.Server) {
 		Handler: httpHandler,
 	}
 
-	server.Start = func() error {
-		if err := httpServer.ListenAndServe(); err != http.ErrServerClosed {
-			return err
-		}
-		return nil
-	}
-	server.Stop = func(ctx context.Context) error {
-		markAsUnavailable()
-		httpServer.SetKeepAlivesEnabled(false)
-		return httpServer.Shutdown(ctx)
-	}
-	server.ShutdownTimeout = 5 * time.Second
+	setupHTTP(server, httpServer, 5*time.Second, markAsUnavailable)
 
 	return
 }
@@ -85,37 +72,45 @@ func makeMonitoringServer() (server *anyserver.Server) {
 
 	server = new(anyserver.Server)
 
-	var httpHandler http.Handler
-
-	{
-		rootGroup := new(mux.Group)
-		{
-			rootGroup.Endpoint(http.MethodGet, "/pprof/:index", http.HandlerFunc(pprof.Index))
-			rootGroup.Endpoint(http.MethodGet, "/pprof/cmdline", http.HandlerFunc(pprof.Cmdline))
-			rootGroup.Endpoint(http.MethodGet, "/pprof/profile", http.HandlerFunc(pprof.Profile))
-			rootGroup.Endpoint(http.MethodGet, "/pprof/symbol", http.HandlerFunc(pprof.Symbol))
-			rootGroup.Endpoint(http.MethodGet, "/pprof/trace", http.HandlerFunc(pprof.Trace))
-		}
-		{
-			rootGroup.Endpoint(http.MethodGet, "/expvar", expvar.Handler())
-		}
-
-		routerConfig := &mux.Config{
-			RootGroup: rootGroup,
-			NotFoundHandler: http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-				http.Error(w, http.StatusText(http.StatusNotFound), http.StatusNotFound)
-			}),
-			CommonPrefix: "debug",
-		}
-
-		httpHandler, _ = mux.NewRouter(routerConfig)
-	}
+	httpHandler := makeMonitoringHandler()
 
 	httpServer := &http.Server{
 		Addr:    ":" + port,
 		Handler: httpHandler,
 	}
 
+	setupHTTP(server, httpServer, 5*time.Second, nil)
+
+	return
+}
+
+func makeMonitoringHandler() (httpHandler http.Handler) {
+	rootGroup := new(mux.Group)
+	{
+		rootGroup.Endpoint(http.MethodGet, "/pprof/:index", http.HandlerFunc(pprof.Index))
+		rootGroup.Endpoint(http.MethodGet, "/pprof/cmdline", http.HandlerFunc(pprof.Cmdline))
+		rootGroup.Endpoint(http.MethodGet, "/pprof/profile", http.HandlerFunc(pprof.Profile))
+		rootGroup.Endpoint(http.MethodGet, "/pprof/symbol", http.HandlerFunc(pprof.Symbol))
+		rootGroup.Endpoint(http.MethodGet, "/pprof/trace", http.HandlerFunc(pprof.Trace))
+	}
+	{
+		rootGroup.Endpoint(http.MethodGet, "/expvar", expvar.Handler())
+	}
+
+	routerConfig := &mux.Config{
+		RootGroup: rootGroup,
+		NotFoundHandler: http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			http.Error(w, http.StatusText(http.StatusNotFound), http.StatusNotFound)
+		}),
+		CommonPrefix: "debug",
+	}
+
+	httpHandler, _ = mux.NewRouter(routerConfig)
+
+	return
+}
+
+func setupHTTP(server *anyserver.Server, httpServer *http.Server, shutdownTimeout time.Duration, stopFunc func()) {
 	server.Start = func() error {
 		if err := httpServer.ListenAndServe(); err != http.ErrServerClosed {
 			return err
@@ -123,11 +118,11 @@ func makeMonitoringServer() (server *anyserver.Server) {
 		return nil
 	}
 	server.Stop = func(ctx context.Context) error {
+		if stopFunc != nil {
+			stopFunc()
+		}
 		httpServer.SetKeepAlivesEnabled(false)
-
 		return httpServer.Shutdown(ctx)
 	}
-	server.ShutdownTimeout = 5 * time.Second
-
-	return
+	server.ShutdownTimeout = shutdownTimeout
 }
