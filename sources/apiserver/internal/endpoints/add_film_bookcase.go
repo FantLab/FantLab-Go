@@ -5,9 +5,10 @@ import (
 	"fantlab/core/db"
 	"fantlab/core/helpers"
 	"fantlab/pb"
-	"google.golang.org/protobuf/proto"
 	"net/http"
 	"strings"
+
+	"google.golang.org/protobuf/proto"
 )
 
 func (api *API) AddFilmBookcase(r *http.Request) (int, proto.Message) {
@@ -26,15 +27,14 @@ func (api *API) AddFilmBookcase(r *http.Request) (int, proto.Message) {
 
 	api.bindParams(&params, r)
 
-	if len(params.Title) == 0 {
+	title := strings.Join(strings.Fields(params.Title), " ")
+
+	if len(title) == 0 {
 		return api.badParam("title")
 	}
 	if _, ok := helpers.BookcaseTypeMap[params.Type]; !ok {
 		return api.badParam("type")
 	}
-
-	title := strings.TrimSpace(params.Title)
-	title = whitespaceCharactersInRowRegex.ReplaceAllLiteralString(title, " ")
 
 	var filmsInfo []map[uint64]string
 
