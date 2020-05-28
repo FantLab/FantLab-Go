@@ -543,7 +543,11 @@ func (db *DB) InsertBookcaseItem(ctx context.Context, bookcaseId uint64, bookcas
 
 func (db *DB) UpdateBookcase(ctx context.Context, bookcaseId uint64, bookcaseType, group, title, description, sort string,
 	isPrivate bool, items []map[uint64]string) error {
-	oldItemsDateOfAdd := make(map[uint64]time.Time, len(items))
+	type itemDateOfAdd struct {
+		ItemId    uint64    `db:"item_id"`
+		DateOfAdd time.Time `db:"date_of_add"`
+	}
+	var oldItemsDateOfAdd []itemDateOfAdd
 
 	var defaultSort string
 	switch bookcaseType {
@@ -583,10 +587,14 @@ func (db *DB) UpdateBookcase(ctx context.Context, bookcaseId uint64, bookcaseTyp
 				return rw.Write(ctx, sqlapi.NewQuery(queries.BookcaseDeleteBookcaseItems).WithArgs(bookcaseId)).Error
 			},
 			func() error { // Добавляем item-ы на полку
+				oldDates := make(map[uint64]time.Time, len(oldItemsDateOfAdd))
+				for _, oldItemDateOfAdd := range oldItemsDateOfAdd {
+					oldDates[oldItemDateOfAdd.ItemId] = oldItemDateOfAdd.DateOfAdd
+				}
 				entries := make([]interface{}, 0, len(items))
 				for index, item := range items {
 					for id, comment := range item {
-						dateOfAdd := oldItemsDateOfAdd[id]
+						dateOfAdd := oldDates[id]
 						if dateOfAdd.IsZero() {
 							dateOfAdd = time.Now()
 						}
