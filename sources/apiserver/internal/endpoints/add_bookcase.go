@@ -95,7 +95,7 @@ func (api *API) AddBookcase(r *http.Request) (int, proto.Message) {
 
 	userId := api.getUserId(r)
 
-	err = api.services.DB().InsertBookcase(r.Context(), userId, params.Group, params.Type, title, description, params.IsPrivate, itemsInfo)
+	bookcaseId, err := api.services.DB().InsertBookcase(r.Context(), userId, params.Group, params.Type, title, description, params.IsPrivate, itemsInfo)
 
 	if err != nil {
 		return http.StatusInternalServerError, &pb.Error_Response{
@@ -103,5 +103,7 @@ func (api *API) AddBookcase(r *http.Request) (int, proto.Message) {
 		}
 	}
 
-	return http.StatusOK, &pb.Common_SuccessResponse{}
+	return http.StatusOK, &pb.Common_SuccessIdResponse{
+		Id: bookcaseId,
+	}
 }

@@ -60,6 +60,22 @@ func (api *API) EditBookcase(r *http.Request) (int, proto.Message) {
 		}
 	}
 
+	userId := api.getUserId(r)
+
+	if userId != dbBookcase.UserId {
+		if dbBookcase.BookcaseShared == 1 {
+			return http.StatusForbidden, &pb.Error_Response{
+				Status:  pb.Error_ACTION_PERMITTED,
+				Context: "Невозможно отредактировать чужую книжную полку",
+			}
+		} else {
+			return http.StatusNotFound, &pb.Error_Response{
+				Status:  pb.Error_NOT_FOUND,
+				Context: strconv.FormatUint(params.BookcaseId, 10),
+			}
+		}
+	}
+
 	var itemsInfo []map[uint64]string
 
 	err = json.Unmarshal([]byte(params.Items), &itemsInfo)
@@ -118,22 +134,6 @@ func (api *API) EditBookcase(r *http.Request) (int, proto.Message) {
 	maxDescriptionLength := 50
 	if len(description) > maxDescriptionLength {
 		description = description[:maxDescriptionLength]
-	}
-
-	userId := api.getUserId(r)
-
-	if userId != dbBookcase.UserId {
-		if dbBookcase.BookcaseShared == 1 {
-			return http.StatusForbidden, &pb.Error_Response{
-				Status:  pb.Error_ACTION_PERMITTED,
-				Context: "Невозможно отредактировать чужую книжную полку",
-			}
-		} else {
-			return http.StatusNotFound, &pb.Error_Response{
-				Status:  pb.Error_NOT_FOUND,
-				Context: strconv.FormatUint(params.BookcaseId, 10),
-			}
-		}
 	}
 
 	err = api.services.DB().UpdateBookcase(r.Context(), dbBookcase.BookcaseId, dbBookcase.BookcaseType, params.Type,

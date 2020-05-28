@@ -454,7 +454,7 @@ func (db *DB) InsertDefaultBookcases(ctx context.Context, userId uint64) ([]Book
 	return bookcases, nil
 }
 
-func (db *DB) InsertBookcase(ctx context.Context, userId uint64, bookcaseType, group, title, description string, isPrivate bool, items []map[uint64]string) error {
+func (db *DB) InsertBookcase(ctx context.Context, userId uint64, bookcaseType, group, title, description string, isPrivate bool, items []map[uint64]string) (uint64, error) {
 	var maxSort uint64
 	var bookcaseId uint64
 
@@ -474,7 +474,7 @@ func (db *DB) InsertBookcase(ctx context.Context, userId uint64, bookcaseType, g
 		DateOfAdd   time.Time `db:"date_of_add"`
 	}
 
-	return db.engine.InTransaction(func(rw sqlapi.ReaderWriter) error {
+	err := db.engine.InTransaction(func(rw sqlapi.ReaderWriter) error {
 		return codeflow.Try(
 			func() error { // Получаем предыдущий максимальный номер полки в группе
 				return rw.Read(ctx, sqlapi.NewQuery(queries.BookcaseGetMaxSortForType).WithArgs(userId, bookcaseType)).Scan(&maxSort)
@@ -514,6 +514,11 @@ func (db *DB) InsertBookcase(ctx context.Context, userId uint64, bookcaseType, g
 			},
 		)
 	})
+
+	if err != nil {
+		return 0, err
+	}
+	return bookcaseId, nil
 }
 
 func (db *DB) InsertBookcaseItem(ctx context.Context, bookcaseId uint64, bookcaseType string, itemId uint64) error {
