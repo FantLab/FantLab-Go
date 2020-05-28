@@ -26,7 +26,7 @@ type Response struct {
 func (db *DB) FetchResponse(ctx context.Context, responseId uint64) (Response, error) {
 	var response Response
 
-	err := db.engine.Read(ctx, sqlapi.NewQuery(queries.ResponseGetResponse).WithArgs(responseId)).Scan(&response)
+	err := db.engine.Read(ctx, sqlapi.NewQuery(queries.ResponseGetResponse).WithArgs(responseId), &response)
 
 	if err != nil {
 		return Response{}, err
@@ -38,7 +38,7 @@ func (db *DB) FetchResponse(ctx context.Context, responseId uint64) (Response, e
 func (db *DB) FetchResponseUserVoteCount(ctx context.Context, userId, responseId uint64) (uint64, error) {
 	var count uint64
 
-	err := db.engine.Read(ctx, sqlapi.NewQuery(queries.ResponseGetResponseUserVoteCount).WithArgs(userId, responseId)).Scan(&count)
+	err := db.engine.Read(ctx, sqlapi.NewQuery(queries.ResponseGetResponseUserVoteCount).WithArgs(userId, responseId), &count)
 
 	if err != nil {
 		return 0, err
@@ -77,7 +77,7 @@ func (db *DB) UpdateResponseVotes(ctx context.Context, responseId, userId uint64
 				}
 			},
 			func() error {
-				return rw.Read(ctx, sqlapi.NewQuery(queries.ResponseGetResponse).WithArgs(responseId)).Scan(&response)
+				return rw.Read(ctx, sqlapi.NewQuery(queries.ResponseGetResponse).WithArgs(responseId), &response)
 			},
 		)
 	})
@@ -98,7 +98,7 @@ func (db *DB) DeleteResponse(ctx context.Context, responseId, workId, userId uin
 				return rw.Write(ctx, sqlapi.NewQuery(queries.ResponseDeleteResponse).WithArgs(responseId)).Error
 			},
 			func() error { // Получаем список авторов произведения, которые зарегистрированы на сайте
-				return rw.Read(ctx, sqlapi.NewQuery(queries.WorkGetRegisteredWorkAutorIds).WithArgs(workId)).Scan(&registeredWorkAutorIds)
+				return rw.Read(ctx, sqlapi.NewQuery(queries.WorkGetRegisteredWorkAutorIds).WithArgs(workId), &registeredWorkAutorIds)
 			},
 			func() error { // Уменьшаем счетчик количества новых отзывов у авторов, зарегистрированных на сайте
 				if len(registeredWorkAutorIds) > 0 && registeredWorkAutorIds[0] != 0 /* издержки сканирования в слайс */ {

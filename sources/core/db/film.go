@@ -15,7 +15,7 @@ type Film struct {
 func (db *DB) FetchFilms(ctx context.Context, filmIds []uint64) ([]Film, error) {
 	var films []Film
 
-	err := db.engine.Read(ctx, sqlapi.NewQuery(queries.FilmGetFilms).WithArgs(filmIds).FlatArgs()).Scan(&films)
+	err := db.engine.Read(ctx, sqlapi.NewQuery(queries.FilmGetFilms).WithArgs(filmIds).FlatArgs(), &films)
 
 	if err != nil {
 		return nil, err

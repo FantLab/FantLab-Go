@@ -66,6 +66,11 @@ message Common {
 
     message SuccessResponse {}
 
+    message SuccessIdResponse {
+        // идентификатор
+        uint64 id = 1;
+    }
+
     message FileUploadResponse {
         // URL на загрузку файла
         string url = 1;

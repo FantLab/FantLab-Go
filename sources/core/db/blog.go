@@ -123,7 +123,7 @@ type BlogTopicComment struct {
 func (db *DB) FetchCommunities(ctx context.Context) ([]Community, error) {
 	var communities []Community
 
-	err := db.engine.Read(ctx, sqlapi.NewQuery(queries.Communities)).Scan(&communities)
+	err := db.engine.Read(ctx, sqlapi.NewQuery(queries.Communities), &communities)
 
 	if err != nil {
 		return nil, err
@@ -135,7 +135,7 @@ func (db *DB) FetchCommunities(ctx context.Context) ([]Community, error) {
 func (db *DB) FetchCommunity(ctx context.Context, communityID uint64) (*Community, error) {
 	var community Community
 
-	err := db.engine.Read(ctx, sqlapi.NewQuery(queries.Community).WithArgs(communityID)).Scan(&community)
+	err := db.engine.Read(ctx, sqlapi.NewQuery(queries.Community).WithArgs(communityID), &community)
 
 	if err != nil {
 		return nil, err
@@ -153,19 +153,19 @@ func (db *DB) FetchCommunityTopics(ctx context.Context, communityID, limit, offs
 
 	err = codeflow.Try(
 		func() error {
-			return db.engine.Read(ctx, sqlapi.NewQuery(queries.ShortCommunity).WithArgs(communityID)).Scan(&community)
+			return db.engine.Read(ctx, sqlapi.NewQuery(queries.ShortCommunity).WithArgs(communityID), &community)
 		},
 		func() error {
-			return db.engine.Read(ctx, sqlapi.NewQuery(queries.CommunityModerators).WithArgs(communityID)).Scan(&moderators)
+			return db.engine.Read(ctx, sqlapi.NewQuery(queries.CommunityModerators).WithArgs(communityID), &moderators)
 		},
 		func() error {
-			return db.engine.Read(ctx, sqlapi.NewQuery(queries.CommunityAuthors).WithArgs(communityID)).Scan(&authors)
+			return db.engine.Read(ctx, sqlapi.NewQuery(queries.CommunityAuthors).WithArgs(communityID), &authors)
 		},
 		func() error {
-			return db.engine.Read(ctx, sqlapi.NewQuery(queries.CommunityTopics).WithArgs(communityID)).Scan(&topics)
+			return db.engine.Read(ctx, sqlapi.NewQuery(queries.CommunityTopics).WithArgs(communityID), &topics)
 		},
 		func() error {
-			return db.engine.Read(ctx, sqlapi.NewQuery(queries.CommunityTopicCount).WithArgs(communityID)).Scan(&count)
+			return db.engine.Read(ctx, sqlapi.NewQuery(queries.CommunityTopicCount).WithArgs(communityID), &count)
 		},
 	)
 
@@ -198,10 +198,10 @@ func (db *DB) FetchBlogs(ctx context.Context, limit, offset uint64, sort string)
 
 	err = codeflow.Try(
 		func() error {
-			return db.engine.Read(ctx, sqlapi.NewQuery(queries.Blogs).Inject(sortOption).WithArgs(limit, offset)).Scan(&blogs)
+			return db.engine.Read(ctx, sqlapi.NewQuery(queries.Blogs).Inject(sortOption).WithArgs(limit, offset), &blogs)
 		},
 		func() error {
-			return db.engine.Read(ctx, sqlapi.NewQuery(queries.BlogCount)).Scan(&count)
+			return db.engine.Read(ctx, sqlapi.NewQuery(queries.BlogCount), &count)
 		},
 	)
 
@@ -218,7 +218,7 @@ func (db *DB) FetchBlogs(ctx context.Context, limit, offset uint64, sort string)
 func (db *DB) FetchBlog(ctx context.Context, blogId uint64) (*Blog, error) {
 	var blog Blog
 
-	err := db.engine.Read(ctx, sqlapi.NewQuery(queries.Blog).WithArgs(blogId)).Scan(&blog)
+	err := db.engine.Read(ctx, sqlapi.NewQuery(queries.Blog).WithArgs(blogId), &blog)
 
 	if err != nil {
 		return nil, err
@@ -229,7 +229,7 @@ func (db *DB) FetchBlog(ctx context.Context, blogId uint64) (*Blog, error) {
 
 func (db *DB) FetchBlogExists(ctx context.Context, blogId uint64) (exists bool, err error) {
 	var blogExists uint8
-	err = db.engine.Read(ctx, sqlapi.NewQuery(queries.BlogExists).WithArgs(blogId)).Scan(&blogExists)
+	err = db.engine.Read(ctx, sqlapi.NewQuery(queries.BlogExists).WithArgs(blogId), &blogExists)
 	return blogExists == 1, err
 }
 
@@ -238,10 +238,10 @@ func (db *DB) FetchIsUserReadOnly(ctx context.Context, userId, topicId, blogId u
 	var isUserReadOnly uint8
 	err = codeflow.Try(
 		func() error {
-			return db.engine.Read(ctx, sqlapi.NewQuery(queries.BlogGetRelatedBlogs).WithArgs(topicId)).Scan(&relatedBlogs)
+			return db.engine.Read(ctx, sqlapi.NewQuery(queries.BlogGetRelatedBlogs).WithArgs(topicId), &relatedBlogs)
 		},
 		func() error {
-			return db.engine.Read(ctx, sqlapi.NewQuery(queries.BlogIsUserReadOnly).WithArgs(userId, blogId, relatedBlogs).FlatArgs()).Scan(&isUserReadOnly)
+			return db.engine.Read(ctx, sqlapi.NewQuery(queries.BlogIsUserReadOnly).WithArgs(userId, blogId, relatedBlogs).FlatArgs(), &isUserReadOnly)
 		},
 	)
 	isReadOnly = isUserReadOnly == 1
@@ -258,10 +258,10 @@ func (db *DB) FetchBlogTopics(ctx context.Context, blogID, limit, offset uint64)
 			return err
 		},
 		func() error {
-			return db.engine.Read(ctx, sqlapi.NewQuery(queries.BlogTopics).WithArgs(blogID, limit, offset)).Scan(&topics)
+			return db.engine.Read(ctx, sqlapi.NewQuery(queries.BlogTopics).WithArgs(blogID, limit, offset), &topics)
 		},
 		func() error {
-			return db.engine.Read(ctx, sqlapi.NewQuery(queries.BlogTopicCount).WithArgs(blogID)).Scan(&count)
+			return db.engine.Read(ctx, sqlapi.NewQuery(queries.BlogTopicCount).WithArgs(blogID), &count)
 		},
 	)
 
@@ -278,7 +278,7 @@ func (db *DB) FetchBlogTopics(ctx context.Context, blogID, limit, offset uint64)
 func (db *DB) FetchBlogTopic(ctx context.Context, topicId uint64) (*BlogTopic, error) {
 	var topic BlogTopic
 
-	err := db.engine.Read(ctx, sqlapi.NewQuery(queries.BlogTopic).WithArgs(topicId)).Scan(&topic)
+	err := db.engine.Read(ctx, sqlapi.NewQuery(queries.BlogTopic).WithArgs(topicId), &topic)
 
 	if err != nil {
 		return nil, err
@@ -288,7 +288,7 @@ func (db *DB) FetchBlogTopic(ctx context.Context, topicId uint64) (*BlogTopic, e
 }
 
 func (db *DB) FetchBlogTopicCommentsCount(ctx context.Context, topicId uint64) (result uint64, err error) {
-	err = db.engine.Read(ctx, sqlapi.NewQuery(queries.BlogGetTopicMessagesCount).WithArgs(topicId)).Scan(&result)
+	err = db.engine.Read(ctx, sqlapi.NewQuery(queries.BlogGetTopicMessagesCount).WithArgs(topicId), &result)
 	return
 }
 
@@ -299,12 +299,12 @@ func (db *DB) FetchBlogTopicComments(ctx context.Context, topicId uint64, after 
 	} else {
 		sortDirection = "DESC"
 	}
-	err = db.engine.Read(ctx, sqlapi.NewQuery(queries.BlogTopicMessages).Inject(sortDirection).WithArgs(topicId, after, count, blogArticleCommentsMaxDepth)).Scan(&response)
+	err = db.engine.Read(ctx, sqlapi.NewQuery(queries.BlogTopicMessages).Inject(sortDirection).WithArgs(topicId, after, count, blogArticleCommentsMaxDepth), &response)
 	return
 }
 
 func (db *DB) FetchBlogTopicComment(ctx context.Context, commentId uint64) (comment BlogTopicComment, err error) {
-	err = db.engine.Read(ctx, sqlapi.NewQuery(queries.BlogGetTopicMessage).WithArgs(commentId)).Scan(&comment)
+	err = db.engine.Read(ctx, sqlapi.NewQuery(queries.BlogGetTopicMessage).WithArgs(commentId), &comment)
 	return
 }
 
@@ -331,7 +331,7 @@ func (db *DB) InsertBlogTopicComment(ctx context.Context, topicId, userId, paren
 				return rw.Write(ctx, sqlapi.NewQuery(queries.BlogSetMessageText).WithArgs(commentId, text)).Error
 			},
 			func() error { // Получаем комментарий
-				return rw.Read(ctx, sqlapi.NewQuery(queries.BlogGetTopicMessage).WithArgs(commentId)).Scan(&comment)
+				return rw.Read(ctx, sqlapi.NewQuery(queries.BlogGetTopicMessage).WithArgs(commentId), &comment)
 			},
 			func() error { // Обновляем статистику статьи
 				return updateBlogTopicStatAfterNewMessage(ctx, rw, topicId)
@@ -363,7 +363,7 @@ func updateBlogTopicStatAfterNewMessage(ctx context.Context, rw sqlapi.ReaderWri
 			return rw.Write(ctx, sqlapi.NewQuery(queries.BlogUpdateLastCommentReadActuality).WithArgs(topicId)).Error
 		},
 		func() error { // Получаем количество комментариев к статье
-			return rw.Read(ctx, sqlapi.NewQuery(queries.BlogGetTopicMessagesCount).WithArgs(topicId)).Scan(&commentCount)
+			return rw.Read(ctx, sqlapi.NewQuery(queries.BlogGetTopicMessagesCount).WithArgs(topicId), &commentCount)
 		},
 		func() error { // Обновляем количество комментариев в записи о самой статье
 			return rw.Write(ctx, sqlapi.NewQuery(queries.BlogUpdateTopicCommentCount).WithArgs(commentCount, topicId)).Error
@@ -392,7 +392,7 @@ func notifyBlogTopicSubscribersAboutNewMessage(ctx context.Context, rw sqlapi.Re
 			return rw.Write(ctx, sqlapi.NewQuery(queries.BlogIncrementNewBlogCommentsCount).WithArgs(parentUserId)).Error
 		},
 		func() error { // Получаем список подписчиков на обновления статьи
-			return rw.Read(ctx, sqlapi.NewQuery(queries.BlogGetTopicSubscribers).WithArgs(topicId, parentUserId)).Scan(&topicSubscribers)
+			return rw.Read(ctx, sqlapi.NewQuery(queries.BlogGetTopicSubscribers).WithArgs(topicId, parentUserId), &topicSubscribers)
 		},
 		func() error { // Инкрементим счетчик количества новых комментариев в блогах для подписчиков
 			if len(topicSubscribers) != 0 {
@@ -401,7 +401,7 @@ func notifyBlogTopicSubscribersAboutNewMessage(ctx context.Context, rw sqlapi.Re
 			return nil
 		},
 		func() error { // Получаем количество комментариев первого уровня в данной статье
-			return rw.Read(ctx, sqlapi.NewQuery(queries.BlogGetFirstLevelMessageCount).WithArgs(topicId, commentId)).Scan(&firstLevelCommentCount)
+			return rw.Read(ctx, sqlapi.NewQuery(queries.BlogGetFirstLevelMessageCount).WithArgs(topicId, commentId), &firstLevelCommentCount)
 		},
 	)
 
@@ -430,7 +430,7 @@ func notifyBlogTopicSubscribersAboutNewMessage(ctx context.Context, rw sqlapi.Re
 }
 
 func (db *DB) FetchBlogTopicSubscribers(ctx context.Context, topicId, excludedUserId uint64) (subscribers []uint64, err error) {
-	err = db.engine.Read(ctx, sqlapi.NewQuery(queries.BlogGetTopicSubscribers).WithArgs(topicId, excludedUserId)).Scan(&subscribers)
+	err = db.engine.Read(ctx, sqlapi.NewQuery(queries.BlogGetTopicSubscribers).WithArgs(topicId, excludedUserId), &subscribers)
 	return
 }
 
@@ -438,7 +438,7 @@ func (db *DB) FetchUserIsCommunityModerator(ctx context.Context, userId, blogId,
 	var userIsCommunityModerator uint8
 	var userIsCommunityTopicModerator uint8
 
-	err := db.engine.Read(ctx, sqlapi.NewQuery(queries.BlogGetUserIsCommunityModerator).WithArgs(blogId, userId)).Scan(&userIsCommunityModerator)
+	err := db.engine.Read(ctx, sqlapi.NewQuery(queries.BlogGetUserIsCommunityModerator).WithArgs(blogId, userId), &userIsCommunityModerator)
 
 	if err != nil {
 		return false, err
@@ -448,7 +448,7 @@ func (db *DB) FetchUserIsCommunityModerator(ctx context.Context, userId, blogId,
 		return true, nil
 	}
 
-	err = db.engine.Read(ctx, sqlapi.NewQuery(queries.BlogGetUserIsCommunityTopicModerator).WithArgs(topicId, userId)).Scan(&userIsCommunityTopicModerator)
+	err = db.engine.Read(ctx, sqlapi.NewQuery(queries.BlogGetUserIsCommunityTopicModerator).WithArgs(topicId, userId), &userIsCommunityTopicModerator)
 
 	if err != nil {
 		return false, err
@@ -466,7 +466,7 @@ func (db *DB) UpdateBlogTopicComment(ctx context.Context, commentId uint64, text
 				return rw.Write(ctx, sqlapi.NewQuery(queries.BlogSetMessageText).WithArgs(commentId, text)).Error
 			},
 			func() error {
-				return rw.Read(ctx, sqlapi.NewQuery(queries.BlogGetTopicMessage).WithArgs(commentId)).Scan(&comment)
+				return rw.Read(ctx, sqlapi.NewQuery(queries.BlogGetTopicMessage).WithArgs(commentId), &comment)
 			},
 		)
 	})
@@ -505,7 +505,7 @@ func updateBlogTopicStatAfterCommentDeleting(ctx context.Context, rw sqlapi.Read
 
 	return codeflow.Try(
 		func() error { // Получаем количество комментариев к статье
-			return rw.Read(ctx, sqlapi.NewQuery(queries.BlogGetTopicMessagesCount).WithArgs(topicId)).Scan(&commentCount)
+			return rw.Read(ctx, sqlapi.NewQuery(queries.BlogGetTopicMessagesCount).WithArgs(topicId), &commentCount)
 		},
 		func() error { // Обновляем количество комментариев в записи о самой статье
 			return rw.Write(ctx, sqlapi.NewQuery(queries.BlogUpdateTopicCommentCount).WithArgs(commentCount, topicId)).Error

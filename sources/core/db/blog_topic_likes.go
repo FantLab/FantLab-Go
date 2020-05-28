@@ -10,7 +10,7 @@ import (
 
 func (db *DB) FetchBlogTopicLikeCount(ctx context.Context, topicId uint64) (uint64, error) {
 	var likeCount uint64
-	err := db.engine.Read(ctx, sqlapi.NewQuery(queries.FetchBlogTopicLikeCount).WithArgs(topicId)).Scan(&likeCount)
+	err := db.engine.Read(ctx, sqlapi.NewQuery(queries.FetchBlogTopicLikeCount).WithArgs(topicId), &likeCount)
 	return likeCount, err
 }
 

@@ -15,7 +15,7 @@ type Edition struct {
 func (db *DB) FetchEditions(ctx context.Context, editionIds []uint64) ([]Edition, error) {
 	var editions []Edition
 
-	err := db.engine.Read(ctx, sqlapi.NewQuery(queries.EditionGetEditions).WithArgs(editionIds).FlatArgs()).Scan(&editions)
+	err := db.engine.Read(ctx, sqlapi.NewQuery(queries.EditionGetEditions).WithArgs(editionIds).FlatArgs(), &editions)
 
 	if err != nil {
 		return nil, err

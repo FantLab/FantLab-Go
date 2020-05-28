@@ -2140,7 +2140,7 @@
 
 
 
-**POST** [/v1/bookcases](../sources/apiserver/internal/endpoints/create_default_bookcases.go#L11)
+**POST** [/v1/bookcases/default](../sources/apiserver/internal/endpoints/create_default_bookcases.go#L11)
 
 
 Схема ответа:
@@ -2160,6 +2160,91 @@
     }]
   }]
 }
+```
+---
+
+</p>
+</details>
+
+<details><summary>Создание книжной полки</summary>
+<p>
+
+
+
+**POST** [/v1/bookcases](../sources/apiserver/internal/endpoints/add_bookcase.go#L15)
+
+Параметры запроса:
+
+
+* **title** (form, string) - название
+
+
+* **group** (form, string) - группа, в которую входит полка (edition - издания, work - произведения, film - фильмы)
+
+
+* **type** (form, string) - тип полки (sale - на продажу, buy - купить, read - читать, wait - ожидаю, free - прочее)
+
+
+* **description** (form, string) - описание, до 50 символов (иначе будет обрезано), может быть пустым
+
+
+* **is_private** (form, bool) - приватная?
+
+
+* **items** (form, string) - item-ы в формате [{"id1":"comment1"},...,{"idN":"commentN"}], id - это editionId для изданий etc, commentN может быть пустым
+
+
+
+
+Схема ответа:
+
+```
+{}
+```
+---
+
+</p>
+</details>
+
+<details><summary>Редактирование книжной полки</summary>
+<p>
+
+
+
+**PUT** [/v1/bookcases/{id}](../sources/apiserver/internal/endpoints/edit_bookcase.go#L15)
+
+Параметры запроса:
+
+
+* **id** (path, uint64) - id полки
+
+
+* **title** (form, string) - название
+
+
+* **type** (form, string) - тип полки (sale - на продажу, buy - купить, read - читать, wait - ожидаю, free - прочее)
+
+
+* **description** (form, string) - описание, до 50 символов (иначе будет обрезано), может быть пустым
+
+
+* **is_private** (form, bool) - приватная?
+
+
+* **sort** (form, string) - сортировка, издания по: порядку - order (по умолчанию), автору - author, названию - title, году - year
+произведения по: порядку - order (по умолчанию), автору - author, названию - title, оригинальному названию - orig_title, году - year, количеству оценок - mark_count, средней оценке - avg_mark
+фильмы по: порядку - order (по умолчанию), названию - title, оригинальному названию - orig_title
+
+
+* **items** (form, string) - item-ы в формате [{"id1":"comment1"},...,{"idN":"commentN"}], id - это editionId для изданий etc, commentN может быть пустым
+
+
+
+
+Схема ответа:
+
+```
+{}
 ```
 ---
 
@@ -2191,76 +2276,23 @@
 </p>
 </details>
 
-<details><summary>Добавление item-а на полку изданий</summary>
+<details><summary>Добавление item-а на книжную полку</summary>
 <p>
 
 
 
-**POST** [/v1/edition_bookcases/{id}/items](../sources/apiserver/internal/endpoints/add_edition_bookcase_item.go#L12)
+**POST** [/v1/bookcases/{id}/items](../sources/apiserver/internal/endpoints/add_bookcase_item.go#L13)
 
 Параметры запроса:
 
 
-* **id** (path, uint64) - id полки с изданиями
+* **id** (path, uint64) - id полки
 
 
-* **edition_id** (form, uint64) - id издания, которое необходимо добавить на полку
+* **group** (form, string) - группа, в которую входит полка (edition - издания, work - произведения, film - фильмы)
 
 
-
-
-Схема ответа:
-
-```
-{}
-```
----
-
-</p>
-</details>
-
-<details><summary>Добавление item-а на полку произведений</summary>
-<p>
-
-
-
-**POST** [/v1/work_bookcases/{id}/items](../sources/apiserver/internal/endpoints/add_work_bookcase_item.go#L12)
-
-Параметры запроса:
-
-
-* **id** (path, uint64) - id полки с произведениями
-
-
-* **work_id** (form, uint64) - id произведения, которое необходимо добавить на полку
-
-
-
-
-Схема ответа:
-
-```
-{}
-```
----
-
-</p>
-</details>
-
-<details><summary>Добавление item-а на полку фильмов</summary>
-<p>
-
-
-
-**POST** [/v1/film_bookcases/{id}/items](../sources/apiserver/internal/endpoints/add_film_bookcase_item.go#L12)
-
-Параметры запроса:
-
-
-* **id** (path, uint64) - id полки с фильмами
-
-
-* **film_id** (form, uint64) - id фильма, который необходимо добавить на полку
+* **item_id** (form, uint64) - id item-а, который необходимо добавить на полку (editionId для изданий etc)
 
 
 

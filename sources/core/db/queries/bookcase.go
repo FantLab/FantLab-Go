@@ -215,6 +215,16 @@ const (
 		OFFSET ?
 	`
 
+	BookcaseGetBookcaseItemsDateOfAdd = `
+		SELECT
+			item_id,
+			date_of_add
+		FROM
+			bookcase_items
+		WHERE
+			bookcase_id = ?
+	`
+
 	BookcaseGetBookcaseItemCount = `
 		SELECT
 			COUNT(*)
@@ -266,6 +276,20 @@ const (
 			bookcase_id = ?
 	`
 
+	BookcaseUpdateBookcase = `
+		UPDATE
+			bookcase
+		SET
+			bookcase_name = ?,
+			bookcase_comment = ?,
+			bookcase_shared = ?,
+			bookcase_group = ?,
+			default_sort = ?,
+			date_of_edit = NOW()
+		WHERE
+			bookcase_id = ?
+	`
+
 	BookcaseUpdateSort = `
 		UPDATE
 			bookcase
@@ -286,12 +310,10 @@ const (
 
 	BookcaseDeleteBookcaseItems = `
 		DELETE
-			bi
 		FROM
-			bookcase_items bi,
-			bookcase b
+			bookcase_items
 		WHERE
-			bi.bookcase_id = b.bookcase_id AND b.bookcase_id = ?
+			bookcase_id = ?
 	`
 
 	BookcaseDeleteItem = `
