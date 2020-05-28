@@ -33,7 +33,7 @@ func (db *DB) InsertForumMessageDraft(ctx context.Context, message string, topic
 				return rw.Write(ctx, sqlapi.NewQuery(queries.ForumInsertMessagePreview).WithArgs(message, userId, topicId, message)).Error
 			},
 			func() error { // Получаем черновик
-				return rw.Read(ctx, sqlapi.NewQuery(queries.ForumGetTopicMessagePreview).WithArgs(topicId, userId)).Scan(&messageDraft)
+				return rw.Read(ctx, sqlapi.NewQuery(queries.ForumGetTopicMessagePreview).WithArgs(topicId, userId), &messageDraft)
 			},
 		)
 	})
@@ -48,7 +48,7 @@ func (db *DB) InsertForumMessageDraft(ctx context.Context, message string, topic
 func (db *DB) FetchForumMessageDraft(ctx context.Context, topicId, userId uint64) (*ForumMessageDraft, error) {
 	var messageDraft ForumMessageDraft
 
-	err := db.engine.Read(ctx, sqlapi.NewQuery(queries.ForumGetTopicMessagePreview).WithArgs(topicId, userId)).Scan(&messageDraft)
+	err := db.engine.Read(ctx, sqlapi.NewQuery(queries.ForumGetTopicMessagePreview).WithArgs(topicId, userId), &messageDraft)
 
 	if err != nil {
 		return nil, err
@@ -71,7 +71,7 @@ func (db *DB) ConfirmForumMessageDraft(ctx context.Context, topic *ForumTopic, u
 				return err
 			},
 			func() error { // Получаем сообщение
-				return rw.Read(ctx, sqlapi.NewQuery(queries.ForumGetTopicMessage).WithArgs(messageId)).Scan(&message)
+				return rw.Read(ctx, sqlapi.NewQuery(queries.ForumGetTopicMessage).WithArgs(messageId), &message)
 			},
 			func() error { // Удаляем черновик
 				return rw.Write(ctx, sqlapi.NewQuery(queries.ForumDeleteForumMessagePreview).WithArgs(topic.TopicId, userId)).Error

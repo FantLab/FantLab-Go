@@ -48,10 +48,10 @@ func (db *DB) FetchGenres(ctx context.Context) (response *WorkGenresDBResponse, 
 
 	err = codeflow.Try(
 		func() error {
-			return db.engine.Read(ctx, sqlapi.NewQuery(queries.Genres)).Scan(&genres)
+			return db.engine.Read(ctx, sqlapi.NewQuery(queries.Genres), &genres)
 		},
 		func() error {
-			return db.engine.Read(ctx, sqlapi.NewQuery(queries.GenreGroups)).Scan(&genreGroups)
+			return db.engine.Read(ctx, sqlapi.NewQuery(queries.GenreGroups), &genreGroups)
 		},
 	)
 
@@ -66,24 +66,24 @@ func (db *DB) FetchGenres(ctx context.Context) (response *WorkGenresDBResponse, 
 }
 
 func (db *DB) GetUserWorkGenreIds(ctx context.Context, workId, userId uint64) (ids []uint64, err error) {
-	err = db.engine.Read(ctx, sqlapi.NewQuery(queries.UserWorkGenreIds).WithArgs(workId, userId)).Scan(&ids)
+	err = db.engine.Read(ctx, sqlapi.NewQuery(queries.UserWorkGenreIds).WithArgs(workId, userId), &ids)
 	return
 }
 
 func (db *DB) FetchGenreWorkCounts(ctx context.Context) (stat map[uint64]uint64, err error) {
 	stat = make(map[uint64]uint64)
-	err = db.engine.Read(ctx, sqlapi.NewQuery(queries.GenreWorkCounts)).Scan(&stat)
+	err = db.engine.Read(ctx, sqlapi.NewQuery(queries.GenreWorkCounts), &stat)
 	return
 }
 
 func (db *DB) FetchWorkGenreVotes(ctx context.Context, workId uint64) (stat map[uint64]uint64, err error) {
 	stat = make(map[uint64]uint64)
-	err = db.engine.Read(ctx, sqlapi.NewQuery(queries.WorkGenreVotes).WithArgs(workId)).Scan(&stat)
+	err = db.engine.Read(ctx, sqlapi.NewQuery(queries.WorkGenreVotes).WithArgs(workId), &stat)
 	return
 }
 
 func (db *DB) GetWorkClassificationCount(ctx context.Context, workId uint64) (count uint64, err error) {
-	err = db.engine.Read(ctx, sqlapi.NewQuery(queries.WorkClassificationCount).WithArgs(workId)).Scan(&count)
+	err = db.engine.Read(ctx, sqlapi.NewQuery(queries.WorkClassificationCount).WithArgs(workId), &count)
 	return
 }
 
@@ -112,7 +112,7 @@ func (db *DB) GenreVote(ctx context.Context, workId, userId uint64, genreIds []u
 				return rw.Write(ctx, sqlbuilder.InsertInto(queries.UserWorkGenresTable, newEntries...)).Error
 			},
 			func() error { // Получаем кол-во классификаций пользователя
-				return rw.Read(ctx, sqlapi.NewQuery(queries.UserClassifCount).WithArgs(userId)).Scan(&userClassifCount)
+				return rw.Read(ctx, sqlapi.NewQuery(queries.UserClassifCount).WithArgs(userId), &userClassifCount)
 			},
 			func() error { // Выставляем флажок пересчета уровня пользователя если изменилось кол-во классификаций
 				return rw.Write(ctx, sqlapi.NewQuery(queries.UpdateUserClassifCount).WithArgs(userClassifCount, userId, userClassifCount)).Error
@@ -134,10 +134,10 @@ func updateWorkGenreCache(ctx context.Context, rw sqlapi.ReaderWriter, workId ui
 
 	return codeflow.Try(
 		func() error { // Получаем распределение голосов по жанрам для выбранного произведения
-			return rw.Read(ctx, sqlapi.NewQuery(queries.WorkGenreVoteCounts).WithArgs(workId)).Scan(&voteCounts)
+			return rw.Read(ctx, sqlapi.NewQuery(queries.WorkGenreVoteCounts).WithArgs(workId), &voteCounts)
 		},
 		func() error { // Посчитаем сколько было всего классификаций (не только по выбранному жанру) с момента добавления каждого жанра (https://fantlab.ru/forum/forum19page1/topic8224page22#msg3179144)
-			return rw.Read(ctx, sqlapi.NewQuery(queries.WorkClassifCountAfterGenreAdd).WithArgs(workId)).Scan(&workClassifsAfterGenreAdd)
+			return rw.Read(ctx, sqlapi.NewQuery(queries.WorkClassifCountAfterGenreAdd).WithArgs(workId), &workClassifsAfterGenreAdd)
 		},
 		func() error { // Удаляем все текущие записи
 			return rw.Write(ctx, sqlapi.NewQuery(queries.DeleteWorkGenreCache).WithArgs(workId)).Error

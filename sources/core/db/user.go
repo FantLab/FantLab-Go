@@ -52,14 +52,14 @@ type AuthTokenEntry struct {
 }
 
 func (db *DB) FetchUserLoginInfo(ctx context.Context, login string) (data UserLoginInfo, err error) {
-	err = db.engine.Read(ctx, sqlapi.NewQuery(queries.UserLoginInfo).WithArgs(login, login)).Scan(&data)
+	err = db.engine.Read(ctx, sqlapi.NewQuery(queries.UserLoginInfo).WithArgs(login, login), &data)
 	return
 }
 
 func (db *DB) FetchUser(ctx context.Context, userId uint64) (User, error) {
 	var user User
 
-	err := db.engine.Read(ctx, sqlapi.NewQuery(queries.UserGetInfo).WithArgs(userId)).Scan(&user)
+	err := db.engine.Read(ctx, sqlapi.NewQuery(queries.UserGetInfo).WithArgs(userId), &user)
 
 	if err != nil {
 		return User{}, err
@@ -69,17 +69,17 @@ func (db *DB) FetchUser(ctx context.Context, userId uint64) (User, error) {
 }
 
 func (db *DB) FetchUserInfo(ctx context.Context, userId uint64) (data UserInfo, err error) {
-	err = db.engine.Read(ctx, sqlapi.NewQuery(queries.UserInfo).WithArgs(userId)).Scan(&data)
+	err = db.engine.Read(ctx, sqlapi.NewQuery(queries.UserInfo).WithArgs(userId), &data)
 	return
 }
 
 func (db *DB) FetchUserBlockInfo(ctx context.Context, userID uint64) (data UserBlockInfo, err error) {
-	err = db.engine.Read(ctx, sqlapi.NewQuery(queries.UserBlock).WithArgs(userID)).Scan(&data)
+	err = db.engine.Read(ctx, sqlapi.NewQuery(queries.UserBlock).WithArgs(userID), &data)
 	return
 }
 
 func (db *DB) FetchAuthToken(ctx context.Context, tokenId string) (data AuthTokenEntry, err error) {
-	err = db.engine.Read(ctx, sqlapi.NewQuery(queries.FetchAuthTokenById).WithArgs(tokenId)).Scan(&data)
+	err = db.engine.Read(ctx, sqlapi.NewQuery(queries.FetchAuthTokenById).WithArgs(tokenId), &data)
 	return
 }
 

@@ -32,14 +32,14 @@ type WorkChild struct {
 
 func (db *DB) WorkExists(ctx context.Context, workId uint64) (bool, error) {
 	var workExists uint8
-	err := db.engine.Read(ctx, sqlapi.NewQuery(queries.WorkExists).WithArgs(workId)).Scan(&workExists)
+	err := db.engine.Read(ctx, sqlapi.NewQuery(queries.WorkExists).WithArgs(workId), &workExists)
 	return workExists == 1, err
 }
 
 func (db *DB) FetchWorks(ctx context.Context, workIds []uint64) ([]Work, error) {
 	var works []Work
 
-	err := db.engine.Read(ctx, sqlapi.NewQuery(queries.WorkGetWorks).WithArgs(workIds).FlatArgs()).Scan(&works)
+	err := db.engine.Read(ctx, sqlapi.NewQuery(queries.WorkGetWorks).WithArgs(workIds).FlatArgs(), &works)
 
 	if err != nil {
 		return nil, err
@@ -49,11 +49,11 @@ func (db *DB) FetchWorks(ctx context.Context, workIds []uint64) ([]Work, error) 
 }
 
 func (db *DB) GetWorkUserMark(ctx context.Context, workId, userId uint64) (mark uint8, err error) {
-	err = db.engine.Read(ctx, sqlapi.NewQuery(queries.WorkUserMark).WithArgs(userId, workId)).Scan(&mark)
+	err = db.engine.Read(ctx, sqlapi.NewQuery(queries.WorkUserMark).WithArgs(userId, workId), &mark)
 	return
 }
 
 func (db *DB) GetWorkChildren(ctx context.Context, parentWorkId uint64, depth uint8) (children []WorkChild, err error) {
-	err = db.engine.Read(ctx, sqlapi.NewQuery(queries.WorkChildren).WithArgs(parentWorkId, parentWorkId, depth)).Scan(&children)
+	err = db.engine.Read(ctx, sqlapi.NewQuery(queries.WorkChildren).WithArgs(parentWorkId, parentWorkId, depth), &children)
 	return
 }

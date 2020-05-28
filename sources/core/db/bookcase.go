@@ -175,7 +175,7 @@ func (db *DB) FetchAllUserBookcases(ctx context.Context, userId uint64, isOwner 
 		availabilityCondition = "bookcase_shared = 1"
 	}
 
-	err := db.engine.Read(ctx, sqlapi.NewQuery(queries.BookcaseGetAllUserBookcases).WithArgs(userId).Inject(availabilityCondition)).Scan(&bookcases)
+	err := db.engine.Read(ctx, sqlapi.NewQuery(queries.BookcaseGetAllUserBookcases).WithArgs(userId).Inject(availabilityCondition), &bookcases)
 
 	if err != nil {
 		return nil, err
@@ -187,7 +187,7 @@ func (db *DB) FetchAllUserBookcases(ctx context.Context, userId uint64, isOwner 
 func (db *DB) FetchUserBookcasesOrder(ctx context.Context, userId uint64, bookcaseIds []uint64) (map[uint64]uint64, error) {
 	bookcasesSort := map[uint64]uint64{}
 
-	err := db.engine.Read(ctx, sqlapi.NewQuery(queries.BookcaseGetUserBookcasesSort).WithArgs(userId, bookcaseIds).FlatArgs()).Scan(&bookcasesSort)
+	err := db.engine.Read(ctx, sqlapi.NewQuery(queries.BookcaseGetUserBookcasesSort).WithArgs(userId, bookcaseIds).FlatArgs(), &bookcasesSort)
 
 	if err != nil {
 		return nil, err
@@ -199,7 +199,7 @@ func (db *DB) FetchUserBookcasesOrder(ctx context.Context, userId uint64, bookca
 func (db *DB) FetchBookcase(ctx context.Context, bookcaseId uint64) (Bookcase, error) {
 	var bookcase Bookcase
 
-	err := db.engine.Read(ctx, sqlapi.NewQuery(queries.BookcaseGetBookcase).WithArgs(bookcaseId)).Scan(&bookcase)
+	err := db.engine.Read(ctx, sqlapi.NewQuery(queries.BookcaseGetBookcase).WithArgs(bookcaseId), &bookcase)
 
 	if err != nil {
 		return Bookcase{}, err
@@ -211,7 +211,7 @@ func (db *DB) FetchBookcase(ctx context.Context, bookcaseId uint64) (Bookcase, e
 func (db *DB) FetchTypedBookcase(ctx context.Context, bookcaseType string, bookcaseId uint64) (Bookcase, error) {
 	var bookcase Bookcase
 
-	err := db.engine.Read(ctx, sqlapi.NewQuery(queries.BookcaseGetTypedBookcase).WithArgs(bookcaseType, bookcaseId)).Scan(&bookcase)
+	err := db.engine.Read(ctx, sqlapi.NewQuery(queries.BookcaseGetTypedBookcase).WithArgs(bookcaseType, bookcaseId), &bookcase)
 
 	if err != nil {
 		return Bookcase{}, err
@@ -223,7 +223,7 @@ func (db *DB) FetchTypedBookcase(ctx context.Context, bookcaseType string, bookc
 func (db *DB) FetchBookcaseItem(ctx context.Context, bookcaseItemId uint64) (BookcaseItem, error) {
 	var bookcaseItem BookcaseItem
 
-	err := db.engine.Read(ctx, sqlapi.NewQuery(queries.BookcaseGetBookcaseItem).WithArgs(bookcaseItemId)).Scan(&bookcaseItem)
+	err := db.engine.Read(ctx, sqlapi.NewQuery(queries.BookcaseGetBookcaseItem).WithArgs(bookcaseItemId), &bookcaseItem)
 
 	if err != nil {
 		return BookcaseItem{}, err
@@ -240,10 +240,10 @@ func (db *DB) FetchEditionBookcase(ctx context.Context, bookcaseId, limit, offse
 		return codeflow.Try(
 			func() error { // Получаем список изданий на полке
 				sortOrder := EditionSortMap[sort]
-				return rw.Read(ctx, sqlapi.NewQuery(queries.BookcaseGetEditionBookcaseItems).WithArgs(bookcaseId, limit, offset).Inject(sortOrder)).Scan(&editions)
+				return rw.Read(ctx, sqlapi.NewQuery(queries.BookcaseGetEditionBookcaseItems).WithArgs(bookcaseId, limit, offset).Inject(sortOrder), &editions)
 			},
 			func() error { // Получаем общее количество изданий на полке
-				return rw.Read(ctx, sqlapi.NewQuery(queries.BookcaseGetBookcaseItemCount).WithArgs(bookcaseId)).Scan(&count)
+				return rw.Read(ctx, sqlapi.NewQuery(queries.BookcaseGetBookcaseItemCount).WithArgs(bookcaseId), &count)
 			},
 		)
 	})
@@ -274,7 +274,7 @@ func (db *DB) FetchWorkBookcase(ctx context.Context, bookcaseId, limit, offset u
 		return codeflow.Try(
 			func() error { // Получаем список произведений на полке
 				sortOrder := WorkSortMap[sort]
-				err := rw.Read(ctx, sqlapi.NewQuery(queries.BookcaseGetWorkBookcaseItems).WithArgs(bookcaseId, limit, offset).Inject(sortOrder)).Scan(&works)
+				err := rw.Read(ctx, sqlapi.NewQuery(queries.BookcaseGetWorkBookcaseItems).WithArgs(bookcaseId, limit, offset).Inject(sortOrder), &works)
 				if err == nil {
 					for _, work := range works {
 						workIds = append(workIds, work.WorkId)
@@ -296,7 +296,7 @@ func (db *DB) FetchWorkBookcase(ctx context.Context, bookcaseId, limit, offset u
 				return err
 			},
 			func() error { // Получаем данные по авторам
-				err := rw.Read(ctx, sqlapi.NewQuery(queries.BookcaseGetWorksAutors).WithArgs(autorIds).FlatArgs()).Scan(&autors)
+				err := rw.Read(ctx, sqlapi.NewQuery(queries.BookcaseGetWorksAutors).WithArgs(autorIds).FlatArgs(), &autors)
 				if err == nil {
 					for _, autor := range autors {
 						autorsMap[autor.AutorId] = autor
@@ -306,20 +306,20 @@ func (db *DB) FetchWorkBookcase(ctx context.Context, bookcaseId, limit, offset u
 			},
 			func() error {
 				if userId != 0 { // Получаем список оценок самого пользователя произведениям с полки
-					return rw.Read(ctx, sqlapi.NewQuery(queries.BookcaseGetOwnWorkMarks).WithArgs(workIds, userId).FlatArgs()).Scan(&ownWorkMarks)
+					return rw.Read(ctx, sqlapi.NewQuery(queries.BookcaseGetOwnWorkMarks).WithArgs(workIds, userId).FlatArgs(), &ownWorkMarks)
 				} else {
 					return nil
 				}
 			},
 			func() error {
 				if userId != 0 { // Получаем список произведений с полки, на которые пользователь написал отзыв
-					return rw.Read(ctx, sqlapi.NewQuery(queries.BookcaseGetOwnWorkResponses).WithArgs(workIds, userId).FlatArgs()).Scan(&ownWorkResponses)
+					return rw.Read(ctx, sqlapi.NewQuery(queries.BookcaseGetOwnWorkResponses).WithArgs(workIds, userId).FlatArgs(), &ownWorkResponses)
 				} else {
 					return nil
 				}
 			},
 			func() error { // Получаем общее количество произведений на полке
-				return rw.Read(ctx, sqlapi.NewQuery(queries.BookcaseGetBookcaseItemCount).WithArgs(bookcaseId)).Scan(&count)
+				return rw.Read(ctx, sqlapi.NewQuery(queries.BookcaseGetBookcaseItemCount).WithArgs(bookcaseId), &count)
 			},
 		)
 	})
@@ -347,10 +347,10 @@ func (db *DB) FetchFilmBookcase(ctx context.Context, bookcaseId, limit, offset u
 		return codeflow.Try(
 			func() error { // Получаем список фильмов на полке
 				sortOrder := FilmSortMap[sort]
-				return rw.Read(ctx, sqlapi.NewQuery(queries.BookcaseGetFilmBookcaseItems).WithArgs(bookcaseId, limit, offset).Inject(sortOrder)).Scan(&films)
+				return rw.Read(ctx, sqlapi.NewQuery(queries.BookcaseGetFilmBookcaseItems).WithArgs(bookcaseId, limit, offset).Inject(sortOrder), &films)
 			},
 			func() error { // Получаем общее количество фильмов на полке
-				return rw.Read(ctx, sqlapi.NewQuery(queries.BookcaseGetBookcaseItemCount).WithArgs(bookcaseId)).Scan(&count)
+				return rw.Read(ctx, sqlapi.NewQuery(queries.BookcaseGetBookcaseItemCount).WithArgs(bookcaseId), &count)
 			},
 		)
 	})
@@ -442,7 +442,7 @@ func (db *DB) InsertDefaultBookcases(ctx context.Context, userId uint64) ([]Book
 				return rw.Write(ctx, sqlbuilder.InsertInto(queries.BookcasesTable, entries...)).Error
 			},
 			func() error { // Получаем полки
-				return rw.Read(ctx, sqlapi.NewQuery(queries.BookcaseGetAllUserBookcases).WithArgs(userId).Inject("1")).Scan(&bookcases)
+				return rw.Read(ctx, sqlapi.NewQuery(queries.BookcaseGetAllUserBookcases).WithArgs(userId).Inject("1"), &bookcases)
 			},
 		)
 	})
@@ -477,7 +477,7 @@ func (db *DB) InsertBookcase(ctx context.Context, userId uint64, bookcaseType, g
 	err := db.engine.InTransaction(func(rw sqlapi.ReaderWriter) error {
 		return codeflow.Try(
 			func() error { // Получаем предыдущий максимальный номер полки в группе
-				return rw.Read(ctx, sqlapi.NewQuery(queries.BookcaseGetMaxSortForType).WithArgs(userId, bookcaseType)).Scan(&maxSort)
+				return rw.Read(ctx, sqlapi.NewQuery(queries.BookcaseGetMaxSortForType).WithArgs(userId, bookcaseType), &maxSort)
 			},
 			func() error { // Создаем полку
 				result := rw.Write(ctx, sqlapi.NewQuery(queries.BookcaseInsertBookcase).
@@ -577,7 +577,7 @@ func (db *DB) UpdateBookcase(ctx context.Context, bookcaseId uint64, bookcaseTyp
 					WithArgs(title, description, !isPrivate, group, defaultSort, bookcaseId)).Error
 			},
 			func() error { // Получаем даты добавления старых item-ов полки
-				return rw.Read(ctx, sqlapi.NewQuery(queries.BookcaseGetBookcaseItemsDateOfAdd).WithArgs(bookcaseId)).Scan(&oldItemsDateOfAdd)
+				return rw.Read(ctx, sqlapi.NewQuery(queries.BookcaseGetBookcaseItemsDateOfAdd).WithArgs(bookcaseId), &oldItemsDateOfAdd)
 			},
 			func() error { // Удаляем item-ы с полки
 				return rw.Write(ctx, sqlapi.NewQuery(queries.BookcaseDeleteBookcaseItems).WithArgs(bookcaseId)).Error

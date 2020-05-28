@@ -113,7 +113,7 @@ type ForumTopicMessagesDBResponse struct {
 func (db *DB) FetchForums(ctx context.Context, availableForums []uint64) ([]Forum, error) {
 	var forums []Forum
 
-	err := db.engine.Read(ctx, sqlapi.NewQuery(queries.Forums).WithArgs(availableForums).FlatArgs()).Scan(&forums)
+	err := db.engine.Read(ctx, sqlapi.NewQuery(queries.Forums).WithArgs(availableForums).FlatArgs(), &forums)
 
 	if err != nil {
 		return nil, err
@@ -125,7 +125,7 @@ func (db *DB) FetchForums(ctx context.Context, availableForums []uint64) ([]Foru
 func (db *DB) FetchModerators(ctx context.Context) (map[uint64][]ForumModerator, error) {
 	var moderators []ForumModerator
 
-	err := db.engine.Read(ctx, sqlapi.NewQuery(queries.ForumModerators)).Scan(&moderators)
+	err := db.engine.Read(ctx, sqlapi.NewQuery(queries.ForumModerators), &moderators)
 
 	if err != nil {
 		return nil, err
@@ -141,7 +141,7 @@ func (db *DB) FetchModerators(ctx context.Context) (map[uint64][]ForumModerator,
 }
 
 func (db *DB) FetchShortForum(ctx context.Context, forumId uint64) (forum ShortForum, err error) {
-	err = db.engine.Read(ctx, sqlapi.NewQuery(queries.ForumGetShortForum).WithArgs(forumId)).Scan(&forum)
+	err = db.engine.Read(ctx, sqlapi.NewQuery(queries.ForumGetShortForum).WithArgs(forumId), &forum)
 	return
 }
 
@@ -152,13 +152,13 @@ func (db *DB) FetchForumTopics(ctx context.Context, availableForums []uint64, fo
 
 	err = codeflow.Try(
 		func() error {
-			return db.engine.Read(ctx, sqlapi.NewQuery(queries.ForumExists).WithArgs(forumID, availableForums).FlatArgs()).Scan(&forumExists)
+			return db.engine.Read(ctx, sqlapi.NewQuery(queries.ForumExists).WithArgs(forumID, availableForums).FlatArgs(), &forumExists)
 		},
 		func() error {
-			return db.engine.Read(ctx, sqlapi.NewQuery(queries.ForumTopics).WithArgs(forumID, limit, offset)).Scan(&topics)
+			return db.engine.Read(ctx, sqlapi.NewQuery(queries.ForumTopics).WithArgs(forumID, limit, offset), &topics)
 		},
 		func() error {
-			return db.engine.Read(ctx, sqlapi.NewQuery(queries.ForumTopicsCount).WithArgs(forumID)).Scan(&count)
+			return db.engine.Read(ctx, sqlapi.NewQuery(queries.ForumTopicsCount).WithArgs(forumID), &count)
 		},
 	)
 
@@ -175,7 +175,7 @@ func (db *DB) FetchForumTopics(ctx context.Context, availableForums []uint64, fo
 func (db *DB) FetchForumTopic(ctx context.Context, availableForums []uint64, topicID uint64) (*ForumTopic, error) {
 	var topic ForumTopic
 
-	err := db.engine.Read(ctx, sqlapi.NewQuery(queries.ForumTopic).WithArgs(topicID, availableForums).FlatArgs()).Scan(&topic)
+	err := db.engine.Read(ctx, sqlapi.NewQuery(queries.ForumTopic).WithArgs(topicID, availableForums).FlatArgs(), &topic)
 
 	if err != nil {
 		return nil, err
@@ -187,7 +187,7 @@ func (db *DB) FetchForumTopic(ctx context.Context, availableForums []uint64, top
 func (db *DB) FetchTopicStarterCanEditFirstMessage(ctx context.Context, messageId uint64) (bool, error) {
 	var canEdit uint8
 
-	err := db.engine.Read(ctx, sqlapi.NewQuery(queries.ForumTopicGetIsEditTopicStarter).WithArgs(messageId)).Scan(&canEdit)
+	err := db.engine.Read(ctx, sqlapi.NewQuery(queries.ForumTopicGetIsEditTopicStarter).WithArgs(messageId), &canEdit)
 
 	if err != nil {
 		return false, err
@@ -204,10 +204,10 @@ func (db *DB) FetchTopicMessages(ctx context.Context, availableForums []uint64, 
 
 	err = codeflow.Try(
 		func() error {
-			return db.engine.Read(ctx, sqlapi.NewQuery(queries.ShortForumTopic).WithArgs(topicID, availableForums).FlatArgs()).Scan(&shortTopic)
+			return db.engine.Read(ctx, sqlapi.NewQuery(queries.ShortForumTopic).WithArgs(topicID, availableForums).FlatArgs(), &shortTopic)
 		},
 		func() error {
-			return db.engine.Read(ctx, sqlapi.NewQuery(queries.ForumTopicMessagesCount).WithArgs(topicID)).Scan(&count)
+			return db.engine.Read(ctx, sqlapi.NewQuery(queries.ForumTopicMessagesCount).WithArgs(topicID), &count)
 		},
 		func() error {
 			var minNumber int64
@@ -235,12 +235,12 @@ func (db *DB) FetchTopicMessages(ctx context.Context, availableForums []uint64, 
 				sortDirection = "DESC"
 			}
 
-			return db.engine.Read(ctx, sqlapi.NewQuery(queries.ForumTopicMessages).Inject(sortDirection).WithArgs(topicID, minNumber, maxNumber)).Scan(&messages)
+			return db.engine.Read(ctx, sqlapi.NewQuery(queries.ForumTopicMessages).Inject(sortDirection).WithArgs(topicID, minNumber, maxNumber), &messages)
 		},
 	)
 
 	if shortTopic.IsFirstMessagePinned == 1 {
-		err = db.engine.Read(ctx, sqlapi.NewQuery(queries.ForumTopicFirstMessage).WithArgs(topicID)).Scan(&pinnedFirstMessage)
+		err = db.engine.Read(ctx, sqlapi.NewQuery(queries.ForumTopicFirstMessage).WithArgs(topicID), &pinnedFirstMessage)
 	}
 
 	if err == nil {
@@ -258,7 +258,7 @@ func (db *DB) FetchTopicMessages(ctx context.Context, availableForums []uint64, 
 func (db *DB) FetchForumMessage(ctx context.Context, messageId uint64, availableForums []uint64) (*ForumMessage, error) {
 	var message ForumMessage
 
-	err := db.engine.Read(ctx, sqlapi.NewQuery(queries.ForumGetShortMessage).WithArgs(messageId, availableForums).FlatArgs()).Scan(&message)
+	err := db.engine.Read(ctx, sqlapi.NewQuery(queries.ForumGetShortMessage).WithArgs(messageId, availableForums).FlatArgs(), &message)
 
 	if err != nil {
 		return nil, err
@@ -270,7 +270,7 @@ func (db *DB) FetchForumMessage(ctx context.Context, messageId uint64, available
 func (db *DB) FetchForumMessageUserVoteCount(ctx context.Context, userId, messageId uint64) (uint64, error) {
 	var count uint64
 
-	err := db.engine.Read(ctx, sqlapi.NewQuery(queries.ForumMessageUserVoteCount).WithArgs(userId, messageId)).Scan(&count)
+	err := db.engine.Read(ctx, sqlapi.NewQuery(queries.ForumMessageUserVoteCount).WithArgs(userId, messageId), &count)
 
 	if err != nil {
 		return 0, err
@@ -282,7 +282,7 @@ func (db *DB) FetchForumMessageUserVoteCount(ctx context.Context, userId, messag
 func (db *DB) FetchUserIsForumModerator(ctx context.Context, userId, topicId uint64) (bool, error) {
 	var userIsForumModerator uint8
 
-	err := db.engine.Read(ctx, sqlapi.NewQuery(queries.UserIsForumModerator).WithArgs(userId, topicId)).Scan(&userIsForumModerator)
+	err := db.engine.Read(ctx, sqlapi.NewQuery(queries.UserIsForumModerator).WithArgs(userId, topicId), &userIsForumModerator)
 
 	if err != nil {
 		return false, err
@@ -309,7 +309,7 @@ func (db *DB) InsertForumMessage(ctx context.Context, topic *ForumTopic, userId 
 				return rw.Write(ctx, sqlapi.NewQuery(queries.ForumSetMessageText).WithArgs(messageId, text)).Error
 			},
 			func() error { // Получаем сообщение
-				return rw.Read(ctx, sqlapi.NewQuery(queries.ForumGetTopicMessage).WithArgs(messageId)).Scan(&message)
+				return rw.Read(ctx, sqlapi.NewQuery(queries.ForumGetTopicMessage).WithArgs(messageId), &message)
 			},
 			func() error { // Удаляем, если есть, черновик сообщения для данной темы
 				return rw.Write(ctx, sqlapi.NewQuery(queries.ForumCancelTopicMessagePreview).WithArgs(userId, topic.TopicId)).Error
@@ -357,13 +357,13 @@ func updateForumStatAfterNewMessage(ctx context.Context, rw sqlapi.ReaderWriter,
 			return rw.Write(ctx, sqlapi.NewQuery(queries.ForumMarkTopicNeedSphinxReindex).WithArgs(topic.TopicId)).Error
 		},
 		func() error { // Получаем обновленную статистику форума
-			return rw.Read(ctx, sqlapi.NewQuery(queries.ForumGetForumStat).WithArgs(topic.ForumId)).Scan(&stat)
+			return rw.Read(ctx, sqlapi.NewQuery(queries.ForumGetForumStat).WithArgs(topic.ForumId), &stat)
 		},
 		func() error { // Получаем количество сообщений в теме
-			return rw.Read(ctx, sqlapi.NewQuery(queries.ForumGetTopicMessageCount).WithArgs(topic.TopicId)).Scan(&topicMessageCount)
+			return rw.Read(ctx, sqlapi.NewQuery(queries.ForumGetTopicMessageCount).WithArgs(topic.TopicId), &topicMessageCount)
 		},
 		func() error { // Получаем количество непромодерированных тем в форуме
-			return rw.Read(ctx, sqlapi.NewQuery(queries.ForumGetNotModeratedTopicCount).WithArgs(topic.ForumId)).Scan(&notModeratedTopicCount)
+			return rw.Read(ctx, sqlapi.NewQuery(queries.ForumGetNotModeratedTopicCount).WithArgs(topic.ForumId), &notModeratedTopicCount)
 		},
 		func() error { // Обновляем данные о последней теме в форуме
 			pageCount := helpers.CalculatePageCount(topicMessageCount, forumMessagesInPage)
@@ -385,7 +385,7 @@ func notifyForumTopicSubscribersAboutNewMessage(ctx context.Context, rw sqlapi.R
 	}
 
 	// Получаем список подписчиков на обновления темы
-	err := rw.Read(ctx, sqlapi.NewQuery(queries.ForumGetTopicSubscribers).WithArgs(topicId)).Scan(&topicSubscribers)
+	err := rw.Read(ctx, sqlapi.NewQuery(queries.ForumGetTopicSubscribers).WithArgs(topicId), &topicSubscribers)
 
 	if err != nil {
 		return err
@@ -416,7 +416,7 @@ func notifyForumTopicSubscribersAboutNewMessage(ctx context.Context, rw sqlapi.R
 }
 
 func (db *DB) FetchForumTopicSubscribers(ctx context.Context, topicId uint64) (subscribers []uint64, err error) {
-	err = db.engine.Read(ctx, sqlapi.NewQuery(queries.ForumGetTopicSubscribers).WithArgs(topicId)).Scan(&subscribers)
+	err = db.engine.Read(ctx, sqlapi.NewQuery(queries.ForumGetTopicSubscribers).WithArgs(topicId), &subscribers)
 	return
 }
 
@@ -435,7 +435,7 @@ func (db *DB) UpdateForumMessage(ctx context.Context, messageId, topicId uint64,
 				return rw.Write(ctx, sqlapi.NewQuery(queries.ForumSetMessageText).WithArgs(messageId, text)).Error
 			},
 			func() error { // Получаем сообщение
-				return rw.Read(ctx, sqlapi.NewQuery(queries.ForumGetTopicMessage).WithArgs(messageId)).Scan(&message)
+				return rw.Read(ctx, sqlapi.NewQuery(queries.ForumGetTopicMessage).WithArgs(messageId), &message)
 			},
 			func() error { // Выставляем флаг для Cron-а о необходимости переиндексации Sphinx-ом
 				return rw.Write(ctx, sqlapi.NewQuery(queries.ForumMarkTopicNeedSphinxReindex).WithArgs(topicId)).Error
@@ -497,10 +497,10 @@ func updateTopicStatAfterMessageDeleting(ctx context.Context, rw sqlapi.ReaderWr
 
 	return codeflow.Try(
 		func() error { // Получаем статистику темы
-			return rw.Read(ctx, sqlapi.NewQuery(queries.ForumGetTopicStat).WithArgs(topicId)).Scan(&stat)
+			return rw.Read(ctx, sqlapi.NewQuery(queries.ForumGetTopicStat).WithArgs(topicId), &stat)
 		},
 		func() error { // Получаем данные о последнем сообщении в теме
-			return rw.Read(ctx, sqlapi.NewQuery(queries.ForumGetMessageInfo).WithArgs(stat.LastMessageId)).Scan(&message)
+			return rw.Read(ctx, sqlapi.NewQuery(queries.ForumGetMessageInfo).WithArgs(stat.LastMessageId), &message)
 		},
 		func() error { // Обновляем данные о последнем сообщении в теме
 			return rw.Write(ctx, sqlapi.NewQuery(queries.ForumSetTopicLastMessage).
@@ -520,13 +520,13 @@ func updateForumStatAfterMessageDeleting(ctx context.Context, rw sqlapi.ReaderWr
 
 	return codeflow.Try(
 		func() error { // Получаем статистику форума
-			return rw.Read(ctx, sqlapi.NewQuery(queries.ForumGetForumStat).WithArgs(forumId)).Scan(&stat)
+			return rw.Read(ctx, sqlapi.NewQuery(queries.ForumGetForumStat).WithArgs(forumId), &stat)
 		},
 		func() error { // Получаем данные о последней теме в форуме
-			return rw.Read(ctx, sqlapi.NewQuery(queries.ForumGetLastTopic).WithArgs(forumId)).Scan(&lastTopic)
+			return rw.Read(ctx, sqlapi.NewQuery(queries.ForumGetLastTopic).WithArgs(forumId), &lastTopic)
 		},
 		func() error { // Получаем количество непромодерированных тем в форуме
-			return rw.Read(ctx, sqlapi.NewQuery(queries.ForumGetNotModeratedTopicCount).WithArgs(forumId)).Scan(&notModeratedTopicCount)
+			return rw.Read(ctx, sqlapi.NewQuery(queries.ForumGetNotModeratedTopicCount).WithArgs(forumId), &notModeratedTopicCount)
 		},
 		func() error { // Обновляем данные о последней теме в форуме
 			pageCount := helpers.CalculatePageCount(lastTopic.MessageCount, forumMessagesInPage)
@@ -542,7 +542,7 @@ func notifyForumTopicSubscribersAboutMessageDeleting(ctx context.Context, rw sql
 
 	return codeflow.Try(
 		func() error { // Получаем список подписчиков на обновления темы
-			return rw.Read(ctx, sqlapi.NewQuery(queries.ForumGetTopicSubscribers).WithArgs(topicId)).Scan(&topicSubscribers)
+			return rw.Read(ctx, sqlapi.NewQuery(queries.ForumGetTopicSubscribers).WithArgs(topicId), &topicSubscribers)
 		},
 		func() error { // Удаляем оповещение о новом сообщении, если есть, для всех подписчиков
 			return rw.Write(ctx, sqlapi.NewQuery(queries.ForumDeleteNewForumAnswer).WithArgs(messageId)).Error
