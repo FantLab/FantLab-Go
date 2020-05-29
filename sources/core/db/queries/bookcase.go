@@ -16,6 +16,7 @@ const (
 			b.bookcase_comment,
 			b.bookcase_shared,
 			b.sort,
+			b.default_sort,
 			COUNT(bi.bookcase_id) AS item_count
 		FROM
 			bookcase b
@@ -50,7 +51,8 @@ const (
 			bookcase_name,
 			bookcase_comment,
 			bookcase_shared,
-			sort
+			sort,
+			default_sort
 		FROM
 			bookcase
 		WHERE
@@ -67,7 +69,8 @@ const (
 			bookcase_name,
 			bookcase_comment,
 			bookcase_shared,
-			sort
+			sort,
+			default_sort
 		FROM
 			bookcase
 		WHERE

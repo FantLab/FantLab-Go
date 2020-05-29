@@ -73,6 +73,7 @@ type Bookcase struct {
 	BookcaseComment string `db:"bookcase_comment"`
 	BookcaseShared  uint8  `db:"bookcase_shared"`
 	Sort            uint64 `db:"sort"`
+	DefaultSort     string `db:"default_sort"`
 	ItemCount       uint64 `db:"item_count"`
 }
 
