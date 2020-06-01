@@ -3,6 +3,8 @@ github.com/FantLab/go-kit v0.0.0-20200509111316-198202768a1a h1:wYsga2raPxnljYhI
 github.com/FantLab/go-kit v0.0.0-20200509111316-198202768a1a/go.mod h1:hpBpaOCcUrp6BNpwxDbIU36rgKugaiiYYKUZ5a70i2M=
 github.com/FantLab/go-kit v0.0.0-20200528123614-41a318a6aacc h1:5SkqBEvp97yMojAlYegQ/tCGGK/yC+bRGIODZczreSU=
 github.com/FantLab/go-kit v0.0.0-20200528123614-41a318a6aacc/go.mod h1:hpBpaOCcUrp6BNpwxDbIU36rgKugaiiYYKUZ5a70i2M=
+github.com/FantLab/go-kit v0.0.0-20200601100522-377c460f759a h1:l735az3LjEymZ8Bp1RgxyVA8ltnU2oEoN2BGQt0L6/M=
+github.com/FantLab/go-kit v0.0.0-20200601100522-377c460f759a/go.mod h1:hpBpaOCcUrp6BNpwxDbIU36rgKugaiiYYKUZ5a70i2M=
 github.com/armon/go-radix v1.0.0 h1:F4z6KzEeeQIMeLFa97iZU6vupzoecKdU5TX24SNppXI=
 github.com/armon/go-radix v1.0.0/go.mod h1:ufUuZ+zHj4x4TnLV4JWEpy2hxWSpsRywHrMgIH9cCH8=
 github.com/bradfitz/gomemcache v0.0.0-20190913173617-a41fca850d0b h1:L/QXpzIa3pOvUGt1D1lA5KjYhPBAN/3iWdP7xeFS9F0=
