@@ -83,9 +83,7 @@ func (api *API) ShowEditionBookcase(r *http.Request) (int, proto.Message) {
 		}
 	}
 
-	offset := params.Limit * (params.Page - 1)
-
-	dbResponse, err := api.services.DB().FetchEditionBookcase(r.Context(), dbBookcase.BookcaseId, params.Limit, offset, sortBy)
+	dbResponse, err := api.services.DB().FetchEditionBookcase(r.Context(), dbBookcase.BookcaseId, sortBy)
 
 	if err != nil {
 		return http.StatusInternalServerError, &pb.Error_Response{
