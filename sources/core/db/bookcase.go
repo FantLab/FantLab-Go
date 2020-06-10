@@ -73,6 +73,7 @@ type Bookcase struct {
 	BookcaseComment string `db:"bookcase_comment"`
 	BookcaseShared  uint8  `db:"bookcase_shared"`
 	Sort            uint64 `db:"sort"`
+	DefaultSort     string `db:"default_sort"`
 	ItemCount       uint64 `db:"item_count"`
 }
 
@@ -232,7 +233,7 @@ func (db *DB) FetchBookcaseItem(ctx context.Context, bookcaseItemId uint64) (Boo
 	return bookcaseItem, nil
 }
 
-func (db *DB) FetchEditionBookcase(ctx context.Context, bookcaseId, limit, offset uint64, sort string) (EditionBookcaseDbResponse, error) {
+func (db *DB) FetchEditionBookcase(ctx context.Context, bookcaseId uint64, sort string) (EditionBookcaseDbResponse, error) {
 	var editions []BookcaseEdition
 	var count uint64
 
@@ -240,7 +241,7 @@ func (db *DB) FetchEditionBookcase(ctx context.Context, bookcaseId, limit, offse
 		return codeflow.Try(
 			func() error { // Получаем список изданий на полке
 				sortOrder := EditionSortMap[sort]
-				return rw.Read(ctx, sqlapi.NewQuery(queries.BookcaseGetEditionBookcaseItems).WithArgs(bookcaseId, limit, offset).Inject(sortOrder), &editions)
+				return rw.Read(ctx, sqlapi.NewQuery(queries.BookcaseGetEditionBookcaseItems).WithArgs(bookcaseId).Inject(sortOrder), &editions)
 			},
 			func() error { // Получаем общее количество изданий на полке
 				return rw.Read(ctx, sqlapi.NewQuery(queries.BookcaseGetBookcaseItemCount).WithArgs(bookcaseId), &count)

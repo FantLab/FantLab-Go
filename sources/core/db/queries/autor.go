@@ -1,6 +1,16 @@
 package queries
 
 const (
+	AutorGetAutors = `
+		SELECT
+			autor_id,
+			shortrusname
+		FROM
+			autors
+		WHERE
+			autor_id IN (?)
+	`
+
 	AutorDecrementAutorsNewResponseCount = `
 		UPDATE
 			autors

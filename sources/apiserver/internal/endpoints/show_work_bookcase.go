@@ -19,12 +19,11 @@ func (api *API) ShowWorkBookcase(r *http.Request) (int, proto.Message) {
 		Page uint64 `http:"page,query"`
 		// кол-во элементов на странице ([5..50], по умолчанию - 50)
 		Limit uint64 `http:"limit,query"`
-		// сортировать по: порядку - order (по умолчанию), автору - author, названию - title, оригинальному названию - orig_title, году - year, количеству оценок - mark_count, средней оценке - avg_mark
+		// сортировать по: порядку - order (по умолчанию, если иное не задано в настройках полки), автору - author, названию - title, оригинальному названию - orig_title, году - year, количеству оценок - mark_count, средней оценке - avg_mark
 		SortBy string `http:"sort,query"`
 	}{
-		Page:   1,
-		Limit:  api.services.AppConfig().BookcaseItemInPage,
-		SortBy: "order",
+		Page:  1,
+		Limit: api.services.AppConfig().BookcaseItemInPage,
 	}
 
 	api.bindParams(&params, r)
@@ -38,8 +37,13 @@ func (api *API) ShowWorkBookcase(r *http.Request) (int, proto.Message) {
 	if !helpers.IsValidLimit(params.Limit) {
 		return api.badParam("limit")
 	}
-	if _, ok := db.WorkSortMap[params.SortBy]; !ok {
-		return api.badParam("sort")
+
+	sortBy := params.SortBy
+
+	if len(sortBy) != 0 {
+		if _, ok := db.WorkSortMap[sortBy]; !ok {
+			return api.badParam("sort")
+		}
 	}
 
 	dbBookcase, err := api.services.DB().FetchTypedBookcase(r.Context(), db.BookcaseWorkType, params.BookcaseId)
@@ -66,9 +70,18 @@ func (api *API) ShowWorkBookcase(r *http.Request) (int, proto.Message) {
 		}
 	}
 
+	if len(sortBy) == 0 {
+		for order, defaultSort := range db.WorkDefaultSortMap {
+			if defaultSort == dbBookcase.DefaultSort {
+				sortBy = order
+				break
+			}
+		}
+	}
+
 	offset := params.Limit * (params.Page - 1)
 
-	dbResponse, err := api.services.DB().FetchWorkBookcase(r.Context(), dbBookcase.BookcaseId, params.Limit, offset, params.SortBy, userId)
+	dbResponse, err := api.services.DB().FetchWorkBookcase(r.Context(), dbBookcase.BookcaseId, params.Limit, offset, sortBy, userId)
 
 	if err != nil {
 		return http.StatusInternalServerError, &pb.Error_Response{
