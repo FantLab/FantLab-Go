@@ -36,7 +36,7 @@ func (api *API) DeleteResponse(r *http.Request) (int, proto.Message) {
 		}
 	}
 
-	userId := /*api.getUserId(r)*/ uint64(58246)
+	userId := api.getUserId(r)
 
 	userCanEditAnyResponses := api.isPermissionGranted(r, pb.Auth_Claims_PERMISSION_CAN_EDIT_ANY_RESPONSES)
 

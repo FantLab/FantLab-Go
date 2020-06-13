@@ -1,14 +1,14 @@
 package endpoints
 
 import (
+	"fantlab/apiserver/internal/postprocessing"
 	"fantlab/core/converters"
 	"fantlab/core/db"
 	"fantlab/core/helpers"
 	"fantlab/pb"
+	"google.golang.org/protobuf/proto"
 	"net/http"
 	"strconv"
-
-	"google.golang.org/protobuf/proto"
 )
 
 func (api *API) ShowEditionBookcase(r *http.Request) (int, proto.Message) {
@@ -79,15 +79,40 @@ func (api *API) ShowEditionBookcase(r *http.Request) (int, proto.Message) {
 		}
 	}
 
-	offset := params.Limit * (params.Page - 1)
-
-	dbResponse, err := api.services.DB().FetchEditionBookcase(r.Context(), dbBookcase.BookcaseId, params.Limit, offset, sortBy)
+	dbResponse, err := api.services.DB().FetchEditionBookcase(r.Context(), dbBookcase.BookcaseId, sortBy)
 
 	if err != nil {
 		return http.StatusInternalServerError, &pb.Error_Response{
 			Status: pb.Error_SOMETHING_WENT_WRONG,
 		}
 	}
+
+	// TODO В Perl издания повторно сортируются и в случае других вариантов сортировки, но это бессмысленно, поскольку
+	//  фактический порядок не меняется
+	if params.SortBy == "author" {
+		err = postprocessing.SortBookcaseEditionsByAuthor(dbResponse.Editions, func(authorIds []uint64) ([]db.Autor, error) {
+			return api.services.DB().FetchAutors(r.Context(), authorIds)
+		})
+
+		if err != nil {
+			return http.StatusInternalServerError, &pb.Error_Response{
+				Status: pb.Error_SOMETHING_WENT_WRONG,
+			}
+		}
+	}
+
+	offset := params.Limit * (params.Page - 1)
+
+	leftBound := offset
+	if leftBound > uint64(len(dbResponse.Editions)) {
+		leftBound = uint64(len(dbResponse.Editions))
+	}
+	rightBound := offset + params.Limit
+	if rightBound > uint64(len(dbResponse.Editions)) {
+		rightBound = uint64(len(dbResponse.Editions))
+	}
+
+	dbResponse.Editions = dbResponse.Editions[leftBound:rightBound]
 
 	editionBookcase := converters.GetEditionBookcase(dbResponse, dbBookcase, params.Page, params.Limit, api.services.AppConfig())
 

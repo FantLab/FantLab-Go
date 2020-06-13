@@ -116,8 +116,6 @@ const (
 			bi.bookcase_id = ?
 		ORDER BY
 			%s
-		LIMIT ?
-		OFFSET ?
 	`
 
 	BookcaseGetWorkBookcaseItems = `
