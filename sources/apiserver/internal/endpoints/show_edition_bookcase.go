@@ -1,7 +1,6 @@
 package endpoints
 
 import (
-	"context"
 	"fantlab/core/converters"
 	"fantlab/core/db"
 	"fantlab/core/helpers"
@@ -94,7 +93,9 @@ func (api *API) ShowEditionBookcase(r *http.Request) (int, proto.Message) {
 	// TODO В Perl издания повторно сортируются и в случае других вариантов сортировки, но это бессмысленно, поскольку
 	//  фактический порядок не меняется
 	if params.SortBy == "author" {
-		err = sortEditionsByAuthor(dbResponse.Editions, api.services.DB(), r.Context())
+		err = sortEditionsByAuthor(dbResponse.Editions, func(authorIds []uint64) ([]db.Autor, error) {
+			return api.services.DB().FetchAutors(r.Context(), authorIds)
+		})
 
 		if err != nil {
 			return http.StatusInternalServerError, &pb.Error_Response{
@@ -123,7 +124,7 @@ func (api *API) ShowEditionBookcase(r *http.Request) (int, proto.Message) {
 
 // Сортируем: 1. по автору, 2. по порядку сортировки
 // TODO В Perl зачем-то сортируется еще и по году (хотя порядок сортировки у всех изданий заведомо разный)
-func sortEditionsByAuthor(editions []db.BookcaseEdition, dbService *db.DB, context context.Context) error {
+func sortEditionsByAuthor(editions []db.BookcaseEdition, fetchAuthors func([]uint64) ([]db.Autor, error)) error {
 	linkedAuthorRegex := regexp.MustCompile(`\[autor=([0-9]+)](.+?)\[/autor]`)
 
 	editionsSort := make(map[uint64]int, len(editions))
@@ -162,7 +163,7 @@ func sortEditionsByAuthor(editions []db.BookcaseEdition, dbService *db.DB, conte
 	}
 
 	// Запрашиваем сортировочные имена по каждому автору, у которого есть страница
-	dbAuthors, err := dbService.FetchAutors(context, uniqueAuthorIds)
+	dbAuthors, err := fetchAuthors(uniqueAuthorIds)
 
 	if err != nil {
 		return err
