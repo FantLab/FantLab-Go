@@ -234,17 +234,18 @@ func (db *DB) FetchBlogExists(ctx context.Context, blogId uint64) (exists bool, 
 }
 
 func (db *DB) FetchIsUserReadOnly(ctx context.Context, userId, topicId, blogId uint64) (isReadOnly bool, err error) {
-	var relatedBlogs []uint64
-	var isUserReadOnly uint8
+	var blogs []uint64
+	var readOnlyCount uint8
 	err = codeflow.Try(
 		func() error {
-			return db.engine.Read(ctx, sqlapi.NewQuery(queries.BlogGetRelatedBlogs).WithArgs(topicId), &relatedBlogs)
+			return db.engine.Read(ctx, sqlapi.NewQuery(queries.BlogGetRelatedBlogs).WithArgs(topicId), &blogs)
 		},
 		func() error {
-			return db.engine.Read(ctx, sqlapi.NewQuery(queries.BlogIsUserReadOnly).WithArgs(userId, blogId, relatedBlogs).FlatArgs(), &isUserReadOnly)
+			blogs = append(blogs, blogId)
+			return db.engine.Read(ctx, sqlapi.NewQuery(queries.BlogIsUserReadOnly).WithArgs(userId, blogs).FlatArgs(), &readOnlyCount)
 		},
 	)
-	isReadOnly = isUserReadOnly == 1
+	isReadOnly = readOnlyCount > 0
 	return
 }
 
@@ -308,7 +309,8 @@ func (db *DB) FetchBlogTopicComment(ctx context.Context, commentId uint64) (comm
 	return
 }
 
-func (db *DB) InsertBlogTopicComment(ctx context.Context, topicId, userId, parentCommentId, parentUserId uint64, text string, blogArticleCommentsInPage uint64) (*BlogTopicComment, error) {
+func (db *DB) InsertBlogTopicComment(ctx context.Context, userId, topicId, topicUserId, parentCommentId, parentCommentUserId uint64,
+	text string, blogArticleCommentsInPage uint64) (*BlogTopicComment, error) {
 	var commentId uint64
 	var comment BlogTopicComment
 
@@ -318,11 +320,6 @@ func (db *DB) InsertBlogTopicComment(ctx context.Context, topicId, userId, paren
 				// Примечания:
 				//  - message_length всегда равен 0. Вообще неясно, зачем существует это поле. Возможно, предполагалось,
 				//    что в будущем за написание новых комментариев тоже будут начисляться баллы развития.
-				//  - Судя по всему, поле topic_type предполагалось использовать для разграничения функционала
-				//    комментирования статей и комментирования произведений. Из следов последнего остались только 3
-				//    комментария к "Регуляторам" Стивена Кинга, и те нельзя посмотреть, поскольку endpoint
-				//    https://fantlab.ru/discusswork396 стабильно падает с 500 ошибкой. Зачем все это находится в
-				//    таблице, относящейся к блогам - вопрос риторический. P.S. Функционал пытался сделать SHTrassEr.
 				result := rw.Write(ctx, sqlapi.NewQuery(queries.BlogTopicInsertNewMessage).WithArgs(topicId, userId, parentCommentId, 0, 0, time.Now()))
 				commentId = uint64(result.LastInsertId)
 				return result.Error
@@ -343,7 +340,37 @@ func (db *DB) InsertBlogTopicComment(ctx context.Context, topicId, userId, paren
 		return nil, err
 	}
 
-	err = notifyBlogTopicSubscribersAboutNewMessage(ctx, db.engine, topicId, commentId, parentUserId, blogArticleCommentsInPage)
+	var parentUsersToNotify []uint64
+
+	if userId == topicUserId {
+		if parentCommentUserId > 0 {
+			// Автор комментария - автор статьи, 1+ уровень вложенности
+			parentUsersToNotify = append(parentUsersToNotify, parentCommentUserId)
+		}
+	} else {
+		if parentCommentUserId > 0 {
+			if parentCommentUserId == topicUserId {
+				// Автор комментария - не автор статьи, 1+ уровень вложенности, автор родительского комментария - автор статьи
+				parentUsersToNotify = append(parentUsersToNotify, topicUserId)
+			} else {
+				// Автор комментария - не автор статьи, 1+ уровень вложенности, автор родительского комментария - тоже не автор статьи
+				parentUsersToNotify = append(parentUsersToNotify, parentCommentUserId, topicUserId)
+			}
+		} else {
+			// Автор комментария - не автор статьи, 1 уровень вложенности
+			parentUsersToNotify = append(parentUsersToNotify, topicUserId)
+		}
+	}
+
+	for _, userId := range parentUsersToNotify {
+		err = notifyParentUserAboutNewBlogTopicMessage(ctx, db.engine, userId, topicId, commentId, blogArticleCommentsInPage)
+
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	err = notifyBlogTopicSubscribersAboutNewMessage(ctx, db.engine, userId, topicId, topicUserId, commentId, parentCommentUserId, blogArticleCommentsInPage)
 
 	if err != nil {
 		return nil, err
@@ -371,7 +398,27 @@ func updateBlogTopicStatAfterNewMessage(ctx context.Context, rw sqlapi.ReaderWri
 	)
 }
 
-func notifyBlogTopicSubscribersAboutNewMessage(ctx context.Context, rw sqlapi.ReaderWriter, topicId, commentId, parentUserId, blogArticleCommentsInPage uint64) error {
+func notifyParentUserAboutNewBlogTopicMessage(ctx context.Context, rw sqlapi.ReaderWriter, parentUserId, topicId, commentId, blogArticleCommentsInPage uint64) error {
+	var firstLevelCommentCount uint64
+
+	return codeflow.Try(
+		func() error { // Инкрементим счетчик количества новых комментариев в блогах для parentCommentUserId
+			return rw.Write(ctx, sqlapi.NewQuery(queries.BlogIncrementNewBlogCommentsCount).WithArgs(parentUserId)).Error
+		},
+		func() error { // Получаем количество комментариев первого уровня в данной статье
+			return rw.Read(ctx, sqlapi.NewQuery(queries.BlogGetFirstLevelMessageCount).WithArgs(topicId, commentId), &firstLevelCommentCount)
+		},
+		func() error {
+			pageCount := helpers.CalculatePageCount(firstLevelCommentCount, blogArticleCommentsInPage)
+			endpoint := fmt.Sprintf("blogarticle%dpage%d", topicId, pageCount)
+			// Добавляем оповещение для parentUser (автор статьи или автор родительского комментария) о новом комментарии в статье
+			return rw.Write(ctx, sqlapi.NewQuery(queries.BlogInsertNewMessageNotification).WithArgs(parentUserId, commentId, endpoint, parentUserId)).Error
+		},
+	)
+}
+
+func notifyBlogTopicSubscribersAboutNewMessage(ctx context.Context, rw sqlapi.ReaderWriter, userId, topicId, topicUserId,
+	commentId, parentCommentUserId, blogArticleCommentsInPage uint64) error {
 	var topicSubscribers []uint64
 	var firstLevelCommentCount uint64
 
@@ -388,11 +435,9 @@ func notifyBlogTopicSubscribersAboutNewMessage(ctx context.Context, rw sqlapi.Re
 	}
 
 	err := codeflow.Try(
-		func() error { // Инкрементим счетчик количества новых комментариев в блогах для parentUserId
-			return rw.Write(ctx, sqlapi.NewQuery(queries.BlogIncrementNewBlogCommentsCount).WithArgs(parentUserId)).Error
-		},
 		func() error { // Получаем список подписчиков на обновления статьи
-			return rw.Read(ctx, sqlapi.NewQuery(queries.BlogGetTopicSubscribers).WithArgs(topicId, parentUserId), &topicSubscribers)
+			excludedUserIds := []uint64{userId, parentCommentUserId, topicUserId}
+			return rw.Read(ctx, sqlapi.NewQuery(queries.BlogGetTopicSubscribers).WithArgs(topicId, excludedUserIds).FlatArgs(), &topicSubscribers)
 		},
 		func() error { // Инкрементим счетчик количества новых комментариев в блогах для подписчиков
 			if len(topicSubscribers) != 0 {
@@ -409,14 +454,23 @@ func notifyBlogTopicSubscribersAboutNewMessage(ctx context.Context, rw sqlapi.Re
 		return err
 	}
 
+	if len(topicSubscribers) == 0 {
+		return nil
+	}
+
 	pageCount := helpers.CalculatePageCount(firstLevelCommentCount, blogArticleCommentsInPage)
 	endpoint := fmt.Sprintf("blogarticle%dpage%d", topicId, pageCount)
 
-	usersToNotify := append(topicSubscribers, parentUserId)
+	var parentUserId uint64
+	if parentCommentUserId > 0 {
+		parentUserId = parentCommentUserId
+	} else {
+		parentUserId = topicUserId
+	}
 
 	// Добавляем оповещение для подписчиков о новом комментарии в статье. Не в транзакции, поскольку запрос тяжелый.
-	entries := make([]interface{}, 0, len(usersToNotify))
-	for _, userId := range usersToNotify {
+	entries := make([]interface{}, 0, len(topicSubscribers))
+	for _, userId := range topicSubscribers {
 		entries = append(entries, newBlogMessageEntry{
 			UserId:       userId,
 			MessageId:    commentId,
@@ -429,8 +483,8 @@ func notifyBlogTopicSubscribersAboutNewMessage(ctx context.Context, rw sqlapi.Re
 	return rw.Write(ctx, sqlbuilder.InsertInto(queries.NewBlogTopicMessagesTable, entries...)).Error
 }
 
-func (db *DB) FetchBlogTopicSubscribers(ctx context.Context, topicId, excludedUserId uint64) (subscribers []uint64, err error) {
-	err = db.engine.Read(ctx, sqlapi.NewQuery(queries.BlogGetTopicSubscribers).WithArgs(topicId, excludedUserId), &subscribers)
+func (db *DB) FetchBlogTopicSubscribers(ctx context.Context, topicId uint64, excludedUserIds []uint64) (subscribers []uint64, err error) {
+	err = db.engine.Read(ctx, sqlapi.NewQuery(queries.BlogGetTopicSubscribers).WithArgs(topicId, excludedUserIds).FlatArgs(), &subscribers)
 	return
 }
 

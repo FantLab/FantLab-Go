@@ -199,11 +199,11 @@ const (
 
 	BlogIsUserReadOnly = `
 		SELECT
-			1
+			COUNT(*)
 		FROM
 			b_readonly
 		WHERE
-			user_id = ? AND (blog_id = ? OR blog_id IN (?))
+			user_id = ? AND blog_id IN (?)
 	`
 
 	BlogTopics = `
@@ -370,7 +370,7 @@ const (
 		FROM
 			b_topics_subscribers
 		WHERE
-			topic_id = ? AND user_id != ?
+			topic_id = ? AND user_id NOT IN (?)
 	`
 
 	BlogGetFirstLevelMessageCount = `
@@ -379,7 +379,7 @@ const (
 		FROM
 			b_messages
 		WHERE
-			topic_id = ? AND topic_type = 0 AND parent_message_id = 0 AND message_id <= ?
+			topic_id = ? AND parent_message_id = 0 AND message_id <= ?
 	`
 
 	BlogGetUserIsCommunityModerator = `
@@ -437,5 +437,18 @@ const (
 			b_message_delete_topics
 		SET
 			topic_id = ?
+	`
+
+	BlogInsertNewMessageNotification = `
+		INSERT INTO
+			b_new_messages (
+				user_id,
+				message_id,
+				action,
+				parent_user_id,
+				date_of_add
+			)
+		VALUES
+			(?, ?, ?, ?, NOW())
 	`
 )
