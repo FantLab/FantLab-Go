@@ -12,7 +12,7 @@ import (
 
 func (api *API) AddBlogArticleComment(r *http.Request) (int, proto.Message) {
 	var params struct {
-		// айди статьи
+		// id статьи
 		ArticleId uint64 `http:"id,path"`
 		// текст комментария (непустой)
 		Comment string `http:"comment,form"`
@@ -75,9 +75,26 @@ func (api *API) AddBlogArticleComment(r *http.Request) (int, proto.Message) {
 		}
 	}
 
-	user := api.getUser(r)
+	userId := api.getUserId(r)
 
-	var parentUserId uint64
+	isUserReadOnly, err := api.services.DB().FetchIsUserReadOnly(r.Context(), userId, article.TopicId, article.BlogId)
+
+	if err != nil && !db.IsNotFoundError(err) {
+		return http.StatusInternalServerError, &pb.Error_Response{
+			Status: pb.Error_SOMETHING_WENT_WRONG,
+		}
+	}
+
+	if isUserReadOnly {
+		return http.StatusInternalServerError, &pb.Error_Response{
+			Status:  pb.Error_ACTION_PERMITTED,
+			Context: "Вам запрещено писать комментарии в этот блог/рубрику",
+		}
+	}
+
+	articleUserId := article.UserId
+
+	var parentCommentUserId uint64
 
 	if params.ParentCommentId > 0 {
 		parentComment, err := api.services.DB().FetchBlogTopicComment(r.Context(), params.ParentCommentId)
@@ -97,35 +114,18 @@ func (api *API) AddBlogArticleComment(r *http.Request) (int, proto.Message) {
 
 		// В Perl-бэке такой проверки нет, так что через прямой вызов API можно написать ответ на собственный
 		// комментарий. https://github.com/parserpro/fantlab/issues/977
-		if parentComment.UserId == user.UserId {
+		if parentComment.UserId == userId {
 			return http.StatusInternalServerError, &pb.Error_Response{
 				Status:  pb.Error_ACTION_PERMITTED,
 				Context: "Нельзя написать ответ на собственный комментарий",
 			}
 		}
 
-		parentUserId = parentComment.UserId
-	} else {
-		parentUserId = article.UserId
+		parentCommentUserId = parentComment.UserId
 	}
 
-	isUserReadOnly, err := api.services.DB().FetchIsUserReadOnly(r.Context(), user.UserId, article.TopicId, article.BlogId)
-
-	if err != nil && !db.IsNotFoundError(err) {
-		return http.StatusInternalServerError, &pb.Error_Response{
-			Status: pb.Error_SOMETHING_WENT_WRONG,
-		}
-	}
-
-	if isUserReadOnly {
-		return http.StatusInternalServerError, &pb.Error_Response{
-			Status:  pb.Error_ACTION_PERMITTED,
-			Context: "Вам запрещено писать комментарии в этот блог/рубрику",
-		}
-	}
-
-	dbComment, err := api.services.DB().InsertBlogTopicComment(r.Context(), article.TopicId, user.UserId,
-		params.ParentCommentId, parentUserId, params.Comment, api.services.AppConfig().BlogArticleCommentsInPage)
+	dbComment, err := api.services.DB().InsertBlogTopicComment(r.Context(), userId, article.TopicId, articleUserId,
+		params.ParentCommentId, parentCommentUserId, params.Comment, api.services.AppConfig().BlogArticleCommentsInPage)
 
 	if err != nil {
 		return http.StatusInternalServerError, &pb.Error_Response{
@@ -133,15 +133,17 @@ func (api *API) AddBlogArticleComment(r *http.Request) (int, proto.Message) {
 		}
 	}
 
-	// Инвалидируем кеши подписчиков и parentUserId. В случае ошибки запрос не фейлим.
+	// Инвалидируем кеши подписчиков, автора родительского комментария и автора статьи. В случае ошибки запрос не фейлим.
 
-	subscribers, _ := api.services.DB().FetchBlogTopicSubscribers(r.Context(), article.TopicId, parentUserId)
+	excludedUserIds := []uint64{userId, parentCommentUserId, articleUserId}
+	subscribers, _ := api.services.DB().FetchBlogTopicSubscribers(r.Context(), article.TopicId, excludedUserIds)
 
 	for _, subscriber := range subscribers {
 		_ = api.services.DeleteUserCache(r.Context(), subscriber)
 	}
 
-	_ = api.services.DeleteUserCache(r.Context(), parentUserId)
+	_ = api.services.DeleteUserCache(r.Context(), parentCommentUserId)
+	_ = api.services.DeleteUserCache(r.Context(), articleUserId)
 
 	commentResponse := converters.GetBlogArticleComment(dbComment, api.services.AppConfig())
 
