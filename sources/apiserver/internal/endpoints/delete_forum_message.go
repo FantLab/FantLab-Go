@@ -6,7 +6,6 @@ import (
 	"fantlab/core/helpers"
 	"fantlab/pb"
 	"net/http"
-	"os"
 	"strconv"
 	"time"
 
@@ -93,8 +92,7 @@ func (api *API) DeleteForumMessage(r *http.Request) (int, proto.Message) {
 
 	api.services.DeleteFiles(r.Context(), app.ForumMessageFileGroup, dbMessage.MessageID)
 
-	// удаляем текстовый кеш сообщения
-	_ = os.Remove("/cache/f_messages/" + helpers.IdToRelativeFilePath(dbMessage.MessageID))
+	helpers.DeleteForumMessageTextCache(dbMessage.MessageID)
 
 	// TODO:
 	//  - удалить Perl-аттачи сообщения вместе с директорией
