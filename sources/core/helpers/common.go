@@ -3,6 +3,7 @@ package helpers
 import (
 	"fmt"
 	"regexp"
+	"strconv"
 )
 
 // Любые непробельные символы, кроме / (чтобы не создавать проблем с путями в URL), + пробел
@@ -29,6 +30,12 @@ func CalculatePageCount(totalCount, limit uint64) uint64 {
 	return pageCount
 }
 
-func IdToRelativeFilePath(id uint64) string {
-	return fmt.Sprintf("%d/%d/%d/%d", id/10000, id/1000, id/100, id)
+func IdToRelativeFilePath(id uint64, nestingLevel int) string {
+	path := strconv.FormatInt(int64(id), 10)
+	delimiter := uint64(100)
+	for i := 0; i < nestingLevel; i++ {
+		path = fmt.Sprintf("%d/%s", id/delimiter, path)
+		delimiter *= 10
+	}
+	return path
 }

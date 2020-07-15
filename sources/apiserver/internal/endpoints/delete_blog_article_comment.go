@@ -2,6 +2,7 @@ package endpoints
 
 import (
 	"fantlab/core/db"
+	"fantlab/core/helpers"
 	"fantlab/pb"
 	"net/http"
 	"strconv"
@@ -73,12 +74,12 @@ func (api *API) DeleteBlogArticleComment(r *http.Request) (int, proto.Message) {
 		}
 	}
 
-	user := api.getUser(r)
+	userId := api.getUserId(r)
 
 	// TODO: Пропущен весь хардкод касательно id отдельных юзеров, обработка is_referee и can_link_blogarticle_to_work
 	//  (заданы через main.cfg, но зачем так сделано - неясно). Все они считаются модераторами любых блогов.
 
-	userIsCommunityModerator, err := api.services.DB().FetchUserIsCommunityModerator(r.Context(), user.UserId, blog.BlogId, article.TopicId)
+	userIsCommunityModerator, err := api.services.DB().FetchUserIsCommunityModerator(r.Context(), userId, blog.BlogId, article.TopicId)
 
 	if err != nil {
 		return http.StatusInternalServerError, &pb.Error_Response{
@@ -87,7 +88,7 @@ func (api *API) DeleteBlogArticleComment(r *http.Request) (int, proto.Message) {
 	}
 
 	// В отличие от форума, нет ограничения на время редактирования сообщения
-	if !(comment.UserId == user.UserId || blog.UserId == user.UserId || userIsCommunityModerator) {
+	if !(comment.UserId == userId || blog.UserId == userId || userIsCommunityModerator) {
 		return http.StatusForbidden, &pb.Error_Response{
 			Status:  pb.Error_ACTION_PERMITTED,
 			Context: "Вы не можете удалить данный комментарий",
@@ -102,7 +103,7 @@ func (api *API) DeleteBlogArticleComment(r *http.Request) (int, proto.Message) {
 		}
 	}
 
-	// TODO Удалить файловый кеш
+	helpers.DeleteBlogCommentTextCache(comment.MessageId)
 
 	return http.StatusOK, &pb.Common_SuccessResponse{}
 }

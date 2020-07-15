@@ -7,7 +7,6 @@ import (
 	"fantlab/pb"
 	"fmt"
 	"net/http"
-	"os"
 	"strconv"
 	"time"
 
@@ -139,8 +138,7 @@ func (api *API) EditForumMessage(r *http.Request) (int, proto.Message) {
 		}
 	}
 
-	// инвалидейтим текстовый кеш сообщения
-	err = os.Remove("/cache/f_messages/" + helpers.IdToRelativeFilePath(dbMessage.MessageID))
+	helpers.DeleteForumMessageTextCache(dbMessage.MessageID)
 
 	messageResponse := converters.GetForumTopicMessage(dbMessage, api.services.AppConfig())
 
