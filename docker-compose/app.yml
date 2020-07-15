@@ -15,5 +15,4 @@ services:
       - flnetwork
     volumes:
       - ./cache/:/cache
-      - ./public/files/messages/:/forum_attach
     env_file: app.env

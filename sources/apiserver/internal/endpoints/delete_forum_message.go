@@ -3,8 +3,10 @@ package endpoints
 import (
 	"fantlab/core/app"
 	"fantlab/core/db"
+	"fantlab/core/helpers"
 	"fantlab/pb"
 	"net/http"
+	"os"
 	"strconv"
 	"time"
 
@@ -48,9 +50,9 @@ func (api *API) DeleteForumMessage(r *http.Request) (int, proto.Message) {
 		}
 	}
 
-	user := api.getUser(r)
+	userId := api.getUserId(r)
 
-	userIsForumModerator, err := api.services.DB().FetchUserIsForumModerator(r.Context(), user.UserId, dbMessage.TopicId)
+	userIsForumModerator, err := api.services.DB().FetchUserIsForumModerator(r.Context(), userId, dbMessage.TopicId)
 
 	if err != nil {
 		return http.StatusInternalServerError, &pb.Error_Response{
@@ -73,7 +75,7 @@ func (api *API) DeleteForumMessage(r *http.Request) (int, proto.Message) {
 
 	// Из логики кода получается, что, в отличие от редактирования, удалять сообщения в админских форумах могут
 	// только модераторы этих форумов.
-	if !(user.UserId == dbMessage.UserID && canUserEditMessage && isMessageEditable) && !userIsForumModerator {
+	if !(userId == dbMessage.UserID && canUserEditMessage && isMessageEditable) && !userIsForumModerator {
 		return http.StatusForbidden, &pb.Error_Response{
 			Status:  pb.Error_ACTION_PERMITTED,
 			Context: "Вы не можете удалить данное сообщение",
@@ -91,8 +93,10 @@ func (api *API) DeleteForumMessage(r *http.Request) (int, proto.Message) {
 
 	api.services.DeleteFiles(r.Context(), app.ForumMessageFileGroup, dbMessage.MessageID)
 
+	// удаляем текстовый кеш сообщения
+	_ = os.Remove("/cache/f_messages/" + helpers.IdToRelativeFilePath(dbMessage.MessageID))
+
 	// TODO:
-	//  - удалить кеш текста сообщения
 	//  - удалить Perl-аттачи сообщения вместе с директорией
 
 	return http.StatusOK, &pb.Common_SuccessResponse{}
