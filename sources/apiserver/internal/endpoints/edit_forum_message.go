@@ -7,6 +7,7 @@ import (
 	"fantlab/pb"
 	"fmt"
 	"net/http"
+	"os"
 	"strconv"
 	"time"
 
@@ -52,9 +53,9 @@ func (api *API) EditForumMessage(r *http.Request) (int, proto.Message) {
 		}
 	}
 
-	user := api.getUser(r)
+	userId := api.getUserId(r)
 
-	userIsForumModerator, err := api.services.DB().FetchUserIsForumModerator(r.Context(), user.UserId, dbMessage.TopicId)
+	userIsForumModerator, err := api.services.DB().FetchUserIsForumModerator(r.Context(), userId, dbMessage.TopicId)
 
 	if err != nil {
 		return http.StatusInternalServerError, &pb.Error_Response{
@@ -94,7 +95,7 @@ func (api *API) EditForumMessage(r *http.Request) (int, proto.Message) {
 
 	isMessageEditable := dbMessage.IsCensored == 0 && dbMessage.IsRed == 0
 
-	if !(user.UserId == dbMessage.UserID && canUserEditMessage && isMessageEditable) && !userIsForumModerator && forum.OnlyForAdmins == 0 {
+	if !(userId == dbMessage.UserID && canUserEditMessage && isMessageEditable) && !userIsForumModerator && forum.OnlyForAdmins == 0 {
 		return http.StatusForbidden, &pb.Error_Response{
 			Status:  pb.Error_ACTION_PERMITTED,
 			Context: "Вы не можете отредактировать данное сообщение",
@@ -118,7 +119,7 @@ func (api *API) EditForumMessage(r *http.Request) (int, proto.Message) {
 		}
 	}
 
-	if formattedMessageLength > api.services.AppConfig().MaxForumMessageLength && user.UserId != api.services.AppConfig().BotUserId {
+	if formattedMessageLength > api.services.AppConfig().MaxForumMessageLength && userId != api.services.AppConfig().BotUserId {
 		return http.StatusForbidden, &pb.Error_Response{
 			Status:  pb.Error_ACTION_PERMITTED,
 			Context: fmt.Sprintf("Текст сообщения слишком длинный (больше %d символов после форматирования)", api.services.AppConfig().MaxForumMessageLength),
@@ -137,6 +138,9 @@ func (api *API) EditForumMessage(r *http.Request) (int, proto.Message) {
 			Status: pb.Error_SOMETHING_WENT_WRONG,
 		}
 	}
+
+	// инвалидейтим текстовый кеш сообщения
+	err = os.Remove("/cache/f_messages/" + helpers.IdToRelativeFilePath(dbMessage.MessageID))
 
 	messageResponse := converters.GetForumTopicMessage(dbMessage, api.services.AppConfig())
 

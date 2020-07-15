@@ -1,6 +1,9 @@
 package helpers
 
-import "regexp"
+import (
+	"fmt"
+	"regexp"
+)
 
 // Любые непробельные символы, кроме / (чтобы не создавать проблем с путями в URL), + пробел
 var fileNameRegex = regexp.MustCompile(`^[^\f\n\r\t\v/]+$`)
@@ -24,4 +27,8 @@ func CalculatePageCount(totalCount, limit uint64) uint64 {
 		pageCount++
 	}
 	return pageCount
+}
+
+func IdToRelativeFilePath(id uint64) string {
+	return fmt.Sprintf("%d/%d/%d/%d", id/10000, id/1000, id/100, id)
 }
