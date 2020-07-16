@@ -558,6 +558,10 @@
     }
     text: string                        # текст
     isCensored: bool                    # текст изъят модератором?
+    attachments: [{                     # аттачи
+      title: string                     # название файла
+      size: uint64                      # размер (байт)
+    }]
     stats: {                            # статистика
       rating: int64                     # рейтинг
     }
@@ -578,6 +582,10 @@
     }
     text: string                        # текст
     isCensored: bool                    # текст изъят модератором?
+    attachments: [{                     # аттачи
+      title: string                     # название файла
+      size: uint64                      # размер (байт)
+    }]
     stats: {                            # статистика
       rating: int64                     # рейтинг
     }
@@ -1528,6 +1536,10 @@
     }
     text: string                        # текст
     isCensored: bool                    # текст изъят модератором?
+    attachments: [{                     # аттачи
+      title: string                     # название файла
+      size: uint64                      # размер (байт)
+    }]
     stats: {                            # статистика
       rating: int64                     # рейтинг
     }
@@ -1577,6 +1589,10 @@
     }
     text: string                        # текст
     isCensored: bool                    # текст изъят модератором?
+    attachments: [{                     # аттачи
+      title: string                     # название файла
+      size: uint64                      # размер (байт)
+    }]
     stats: {                            # статистика
       rating: int64                     # рейтинг
     }
@@ -1681,6 +1697,10 @@
     }
     text: string                        # текст
     isCensored: bool                    # текст изъят модератором?
+    attachments: [{                     # аттачи
+      title: string                     # название файла
+      size: uint64                      # размер (байт)
+    }]
     stats: {                            # статистика
       rating: int64                     # рейтинг
     }
@@ -1772,6 +1792,10 @@
     }
     text: string                        # текст
     isCensored: bool                    # текст изъят модератором?
+    attachments: [{                     # аттачи
+      title: string                     # название файла
+      size: uint64                      # размер (байт)
+    }]
     stats: {                            # статистика
       rating: int64                     # рейтинг
     }

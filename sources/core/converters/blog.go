@@ -228,7 +228,8 @@ func GetArticle(dbBlogTopic *db.BlogTopic, viewCount uint64, attachments []helpe
 	gender := helpers.GetGender(dbBlogTopic.UserId, dbBlogTopic.Sex)
 	avatar := helpers.GetUserAvatarUrl(cfg.ImagesBaseURL, dbBlogTopic.UserId, dbBlogTopic.PhotoNumber)
 
-	var attaches []*pb.Common_Attachment
+	//noinspection GoPreferNilSlice
+	attaches := []*pb.Common_Attachment{}
 	for _, attachment := range attachments {
 		attaches = append(attaches, &pb.Common_Attachment{
 			Title: attachment.Name,

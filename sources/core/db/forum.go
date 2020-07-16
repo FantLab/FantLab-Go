@@ -90,6 +90,12 @@ type ForumMessage struct {
 	Number      uint64    `db:"number"`
 }
 
+type ForumMessageAttachment struct {
+	MessageId uint64 `db:"message_id"`
+	FileName  string `db:"file_name"`
+	FileSize  uint64 `db:"file_size"`
+}
+
 type ForumModerator struct {
 	UserID      uint64 `db:"user_id"`
 	Login       string `db:"login"`
@@ -104,10 +110,12 @@ type ForumTopicsDBResponse struct {
 }
 
 type ForumTopicMessagesDBResponse struct {
-	Topic              ShortForumTopic
-	PinnedFirstMessage ForumMessage
-	Messages           []ForumMessage
-	TotalMessagesCount uint64
+	Topic                         ShortForumTopic
+	PinnedFirstMessage            ForumMessage
+	PinnedFirstMessageAttachments []ForumMessageAttachment
+	Messages                      []ForumMessage
+	Attachments                   []ForumMessageAttachment
+	TotalMessagesCount            uint64
 }
 
 func (db *DB) FetchForums(ctx context.Context, availableForums []uint64) ([]Forum, error) {
@@ -199,7 +207,9 @@ func (db *DB) FetchTopicStarterCanEditFirstMessage(ctx context.Context, messageI
 func (db *DB) FetchTopicMessages(ctx context.Context, availableForums []uint64, topicID uint64, limit, offset int64, sortAsc bool) (response *ForumTopicMessagesDBResponse, err error) {
 	var shortTopic ShortForumTopic
 	var pinnedFirstMessage ForumMessage
+	var pinnedFirstMessageAttachments []ForumMessageAttachment
 	var messages []ForumMessage
+	var attachments []ForumMessageAttachment
 	var count int64
 
 	err = codeflow.Try(
@@ -237,18 +247,34 @@ func (db *DB) FetchTopicMessages(ctx context.Context, availableForums []uint64, 
 
 			return db.engine.Read(ctx, sqlapi.NewQuery(queries.ForumTopicMessages).Inject(sortDirection).WithArgs(topicID, minNumber, maxNumber), &messages)
 		},
+		func() error {
+			var messageIds []uint64
+			for _, message := range messages {
+				messageIds = append(messageIds, message.MessageID)
+			}
+			return db.engine.Read(ctx, sqlapi.NewQuery(queries.ForumGetTopicMessagesAttachments).WithArgs(messageIds).FlatArgs(), &attachments)
+		},
 	)
 
 	if shortTopic.IsFirstMessagePinned == 1 {
-		err = db.engine.Read(ctx, sqlapi.NewQuery(queries.ForumTopicFirstMessage).WithArgs(topicID), &pinnedFirstMessage)
+		err = codeflow.Try(
+			func() error {
+				return db.engine.Read(ctx, sqlapi.NewQuery(queries.ForumTopicFirstMessage).WithArgs(topicID), &pinnedFirstMessage)
+			},
+			func() error {
+				return db.engine.Read(ctx, sqlapi.NewQuery(queries.ForumGetTopicMessagesAttachments).WithArgs(pinnedFirstMessage.MessageID), &pinnedFirstMessageAttachments)
+			},
+		)
 	}
 
 	if err == nil {
 		response = &ForumTopicMessagesDBResponse{
-			Topic:              shortTopic,
-			PinnedFirstMessage: pinnedFirstMessage,
-			Messages:           messages,
-			TotalMessagesCount: uint64(count),
+			Topic:                         shortTopic,
+			PinnedFirstMessage:            pinnedFirstMessage,
+			PinnedFirstMessageAttachments: pinnedFirstMessageAttachments,
+			Messages:                      messages,
+			Attachments:                   attachments,
+			TotalMessagesCount:            uint64(count),
 		}
 	}
 

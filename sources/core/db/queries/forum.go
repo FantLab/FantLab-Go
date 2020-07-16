@@ -202,6 +202,17 @@ const (
 			f.date_of_add %s
 	`
 
+	ForumGetTopicMessagesAttachments = `
+		SELECT
+			message_id,
+			file_name,
+			file_size
+		FROM
+			f_files
+		WHERE
+			file_group = 'forum' AND message_id IN (?)
+	`
+
 	ForumTopicFirstMessage = `
 		SELECT
 			f.message_id,

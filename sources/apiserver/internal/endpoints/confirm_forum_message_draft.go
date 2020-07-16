@@ -121,7 +121,7 @@ func (api *API) ConfirmForumMessageDraft(r *http.Request) (int, proto.Message) {
 		_ = api.services.DeleteUserCache(r.Context(), user.UserId)
 	}
 
-	// TODO Удалить директорию с аттачами черновика (./public/files/preview/m_{user_id}_{topic_id})
+	// TODO Аттачи черновика сконвертировать в аттачи сообщения
 
 	messageResponse := converters.GetForumTopicMessage(dbMessage, api.services.AppConfig())
 

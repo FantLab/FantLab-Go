@@ -49,8 +49,10 @@ message Forum {
         string text = 3;
         // текст изъят модератором?
         bool is_censored = 4;
+        // аттачи
+        repeated Common.Attachment attachments = 5;
         // статистика
-        Stats stats = 5;
+        Stats stats = 6;
     }
 
     message Topic {
