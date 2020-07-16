@@ -6,6 +6,8 @@ services:
     ports:
       - ${PORT}:${PORT}
       - ${MONITORING_PORT}:${MONITORING_PORT}
+    volumes:
+      - ${FL_CACHE_DIR}:/cache
     networks:
       - general
     environment:
