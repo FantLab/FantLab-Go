@@ -159,17 +159,41 @@ func GetTopic(dbResponse *db.ForumTopicMessagesDBResponse, page, limit uint64, c
 		Title: dbResponse.Topic.ForumName,
 	}
 
+	//noinspection GoPreferNilSlice
+	pinnedMessageAttaches := []*pb.Common_Attachment{}
+
+	for _, forumMessageAttachment := range dbResponse.PinnedFirstMessageAttachments {
+		pinnedMessageAttaches = append(pinnedMessageAttaches, &pb.Common_Attachment{
+			Title: forumMessageAttachment.FileName,
+			Size:  forumMessageAttachment.FileSize,
+		})
+	}
+
 	var pinnedMessage *pb.Forum_TopicMessage
 
 	if dbResponse.PinnedFirstMessage != (db.ForumMessage{}) {
 		pinnedMessage = convertMessage(&dbResponse.PinnedFirstMessage, cfg)
+		// TODO Прокидывать аттачи в convertMessage? Проблема в GetForumTopicMessage - в него тогда тоже откуда-то
+		//  надо прокидывать список аттачей
+		pinnedMessage.Attachments = pinnedMessageAttaches
+	}
+
+	attachesMap := map[uint64][]*pb.Common_Attachment{}
+
+	for _, attachment := range dbResponse.Attachments {
+		attachesMap[attachment.MessageId] = append(attachesMap[attachment.MessageId], &pb.Common_Attachment{
+			Title: attachment.FileName,
+			Size:  attachment.FileSize,
+		})
 	}
 
 	//noinspection GoPreferNilSlice
 	messages := []*pb.Forum_TopicMessage{}
 
 	for _, dbMessage := range dbResponse.Messages {
-		messages = append(messages, convertMessage(&dbMessage, cfg))
+		message := convertMessage(&dbMessage, cfg)
+		message.Attachments = attachesMap[message.Id]
+		messages = append(messages, message)
 	}
 
 	pageCount := helpers.CalculatePageCount(dbResponse.TotalMessagesCount, limit)
