@@ -8,6 +8,8 @@ services:
       - ${MONITORING_PORT}:${MONITORING_PORT}
     volumes:
       - ${FL_CACHE_DIR}:/cache
+      - ${FL_FILES_DIR}:/files
+      - ${FL_FORUM_ATTACH_DIR}:/forum_attach
     networks:
       - general
     environment:
