@@ -224,9 +224,17 @@ func GetBlog(dbResponse *db.BlogTopicsDBResponse, viewCounts []uint64, page, lim
 	}
 }
 
-func GetArticle(dbBlogTopic *db.BlogTopic, viewCount uint64, cfg *config.AppConfig) *pb.Blog_BlogArticleResponse {
+func GetArticle(dbBlogTopic *db.BlogTopic, viewCount uint64, attachments []helpers.File, cfg *config.AppConfig) *pb.Blog_BlogArticleResponse {
 	gender := helpers.GetGender(dbBlogTopic.UserId, dbBlogTopic.Sex)
 	avatar := helpers.GetUserAvatarUrl(cfg.ImagesBaseURL, dbBlogTopic.UserId, dbBlogTopic.PhotoNumber)
+
+	var attaches []*pb.Common_Attachment
+	for _, attachment := range attachments {
+		attaches = append(attaches, &pb.Common_Attachment{
+			Title: attachment.Name,
+			Size:  attachment.Size,
+		})
+	}
 
 	article := &pb.Blog_Article{
 		Id:    dbBlogTopic.TopicId,
@@ -240,8 +248,9 @@ func GetArticle(dbBlogTopic *db.BlogTopic, viewCount uint64, cfg *config.AppConf
 			},
 			Date: pbutils.TimestampProto(dbBlogTopic.DateOfAdd),
 		},
-		Text: dbBlogTopic.MessageText,
-		Tags: dbBlogTopic.Tags,
+		Text:        dbBlogTopic.MessageText,
+		Tags:        dbBlogTopic.Tags,
+		Attachments: attaches,
 		Stats: &pb.Blog_Article_Stats{
 			LikeCount:    dbBlogTopic.LikesCount,
 			ViewCount:    viewCount,

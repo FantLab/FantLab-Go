@@ -14,7 +14,8 @@ services:
     networks:
       - flnetwork
     volumes:
-      - ${FL_CACHE_DIR}:/cache
-      - ${FL_FILES_DIR}:/files
-      - ${FL_FORUM_ATTACH_DIR}:/forum_attach
+      - ${CACHE_DIR}:/cache
+      - ${FILES_DIR}:/files
+      - ${FORUM_ATTACH_DIR}:/forum_attach
+      - ${BLOG_ATTACH_DIR}:/blog_attach
     env_file: app.env

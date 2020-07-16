@@ -747,6 +747,10 @@
     }
     text: string                        # текст
     tags: string                        # теги
+    attachments: [{                     # аттачи
+      title: string                     # название файла
+      size: uint64                      # размер (байт)
+    }]
     stats: {                            # статистика
       likeCount: uint64                 # количество лайков
       viewCount: uint64                 # количество просмотров
@@ -873,6 +877,10 @@
     }
     text: string                        # текст
     tags: string                        # теги
+    attachments: [{                     # аттачи
+      title: string                     # название файла
+      size: uint64                      # размер (байт)
+    }]
     stats: {                            # статистика
       likeCount: uint64                 # количество лайков
       viewCount: uint64                 # количество просмотров
@@ -895,7 +903,7 @@
 
 
 
-**GET** [/v1/blog_articles/{id}](../sources/apiserver/internal/endpoints/show_article.go#L13)
+**GET** [/v1/blog_articles/{id}](../sources/apiserver/internal/endpoints/show_article.go#L16)
 
 Параметры запроса:
 
@@ -926,6 +934,10 @@
     }
     text: string                        # текст
     tags: string                        # теги
+    attachments: [{                     # аттачи
+      title: string                     # название файла
+      size: uint64                      # размер (байт)
+    }]
     stats: {                            # статистика
       likeCount: uint64                 # количество лайков
       viewCount: uint64                 # количество просмотров
@@ -1400,7 +1412,7 @@
 
 
 
-**PUT** [/v1/response/{id}](../sources/apiserver/internal/endpoints/edit_response.go#L13)
+**PUT** [/v1/response/{id}](../sources/apiserver/internal/endpoints/edit_response.go#L14)
 
 Параметры запроса:
 
@@ -1458,7 +1470,7 @@
 
 
 
-**DELETE** [/v1/response/{id}](../sources/apiserver/internal/endpoints/delete_response.go#L12)
+**DELETE** [/v1/response/{id}](../sources/apiserver/internal/endpoints/delete_response.go#L13)
 
 Параметры запроса:
 
@@ -1581,7 +1593,7 @@
 
 
 
-**DELETE** [/v1/forum_messages/{id}](../sources/apiserver/internal/endpoints/delete_forum_message.go#L14)
+**DELETE** [/v1/forum_messages/{id}](../sources/apiserver/internal/endpoints/delete_forum_message.go#L15)
 
 Параметры запроса:
 
@@ -1776,7 +1788,7 @@
 
 
 
-**DELETE** [/v1/topics/{id}/message_draft](../sources/apiserver/internal/endpoints/cancel_forum_message_draft.go#L13)
+**DELETE** [/v1/topics/{id}/message_draft](../sources/apiserver/internal/endpoints/cancel_forum_message_draft.go#L14)
 
 Параметры запроса:
 
@@ -1909,7 +1921,7 @@
 Параметры запроса:
 
 
-* **id** (path, uint64) - айди статьи
+* **id** (path, uint64) - id статьи
 
 
 * **comment** (form, string) - текст комментария (непустой)
@@ -1954,7 +1966,7 @@
 
 
 
-**PUT** [/v1/blog_article_comments/{id}](../sources/apiserver/internal/endpoints/edit_blog_article_comment.go#L13)
+**PUT** [/v1/blog_article_comments/{id}](../sources/apiserver/internal/endpoints/edit_blog_article_comment.go#L14)
 
 Параметры запроса:
 
@@ -2001,7 +2013,7 @@
 
 
 
-**DELETE** [/v1/blog_article_comments/{id}](../sources/apiserver/internal/endpoints/delete_blog_article_comment.go#L12)
+**DELETE** [/v1/blog_article_comments/{id}](../sources/apiserver/internal/endpoints/delete_blog_article_comment.go#L13)
 
 Параметры запроса:
 

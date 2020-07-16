@@ -61,8 +61,10 @@ message Blog {
         string text = 4;
         // теги
         string tags = 5;
+        // аттачи
+        repeated Common.Attachment attachments = 6;
         // статистика
-        Stats stats = 6;
+        Stats stats = 7;
     }
 
     message Blog {
