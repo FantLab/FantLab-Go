@@ -90,12 +90,9 @@ func (api *API) DeleteForumMessage(r *http.Request) (int, proto.Message) {
 		}
 	}
 
-	api.services.DeleteFiles(r.Context(), app.ForumMessageFileGroup, dbMessage.MessageID)
-
 	helpers.DeleteForumMessageTextCache(dbMessage.MessageID)
-
-	// TODO:
-	//  - удалить Perl-аттачи сообщения вместе с директорией
+	helpers.DeleteForumMessageAttachments(dbMessage.MessageID)
+	api.services.DeleteFiles(r.Context(), app.ForumMessageFileGroup, dbMessage.MessageID)
 
 	return http.StatusOK, &pb.Common_SuccessResponse{}
 }

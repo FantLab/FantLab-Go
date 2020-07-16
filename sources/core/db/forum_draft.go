@@ -86,6 +86,6 @@ func (db *DB) ConfirmForumMessageDraft(ctx context.Context, topic *ForumTopic, u
 	return &message, nil
 }
 
-func (db *DB) DeleteForumMessageDraft(ctx context.Context, topicId, draftId, userId uint64) error {
+func (db *DB) DeleteForumMessageDraft(ctx context.Context, topicId, userId uint64) error {
 	return db.engine.Write(ctx, sqlapi.NewQuery(queries.ForumDeleteForumMessagePreview).WithArgs(topicId, userId)).Error
 }

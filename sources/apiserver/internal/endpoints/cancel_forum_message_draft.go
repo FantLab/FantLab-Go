@@ -3,6 +3,7 @@ package endpoints
 import (
 	"fantlab/core/app"
 	"fantlab/core/db"
+	"fantlab/core/helpers"
 	"fantlab/pb"
 	"net/http"
 	"strconv"
@@ -46,9 +47,9 @@ func (api *API) CancelForumMessageDraft(r *http.Request) (int, proto.Message) {
 		}
 	}
 
-	user := api.getUser(r)
+	userId := api.getUserId(r)
 
-	dbMessageDraft, err := api.services.DB().FetchForumMessageDraft(r.Context(), dbTopic.TopicId, user.UserId)
+	dbMessageDraft, err := api.services.DB().FetchForumMessageDraft(r.Context(), dbTopic.TopicId, userId)
 
 	if err != nil {
 		if db.IsNotFoundError(err) {
@@ -63,7 +64,7 @@ func (api *API) CancelForumMessageDraft(r *http.Request) (int, proto.Message) {
 		}
 	}
 
-	err = api.services.DB().DeleteForumMessageDraft(r.Context(), dbTopic.TopicId, dbMessageDraft.DraftId, user.UserId)
+	err = api.services.DB().DeleteForumMessageDraft(r.Context(), dbTopic.TopicId, userId)
 
 	if err != nil {
 		return http.StatusInternalServerError, &pb.Error_Response{
@@ -71,11 +72,8 @@ func (api *API) CancelForumMessageDraft(r *http.Request) (int, proto.Message) {
 		}
 	}
 
+	helpers.DeleteForumMessageDraftAttachments(userId, dbTopic.TopicId)
 	api.services.DeleteFiles(r.Context(), app.ForumMessageDraftFileGroup, dbMessageDraft.DraftId)
-
-	// TODO:
-	//  - удалить кеш текста черновика (если есть)
-	//  - удалить Perl-аттачи черновика вместе с директорией (./public/files/preview/m_{user_id}_{topic_id})
 
 	return http.StatusOK, &pb.Common_SuccessResponse{}
 }
