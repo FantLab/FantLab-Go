@@ -2,6 +2,7 @@ package app
 
 import (
 	"context"
+	"fantlab/core/helpers"
 	"fantlab/core/logs"
 	"fmt"
 	"path/filepath"
@@ -11,12 +12,8 @@ import (
 const (
 	ForumMessageFileGroup      = "forum_message"
 	ForumMessageDraftFileGroup = "forum_message_draft"
+	BlogArticleFileGroup       = "blog_article"
 )
-
-type File struct {
-	Name string
-	Size uint64
-}
 
 func (s *Services) GetFileUploadUrl(ctx context.Context, fileGroup string, holderId uint64, fileName string) (string, error) {
 	objectName := fmt.Sprintf("%s/%d/%s", fileGroup, holderId, fileName)
@@ -32,7 +29,7 @@ func (s *Services) GetFileUploadUrl(ctx context.Context, fileGroup string, holde
 	return url.String(), nil
 }
 
-func (s *Services) GetFiles(ctx context.Context, fileGroup string, holderId uint64) ([]File, error) {
+func (s *Services) GetFiles(ctx context.Context, fileGroup string, holderId uint64) ([]helpers.File, error) {
 	doneCh := make(chan struct{})
 	defer close(doneCh)
 
@@ -40,7 +37,7 @@ func (s *Services) GetFiles(ctx context.Context, fileGroup string, holderId uint
 
 	objectCh := s.minioClient.ListObjectsV2(s.minioBucket, prefix, true, doneCh)
 
-	var files []File
+	var files []helpers.File
 	for object := range objectCh {
 		if object.Err != nil {
 			err := object.Err
@@ -49,7 +46,7 @@ func (s *Services) GetFiles(ctx context.Context, fileGroup string, holderId uint
 		}
 
 		_, fileName := filepath.Split(object.Key)
-		files = append(files, File{
+		files = append(files, helpers.File{
 			Name: fileName,
 			Size: uint64(object.Size),
 		})

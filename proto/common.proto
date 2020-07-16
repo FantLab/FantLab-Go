@@ -64,6 +64,13 @@ message Common {
         uint64 count = 2;
     }
 
+    message Attachment {
+        // название файла
+        string title = 1;
+        // размер (байт)
+        uint64 size = 2;
+    }
+
     message SuccessResponse {}
 
     message SuccessIdResponse {
