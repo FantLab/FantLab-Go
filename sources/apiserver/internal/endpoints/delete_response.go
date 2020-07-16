@@ -2,6 +2,7 @@ package endpoints
 
 import (
 	"fantlab/core/db"
+	"fantlab/core/helpers"
 	"fantlab/pb"
 	"net/http"
 	"strconv"
@@ -60,7 +61,7 @@ func (api *API) DeleteResponse(r *http.Request) (int, proto.Message) {
 	_ = api.services.DeleteUserCache(r.Context(), dbResponse.UserId)
 	_ = api.services.DeleteHomepageResponsesCache(r.Context())
 
-	// TODO Удалить файловый кеш отзыва
+	helpers.DeleteResponseTextCache(dbResponse.ResponseId)
 
 	return http.StatusOK, &pb.Common_SuccessResponse{}
 }

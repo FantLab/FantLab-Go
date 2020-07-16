@@ -9,3 +9,7 @@ func DeleteForumMessageTextCache(messageId uint64) {
 func DeleteBlogCommentTextCache(commentId uint64) {
 	_ = os.Remove("/cache/blog_comments/" + IdToRelativeFilePath(commentId, 2))
 }
+
+func DeleteResponseTextCache(responseId uint64) {
+	_ = os.Remove("/cache/responses/" + IdToRelativeFilePath(responseId, 3))
+}
