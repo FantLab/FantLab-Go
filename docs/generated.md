@@ -442,7 +442,7 @@
 
 
 
-**GET** [/v1/topics/{id}](../sources/apiserver/internal/endpoints/show_topic_messages.go#L14)
+**GET** [/v1/topics/{id}](../sources/apiserver/internal/endpoints/show_topic_messages.go#L15)
 
 Параметры запроса:
 
@@ -559,7 +559,7 @@
     text: string                        # текст
     isCensored: bool                    # текст изъят модератором?
     attachments: [{                     # аттачи
-      title: string                     # название файла
+      name: string                      # название файла
       size: uint64                      # размер (байт)
     }]
     stats: {                            # статистика
@@ -583,7 +583,7 @@
     text: string                        # текст
     isCensored: bool                    # текст изъят модератором?
     attachments: [{                     # аттачи
-      title: string                     # название файла
+      name: string                      # название файла
       size: uint64                      # размер (байт)
     }]
     stats: {                            # статистика
@@ -756,7 +756,7 @@
     text: string                        # текст
     tags: string                        # теги
     attachments: [{                     # аттачи
-      title: string                     # название файла
+      name: string                      # название файла
       size: uint64                      # размер (байт)
     }]
     stats: {                            # статистика
@@ -886,7 +886,7 @@
     text: string                        # текст
     tags: string                        # теги
     attachments: [{                     # аттачи
-      title: string                     # название файла
+      name: string                      # название файла
       size: uint64                      # размер (байт)
     }]
     stats: {                            # статистика
@@ -911,7 +911,7 @@
 
 
 
-**GET** [/v1/blog_articles/{id}](../sources/apiserver/internal/endpoints/show_article.go#L16)
+**GET** [/v1/blog_articles/{id}](../sources/apiserver/internal/endpoints/show_article.go#L15)
 
 Параметры запроса:
 
@@ -943,7 +943,7 @@
     text: string                        # текст
     tags: string                        # теги
     attachments: [{                     # аттачи
-      title: string                     # название файла
+      name: string                      # название файла
       size: uint64                      # размер (байт)
     }]
     stats: {                            # статистика
@@ -1537,7 +1537,7 @@
     text: string                        # текст
     isCensored: bool                    # текст изъят модератором?
     attachments: [{                     # аттачи
-      title: string                     # название файла
+      name: string                      # название файла
       size: uint64                      # размер (байт)
     }]
     stats: {                            # статистика
@@ -1590,7 +1590,7 @@
     text: string                        # текст
     isCensored: bool                    # текст изъят модератором?
     attachments: [{                     # аттачи
-      title: string                     # название файла
+      name: string                      # название файла
       size: uint64                      # размер (байт)
     }]
     stats: {                            # статистика
@@ -1698,7 +1698,7 @@
     text: string                        # текст
     isCensored: bool                    # текст изъят модератором?
     attachments: [{                     # аттачи
-      title: string                     # название файла
+      name: string                      # название файла
       size: uint64                      # размер (байт)
     }]
     stats: {                            # статистика
@@ -1793,7 +1793,7 @@
     text: string                        # текст
     isCensored: bool                    # текст изъят модератором?
     attachments: [{                     # аттачи
-      title: string                     # название файла
+      name: string                      # название файла
       size: uint64                      # размер (байт)
     }]
     stats: {                            # статистика

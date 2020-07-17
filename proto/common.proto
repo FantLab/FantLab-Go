@@ -66,7 +66,7 @@ message Common {
 
     message Attachment {
         // название файла
-        string title = 1;
+        string name = 1;
         // размер (байт)
         uint64 size = 2;
     }

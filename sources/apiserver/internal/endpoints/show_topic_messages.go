@@ -1,6 +1,7 @@
 package endpoints
 
 import (
+	"fantlab/core/app"
 	"fantlab/core/converters"
 	"fantlab/core/db"
 	"fantlab/core/helpers"
@@ -66,6 +67,29 @@ func (api *API) ShowTopicMessages(r *http.Request) (int, proto.Message) {
 		}
 	}
 
-	topicMessages := converters.GetTopic(dbResponse, params.Page, params.Limit, api.services.AppConfig())
+	attachmentsMap := map[uint64][]helpers.File{}
+	if dbResponse.PinnedFirstMessage != (db.ForumMessage{}) {
+		pinnedFirstMessageId := dbResponse.PinnedFirstMessage.MessageID
+		for _, attachment := range dbResponse.PinnedFirstMessageAttachments {
+			attachmentsMap[pinnedFirstMessageId] = append(attachmentsMap[pinnedFirstMessageId], helpers.File{
+				Name: attachment.FileName,
+				Size: attachment.FileSize,
+			})
+		}
+		messageFiles, _ := api.services.GetFiles(r.Context(), app.ForumMessageFileGroup, pinnedFirstMessageId)
+		attachmentsMap[pinnedFirstMessageId] = append(attachmentsMap[pinnedFirstMessageId], messageFiles...)
+	}
+	for _, attachment := range dbResponse.Attachments {
+		attachmentsMap[attachment.MessageId] = append(attachmentsMap[attachment.MessageId], helpers.File{
+			Name: attachment.FileName,
+			Size: attachment.FileSize,
+		})
+	}
+	for _, message := range dbResponse.Messages {
+		messageFiles, _ := api.services.GetFiles(r.Context(), app.ForumMessageFileGroup, message.MessageID)
+		attachmentsMap[message.MessageID] = append(attachmentsMap[message.MessageID], messageFiles...)
+	}
+
+	topicMessages := converters.GetTopic(dbResponse, attachmentsMap, params.Page, params.Limit, api.services.AppConfig())
 	return http.StatusOK, topicMessages
 }
