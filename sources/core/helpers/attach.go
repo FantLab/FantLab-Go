@@ -9,7 +9,7 @@ import (
 func GetBlogArticleAttachments(articleId uint64) ([]File, error) {
 	var attachments []File
 
-	files, err := ioutil.ReadDir(fmt.Sprintf("/blog_attach/b%d", articleId))
+	files, err := ioutil.ReadDir(fmt.Sprintf("/blog_files/b%d", articleId))
 	if err != nil {
 		return nil, err
 	}

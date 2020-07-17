@@ -7,7 +7,6 @@ import (
 	"fantlab/core/helpers"
 	"fantlab/pb"
 	"net/http"
-	"sort"
 	"strconv"
 
 	"google.golang.org/protobuf/proto"
@@ -53,9 +52,6 @@ func (api *API) ShowArticle(r *http.Request) (int, proto.Message) {
 	attachments, _ := helpers.GetBlogArticleAttachments(dbTopic.TopicId)
 	files, _ := api.services.GetFiles(r.Context(), app.BlogArticleFileGroup, dbTopic.TopicId)
 	attachments = append(attachments, files...)
-	sort.Slice(attachments, func(i, j int) bool {
-		return attachments[i].Name < attachments[j].Name
-	})
 
 	article := converters.GetArticle(dbTopic, viewCounts[0], attachments, api.services.AppConfig())
 	return http.StatusOK, article

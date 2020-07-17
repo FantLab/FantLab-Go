@@ -10,7 +10,7 @@ services:
       - ${CACHE_DIR}:/cache
       - ${FILES_DIR}:/files
       - ${FORUM_ATTACH_DIR}:/forum_attach
-      - ${BLOG_ATTACH_DIR}:/blog_attach
+      - ${BLOG_FILES_DIR}:/blog_files
     networks:
       - general
     environment:

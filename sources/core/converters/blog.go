@@ -232,8 +232,8 @@ func GetArticle(dbBlogTopic *db.BlogTopic, viewCount uint64, attachments []helpe
 	attaches := []*pb.Common_Attachment{}
 	for _, attachment := range attachments {
 		attaches = append(attaches, &pb.Common_Attachment{
-			Title: attachment.Name,
-			Size:  attachment.Size,
+			Name: attachment.Name,
+			Size: attachment.Size,
 		})
 	}
 

@@ -148,7 +148,7 @@ func GetForumTopics(dbResponse *db.ForumTopicsDBResponse, page, limit uint64, cf
 	}
 }
 
-func GetTopic(dbResponse *db.ForumTopicMessagesDBResponse, page, limit uint64, cfg *config.AppConfig) *pb.Forum_ForumTopicResponse {
+func GetTopic(dbResponse *db.ForumTopicMessagesDBResponse, attachmentsMap map[uint64][]helpers.File, page, limit uint64, cfg *config.AppConfig) *pb.Forum_ForumTopicResponse {
 	topic := &pb.Forum_Topic{
 		Id:    dbResponse.Topic.TopicID,
 		Title: dbResponse.Topic.TopicName,
@@ -159,14 +159,14 @@ func GetTopic(dbResponse *db.ForumTopicMessagesDBResponse, page, limit uint64, c
 		Title: dbResponse.Topic.ForumName,
 	}
 
-	//noinspection GoPreferNilSlice
-	pinnedMessageAttaches := []*pb.Common_Attachment{}
-
-	for _, forumMessageAttachment := range dbResponse.PinnedFirstMessageAttachments {
-		pinnedMessageAttaches = append(pinnedMessageAttaches, &pb.Common_Attachment{
-			Title: forumMessageAttachment.FileName,
-			Size:  forumMessageAttachment.FileSize,
-		})
+	attaches := map[uint64][]*pb.Common_Attachment{}
+	for messageId, attachment := range attachmentsMap {
+		for _, attach := range attachment {
+			attaches[messageId] = append(attaches[messageId], &pb.Common_Attachment{
+				Name: attach.Name,
+				Size: attach.Size,
+			})
+		}
 	}
 
 	var pinnedMessage *pb.Forum_TopicMessage
@@ -175,16 +175,7 @@ func GetTopic(dbResponse *db.ForumTopicMessagesDBResponse, page, limit uint64, c
 		pinnedMessage = convertMessage(&dbResponse.PinnedFirstMessage, cfg)
 		// TODO Прокидывать аттачи в convertMessage? Проблема в GetForumTopicMessage - в него тогда тоже откуда-то
 		//  надо прокидывать список аттачей
-		pinnedMessage.Attachments = pinnedMessageAttaches
-	}
-
-	attachesMap := map[uint64][]*pb.Common_Attachment{}
-
-	for _, attachment := range dbResponse.Attachments {
-		attachesMap[attachment.MessageId] = append(attachesMap[attachment.MessageId], &pb.Common_Attachment{
-			Title: attachment.FileName,
-			Size:  attachment.FileSize,
-		})
+		pinnedMessage.Attachments = attaches[pinnedMessage.Id]
 	}
 
 	//noinspection GoPreferNilSlice
@@ -192,7 +183,7 @@ func GetTopic(dbResponse *db.ForumTopicMessagesDBResponse, page, limit uint64, c
 
 	for _, dbMessage := range dbResponse.Messages {
 		message := convertMessage(&dbMessage, cfg)
-		message.Attachments = attachesMap[message.Id]
+		message.Attachments = attaches[message.Id]
 		messages = append(messages, message)
 	}
 
