@@ -47,6 +47,71 @@ func (db *DB) FetchResponseUserVoteCount(ctx context.Context, userId, responseId
 	return count, nil
 }
 
+func (db *DB) FetchUserResponseCountForWork(ctx context.Context, userId, workId uint64) (uint64, error) {
+	var count uint64
+
+	err := db.engine.Read(ctx, sqlapi.NewQuery(queries.ResponseGetUserResponseCountForWork).WithArgs(userId, workId), &count)
+
+	if err != nil {
+		return 0, err
+	}
+
+	return count, nil
+}
+
+func (db *DB) FetchSuchUserResponseCountForWork(ctx context.Context, userId, workId uint64, response string) (uint64, error) {
+	var suchResponseCount uint64
+
+	err := db.engine.Read(ctx, sqlapi.NewQuery(queries.ResponseGetSuchUserResponseCountForWork).WithArgs(userId, workId, response), &suchResponseCount)
+
+	if err != nil {
+		return 0, err
+	}
+
+	return suchResponseCount, nil
+}
+
+func (db *DB) InsertResponse(ctx context.Context, userId, workId uint64, workAuthorIds []uint64, response string) error {
+	var registeredWorkAutorIds []uint64
+
+	return db.engine.InTransaction(func(rw sqlapi.ReaderWriter) error {
+		return codeflow.Try(
+			func() error { // Удаляем черновик
+				return rw.Write(ctx, sqlapi.NewQuery(queries.ResponseDeleteResponsePreview).WithArgs(userId, workId)).Error
+			},
+			func() error { // Создаем отзыв
+				return rw.Write(ctx, sqlapi.NewQuery(queries.ResponseInsertResponse).WithArgs(userId, workId, response)).Error
+			},
+			func() error { // Получаем список авторов произведения, которые зарегистрированы на сайте
+				return rw.Read(ctx, sqlapi.NewQuery(queries.WorkGetRegisteredWorkAutorIds).WithArgs(workId), &registeredWorkAutorIds)
+			},
+			func() error { // Инкрементим счетчик количества новых отзывов у авторов, зарегистрированных на сайте
+				if len(registeredWorkAutorIds) > 0 && registeredWorkAutorIds[0] != 0 {
+					return rw.Write(ctx, sqlapi.NewQuery(queries.AutorIncrementAutorsNewResponseCount).WithArgs(registeredWorkAutorIds).FlatArgs()).Error
+				} else {
+					return nil
+				}
+			},
+			func() error { // Выставляем флаги для Cron-а о необходимости пересчета статистики авторов
+				if len(workAuthorIds) > 0 {
+					return rw.Write(ctx, sqlapi.NewQuery(queries.AutorMarkAutorsNeedRecalcStats).WithArgs(workAuthorIds).FlatArgs()).Error
+				} else {
+					return nil
+				}
+			},
+			func() error { // Инкрементим счетчик количества отзывов пользователя
+				return rw.Write(ctx, sqlapi.NewQuery(queries.UserIncrementResponseCount).WithArgs(userId)).Error
+			},
+			func() error { // Выставляем флаг для Cron-а о необходимости пересчета уровня развития пользователя
+				return rw.Write(ctx, sqlapi.NewQuery(queries.UserMarkUserNeedLevelRecalc).WithArgs(userId)).Error
+			},
+			func() error { // Инкрементим счетчик количества отзывов на произведение
+				return rw.Write(ctx, sqlapi.NewQuery(queries.WorkInsertResponseCount).WithArgs(workId)).Error
+			},
+		)
+	})
+}
+
 func (db *DB) UpdateResponse(ctx context.Context, responseId uint64, response string, userId uint64) error {
 	return db.engine.InTransaction(func(rw sqlapi.ReaderWriter) error {
 		return codeflow.Try(
@@ -113,11 +178,11 @@ func (db *DB) DeleteResponse(ctx context.Context, responseId, workId, userId uin
 			func() error { // Уменьшаем счетчик количества отзывов пользователя
 				return rw.Write(ctx, sqlapi.NewQuery(queries.UserDecrementResponseCount).WithArgs(userId)).Error
 			},
-			func() error { // Уменьшаем счетчик количества отзывов на произведение
-				return rw.Write(ctx, sqlapi.NewQuery(queries.WorkDecrementResponseCount).WithArgs(workId)).Error
-			},
 			func() error { // Выставляем флаг для Cron-а о необходимости пересчета уровня развития пользователя
 				return rw.Write(ctx, sqlapi.NewQuery(queries.UserMarkUserNeedLevelRecalc).WithArgs(userId)).Error
+			},
+			func() error { // Уменьшаем счетчик количества отзывов на произведение
+				return rw.Write(ctx, sqlapi.NewQuery(queries.WorkDecrementResponseCount).WithArgs(workId)).Error
 			},
 		)
 	})

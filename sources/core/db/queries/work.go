@@ -3,6 +3,21 @@ package queries
 const (
 	WorkExists = "SELECT 1 FROM works WHERE work_id = ?"
 
+	WorkGetWork = `
+		SELECT
+			work_id,
+			name,
+			autor_id,
+			autor2_id,
+			autor3_id,
+			autor4_id,
+			autor5_id
+		FROM
+			works
+		WHERE
+			work_id = ?
+	`
+
 	WorkGetWorks = `
 		SELECT
 			work_id,
@@ -70,6 +85,20 @@ const (
 			w.work_id = ?
 	`
 
+	WorkInsertResponseCount = `
+		INSERT INTO
+			work_stats (
+				work_id,
+				responsecount
+			)
+		VALUES
+			(?, 1)
+		ON DUPLICATE KEY UPDATE
+			responsecount = responsecount + 1
+	`
+
+	// NOTE Неясно, что представляет собой поле responsecount1 и почему оно изменяется при удалении отзыва, но не
+	// трогается при добавлении
 	WorkDecrementResponseCount = `
 		UPDATE
 			work_stats

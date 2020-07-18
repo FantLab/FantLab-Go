@@ -4,11 +4,11 @@ import (
 	"fantlab/core/db"
 	"fantlab/core/helpers"
 	"fantlab/pb"
+	"fmt"
+	"google.golang.org/protobuf/proto"
 	"net/http"
 	"strconv"
 	"strings"
-
-	"google.golang.org/protobuf/proto"
 )
 
 func (api *API) EditResponse(r *http.Request) (int, proto.Message) {
@@ -40,6 +40,19 @@ func (api *API) EditResponse(r *http.Request) (int, proto.Message) {
 		}
 	}
 
+	// TODO: В Perl-бэке два бага, связанных с отличиями от добавления отзыва. Во-первых, длина проверяется только на
+	//  пустоту, а должна на то, что длина не меньше минимальной. Во-вторых, не вырезаются смайлы. Это дает возможность
+	//  все-таки добавить смайлы в текст, что, в сочетании с багом рендеринга отзывов в ленте на главной, позволяет их
+	//  отрисовать в тексте
+	formattedResponse := helpers.RemoveSmiles(strings.TrimSpace(params.Response), api.services.AppConfig().Smiles)
+
+	if uint64(len(formattedResponse)) < api.services.AppConfig().MinResponseLength {
+		return http.StatusForbidden, &pb.Error_Response{
+			Status:  pb.Error_ACTION_PERMITTED,
+			Context: fmt.Sprintf("Текст сообщения слишком короткий (меньше %d символов после удаления смайлов)", api.services.AppConfig().MinResponseLength),
+		}
+	}
+
 	userId := api.getUserId(r)
 
 	userCanEditAnyResponses := api.isPermissionGranted(r, pb.Auth_Claims_PERMISSION_CAN_EDIT_ANY_RESPONSES)
@@ -51,14 +64,7 @@ func (api *API) EditResponse(r *http.Request) (int, proto.Message) {
 		}
 	}
 
-	if len(params.Response) == 0 || len(strings.TrimSpace(params.Response)) == 0 {
-		return http.StatusForbidden, &pb.Error_Response{
-			Status:  pb.Error_ACTION_PERMITTED,
-			Context: "Текст отзыва пустой",
-		}
-	}
-
-	err = api.services.DB().UpdateResponse(r.Context(), dbResponse.ResponseId, params.Response, dbResponse.UserId)
+	err = api.services.DB().UpdateResponse(r.Context(), dbResponse.ResponseId, formattedResponse, dbResponse.UserId)
 
 	if err != nil {
 		return http.StatusInternalServerError, &pb.Error_Response{

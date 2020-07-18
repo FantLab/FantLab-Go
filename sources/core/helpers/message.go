@@ -1,7 +1,9 @@
 package helpers
 
 import (
+	"fmt"
 	"regexp"
+	"strings"
 )
 
 var (
@@ -51,6 +53,16 @@ func RemoveImmeasurable(message string) string {
 	result = quoteTagsRegex.ReplaceAllLiteralString(result, "")
 	// удаляем все нерусские символы
 	result = nonRussianCharactersRegex.ReplaceAllLiteralString(result, "")
+
+	return result
+}
+
+// Удаляет смайлы
+func RemoveSmiles(message string, smiles []string) string {
+	result := message
+
+	smilesRegex := regexp.MustCompile(fmt.Sprintf(":(%s):", strings.Join(smiles, "|")))
+	result = smilesRegex.ReplaceAllLiteralString(result, "")
 
 	return result
 }

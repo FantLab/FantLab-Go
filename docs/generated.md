@@ -1415,6 +1415,34 @@
 </p>
 </details>
 
+<details><summary>Создание отзыва на произведение</summary>
+<p>
+
+
+
+**POST** [/v1/work/{id}/response](../sources/apiserver/internal/endpoints/add_response.go#L15)
+
+Параметры запроса:
+
+
+* **id** (path, uint64) - id произведения
+
+
+* **response** (form, string) - текст отзыва
+
+
+
+
+Схема ответа:
+
+```
+{}
+```
+---
+
+</p>
+</details>
+
 <details><summary>Редактирование отзыва на произведение</summary>
 <p>
 

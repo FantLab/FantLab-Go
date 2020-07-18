@@ -279,7 +279,9 @@ func (db *DB) FetchWorkBookcase(ctx context.Context, bookcaseId, limit, offset u
 				if err == nil {
 					for _, work := range works {
 						workIds = append(workIds, work.WorkId)
-						autorIds = append(autorIds, work.AutorId)
+						if work.AutorId != 0 {
+							autorIds = append(autorIds, work.AutorId)
+						}
 						if work.Autor2Id != 0 {
 							autorIds = append(autorIds, work.Autor2Id)
 						}
@@ -297,13 +299,17 @@ func (db *DB) FetchWorkBookcase(ctx context.Context, bookcaseId, limit, offset u
 				return err
 			},
 			func() error { // Получаем данные по авторам
-				err := rw.Read(ctx, sqlapi.NewQuery(queries.BookcaseGetWorksAutors).WithArgs(autorIds).FlatArgs(), &autors)
-				if err == nil {
-					for _, autor := range autors {
-						autorsMap[autor.AutorId] = autor
+				if len(autorIds) > 0 {
+					err := rw.Read(ctx, sqlapi.NewQuery(queries.BookcaseGetWorksAutors).WithArgs(autorIds).FlatArgs(), &autors)
+					if err == nil {
+						for _, autor := range autors {
+							autorsMap[autor.AutorId] = autor
+						}
 					}
+					return err
+				} else {
+					return nil
 				}
-				return err
 			},
 			func() error {
 				if userId != 0 { // Получаем список оценок самого пользователя произведениям с полки
