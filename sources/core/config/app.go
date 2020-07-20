@@ -27,5 +27,5 @@ type AppConfig struct {
 	BotUserId                                uint64
 	MaxAttachCountPerMessage                 uint64
 	BookcaseItemInPage                       uint64
-	Smiles                                   []string
+	Smiles                                   *Smiles
 }

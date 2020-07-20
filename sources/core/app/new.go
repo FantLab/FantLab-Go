@@ -202,13 +202,13 @@ func MakeServices() (*Services, error, []func() error) {
 				BotUserId:                 2, // Р. Букашка
 				MaxAttachCountPerMessage:  10,
 				BookcaseItemInPage:        50,
-				Smiles: []string{"smile", "wink", "glasses", "biggrin", "gigi", "lol", "haha", "frown", "confused", "insane",
-					"weep", "abuse", "mad", "dont", "eek", "blush", "super", "pray", "box", "beer", "shuffle", "rev", "tired",
-					"hihiks", "superkiss", "hb", "kiss2", "wink2", "love", "gun", "nunu2", "gy", "help", "hmm", "kap", "kult",
-					"rom", "sad", "shock", "sla", "wht", "yar", "yaya", "glum", "alc", "friends", "appl", "bigeyes2", "bye",
-					"cool", "drink", "facepalm", "kar", "lady", "mafia", "rolleyes", "spy", "roof", "silly", "lam", "inv",
-					"leb", "val", "snuffy", "popcorn", "eyes", "glad2", "gorgeous", "kiss", "ninja", "nunu", "redface",
-					"sleep", "sleep2", "surprise", "tongue"},
+				Smiles: config.MakeSmiles([]string{"smile", "wink", "glasses", "biggrin", "gigi", "lol", "haha", "frown",
+					"confused", "insane", "weep", "abuse", "mad", "dont", "eek", "blush", "super", "pray", "box", "beer",
+					"shuffle", "rev", "tired", "hihiks", "superkiss", "hb", "kiss2", "wink2", "love", "gun", "nunu2", "gy",
+					"help", "hmm", "kap", "kult", "rom", "sad", "shock", "sla", "wht", "yar", "yaya", "glum", "alc", "friends",
+					"appl", "bigeyes2", "bye", "cool", "drink", "facepalm", "kar", "lady", "mafia", "rolleyes", "spy", "roof",
+					"silly", "lam", "inv", "leb", "val", "snuffy", "popcorn", "eyes", "glad2", "gorgeous", "kiss", "ninja",
+					"nunu", "redface", "sleep", "sleep2", "surprise", "tongue"}),
 			}
 			return nil
 		},

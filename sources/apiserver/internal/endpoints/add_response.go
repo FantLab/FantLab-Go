@@ -2,7 +2,6 @@ package endpoints
 
 import (
 	"fantlab/core/db"
-	"fantlab/core/helpers"
 	"fantlab/pb"
 	"fmt"
 	"net/http"
@@ -47,7 +46,7 @@ func (api *API) AddResponse(r *http.Request) (int, proto.Message) {
 	// TODO: В Perl-бэке два бага. Во-первых, не обрезаются пробельные символы по краям текста (в отличие от
 	//  редактирования). Во-вторых, длина текста проверяется до вырезания смайлов. Это значит, что, к примеру, отзыв,
 	//  состоящий из одних смайлов, будет успешно добавлен как пустой
-	formattedResponse := helpers.RemoveSmiles(strings.TrimSpace(params.Response), api.services.AppConfig().Smiles)
+	formattedResponse := api.services.AppConfig().Smiles.RemoveFromString(strings.TrimSpace(params.Response))
 
 	if uint64(len(formattedResponse)) < api.services.AppConfig().MinResponseLength {
 		return http.StatusForbidden, &pb.Error_Response{
@@ -69,7 +68,7 @@ func (api *API) AddResponse(r *http.Request) (int, proto.Message) {
 	if userResponseCountForWork >= api.services.AppConfig().MaxUserResponseCountPerWork {
 		return http.StatusForbidden, &pb.Error_Response{
 			Status:  pb.Error_ACTION_PERMITTED,
-			Context: fmt.Sprintf("Вы уже написали достаточно отзывов (%d) на данное произведение", userResponseCountForWork),
+			Context: fmt.Sprintf("На одно произведение можно написать не больше %d отзывов", api.services.AppConfig().MaxUserResponseCountPerWork),
 		}
 	}
 

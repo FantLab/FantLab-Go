@@ -44,7 +44,7 @@ func (api *API) EditResponse(r *http.Request) (int, proto.Message) {
 	//  пустоту, а должна на то, что длина не меньше минимальной. Во-вторых, не вырезаются смайлы. Это дает возможность
 	//  все-таки добавить смайлы в текст, что, в сочетании с багом рендеринга отзывов в ленте на главной, позволяет их
 	//  отрисовать в тексте
-	formattedResponse := helpers.RemoveSmiles(strings.TrimSpace(params.Response), api.services.AppConfig().Smiles)
+	formattedResponse := api.services.AppConfig().Smiles.RemoveFromString(strings.TrimSpace(params.Response))
 
 	if uint64(len(formattedResponse)) < api.services.AppConfig().MinResponseLength {
 		return http.StatusForbidden, &pb.Error_Response{
