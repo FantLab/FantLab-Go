@@ -54,6 +54,15 @@ const (
 			user_id = ?
 	`
 
+	UserIncrementResponseCount = `
+		UPDATE
+			users
+		SET
+			responsecount = responsecount + 1
+		WHERE
+			user_id = ?
+	`
+
 	UserDecrementResponseCount = `
 		UPDATE
 			users

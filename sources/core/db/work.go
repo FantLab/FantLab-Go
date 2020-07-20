@@ -8,8 +8,13 @@ import (
 )
 
 type Work struct {
-	WorkId uint64 `db:"work_id"`
-	Name   string `db:"name"`
+	WorkId   uint64 `db:"work_id"`
+	Name     string `db:"name"`
+	AutorId  uint64 `db:"autor_id"`
+	Autor2Id uint64 `db:"autor2_id"`
+	Autor3Id uint64 `db:"autor3_id"`
+	Autor4Id uint64 `db:"autor4_id"`
+	Autor5Id uint64 `db:"autor5_id"`
 }
 
 type WorkChild struct {
@@ -34,6 +39,18 @@ func (db *DB) WorkExists(ctx context.Context, workId uint64) (bool, error) {
 	var workExists uint8
 	err := db.engine.Read(ctx, sqlapi.NewQuery(queries.WorkExists).WithArgs(workId), &workExists)
 	return workExists == 1, err
+}
+
+func (db *DB) FetchWork(ctx context.Context, workId uint64) (Work, error) {
+	var work Work
+
+	err := db.engine.Read(ctx, sqlapi.NewQuery(queries.WorkGetWork).WithArgs(workId), &work)
+
+	if err != nil {
+		return Work{}, err
+	}
+
+	return work, nil
 }
 
 func (db *DB) FetchWorks(ctx context.Context, workIds []uint64) ([]Work, error) {

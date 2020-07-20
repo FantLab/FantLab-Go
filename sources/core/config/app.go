@@ -12,6 +12,8 @@ type AppConfig struct {
 	SiteName                                 string
 	SiteEmail                                string
 	ImagesBaseURL                            string
+	MinResponseLength                        uint64
+	MaxUserResponseCountPerWork              uint64
 	MinUserOwnResponsesRatingForMinusAbility uint64
 	ForumTopicsInPage                        uint64
 	ForumMessagesInPage                      uint64
@@ -25,4 +27,5 @@ type AppConfig struct {
 	BotUserId                                uint64
 	MaxAttachCountPerMessage                 uint64
 	BookcaseItemInPage                       uint64
+	Smiles                                   *Smiles
 }

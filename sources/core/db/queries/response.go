@@ -14,6 +14,36 @@ const (
 			response_id = ?
 	`
 
+	ResponseGetUserResponseCountForWork = `
+		SELECT
+			COUNT(*)
+		FROM
+			responses
+		WHERE
+			user_id = ? AND work_id = ?
+	`
+
+	ResponseGetSuchUserResponseCountForWork = `
+		SELECT
+			COUNT(*)
+		FROM
+			responses
+		WHERE
+			user_id = ? AND work_id = ? AND response = ?
+	`
+
+	ResponseInsertResponse = `
+		INSERT INTO
+			responses (
+				user_id,
+				work_id,
+				response,
+				date_of_response
+			)
+		VALUES
+			(?, ?, ?, NOW())
+	`
+
 	ResponseGetResponseUserVoteCount = `
 		SELECT 
 			COUNT(*) 
