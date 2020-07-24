@@ -49,6 +49,7 @@ func Tree(services *app.Services, pathParamGetter endpoints.PathParamGetter) *ro
 
 				g.Endpoint(http.MethodPost, "/users/:id/private_message", api.AddPrivateMessage, "Создание нового сообщения в личной переписке")
 				g.Endpoint(http.MethodGet, "/work/:id/userclassification", api.GetUserWorkGenres, "Классификация произведения пользователем")
+				g.Endpoint(http.MethodPost, "/work/:id/mark", api.SetMark, "Выставление оценки произведению")
 				g.Endpoint(http.MethodPost, "/work/:id/response", api.AddResponse, "Создание отзыва на произведение")
 				g.Endpoint(http.MethodPut, "/response/:id", api.EditResponse, "Редактирование отзыва на произведение")
 				g.Endpoint(http.MethodPut, "/response/:id/voting", api.VoteResponse, "Плюс/минус отзыву на произведение")

@@ -106,7 +106,7 @@ func (db *DB) InsertResponse(ctx context.Context, userId, workId uint64, workAut
 				return rw.Write(ctx, sqlapi.NewQuery(queries.UserMarkUserNeedLevelRecalc).WithArgs(userId)).Error
 			},
 			func() error { // Инкрементим счетчик количества отзывов на произведение
-				return rw.Write(ctx, sqlapi.NewQuery(queries.WorkInsertResponseCount).WithArgs(workId)).Error
+				return rw.Write(ctx, sqlapi.NewQuery(queries.WorkStatsInsertResponseCount).WithArgs(workId)).Error
 			},
 		)
 	})
@@ -182,7 +182,7 @@ func (db *DB) DeleteResponse(ctx context.Context, responseId, workId, userId uin
 				return rw.Write(ctx, sqlapi.NewQuery(queries.UserMarkUserNeedLevelRecalc).WithArgs(userId)).Error
 			},
 			func() error { // Уменьшаем счетчик количества отзывов на произведение
-				return rw.Write(ctx, sqlapi.NewQuery(queries.WorkDecrementResponseCount).WithArgs(workId)).Error
+				return rw.Write(ctx, sqlapi.NewQuery(queries.WorkStatsDecrementResponseCount).WithArgs(workId)).Error
 			},
 		)
 	})

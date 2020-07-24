@@ -45,6 +45,15 @@ const (
 			user_id = ?
 	`
 
+	UserGetMarkCount = `
+		SELECT
+			markcount
+		FROM
+			users
+		WHERE
+			user_id = ?
+	`
+
 	UserMarkUserNeedLevelRecalc = `
 		UPDATE
 			users
@@ -70,5 +79,15 @@ const (
 			responsecount = responsecount - 1
 		WHERE
 			user_id = ?
+	`
+
+	UserUpdateMarkCount = `
+		UPDATE
+			users u
+		SET
+			u.markcount = (SELECT COUNT(DISTINCT m.work_id) FROM marks2 m WHERE m.user_id = u.user_id),
+			u.need_recalc_level = 1
+		WHERE
+			u.user_id = ?
 	`
 )

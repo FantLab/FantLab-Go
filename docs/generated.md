@@ -1415,12 +1415,43 @@
 </p>
 </details>
 
+<details><summary>Выставление оценки произведению</summary>
+<p>
+
+
+
+**POST** [/v1/work/{id}/mark](../sources/apiserver/internal/endpoints/set_mark.go#L12)
+
+Параметры запроса:
+
+
+* **id** (path, uint64) - id произведения
+
+
+* **mark** (form, uint8) - оценка (1-10, 0 - удалить)
+
+
+
+
+Схема ответа:
+
+```
+{
+  averageMark: float64  # средняя оценка произведения (-1, если произведение участвует в Фантлабораторной работе)
+  markCount: int64      # количество оценок (-1, если произведение участвует в Фантлабораторной работе)
+}
+```
+---
+
+</p>
+</details>
+
 <details><summary>Создание отзыва на произведение</summary>
 <p>
 
 
 
-**POST** [/v1/work/{id}/response](../sources/apiserver/internal/endpoints/add_response.go#L15)
+**POST** [/v1/work/{id}/response](../sources/apiserver/internal/endpoints/add_response.go#L14)
 
 Параметры запроса:
 

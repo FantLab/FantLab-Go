@@ -8,6 +8,7 @@ services:
       - ${MONITORING_PORT}:${MONITORING_PORT}
     volumes:
       - ${CACHE_DIR}:/cache
+      - ${CACHE_IMG_DIR}:/cache_img
       - ${FILES_DIR}:/files
       - ${FORUM_ATTACH_DIR}:/forum_attach
       - ${BLOG_FILES_DIR}:/blog_files

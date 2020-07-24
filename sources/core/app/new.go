@@ -209,6 +209,9 @@ func MakeServices() (*Services, error, []func() error) {
 					"appl", "bigeyes2", "bye", "cool", "drink", "facepalm", "kar", "lady", "mafia", "rolleyes", "spy", "roof",
 					"silly", "lam", "inv", "leb", "val", "snuffy", "popcorn", "eyes", "glad2", "gorgeous", "kiss", "ninja",
 					"nunu", "redface", "sleep", "sleep2", "surprise", "tongue"}),
+				FlContestInProgress:               true,
+				FlContestAuthorId:                 11677,
+				CorrelationUserMarkCountThreshold: 14,
 			}
 			return nil
 		},

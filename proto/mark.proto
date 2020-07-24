@@ -1,0 +1,13 @@
+syntax = "proto3";
+
+option go_package = "sources/pb";
+
+message Mark {
+
+    message Response {
+        // средняя оценка произведения (-1, если произведение участвует в Фантлабораторной работе)
+        double average_mark = 1;
+        // количество оценок (-1, если произведение участвует в Фантлабораторной работе)
+        int64 mark_count = 2;
+    }
+}

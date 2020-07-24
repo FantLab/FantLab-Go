@@ -10,8 +10,9 @@ import (
 
 const (
 	userKey              = "users:user_id=%d"
-	workStatKey          = "workstat%d"
 	userResponseKey      = "user%dwork%dresp"
+	userMarksKey         = "user:marks:%d"
+	workStatKey          = "workstat%d"
 	homepageResponsesKey = "last:responses:home"
 	articleLikeCountKey  = "blog:topic:likes:%d"
 )
@@ -21,12 +22,6 @@ var noExpiration = time.Unix(0, 0)
 func (s *Services) DeleteUserCache(ctx context.Context, userId uint64) error {
 	return memcacheclient.Perform(s.memcache, true, func(client memcacheclient.Client) error {
 		return client.Delete(ctx, fmt.Sprintf(userKey, userId))
-	})
-}
-
-func (s *Services) DeleteWorkStatCache(ctx context.Context, workId uint64) error {
-	return memcacheclient.Perform(s.memcache, true, func(client memcacheclient.Client) error {
-		return client.Delete(ctx, fmt.Sprintf(workStatKey, workId))
 	})
 }
 
@@ -40,6 +35,18 @@ func (s *Services) SetUserResponseCache(ctx context.Context, userId, workId uint
 func (s *Services) DeleteUserResponseCache(ctx context.Context, userId, workId uint64) error {
 	return memcacheclient.Perform(s.memcache, true, func(client memcacheclient.Client) error {
 		return client.Delete(ctx, fmt.Sprintf(userResponseKey, userId, workId))
+	})
+}
+
+func (s *Services) DeleteUserMarksCache(ctx context.Context, userId uint64) error {
+	return memcacheclient.Perform(s.memcache, true, func(client memcacheclient.Client) error {
+		return client.Delete(ctx, fmt.Sprintf(userMarksKey, userId))
+	})
+}
+
+func (s *Services) DeleteWorkStatCache(ctx context.Context, workId uint64) error {
+	return memcacheclient.Perform(s.memcache, true, func(client memcacheclient.Client) error {
+		return client.Delete(ctx, fmt.Sprintf(workStatKey, workId))
 	})
 }
 
