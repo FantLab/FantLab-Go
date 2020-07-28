@@ -28,4 +28,7 @@ type AppConfig struct {
 	MaxAttachCountPerMessage                 uint64
 	BookcaseItemInPage                       uint64
 	Smiles                                   *Smiles
+	FlContestInProgress                      bool
+	FlContestAuthorId                        uint64
+	CorrelationUserMarkCountThreshold        uint64
 }

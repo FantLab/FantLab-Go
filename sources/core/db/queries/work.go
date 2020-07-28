@@ -11,7 +11,8 @@ const (
 			autor2_id,
 			autor3_id,
 			autor4_id,
-			autor5_id
+			autor5_id,
+			published
 		FROM
 			works
 		WHERE
@@ -83,29 +84,5 @@ const (
 			users u ON (u.autor_id = w.autor_id OR u.autor_id = w.autor2_id OR u.autor_id = w.autor3_id OR u.autor_id = w.autor4_id OR u.autor_id = w.autor5_id)
 		WHERE
 			w.work_id = ?
-	`
-
-	WorkInsertResponseCount = `
-		INSERT INTO
-			work_stats (
-				work_id,
-				responsecount
-			)
-		VALUES
-			(?, 1)
-		ON DUPLICATE KEY UPDATE
-			responsecount = responsecount + 1
-	`
-
-	// NOTE Неясно, что представляет собой поле responsecount1 и почему оно изменяется при удалении отзыва, но не
-	// трогается при добавлении
-	WorkDecrementResponseCount = `
-		UPDATE
-			work_stats
-		SET
-			responsecount = responsecount - 1,
-			responsecount1 = responsecount1 - 1
-		WHERE
-			work_id = ?
 	`
 )

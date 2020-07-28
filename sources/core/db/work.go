@@ -8,13 +8,14 @@ import (
 )
 
 type Work struct {
-	WorkId   uint64 `db:"work_id"`
-	Name     string `db:"name"`
-	AutorId  uint64 `db:"autor_id"`
-	Autor2Id uint64 `db:"autor2_id"`
-	Autor3Id uint64 `db:"autor3_id"`
-	Autor4Id uint64 `db:"autor4_id"`
-	Autor5Id uint64 `db:"autor5_id"`
+	WorkId    uint64 `db:"work_id"`
+	Name      string `db:"name"`
+	AutorId   uint64 `db:"autor_id"`
+	Autor2Id  uint64 `db:"autor2_id"`
+	Autor3Id  uint64 `db:"autor3_id"`
+	Autor4Id  uint64 `db:"autor4_id"`
+	Autor5Id  uint64 `db:"autor5_id"`
+	Published uint8  `db:"published"`
 }
 
 type WorkChild struct {
