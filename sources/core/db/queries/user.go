@@ -14,11 +14,15 @@ const (
 			u.login,
 			u.sex,
 			u.votecount,
+			g.access_to_admin_functions,
 			g.can_edit_delete_f_messages,
 			g.can_edit_f_messages,
 			g.access_to_forums,
 			g.can_edit_responses,
-			s.always_pm_by_email
+			s.always_pm_by_email,
+			s.disable_smiles,
+			s.disable_images,
+			s.forum_rating_message_hide
 		FROM
 			users u
 		LEFT JOIN

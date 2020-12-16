@@ -1,7 +1,6 @@
 package endpoints
 
 import (
-	"fantlab/core/db"
 	"fantlab/pb"
 	"net/http"
 	"strconv"
@@ -29,16 +28,24 @@ func (api *API) VoteForumMessage(r *http.Request) (int, proto.Message) {
 
 	availableForums := api.getAvailableForums(r)
 
-	message, err := api.services.DB().FetchForumMessage(r.Context(), params.MessageId, availableForums)
+	isMessageExists, err := api.services.DB().FetchForumMessageExists(r.Context(), params.MessageId, availableForums)
 
 	if err != nil {
-		if db.IsNotFoundError(err) {
-			return http.StatusNotFound, &pb.Error_Response{
-				Status:  pb.Error_NOT_FOUND,
-				Context: strconv.FormatUint(params.MessageId, 10),
-			}
+		return http.StatusInternalServerError, &pb.Error_Response{
+			Status: pb.Error_SOMETHING_WENT_WRONG,
 		}
+	}
 
+	if !isMessageExists {
+		return http.StatusNotFound, &pb.Error_Response{
+			Status:  pb.Error_NOT_FOUND,
+			Context: strconv.FormatUint(params.MessageId, 10),
+		}
+	}
+
+	dbMessage, err := api.services.DB().FetchForumMessage(r.Context(), params.MessageId)
+
+	if err != nil {
 		return http.StatusInternalServerError, &pb.Error_Response{
 			Status: pb.Error_SOMETHING_WENT_WRONG,
 		}
@@ -46,21 +53,21 @@ func (api *API) VoteForumMessage(r *http.Request) (int, proto.Message) {
 
 	userId := api.getUserId(r)
 
-	if message.UserID == userId && params.Vote != "none" {
+	if dbMessage.UserId == userId && params.Vote != "none" {
 		return http.StatusForbidden, &pb.Error_Response{
 			Status:  pb.Error_ACTION_PERMITTED,
 			Context: "Нельзя оценить собственное сообщение",
 		}
 	}
 
-	if message.IsRed == 1 {
+	if dbMessage.IsRed == 1 {
 		return http.StatusForbidden, &pb.Error_Response{
 			Status:  pb.Error_ACTION_PERMITTED,
 			Context: "Нельзя оценить сообщение модератора",
 		}
 	}
 
-	userIsForumModerator, err := api.services.DB().FetchUserIsForumModerator(r.Context(), userId, message.TopicId)
+	userIsForumModerator, err := api.services.DB().FetchUserIsForumModerator(r.Context(), userId, dbMessage.ForumId)
 
 	if err != nil {
 		return http.StatusInternalServerError, &pb.Error_Response{
@@ -82,7 +89,7 @@ func (api *API) VoteForumMessage(r *http.Request) (int, proto.Message) {
 		}
 	}
 
-	messageUserVoteCount, err := api.services.DB().FetchForumMessageUserVoteCount(r.Context(), userId, params.MessageId)
+	isMessageUserVoteExists, err := api.services.DB().FetchForumMessageUserVoteExists(r.Context(), userId, params.MessageId)
 
 	if err != nil {
 		return http.StatusInternalServerError, &pb.Error_Response{
@@ -90,7 +97,7 @@ func (api *API) VoteForumMessage(r *http.Request) (int, proto.Message) {
 		}
 	}
 
-	if messageUserVoteCount > 0 {
+	if isMessageUserVoteExists {
 		return http.StatusForbidden, &pb.Error_Response{
 			Status:  pb.Error_ACTION_PERMITTED,
 			Context: "Вы уже оценивали данное сообщение",

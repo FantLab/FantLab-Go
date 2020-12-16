@@ -1,13 +1,16 @@
 package queries
 
 const (
-	ForumMessageUserVoteCount = `
-		SELECT 
-			COUNT(*) 
-		FROM 
-			f_messages_votes 
-		WHERE 
-			user_id = ? AND message_id = ?
+	ForumGetMessageUserVoteExists = `
+		SELECT
+			EXISTS (
+				SELECT
+					*
+				FROM
+					f_messages_votes
+				WHERE
+					user_id = ? AND message_id = ?
+			)
 	`
 
 	ForumMessageVoteInsert = `

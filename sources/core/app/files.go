@@ -5,6 +5,8 @@ import (
 	"fantlab/core/helpers"
 	"fantlab/core/logs"
 	"fmt"
+	"github.com/minio/minio-go/v6"
+	"os"
 	"path/filepath"
 	"time"
 )
@@ -55,6 +57,27 @@ func (s *Services) GetFiles(ctx context.Context, fileGroup string, holderId uint
 	return files, nil
 }
 
+func (s *Services) SaveFileFromFileSystem(ctx context.Context, fileGroup string, holderId uint64, file *os.File) error {
+	fileStat, err := file.Stat()
+
+	if err != nil {
+		logs.WithAPM(ctx).Error(err.Error())
+		return err
+	}
+
+	objectName := fmt.Sprintf("%s/%d/%s", fileGroup, holderId, fileStat.Name())
+
+	opts := minio.PutObjectOptions{ContentType: "application/octet-stream"}
+	_, err = s.minioClient.PutObjectWithContext(ctx, s.minioBucket, objectName, file, fileStat.Size(), opts)
+
+	if err != nil {
+		logs.WithAPM(ctx).Error(err.Error())
+		return err
+	}
+
+	return nil
+}
+
 func (s *Services) DeleteFiles(ctx context.Context, fileGroup string, holderId uint64) {
 	objectsCh := make(chan string)
 
@@ -85,4 +108,32 @@ func (s *Services) DeleteFile(ctx context.Context, fileGroup string, holderId ui
 	if err != nil {
 		logs.WithAPM(ctx).Error(err.Error())
 	}
+}
+
+func (s *Services) MoveFiles(ctx context.Context, oldFileGroup string, oldHolderId uint64, newFileGroup string, newHolderId uint64) error {
+	files, err := s.GetFiles(ctx, oldFileGroup, oldHolderId)
+
+	if err != nil {
+		logs.WithAPM(ctx).Error(err.Error())
+		return err
+	}
+
+	for _, file := range files {
+		oldObjectName := fmt.Sprintf("%s/%d/%s", oldFileGroup, oldHolderId, file.Name)
+		sourceInfo := minio.NewSourceInfo(s.minioBucket, oldObjectName, nil)
+
+		newObjectName := fmt.Sprintf("%s/%d/%s", newFileGroup, newHolderId, file.Name)
+		destinationInfo, _ := minio.NewDestinationInfo(s.minioBucket, newObjectName, nil, nil)
+
+		err := s.minioClient.CopyObject(destinationInfo, sourceInfo)
+
+		if err != nil {
+			logs.WithAPM(ctx).Error(err.Error())
+			return err
+		}
+	}
+
+	s.DeleteFiles(ctx, oldFileGroup, oldHolderId)
+
+	return nil
 }

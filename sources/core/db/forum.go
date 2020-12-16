@@ -11,83 +11,90 @@ import (
 	"github.com/FantLab/go-kit/database/sqlbuilder"
 )
 
-type Forum struct {
-	ForumID         uint64    `db:"forum_id"`
-	Name            string    `db:"name"`
-	Description     string    `db:"description"`
-	TopicCount      uint64    `db:"topic_count"`
-	MessageCount    uint64    `db:"message_count"`
-	LastTopicID     uint64    `db:"last_topic_id"`
-	LastTopicName   string    `db:"last_topic_name"`
-	UserID          uint64    `db:"user_id"`
-	Login           string    `db:"login"`
-	Sex             uint8     `db:"sex"`
-	PhotoNumber     uint64    `db:"photo_number"`
-	LastMessageID   uint64    `db:"last_message_id"`
-	LastMessageText string    `db:"last_message_text"`
-	LastMessageDate time.Time `db:"last_message_date"`
-	ForumBlockID    uint64    `db:"forum_block_id"`
-	ForumBlockName  string    `db:"forum_block_name"`
+type ForumInList struct {
+	ForumId                    uint64    `db:"forum_id"`
+	Name                       string    `db:"name"`
+	Description                string    `db:"description"`
+	TopicCount                 uint64    `db:"topic_count"`
+	MessageCount               uint64    `db:"message_count"`
+	LastTopicId                uint64    `db:"last_topic_id"`
+	LastTopicName              string    `db:"last_topic_name"`
+	LastMessageId              uint64    `db:"last_message_id"`
+	LastMessageUserId          uint64    `db:"last_message_user_id"`
+	LastMessageUserLogin       string    `db:"last_message_user_login"`
+	LastMessageUserSex         uint8     `db:"last_message_user_sex"`
+	LastMessageUserPhotoNumber uint64    `db:"last_message_user_photo_number"`
+	LastMessageText            string    `db:"last_message_text"`
+	LastMessageDate            time.Time `db:"last_message_date"`
+	ForumBlockId               uint64    `db:"forum_block_id"`
+	ForumBlockName             string    `db:"forum_block_name"`
+	NotModeratedTopicCount     uint64    `db:"not_moderated_topic_count"`
 }
 
-type ShortForum struct {
+type Forum struct {
 	ForumId uint64 `db:"forum_id"`
-	// Доступ в форум только админам. TODO На самом деле это поле крайне опасно. Если не делать явную проверку на наличие
-	//  доступа к данному форуму, у любого пользователя появляется возможность редактировать сообщения из админских
-	//  форумов. В Perl-коде такая уязвимость была (https://github.com/parserpro/fantlab/issues/954,
-	// https://github.com/parserpro/fantlab/issues/952).
+	Name    string `db:"name"`
+	// Доступ в форум только админам. NOTE На самом деле это поле крайне опасно. Если не делать явную проверку на наличие
+	// доступа к такому форуму, у любого пользователя появляется возможность редактировать сообщения в нем.
+	// В Perl-бэке такая уязвимость была: https://github.com/parserpro/fantlab/issues/954,
+	// https://github.com/parserpro/fantlab/issues/952
 	OnlyForAdmins uint8 `db:"only_for_admins"`
+	ForumClosed   uint8 `db:"forum_closed"`
 }
 
 type ForumTopic struct {
-	TopicId         uint64    `db:"topic_id"`
-	ForumId         uint64    `db:"forum_id"`
-	Name            string    `db:"name"`
-	DateOfAdd       time.Time `db:"date_of_add"`
-	Views           uint64    `db:"views"`
-	UserID          uint64    `db:"user_id"`
-	Login           string    `db:"login"`
-	Sex             uint8     `db:"sex"`
-	PhotoNumber     uint64    `db:"photo_number"`
-	TopicTypeID     uint64    `db:"topic_type_id"`
-	IsClosed        uint8     `db:"is_closed"`
-	IsPinned        uint8     `db:"is_pinned"`
-	MessageCount    uint64    `db:"message_count"`
-	LastMessageID   uint64    `db:"last_message_id"`
-	LastUserID      uint64    `db:"last_user_id"`
-	LastLogin       string    `db:"last_login"`
-	LastSex         uint8     `db:"last_sex"`
-	LastPhotoNumber uint64    `db:"last_photo_number"`
-	LastMessageText string    `db:"last_message_text"`
-	LastMessageDate time.Time `db:"last_message_date"`
-	IsModerated     uint8     `db:"moderated"`
+	TopicId                    uint64    `db:"topic_id"`
+	ForumId                    uint64    `db:"forum_id"`
+	Name                       string    `db:"name"`
+	DateOfAdd                  time.Time `db:"date_of_add"`
+	Views                      uint64    `db:"views"`
+	UserId                     uint64    `db:"user_id"`
+	UserLogin                  string    `db:"user_login"`
+	UserSex                    uint8     `db:"user_sex"`
+	UserPhotoNumber            uint64    `db:"user_photo_number"`
+	TopicTypeId                uint64    `db:"topic_type_id"`
+	IsClosed                   uint8     `db:"is_closed"`
+	IsPinned                   uint8     `db:"is_pinned"`
+	MessageCount               uint64    `db:"message_count"`
+	LastMessageId              uint64    `db:"last_message_id"`
+	LastMessageUserId          uint64    `db:"last_message_user_id"`
+	LastMessageUserLogin       string    `db:"last_message_user_login"`
+	LastMessageUserSex         uint8     `db:"last_message_user_sex"`
+	LastMessageUserPhotoNumber uint64    `db:"last_message_user_photo_number"`
+	LastMessageText            string    `db:"last_message_text"`
+	LastMessageDate            time.Time `db:"last_message_date"`
+	Moderated                  uint8     `db:"moderated"`
 }
 
 type ShortForumTopic struct {
-	TopicID              uint64 `db:"topic_id"`
+	TopicId              uint64 `db:"topic_id"`
 	TopicName            string `db:"topic_name"`
 	IsFirstMessagePinned uint8  `db:"is_first_message_pinned"`
-	ForumID              uint64 `db:"forum_id"`
+	TopicTypeId          uint8  `db:"topic_type_id"`
+	IsClosed             uint8  `db:"is_closed"`
+	IsEditTopicStarter   uint8  `db:"is_edit_topicstarter"`
+	ForumId              uint64 `db:"forum_id"`
 	ForumName            string `db:"forum_name"`
 }
 
 type ForumMessage struct {
-	MessageID   uint64    `db:"message_id"`
-	TopicId     uint64    `db:"topic_id"`
-	ForumId     uint64    `db:"forum_id"`
-	DateOfAdd   time.Time `db:"date_of_add"`
-	UserID      uint64    `db:"user_id"`
-	IsCensored  uint8     `db:"is_censored"`
-	IsRed       uint8     `db:"is_red"` // модераторское?
-	Login       string    `db:"login"`
-	Sex         uint8     `db:"sex"`
-	PhotoNumber uint64    `db:"photo_number"`
-	UserClass   uint8     `db:"user_class"`
-	Sign        string    `db:"sign"`
-	MessageText string    `db:"message_text"`
-	VotePlus    uint64    `db:"vote_plus"`
-	VoteMinus   uint64    `db:"vote_minus"`
-	Number      uint64    `db:"number"`
+	MessageId       uint64    `db:"message_id"`
+	TopicId         uint64    `db:"topic_id"`
+	ForumId         uint64    `db:"forum_id"`
+	DateOfAdd       time.Time `db:"date_of_add"`
+	IsRed           uint8     `db:"is_red"` // модераторское?
+	IsCensored      uint8     `db:"is_censored"`
+	VotePlus        uint64    `db:"vote_plus"`
+	VoteMinus       uint64    `db:"vote_minus"`
+	Number          uint64    `db:"number"`
+	MessageText     string    `db:"message_text"`
+	UserId          uint64    `db:"user_id"`
+	UserLogin       string    `db:"login"`
+	UserSex         uint8     `db:"sex"`
+	UserPhotoNumber uint64    `db:"photo_number"`
+	UserClass       uint8     `db:"user_class"`
+	UserSign        string    `db:"sign"`
+	IsUserApproved  uint8     `db:"approved"`
 }
 
 type ForumMessageAttachment struct {
@@ -96,94 +103,230 @@ type ForumMessageAttachment struct {
 	FileSize  uint64 `db:"file_size"`
 }
 
+// Вариант ответа в опросе
+type ForumTopicAnswer struct {
+	Number  uint64 `db:"number"`
+	Name    string `db:"name"`
+	Choices uint64 `db:"choices"`
+}
+
 type ForumModerator struct {
-	UserID      uint64 `db:"user_id"`
+	ForumId     uint64 `db:"forum_id"`
+	UserId      uint64 `db:"user_id"`
 	Login       string `db:"login"`
 	Sex         uint8  `db:"sex"`
 	PhotoNumber uint64 `db:"photo_number"`
-	ForumID     uint64 `db:"forum_id"`
+}
+
+type ForumTopicNotReadInfo struct {
+	TopicId               uint64 `db:"topic_id"`
+	FirstNotReadMessageId uint64 `db:"first_not_read_message_id"`
+	NotReadMessageCount   uint64 `db:"not_read_message_count"`
+}
+
+type ForumAdditionalMessageInfo struct {
+	MessageId                       uint64
+	IsVotedByUser                   bool
+	IsWarned                        bool
+	IsModerCalled                   bool
+	TopicStarterCanEditFirstMessage bool
+	OnlyForAdminsForum              bool
+	DateOfTopicRead                 time.Time
+	ForumModerators                 map[uint64]bool
+}
+
+type ForumsDBResponse struct {
+	Forums               []ForumInList
+	Moderators           map[uint64][]ForumModerator
+	NotReadMessageCounts map[uint64]uint64
 }
 
 type ForumTopicsDBResponse struct {
-	Topics           []ForumTopic
-	TotalTopicsCount uint64
+	Moderators        []ForumModerator
+	Topics            []ForumTopic
+	SubscribedTopics  []uint64
+	TopicsNotReadInfo map[uint64]ForumTopicNotReadInfo
+	TotalTopicsCount  uint64
 }
 
 type ForumTopicMessagesDBResponse struct {
-	Topic                         ShortForumTopic
-	PinnedFirstMessage            ForumMessage
-	PinnedFirstMessageAttachments []ForumMessageAttachment
-	Messages                      []ForumMessage
-	Attachments                   []ForumMessageAttachment
-	TotalMessagesCount            uint64
+	Topic                   ShortForumTopic
+	Messages                []ForumMessage
+	Attachments             []ForumMessageAttachment
+	AdditionalInfos         map[uint64]ForumAdditionalMessageInfo
+	TotalMessagesCount      uint64
+	MessageDraft            ForumMessageDraft
+	IsUserSubscribed        bool
+	IsUserTopicAnswerExists bool
+	TopicAnswers            []ForumTopicAnswer
+	TopicAnsweredUsers      []User
 }
 
-func (db *DB) FetchForums(ctx context.Context, availableForums []uint64) ([]Forum, error) {
-	var forums []Forum
-
-	err := db.engine.Read(ctx, sqlapi.NewQuery(queries.Forums).WithArgs(availableForums).FlatArgs(), &forums)
-
-	if err != nil {
-		return nil, err
-	}
-
-	return forums, nil
-}
-
-func (db *DB) FetchModerators(ctx context.Context) (map[uint64][]ForumModerator, error) {
+func (db *DB) FetchForums(ctx context.Context, userId uint64, availableForums []uint64) (ForumsDBResponse, error) {
+	var forums []ForumInList
 	var moderators []ForumModerator
+	var notModeratedTopicIds []uint64
+	notReadMessageCountMap := map[uint64]uint64{}
 
-	err := db.engine.Read(ctx, sqlapi.NewQuery(queries.ForumModerators), &moderators)
+	err := codeflow.Try(
+		func() error {
+			return db.engine.Read(ctx, sqlapi.NewQuery(queries.ForumGetForums).WithArgs(availableForums).FlatArgs(), &forums)
+		},
+		func() error {
+			return db.engine.Read(ctx, sqlapi.NewQuery(queries.ForumGetModerators), &moderators)
+		},
+		func() error {
+			return db.engine.Read(ctx, sqlapi.NewQuery(queries.ForumGetNotModeratedTopicIds), &notModeratedTopicIds)
+		},
+		func() error {
+			if len(notModeratedTopicIds) != 0 {
+				return db.engine.Read(ctx, sqlapi.NewQuery(queries.ForumGetNotReadMessageCounts).WithArgs(userId, notModeratedTopicIds).FlatArgs(), &notReadMessageCountMap)
+			}
+			return nil
+		},
+	)
 
 	if err != nil {
-		return nil, err
+		return ForumsDBResponse{}, err
 	}
 
 	moderatorsMap := map[uint64][]ForumModerator{}
 
 	for _, moderator := range moderators {
-		moderatorsMap[moderator.ForumID] = append(moderatorsMap[moderator.ForumID], moderator)
+		moderatorsMap[moderator.ForumId] = append(moderatorsMap[moderator.ForumId], moderator)
 	}
 
-	return moderatorsMap, nil
+	response := ForumsDBResponse{
+		Forums:               forums,
+		Moderators:           moderatorsMap,
+		NotReadMessageCounts: notReadMessageCountMap,
+	}
+
+	return response, nil
 }
 
-func (db *DB) FetchShortForum(ctx context.Context, forumId uint64) (forum ShortForum, err error) {
-	err = db.engine.Read(ctx, sqlapi.NewQuery(queries.ForumGetShortForum).WithArgs(forumId), &forum)
-	return
+func (db *DB) FetchForumExists(ctx context.Context, forumId uint64, availableForums []uint64) (bool, error) {
+	var isExists uint8
+
+	err := db.engine.Read(ctx, sqlapi.NewQuery(queries.ForumGetForumExists).WithArgs(forumId, availableForums).FlatArgs(), &isExists)
+
+	if err != nil {
+		return false, err
+	}
+
+	return isExists == 1, nil
 }
 
-func (db *DB) FetchForumTopics(ctx context.Context, availableForums []uint64, forumID, limit, offset uint64) (response *ForumTopicsDBResponse, err error) {
-	var forumExists uint8
+func (db *DB) FetchForum(ctx context.Context, forumId uint64) (Forum, error) {
+	var forum Forum
+
+	err := db.engine.Read(ctx, sqlapi.NewQuery(queries.ForumGetForum).WithArgs(forumId), &forum)
+
+	if err != nil {
+		return Forum{}, err
+	}
+
+	return forum, nil
+}
+
+func (db *DB) FetchForumTopics(ctx context.Context, userId, forumId, limit, offset uint64) (ForumTopicsDBResponse, error) {
+	var moderators []ForumModerator
 	var topics []ForumTopic
-	var count uint64
+	var topicCount uint64
+	var subscribedTopics []uint64
 
-	err = codeflow.Try(
+	moderatedState := []uint8{1}
+	var topicIds []uint64
+
+	type topicDateOfRead struct {
+		TopicId    uint64    `db:"topic_id"`
+		DateOfRead time.Time `db:"date_of_read"`
+	}
+
+	var topicsDatesOfRead []topicDateOfRead
+
+	topicsNotReadInfo := map[uint64]ForumTopicNotReadInfo{}
+
+	err := codeflow.Try(
 		func() error {
-			return db.engine.Read(ctx, sqlapi.NewQuery(queries.ForumExists).WithArgs(forumID, availableForums).FlatArgs(), &forumExists)
+			return db.engine.Read(ctx, sqlapi.NewQuery(queries.ForumGetForumModerators).WithArgs(forumId), &moderators)
 		},
 		func() error {
-			return db.engine.Read(ctx, sqlapi.NewQuery(queries.ForumTopics).WithArgs(forumID, limit, offset), &topics)
+			for _, moderator := range moderators {
+				if moderator.UserId == userId {
+					// Если текущий пользователь - модератор, он должен видеть и неотмодерированные темы
+					moderatedState = append(moderatedState, 0)
+					break
+				}
+			}
+			return db.engine.Read(ctx, sqlapi.NewQuery(queries.ForumGetForumTopics).WithArgs(forumId, moderatedState, userId, limit, offset).FlatArgs(), &topics)
 		},
 		func() error {
-			return db.engine.Read(ctx, sqlapi.NewQuery(queries.ForumTopicsCount).WithArgs(forumID), &count)
+			return db.engine.Read(ctx, sqlapi.NewQuery(queries.ForumGetForumTopicCount).WithArgs(forumId, moderatedState, userId).FlatArgs(), &topicCount)
+		},
+		func() error {
+			for _, topic := range topics {
+				topicIds = append(topicIds, topic.TopicId)
+			}
+			if userId != 0 && len(topicIds) != 0 {
+				return db.engine.Read(ctx, sqlapi.NewQuery(queries.ForumGetTopicsSubscriptions).WithArgs(userId, topicIds).FlatArgs(), &subscribedTopics)
+			} else {
+				return nil
+			}
+		},
+		func() error {
+			if userId != 0 && len(topicIds) != 0 {
+				return db.engine.Read(ctx, sqlapi.NewQuery(queries.ForumGetTopicsDatesOfRead).WithArgs(userId, topicIds).FlatArgs(), &topicsDatesOfRead)
+			} else {
+				return nil
+			}
+		},
+		func() error {
+			if userId != 0 {
+				var topicNotReadInfo ForumTopicNotReadInfo
+				for _, topicDateOfRead := range topicsDatesOfRead {
+					err2 := db.engine.Read(ctx, sqlapi.NewQuery(queries.ForumGetNotReadTopicInfo).WithArgs(topicDateOfRead.TopicId, topicDateOfRead.DateOfRead), &topicNotReadInfo)
+					if err2 != nil && !IsNotFoundError(err2) {
+						return err2
+					}
+					topicsNotReadInfo[topicNotReadInfo.TopicId] = topicNotReadInfo
+				}
+			}
+			return nil
 		},
 	)
 
-	if err == nil {
-		response = &ForumTopicsDBResponse{
-			Topics:           topics,
-			TotalTopicsCount: count,
-		}
+	if err != nil {
+		return ForumTopicsDBResponse{}, err
 	}
 
-	return
+	response := ForumTopicsDBResponse{
+		Moderators:        moderators,
+		Topics:            topics,
+		SubscribedTopics:  subscribedTopics,
+		TopicsNotReadInfo: topicsNotReadInfo,
+		TotalTopicsCount:  topicCount,
+	}
+
+	return response, nil
 }
 
-func (db *DB) FetchForumTopic(ctx context.Context, availableForums []uint64, topicID uint64) (*ForumTopic, error) {
+func (db *DB) FetchForumTopicExists(ctx context.Context, topicId uint64, availableForums []uint64) (bool, error) {
+	var isExists uint8
+
+	err := db.engine.Read(ctx, sqlapi.NewQuery(queries.ForumGetTopicExists).WithArgs(topicId, availableForums).FlatArgs(), &isExists)
+
+	if err != nil {
+		return false, err
+	}
+
+	return isExists == 1, nil
+}
+
+func (db *DB) FetchForumTopic(ctx context.Context, topicId uint64) (*ForumTopic, error) {
 	var topic ForumTopic
 
-	err := db.engine.Read(ctx, sqlapi.NewQuery(queries.ForumTopic).WithArgs(topicID, availableForums).FlatArgs(), &topic)
+	err := db.engine.Read(ctx, sqlapi.NewQuery(queries.ForumGetTopic).WithArgs(topicId), &topic)
 
 	if err != nil {
 		return nil, err
@@ -192,99 +335,416 @@ func (db *DB) FetchForumTopic(ctx context.Context, availableForums []uint64, top
 	return &topic, nil
 }
 
-func (db *DB) FetchTopicStarterCanEditFirstMessage(ctx context.Context, messageId uint64) (bool, error) {
-	var canEdit uint8
+func (db *DB) FetchForumTopicShort(ctx context.Context, topicId uint64) (ShortForumTopic, error) {
+	var shortTopic ShortForumTopic
 
-	err := db.engine.Read(ctx, sqlapi.NewQuery(queries.ForumTopicGetIsEditTopicStarter).WithArgs(messageId), &canEdit)
+	err := db.engine.Read(ctx, sqlapi.NewQuery(queries.ForumGetTopicShort).WithArgs(topicId), &shortTopic)
 
 	if err != nil {
-		return false, err
+		return ShortForumTopic{}, err
 	}
 
-	return canEdit == 1, nil
+	return shortTopic, nil
 }
 
-func (db *DB) FetchTopicMessages(ctx context.Context, availableForums []uint64, topicID uint64, limit, offset int64, sortAsc bool) (response *ForumTopicMessagesDBResponse, err error) {
+func (db *DB) FetchAdditionalMessageInfo(ctx context.Context, messageId, topicId, forumId, userId uint64) (ForumAdditionalMessageInfo, error) {
+	var forumModerators []ForumModerator
+	var votedMessageIds []uint64
+	var warnedMessageIds []uint64
+	var moderCalledMessageIds []uint64
+	var forum Forum
 	var shortTopic ShortForumTopic
-	var pinnedFirstMessage ForumMessage
-	var pinnedFirstMessageAttachments []ForumMessageAttachment
+
+	type dateOfRead struct {
+		DateOfRead time.Time `db:"date_of_read"`
+	}
+	var dateOfTopicRead dateOfRead
+
+	err := codeflow.Try(
+		func() error { // Получаем список модераторов форума
+			return db.engine.Read(ctx, sqlapi.NewQuery(queries.ForumGetForumModerators).WithArgs(forumId), &forumModerators)
+		},
+		func() error { // Получаем список сообщений, которым выписаны предупреждения
+			return db.engine.Read(ctx, sqlapi.NewQuery(queries.ForumGetWarnedMessageIds).WithArgs(messageId), &warnedMessageIds)
+		},
+		func() error { // Получаем список сообщений, которым вызван модератор
+			return db.engine.Read(ctx, sqlapi.NewQuery(queries.ForumGetModerCalledMessageIds).WithArgs(messageId), &moderCalledMessageIds)
+		},
+		func() error {
+			// Получаем данные о форуме (по идее, к этому моменту мы уже проверили его на существование, так что
+			// IsNotFoundError не может быть выкинут)
+			return db.engine.Read(ctx, sqlapi.NewQuery(queries.ForumGetForum).WithArgs(forumId), &forum)
+		},
+		func() error { // Получаем данные о теме
+			return db.engine.Read(ctx, sqlapi.NewQuery(queries.ForumGetTopicShort).WithArgs(topicId), &shortTopic)
+		},
+		func() error {
+			if userId != 0 {
+				return codeflow.Try(
+					func() error { // Получаем дату прочтения, если уже заходили в тему
+						err2 := db.engine.Read(ctx, sqlapi.NewQuery(queries.ForumGetTopicReadDate).WithArgs(topicId, userId), &dateOfTopicRead)
+						if IsNotFoundError(err2) {
+							return nil
+						}
+						return err2
+					},
+					func() error { // Получаем список сообщений, за которые голосовал (+/-) текущий пользователь
+						return db.engine.Read(ctx, sqlapi.NewQuery(queries.ForumGetVotedMessageIds).WithArgs(messageId, userId), &votedMessageIds)
+					},
+				)
+			}
+			return nil
+		},
+	)
+
+	if err != nil {
+		return ForumAdditionalMessageInfo{}, err
+	}
+
+	var isVotedByUser bool
+	if len(votedMessageIds) > 0 {
+		isVotedByUser = true
+	}
+
+	var isWarned bool
+	if len(warnedMessageIds) > 0 {
+		isWarned = true
+	}
+
+	var isModerCalled bool
+	if len(moderCalledMessageIds) > 0 {
+		isModerCalled = true
+	}
+
+	moderators := map[uint64]bool{}
+	for _, forumModerator := range forumModerators {
+		moderators[forumModerator.UserId] = true
+	}
+
+	info := ForumAdditionalMessageInfo{
+		MessageId:                       messageId,
+		IsVotedByUser:                   isVotedByUser,
+		IsWarned:                        isWarned,
+		IsModerCalled:                   isModerCalled,
+		TopicStarterCanEditFirstMessage: shortTopic.IsEditTopicStarter == 1,
+		OnlyForAdminsForum:              forum.OnlyForAdmins == 1,
+		DateOfTopicRead:                 dateOfTopicRead.DateOfRead,
+		ForumModerators:                 moderators,
+	}
+
+	return info, nil
+}
+
+func (db *DB) FetchTopicMessages(ctx context.Context, topicId, limit, offset uint64, sortAsc bool, userId uint64) (ForumTopicMessagesDBResponse, error) {
+	var messageCount uint64
+	var messageIds []uint64
+	var pinnedFirstMessageId uint64
 	var messages []ForumMessage
 	var attachments []ForumMessageAttachment
-	var count int64
+	var shortTopic ShortForumTopic
+	var forum Forum
+	var forumModerators []ForumModerator
+	var votedMessageIds []uint64
+	var warnedMessageIds []uint64
+	var moderCalledMessageIds []uint64
+	var messageDraft ForumMessageDraft
+	var isUserSubscribed uint8
+	var isUserTopicAnswerExists uint8
+	var topicAnswers []ForumTopicAnswer
+	var topicAnsweredUsers []User
 
-	err = codeflow.Try(
-		func() error {
-			return db.engine.Read(ctx, sqlapi.NewQuery(queries.ShortForumTopic).WithArgs(topicID, availableForums).FlatArgs(), &shortTopic)
+	type dateOfRead struct {
+		DateOfRead time.Time `db:"date_of_read"`
+	}
+	var dateOfTopicRead dateOfRead
+
+	err := codeflow.Try(
+		func() error { // Получаем количество всех сообщений в теме
+			return db.engine.Read(ctx, sqlapi.NewQuery(queries.ForumTopicMessageCount).WithArgs(topicId), &messageCount)
 		},
-		func() error {
-			return db.engine.Read(ctx, sqlapi.NewQuery(queries.ForumTopicMessagesCount).WithArgs(topicID), &count)
-		},
-		func() error {
+		func() error { // Получаем список всех сообщений в теме
+			iOffset := int64(offset)
+			iLimit := int64(limit)
+			iMessageCount := int64(messageCount)
+
 			var minNumber int64
 			var maxNumber int64
-			var sortDirection string
 			if sortAsc {
-				maxNumber = offset + limit
-				minNumber = maxNumber - (limit - 1)
-				if minNumber > count {
-					minNumber = count + 1
+				maxNumber = iOffset + iLimit
+				minNumber = maxNumber - (iLimit - 1)
+				if minNumber > iMessageCount {
+					minNumber = iMessageCount + 1
 				}
-				if maxNumber > count {
-					maxNumber = count
+				if maxNumber > iMessageCount {
+					maxNumber = iMessageCount
 				}
-				sortDirection = "ASC"
 			} else {
-				maxNumber = count - offset
-				minNumber = maxNumber - (limit - 1)
+				maxNumber = iMessageCount - iOffset
+				minNumber = maxNumber - (iLimit - 1)
 				if minNumber < 0 {
 					minNumber = 0
 				}
 				if maxNumber < 0 {
 					maxNumber = -1
 				}
-				sortDirection = "DESC"
 			}
 
-			return db.engine.Read(ctx, sqlapi.NewQuery(queries.ForumTopicMessages).Inject(sortDirection).WithArgs(topicID, minNumber, maxNumber), &messages)
+			return db.engine.Read(ctx, sqlapi.NewQuery(queries.ForumGetTopicMessageIds).WithArgs(topicId, minNumber, maxNumber), &messageIds)
+		},
+		func() error { // Получаем данные о теме
+			return db.engine.Read(ctx, sqlapi.NewQuery(queries.ForumGetTopicShort).WithArgs(topicId), &shortTopic)
+		},
+		func() error { // Получаем id запиненного сообщения, если есть
+			if shortTopic.IsFirstMessagePinned == 1 {
+				err2 := db.engine.Read(ctx, sqlapi.NewQuery(queries.ForumGetTopicFirstMessageId).WithArgs(topicId), &pinnedFirstMessageId)
+				if err2 == nil {
+					messageIds = append(messageIds, pinnedFirstMessageId)
+				}
+				return err2
+			}
+			return nil
 		},
 		func() error {
-			var messageIds []uint64
-			for _, message := range messages {
-				messageIds = append(messageIds, message.MessageID)
+			if len(messageIds) > 0 {
+				return codeflow.Try(
+					func() error { // Получаем сами сообщения
+						var sortDirection string
+						if sortAsc {
+							sortDirection = "ASC"
+						} else {
+							sortDirection = "DESC"
+						}
+
+						return db.engine.Read(ctx, sqlapi.NewQuery(queries.ForumGetTopicMessages).Inject(sortDirection).WithArgs(messageIds).FlatArgs(), &messages)
+					},
+					func() error { // Получаем список аттачей ко всем сообщениям темы
+						return db.engine.Read(ctx, sqlapi.NewQuery(queries.ForumGetTopicMessagesAttachments).WithArgs(messageIds).FlatArgs(), &attachments)
+					},
+					func() error { // Получаем список сообщений, которым выписаны предупреждения
+						return db.engine.Read(ctx, sqlapi.NewQuery(queries.ForumGetWarnedMessageIds).WithArgs(messageIds).FlatArgs(), &warnedMessageIds)
+					},
+					func() error { // Получаем список сообщений, которым вызван модератор
+						return db.engine.Read(ctx, sqlapi.NewQuery(queries.ForumGetModerCalledMessageIds).WithArgs(messageIds).FlatArgs(), &moderCalledMessageIds)
+					},
+				)
 			}
-			return db.engine.Read(ctx, sqlapi.NewQuery(queries.ForumGetTopicMessagesAttachments).WithArgs(messageIds).FlatArgs(), &attachments)
+			return nil
+		},
+		func() error { // Получаем данные о форуме
+			return db.engine.Read(ctx, sqlapi.NewQuery(queries.ForumGetForum).WithArgs(shortTopic.ForumId), &forum)
+		},
+		func() error { // Получаем список модераторов форума
+			return db.engine.Read(ctx, sqlapi.NewQuery(queries.ForumGetForumModerators).WithArgs(shortTopic.ForumId), &forumModerators)
+		},
+		func() error {
+			if userId != 0 {
+				return codeflow.Try(
+					func() error { // Получаем дату прочтения, если уже заходили в тему
+						err2 := db.engine.Read(ctx, sqlapi.NewQuery(queries.ForumGetTopicReadDate).WithArgs(topicId, userId), &dateOfTopicRead)
+						if IsNotFoundError(err2) {
+							return nil
+						}
+						return err2
+					},
+					func() error { // Получаем черновик, если есть
+						err2 := db.engine.Read(ctx, sqlapi.NewQuery(queries.ForumGetTopicMessagePreview).WithArgs(topicId, userId), &messageDraft)
+						if IsNotFoundError(err2) {
+							return nil
+						}
+						return err2
+					},
+					func() error { // Получаем список сообщений, за которые голосовал (+/-) текущий пользователь
+						if len(messageIds) > 0 {
+							return db.engine.Read(ctx, sqlapi.NewQuery(queries.ForumGetVotedMessageIds).WithArgs(messageIds, userId).FlatArgs(), &votedMessageIds)
+						}
+						return nil
+					},
+					func() error { // Получаем статус подписки на тему
+						return db.engine.Read(ctx, sqlapi.NewQuery(queries.ForumGetTopicSubscriptionExists).WithArgs(topicId, userId), &isUserSubscribed)
+					},
+				)
+			}
+			return nil
+		},
+		func() error { // Получаем данные по опросу
+			if shortTopic.TopicTypeId == 2 {
+				return codeflow.Try(
+					func() error { // Получаем варианты ответов
+						return db.engine.Read(ctx, sqlapi.NewQuery(queries.ForumGetTopicAnswers).WithArgs(topicId), &topicAnswers)
+					},
+					func() error {
+						if userId != 0 {
+							return codeflow.Try(
+								func() error { // Пользователь дал ответ в опросе?
+									return db.engine.Read(ctx, sqlapi.NewQuery(queries.ForumGetUserTopicAnswerExists).WithArgs(topicId, userId), &isUserTopicAnswerExists)
+								},
+								func() error {
+									// Если дал или тема закрыта, получаем список проголосовавших (здесь просачивается
+									// бизнес-логика, но зато одним запросом меньше)
+									if isUserTopicAnswerExists == 1 || shortTopic.IsClosed == 1 {
+										return db.engine.Read(ctx, sqlapi.NewQuery(queries.ForumGetTopicAnsweredUsers).WithArgs(topicId), &topicAnsweredUsers)
+									}
+									return nil
+								},
+							)
+						}
+						return nil
+					},
+				)
+			}
+			return nil
+		},
+		func() error {
+			return db.engine.InTransaction(func(rw sqlapi.ReaderWriter) error {
+				return codeflow.Try(
+					func() error { // Инкрементим количество просмотров темы
+						return rw.Write(ctx, sqlapi.NewQuery(queries.ForumIncrementTopicViewCount).WithArgs(topicId)).Error
+					},
+					func() error {
+						if userId != 0 {
+							var mostRecentMessageDateOfAdd time.Time
+							var previousReadMessageCount uint64
+
+							return codeflow.Try(
+								func() error { // Удаляем прочитанные сообщения из списка непрочитанных
+									if len(messageIds) > 0 {
+										if sortAsc {
+											mostRecentMessageDateOfAdd = messages[len(messages)-1].DateOfAdd
+										} else {
+											mostRecentMessageDateOfAdd = messages[0].DateOfAdd
+										}
+										return rw.Write(ctx, sqlapi.NewQuery(queries.ForumDeleteUserForumNewMessages).
+											WithArgs(userId, topicId, messageIds, mostRecentMessageDateOfAdd).FlatArgs()).Error
+									}
+									return nil
+								},
+								func() error { // Обновляем количество новых сообщений в форуме
+									return rw.Write(ctx, sqlapi.NewQuery(queries.ForumNewMessagesUpdate).WithArgs(userId, userId)).Error
+								},
+								func() error { // Получаем количество прочитанных сообщений в теме
+									err2 := db.engine.Read(ctx, sqlapi.NewQuery(queries.ForumGetUserTopicReadCount).WithArgs(userId, topicId), &previousReadMessageCount)
+									if IsNotFoundError(err2) {
+										return nil
+									}
+									return err2
+								},
+								func() error { // Выставляем новую дату прочтения темы
+									isLastTopicPage := (sortAsc && (offset+limit >= messageCount)) ||
+										(!sortAsc && (offset == 0))
+									if isLastTopicPage {
+										// Логика Perl-бэка
+										now := time.Now()
+										return rw.Write(ctx, sqlapi.NewQuery(queries.ForumInsertUserTopicReadDate).
+											WithArgs(userId, topicId, now, messageCount, forum.ForumId,
+												now, messageCount, forum.ForumId)).Error
+									} else {
+										var existsUnreadMessages bool
+										if dateOfTopicRead.DateOfRead.IsZero() {
+											existsUnreadMessages = true
+										} else {
+											for _, message := range messages {
+												if message.DateOfAdd.After(dateOfTopicRead.DateOfRead) {
+													existsUnreadMessages = true
+													break
+												}
+											}
+										}
+										if existsUnreadMessages {
+											var readMessageCount uint64
+											if sortAsc {
+												readMessageCount = offset + limit
+											} else {
+												readMessageCount = messageCount - offset
+											}
+											if previousReadMessageCount > readMessageCount {
+												readMessageCount = previousReadMessageCount
+											}
+											return rw.Write(ctx, sqlapi.NewQuery(queries.ForumInsertUserTopicReadDate).
+												WithArgs(userId, topicId, mostRecentMessageDateOfAdd, readMessageCount, forum.ForumId,
+													mostRecentMessageDateOfAdd, readMessageCount, forum.ForumId)).Error
+										}
+									}
+									return nil
+								},
+							)
+						}
+						return nil
+					},
+				)
+			})
 		},
 	)
 
-	if shortTopic.IsFirstMessagePinned == 1 {
-		err = codeflow.Try(
-			func() error {
-				return db.engine.Read(ctx, sqlapi.NewQuery(queries.ForumTopicFirstMessage).WithArgs(topicID), &pinnedFirstMessage)
-			},
-			func() error {
-				return db.engine.Read(ctx, sqlapi.NewQuery(queries.ForumGetTopicMessagesAttachments).WithArgs(pinnedFirstMessage.MessageID), &pinnedFirstMessageAttachments)
-			},
-		)
+	if err != nil {
+		return ForumTopicMessagesDBResponse{}, err
 	}
 
-	if err == nil {
-		response = &ForumTopicMessagesDBResponse{
-			Topic:                         shortTopic,
-			PinnedFirstMessage:            pinnedFirstMessage,
-			PinnedFirstMessageAttachments: pinnedFirstMessageAttachments,
-			Messages:                      messages,
-			Attachments:                   attachments,
-			TotalMessagesCount:            uint64(count),
+	votedMessagesMap := map[uint64]bool{}
+	for _, messageId := range votedMessageIds {
+		votedMessagesMap[messageId] = true
+	}
+
+	warnedMessagesMap := map[uint64]bool{}
+	for _, messageId := range warnedMessageIds {
+		warnedMessagesMap[messageId] = true
+	}
+
+	moderCalledMessagesMap := map[uint64]bool{}
+	for _, messageId := range moderCalledMessageIds {
+		moderCalledMessagesMap[messageId] = true
+	}
+
+	moderators := map[uint64]bool{}
+	for _, forumModerator := range forumModerators {
+		moderators[forumModerator.UserId] = true
+	}
+
+	additionalInfos := map[uint64]ForumAdditionalMessageInfo{}
+	for _, messageId := range messageIds {
+		additionalInfos[messageId] = ForumAdditionalMessageInfo{
+			MessageId:                       messageId,
+			IsVotedByUser:                   votedMessagesMap[messageId],
+			IsWarned:                        warnedMessagesMap[messageId],
+			IsModerCalled:                   moderCalledMessagesMap[messageId],
+			TopicStarterCanEditFirstMessage: shortTopic.IsEditTopicStarter == 1,
+			OnlyForAdminsForum:              forum.OnlyForAdmins == 1,
+			DateOfTopicRead:                 dateOfTopicRead.DateOfRead,
+			ForumModerators:                 moderators,
 		}
 	}
 
-	return
+	response := ForumTopicMessagesDBResponse{
+		Topic:                   shortTopic,
+		Messages:                messages,
+		Attachments:             attachments,
+		AdditionalInfos:         additionalInfos,
+		TotalMessagesCount:      messageCount,
+		MessageDraft:            messageDraft,
+		IsUserSubscribed:        isUserSubscribed == 1,
+		IsUserTopicAnswerExists: isUserTopicAnswerExists == 1,
+		TopicAnswers:            topicAnswers,
+		TopicAnsweredUsers:      topicAnsweredUsers,
+	}
+
+	return response, nil
 }
 
-func (db *DB) FetchForumMessage(ctx context.Context, messageId uint64, availableForums []uint64) (*ForumMessage, error) {
+func (db *DB) FetchForumMessageExists(ctx context.Context, messageId uint64, availableForums []uint64) (bool, error) {
+	var isExists uint8
+
+	err := db.engine.Read(ctx, sqlapi.NewQuery(queries.ForumGetMessageExists).WithArgs(messageId, availableForums).FlatArgs(), &isExists)
+
+	if err != nil {
+		return false, err
+	}
+
+	return isExists == 1, nil
+}
+
+func (db *DB) FetchForumMessage(ctx context.Context, messageId uint64) (*ForumMessage, error) {
 	var message ForumMessage
 
-	err := db.engine.Read(ctx, sqlapi.NewQuery(queries.ForumGetShortMessage).WithArgs(messageId, availableForums).FlatArgs(), &message)
+	err := db.engine.Read(ctx, sqlapi.NewQuery(queries.ForumGetShortMessage).WithArgs(messageId), &message)
 
 	if err != nil {
 		return nil, err
@@ -293,22 +753,34 @@ func (db *DB) FetchForumMessage(ctx context.Context, messageId uint64, available
 	return &message, nil
 }
 
-func (db *DB) FetchForumMessageUserVoteCount(ctx context.Context, userId, messageId uint64) (uint64, error) {
-	var count uint64
+func (db *DB) FetchForumMessageAttachments(ctx context.Context, messageId uint64) ([]ForumMessageAttachment, error) {
+	var attachments []ForumMessageAttachment
 
-	err := db.engine.Read(ctx, sqlapi.NewQuery(queries.ForumMessageUserVoteCount).WithArgs(userId, messageId), &count)
+	err := db.engine.Read(ctx, sqlapi.NewQuery(queries.ForumGetTopicMessagesAttachments).WithArgs(messageId), &attachments)
 
 	if err != nil {
-		return 0, err
+		return nil, err
 	}
 
-	return count, nil
+	return attachments, nil
 }
 
-func (db *DB) FetchUserIsForumModerator(ctx context.Context, userId, topicId uint64) (bool, error) {
+func (db *DB) FetchForumMessageUserVoteExists(ctx context.Context, userId, messageId uint64) (bool, error) {
+	var isExists uint8
+
+	err := db.engine.Read(ctx, sqlapi.NewQuery(queries.ForumGetMessageUserVoteExists).WithArgs(userId, messageId), &isExists)
+
+	if err != nil {
+		return false, err
+	}
+
+	return isExists == 1, nil
+}
+
+func (db *DB) FetchUserIsForumModerator(ctx context.Context, userId, forumId uint64) (bool, error) {
 	var userIsForumModerator uint8
 
-	err := db.engine.Read(ctx, sqlapi.NewQuery(queries.UserIsForumModerator).WithArgs(userId, topicId), &userIsForumModerator)
+	err := db.engine.Read(ctx, sqlapi.NewQuery(queries.ForumGetUserIsForumModerator).WithArgs(userId, forumId), &userIsForumModerator)
 
 	if err != nil {
 		return false, err
@@ -335,7 +807,7 @@ func (db *DB) InsertForumMessage(ctx context.Context, topic *ForumTopic, userId 
 				return rw.Write(ctx, sqlapi.NewQuery(queries.ForumSetMessageText).WithArgs(messageId, text)).Error
 			},
 			func() error { // Получаем сообщение
-				return rw.Read(ctx, sqlapi.NewQuery(queries.ForumGetTopicMessage).WithArgs(messageId), &message)
+				return rw.Read(ctx, sqlapi.NewQuery(queries.ForumGetTopicMessages).Inject("").WithArgs(messageId), &message)
 			},
 			func() error { // Удаляем, если есть, черновик сообщения для данной темы
 				return rw.Write(ctx, sqlapi.NewQuery(queries.ForumCancelTopicMessagePreview).WithArgs(userId, topic.TopicId)).Error
@@ -363,7 +835,7 @@ func (db *DB) InsertForumMessage(ctx context.Context, topic *ForumTopic, userId 
 }
 
 func updateForumStatAfterNewMessage(ctx context.Context, rw sqlapi.ReaderWriter, topic *ForumTopic, forumMessagesInPage, messageId, userId uint64, login string) error {
-	if topic.IsModerated == 0 {
+	if topic.Moderated == 0 {
 		return nil
 	}
 
@@ -461,7 +933,7 @@ func (db *DB) UpdateForumMessage(ctx context.Context, messageId, topicId uint64,
 				return rw.Write(ctx, sqlapi.NewQuery(queries.ForumSetMessageText).WithArgs(messageId, text)).Error
 			},
 			func() error { // Получаем сообщение
-				return rw.Read(ctx, sqlapi.NewQuery(queries.ForumGetTopicMessage).WithArgs(messageId), &message)
+				return rw.Read(ctx, sqlapi.NewQuery(queries.ForumGetTopicMessages).Inject("").WithArgs(messageId), &message)
 			},
 			func() error { // Выставляем флаг для Cron-а о необходимости переиндексации Sphinx-ом
 				return rw.Write(ctx, sqlapi.NewQuery(queries.ForumMarkTopicNeedSphinxReindex).WithArgs(topicId)).Error
@@ -530,7 +1002,7 @@ func updateTopicStatAfterMessageDeleting(ctx context.Context, rw sqlapi.ReaderWr
 		},
 		func() error { // Обновляем данные о последнем сообщении в теме
 			return rw.Write(ctx, sqlapi.NewQuery(queries.ForumSetTopicLastMessage).
-				WithArgs(stat.LastMessageId, message.UserID, message.Login, message.DateOfAdd, topicId)).Error
+				WithArgs(stat.LastMessageId, message.UserId, message.UserLogin, message.DateOfAdd, topicId)).Error
 		},
 	)
 }
@@ -557,7 +1029,7 @@ func updateForumStatAfterMessageDeleting(ctx context.Context, rw sqlapi.ReaderWr
 		func() error { // Обновляем данные о последней теме в форуме
 			pageCount := helpers.CalculatePageCount(lastTopic.MessageCount, forumMessagesInPage)
 			return rw.Write(ctx, sqlapi.NewQuery(queries.ForumSetForumLastTopic).
-				WithArgs(stat.MessageCount, stat.TopicCount, lastTopic.LastMessageID, lastTopic.LastUserID, lastTopic.LastLogin,
+				WithArgs(stat.MessageCount, stat.TopicCount, lastTopic.LastMessageId, lastTopic.LastMessageUserId, lastTopic.LastMessageUserLogin,
 					lastTopic.TopicId, lastTopic.Name, lastTopic.LastMessageDate, pageCount, notModeratedTopicCount, forumId)).Error
 		},
 	)

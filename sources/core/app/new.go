@@ -194,11 +194,18 @@ func MakeServices() (*Services, error, []func() error) {
 				MaxForumMessageEditTimeout: 3600,
 				// Первоапрельские форумы, в отличие от Perl-бэка, недоступны для любых действий (поскольку доступ к ним
 				// реализован хардкодом в Auth.pm)
-				DefaultAccessToForums:     []uint64{1, 2, 3, 5, 6, 7, 8, 10, 12, 13, 14, 15, 16, 17, 22},
+				DefaultAccessToForums:   []uint64{1, 2, 3, 5, 6, 7, 8, 10, 12, 13, 14, 15, 16, 17, 22},
+				ForumsWithEnabledRating: []uint64{1, 3, 4, 6, 7, 9, 11, 12, 19},
+				// В Perl-бэке список задан хардкодом в Forum.pm:
+				// https://github.com/parserpro/fantlab/blob/19b295d70fd741e4f9a905e892ecf1358a87e35c/pm/Forum.pm#L1400-L1403
+				ForumsWithDisabledMinuses: []uint64{9, 12},
+				ReadOnlyForumUsers:        map[uint64][]uint64{9: {18938, 29932, 31525, 42100, 59417, 91217, 122312, 154599, 163940, 166509}},
 				BlogsInPage:               50,
 				BlogTopicsInPage:          20,
 				BlogArticleCommentsInPage: 10,
-				CensorshipText:            "Сообщение изъято модератором",
+				CensorshipText:            "[Сообщение изъято модератором]",
+				PreModerationText:         "[Сообщение на премодерации]",
+				ImageReplacementLinkText:  "[картинка]",
 				BotUserId:                 2, // Р. Букашка
 				MaxAttachCountPerMessage:  10,
 				BookcaseItemInPage:        50,

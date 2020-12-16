@@ -3,7 +3,6 @@ package endpoints
 import (
 	"fantlab/core/app"
 	"fantlab/core/converters"
-	"fantlab/core/db"
 	"fantlab/core/helpers"
 	"fantlab/pb"
 	"net/http"
@@ -33,22 +32,7 @@ func (api *API) DeleteForumMessageFile(r *http.Request) (int, proto.Message) {
 
 	availableForums := api.getAvailableForums(r)
 
-	dbMessage, err := api.services.DB().FetchForumMessage(r.Context(), params.MessageId, availableForums)
-
-	if err != nil {
-		if db.IsNotFoundError(err) {
-			return http.StatusNotFound, &pb.Error_Response{
-				Status:  pb.Error_NOT_FOUND,
-				Context: strconv.FormatUint(params.MessageId, 10),
-			}
-		}
-
-		return http.StatusInternalServerError, &pb.Error_Response{
-			Status: pb.Error_SOMETHING_WENT_WRONG,
-		}
-	}
-
-	files, err := api.services.GetFiles(r.Context(), app.ForumMessageFileGroup, dbMessage.MessageID)
+	isMessageExists, err := api.services.DB().FetchForumMessageExists(r.Context(), params.MessageId, availableForums)
 
 	if err != nil {
 		return http.StatusInternalServerError, &pb.Error_Response{
@@ -56,25 +40,67 @@ func (api *API) DeleteForumMessageFile(r *http.Request) (int, proto.Message) {
 		}
 	}
 
-	fileExist := false
+	if !isMessageExists {
+		return http.StatusNotFound, &pb.Error_Response{
+			Status:  pb.Error_NOT_FOUND,
+			Context: strconv.FormatUint(params.MessageId, 10),
+		}
+	}
 
-	for _, file := range files {
-		if file.Name == params.FileName {
-			fileExist = true
+	dbMessage, err := api.services.DB().FetchForumMessage(r.Context(), params.MessageId)
+
+	if err != nil {
+		return http.StatusInternalServerError, &pb.Error_Response{
+			Status: pb.Error_SOMETHING_WENT_WRONG,
+		}
+	}
+
+	attachments, err := api.services.DB().FetchForumMessageAttachments(r.Context(), dbMessage.MessageId)
+
+	if err != nil {
+		return http.StatusInternalServerError, &pb.Error_Response{
+			Status: pb.Error_SOMETHING_WENT_WRONG,
+		}
+	}
+
+	attachmentExist := false
+
+	for _, attachment := range attachments {
+		if attachment.FileName == params.FileName {
+			attachmentExist = true
 			break
 		}
 	}
 
-	if !fileExist {
-		return http.StatusForbidden, &pb.Error_Response{
-			Status:  pb.Error_ACTION_PERMITTED,
-			Context: "Не удалось найти аттач с таким именем",
+	if !attachmentExist {
+		files, err := api.services.GetFiles(r.Context(), app.ForumMessageFileGroup, dbMessage.MessageId)
+
+		if err != nil {
+			return http.StatusInternalServerError, &pb.Error_Response{
+				Status: pb.Error_SOMETHING_WENT_WRONG,
+			}
+		}
+
+		fileExist := false
+
+		for _, file := range files {
+			if file.Name == params.FileName {
+				fileExist = true
+				break
+			}
+		}
+
+		if !fileExist {
+			return http.StatusForbidden, &pb.Error_Response{
+				Status:  pb.Error_ACTION_PERMITTED,
+				Context: "Не удалось найти аттач с таким именем",
+			}
 		}
 	}
 
 	// Все дальнейшие проверки аналогичны таковым при редактировании сообщения
 
-	if dbMessage.UserID == 0 {
+	if dbMessage.UserId == 0 {
 		// В базе есть сообщения, у которых user_id = 0. Визуально помечается как "Автор удален"
 		return http.StatusForbidden, &pb.Error_Response{
 			Status:  pb.Error_ACTION_PERMITTED,
@@ -84,13 +110,21 @@ func (api *API) DeleteForumMessageFile(r *http.Request) (int, proto.Message) {
 
 	user := api.getUser(r)
 
-	userIsForumModerator, err := api.services.DB().FetchUserIsForumModerator(r.Context(), user.UserId, dbMessage.TopicId)
+	additionalInfo, err := api.services.DB().FetchAdditionalMessageInfo(r.Context(), dbMessage.MessageId, dbMessage.TopicId,
+		dbMessage.ForumId, user.UserId)
 
 	if err != nil {
 		return http.StatusInternalServerError, &pb.Error_Response{
 			Status: pb.Error_SOMETHING_WENT_WRONG,
 		}
 	}
+
+	userIsForumModerator := additionalInfo.ForumModerators[user.UserId]
+	topicStarterCanEditFirstMessage := additionalInfo.TopicStarterCanEditFirstMessage
+	onlyForAdminsForum := additionalInfo.OnlyForAdminsForum
+
+	userCanPerformAdminActions := api.isPermissionGranted(r, pb.Auth_Claims_PERMISSION_CAN_PERFORM_ADMIN_ACTIONS)
+	userCanEditOwnForumMessages := api.isPermissionGranted(r, pb.Auth_Claims_PERMISSION_CAN_EDIT_OWN_FORUM_MESSAGES_WITHOUT_TIME_RESTRICTION)
 
 	// TODO:
 	//  1. В коде метода Forum.pm#EditMessageOk есть логика, касающаяся переноса сообщений между темами. Есть смысл
@@ -98,24 +132,7 @@ func (api *API) DeleteForumMessageFile(r *http.Request) (int, proto.Message) {
 	//  2. Пропущена обработка Profile->workgroup_referee, поскольку оно реализовано хардкодом в Auth.pm
 	//  3. Пропущен хардкод про права rusty_cat править FAQ
 
-	forum, err := api.services.DB().FetchShortForum(r.Context(), dbMessage.ForumId)
-
-	if err != nil {
-		return http.StatusInternalServerError, &pb.Error_Response{
-			Status: pb.Error_SOMETHING_WENT_WRONG,
-		}
-	}
-
-	topicStarterCanEditFirstMessage, err := api.services.DB().FetchTopicStarterCanEditFirstMessage(r.Context(), dbMessage.MessageID)
-
-	if err != nil {
-		return http.StatusInternalServerError, &pb.Error_Response{
-			Status: pb.Error_SOMETHING_WENT_WRONG,
-		}
-	}
-
 	isTimeUp := uint64(time.Since(dbMessage.DateOfAdd).Seconds()) > api.services.AppConfig().MaxForumMessageEditTimeout
-	userCanEditOwnForumMessages := api.isPermissionGranted(r, pb.Auth_Claims_PERMISSION_CAN_EDIT_OWN_FORUM_MESSAGES_WITHOUT_TIME_RESTRICTION)
 
 	// Еще не вышло время редактирования
 	//  или пользователь может редактировать свои сообщения без ограничения по времени
@@ -124,16 +141,39 @@ func (api *API) DeleteForumMessageFile(r *http.Request) (int, proto.Message) {
 
 	isMessageEditable := dbMessage.IsCensored == 0 && dbMessage.IsRed == 0
 
-	if !(user.UserId == dbMessage.UserID && canUserEditMessage && isMessageEditable) && !userIsForumModerator && forum.OnlyForAdmins == 0 {
+	if !(user.UserId == dbMessage.UserId && canUserEditMessage && isMessageEditable) && !userIsForumModerator && !onlyForAdminsForum {
 		return http.StatusForbidden, &pb.Error_Response{
 			Status:  pb.Error_ACTION_PERMITTED,
 			Context: "Вы не можете удалить аттач данного сообщения",
 		}
 	}
 
-	api.services.DeleteFile(r.Context(), app.ForumMessageFileGroup, dbMessage.MessageID, params.FileName)
+	if attachmentExist {
+		helpers.DeleteForumMessageAttachment(dbMessage.MessageId, params.FileName)
+	} else { // Minio file exist
+		api.services.DeleteFile(r.Context(), app.ForumMessageFileGroup, dbMessage.MessageId, params.FileName)
+	}
 
-	messageResponse := converters.GetForumTopicMessage(dbMessage, api.services.AppConfig())
+	var attaches []*pb.Common_Attachment
+
+	attachments, _ = api.services.DB().FetchForumMessageAttachments(r.Context(), dbMessage.MessageId)
+	for _, attachment := range attachments {
+		attaches = append(attaches, &pb.Common_Attachment{
+			Name: attachment.FileName,
+			Size: attachment.FileSize,
+		})
+	}
+
+	files, _ := api.services.GetFiles(r.Context(), app.ForumMessageFileGroup, dbMessage.MessageId)
+	for _, file := range files {
+		attaches = append(attaches, &pb.Common_Attachment{
+			Name: file.Name,
+			Size: file.Size,
+		})
+	}
+
+	messageResponse := converters.GetForumTopicMessage(dbMessage, attaches, additionalInfo, api.services.AppConfig(),
+		user, userCanPerformAdminActions, userCanEditOwnForumMessages)
 
 	return http.StatusOK, messageResponse
 }

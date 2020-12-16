@@ -73,6 +73,10 @@ enum WorkType {
     WORK_TYPE_REVIEW = 33;
     // Научно-популярная книга
     WORK_TYPE_POPULAR_SCIENCE_BOOK = 34;
+    // Артбук
+    WORK_TYPE_ARTBOOK = 35;
+    // Либретто
+    WORK_TYPE_LIBRETTO = 36;
 }
 
 message Work {

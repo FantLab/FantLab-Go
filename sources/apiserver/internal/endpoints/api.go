@@ -119,6 +119,9 @@ func (api *API) makeAuthResponse(r *http.Request, issuedAt time.Time, userId uin
 
 	var permissions []pb.Auth_Claims_Permission
 
+	if userInfo.AccessToAdminFunctions == "1" {
+		permissions = append(permissions, pb.Auth_Claims_PERMISSION_CAN_PERFORM_ADMIN_ACTIONS)
+	}
 	if userInfo.CanEditDeleteForumMessages == "1" {
 		permissions = append(permissions, pb.Auth_Claims_PERMISSION_CAN_MODERATE_PRIVATE_MESSAGES)
 	}
@@ -135,11 +138,14 @@ func (api *API) makeAuthResponse(r *http.Request, issuedAt time.Time, userId uin
 		User: &pb.Auth_Claims_UserInfo{
 			UserId:                           userId,
 			Login:                            userInfo.Login,
-			Gender:                           helpers.GetGender(userId, userInfo.Gender),
-			Class:                            helpers.UserClassMap[userInfo.Class],
+			Gender:                           helpers.GetGender(userId, userInfo.Sex),
+			Class:                            helpers.UserClassMap[userInfo.UserClass],
 			OwnResponsesRating:               userInfo.VoteCount,
-			AvailableForumIds:                helpers.ParseUints(strings.Split(userInfo.AvailableForums, ",")),
+			AvailableForumIds:                helpers.ParseUints(strings.Split(userInfo.AccessToForums, ",")),
 			AlwaysCopyPrivateMessageViaEmail: userInfo.AlwaysPMByEmail == 1,
+			SmilesDisabled:                   userInfo.DisableSmiles == 1,
+			ImagesDisabled:                   userInfo.DisableImages == 1,
+			ForumMessagesRatingDisabled:      userInfo.ForumRatingMessageHide == 1,
 			Permissions:                      permissions,
 		},
 	}
