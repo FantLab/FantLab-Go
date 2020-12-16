@@ -2,7 +2,6 @@ package endpoints
 
 import (
 	"fantlab/core/app"
-	"fantlab/core/db"
 	"fantlab/core/helpers"
 	"fantlab/pb"
 	"fmt"
@@ -33,16 +32,24 @@ func (api *API) GetForumMessageFileUploadUrl(r *http.Request) (int, proto.Messag
 
 	availableForums := api.getAvailableForums(r)
 
-	dbMessage, err := api.services.DB().FetchForumMessage(r.Context(), params.MessageId, availableForums)
+	isMessageExists, err := api.services.DB().FetchForumMessageExists(r.Context(), params.MessageId, availableForums)
 
 	if err != nil {
-		if db.IsNotFoundError(err) {
-			return http.StatusNotFound, &pb.Error_Response{
-				Status:  pb.Error_NOT_FOUND,
-				Context: strconv.FormatUint(params.MessageId, 10),
-			}
+		return http.StatusInternalServerError, &pb.Error_Response{
+			Status: pb.Error_SOMETHING_WENT_WRONG,
 		}
+	}
 
+	if !isMessageExists {
+		return http.StatusNotFound, &pb.Error_Response{
+			Status:  pb.Error_NOT_FOUND,
+			Context: strconv.FormatUint(params.MessageId, 10),
+		}
+	}
+
+	dbMessage, err := api.services.DB().FetchForumMessage(r.Context(), params.MessageId)
+
+	if err != nil {
 		return http.StatusInternalServerError, &pb.Error_Response{
 			Status: pb.Error_SOMETHING_WENT_WRONG,
 		}
@@ -50,7 +57,7 @@ func (api *API) GetForumMessageFileUploadUrl(r *http.Request) (int, proto.Messag
 
 	// Все дальнейшие проверки аналогичны таковым при редактировании сообщения
 
-	if dbMessage.UserID == 0 {
+	if dbMessage.UserId == 0 {
 		// В базе есть сообщения, у которых user_id = 0. Визуально помечается как "Автор удален"
 		return http.StatusForbidden, &pb.Error_Response{
 			Status:  pb.Error_ACTION_PERMITTED,
@@ -60,7 +67,7 @@ func (api *API) GetForumMessageFileUploadUrl(r *http.Request) (int, proto.Messag
 
 	user := api.getUser(r)
 
-	userIsForumModerator, err := api.services.DB().FetchUserIsForumModerator(r.Context(), user.UserId, dbMessage.TopicId)
+	userIsForumModerator, err := api.services.DB().FetchUserIsForumModerator(r.Context(), user.UserId, dbMessage.ForumId)
 
 	if err != nil {
 		return http.StatusInternalServerError, &pb.Error_Response{
@@ -74,7 +81,7 @@ func (api *API) GetForumMessageFileUploadUrl(r *http.Request) (int, proto.Messag
 	//  2. Пропущена обработка Profile->workgroup_referee, поскольку оно реализовано хардкодом в Auth.pm
 	//  3. Пропущен хардкод про права rusty_cat править FAQ
 
-	forum, err := api.services.DB().FetchShortForum(r.Context(), dbMessage.ForumId)
+	forum, err := api.services.DB().FetchForum(r.Context(), dbMessage.ForumId)
 
 	if err != nil {
 		return http.StatusInternalServerError, &pb.Error_Response{
@@ -82,13 +89,17 @@ func (api *API) GetForumMessageFileUploadUrl(r *http.Request) (int, proto.Messag
 		}
 	}
 
-	topicStarterCanEditFirstMessage, err := api.services.DB().FetchTopicStarterCanEditFirstMessage(r.Context(), dbMessage.MessageID)
+	onlyForAdminsForum := forum.OnlyForAdmins == 1
+
+	shortTopic, err := api.services.DB().FetchForumTopicShort(r.Context(), dbMessage.TopicId)
 
 	if err != nil {
 		return http.StatusInternalServerError, &pb.Error_Response{
 			Status: pb.Error_SOMETHING_WENT_WRONG,
 		}
 	}
+
+	topicStarterCanEditFirstMessage := shortTopic.IsEditTopicStarter == 1
 
 	isTimeUp := uint64(time.Since(dbMessage.DateOfAdd).Seconds()) > api.services.AppConfig().MaxForumMessageEditTimeout
 	userCanEditOwnForumMessages := api.isPermissionGranted(r, pb.Auth_Claims_PERMISSION_CAN_EDIT_OWN_FORUM_MESSAGES_WITHOUT_TIME_RESTRICTION)
@@ -100,14 +111,14 @@ func (api *API) GetForumMessageFileUploadUrl(r *http.Request) (int, proto.Messag
 
 	isMessageEditable := dbMessage.IsCensored == 0 && dbMessage.IsRed == 0
 
-	if !(user.UserId == dbMessage.UserID && canUserEditMessage && isMessageEditable) && !userIsForumModerator && forum.OnlyForAdmins == 0 {
+	if !(user.UserId == dbMessage.UserId && canUserEditMessage && isMessageEditable) && !userIsForumModerator && !onlyForAdminsForum {
 		return http.StatusForbidden, &pb.Error_Response{
 			Status:  pb.Error_ACTION_PERMITTED,
 			Context: "Вы не можете добавить аттач к данному сообщению",
 		}
 	}
 
-	files, err := api.services.GetFiles(r.Context(), app.ForumMessageFileGroup, dbMessage.MessageID)
+	attachments, err := api.services.DB().FetchForumMessageAttachments(r.Context(), dbMessage.MessageId)
 
 	if err != nil {
 		return http.StatusInternalServerError, &pb.Error_Response{
@@ -115,7 +126,33 @@ func (api *API) GetForumMessageFileUploadUrl(r *http.Request) (int, proto.Messag
 		}
 	}
 
-	fileCount := uint64(len(files))
+	for _, attachment := range attachments {
+		if attachment.FileName == params.FileName {
+			return http.StatusInternalServerError, &pb.Error_Response{
+				Status:  pb.Error_ACTION_PERMITTED,
+				Context: "К сообщению уже приаттачен файл с таким именем",
+			}
+		}
+	}
+
+	files, err := api.services.GetFiles(r.Context(), app.ForumMessageFileGroup, dbMessage.MessageId)
+
+	if err != nil {
+		return http.StatusInternalServerError, &pb.Error_Response{
+			Status: pb.Error_SOMETHING_WENT_WRONG,
+		}
+	}
+
+	for _, file := range files {
+		if file.Name == params.FileName {
+			return http.StatusInternalServerError, &pb.Error_Response{
+				Status:  pb.Error_ACTION_PERMITTED,
+				Context: "К сообщению уже приаттачен файл с таким именем",
+			}
+		}
+	}
+
+	fileCount := uint64(len(attachments) + len(files))
 
 	if fileCount >= api.services.AppConfig().MaxAttachCountPerMessage {
 		return http.StatusInternalServerError, &pb.Error_Response{
@@ -124,7 +161,7 @@ func (api *API) GetForumMessageFileUploadUrl(r *http.Request) (int, proto.Messag
 		}
 	}
 
-	uploadUrl, err := api.services.GetFileUploadUrl(r.Context(), app.ForumMessageFileGroup, dbMessage.MessageID, params.FileName)
+	uploadUrl, err := api.services.GetFileUploadUrl(r.Context(), app.ForumMessageFileGroup, dbMessage.MessageId, params.FileName)
 
 	if err != nil {
 		return http.StatusInternalServerError, &pb.Error_Response{

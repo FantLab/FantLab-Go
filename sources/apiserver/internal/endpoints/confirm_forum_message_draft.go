@@ -1,12 +1,14 @@
 package endpoints
 
 import (
+	"fantlab/core/app"
 	"fantlab/core/converters"
 	"fantlab/core/db"
 	"fantlab/core/helpers"
 	"fantlab/pb"
 	"fmt"
 	"net/http"
+	"os"
 	"strconv"
 
 	"google.golang.org/protobuf/proto"
@@ -26,16 +28,24 @@ func (api *API) ConfirmForumMessageDraft(r *http.Request) (int, proto.Message) {
 
 	availableForums := api.getAvailableForums(r)
 
-	dbTopic, err := api.services.DB().FetchForumTopic(r.Context(), availableForums, params.TopicId)
+	isTopicExists, err := api.services.DB().FetchForumTopicExists(r.Context(), params.TopicId, availableForums)
 
 	if err != nil {
-		if db.IsNotFoundError(err) {
-			return http.StatusNotFound, &pb.Error_Response{
-				Status:  pb.Error_NOT_FOUND,
-				Context: strconv.FormatUint(params.TopicId, 10),
-			}
+		return http.StatusInternalServerError, &pb.Error_Response{
+			Status: pb.Error_SOMETHING_WENT_WRONG,
 		}
+	}
 
+	if !isTopicExists {
+		return http.StatusNotFound, &pb.Error_Response{
+			Status:  pb.Error_NOT_FOUND,
+			Context: strconv.FormatUint(params.TopicId, 10),
+		}
+	}
+
+	dbTopic, err := api.services.DB().FetchForumTopic(r.Context(), params.TopicId)
+
+	if err != nil {
 		return http.StatusInternalServerError, &pb.Error_Response{
 			Status: pb.Error_SOMETHING_WENT_WRONG,
 		}
@@ -50,13 +60,16 @@ func (api *API) ConfirmForumMessageDraft(r *http.Request) (int, proto.Message) {
 
 	user := api.getUser(r)
 
-	userIsForumModerator, err := api.services.DB().FetchUserIsForumModerator(r.Context(), user.UserId, dbTopic.TopicId)
+	userIsForumModerator, err := api.services.DB().FetchUserIsForumModerator(r.Context(), user.UserId, dbTopic.ForumId)
 
 	if err != nil {
 		return http.StatusInternalServerError, &pb.Error_Response{
 			Status: pb.Error_SOMETHING_WENT_WRONG,
 		}
 	}
+
+	userCanPerformAdminActions := api.isPermissionGranted(r, pb.Auth_Claims_PERMISSION_CAN_PERFORM_ADMIN_ACTIONS)
+	userCanEditOwnForumMessages := api.isPermissionGranted(r, pb.Auth_Claims_PERMISSION_CAN_EDIT_OWN_FORUM_MESSAGES_WITHOUT_TIME_RESTRICTION)
 
 	dbMessageDraft, err := api.services.DB().FetchForumMessageDraft(r.Context(), dbTopic.TopicId, user.UserId)
 
@@ -102,7 +115,8 @@ func (api *API) ConfirmForumMessageDraft(r *http.Request) (int, proto.Message) {
 		isRed = 1
 	}
 
-	dbMessage, err := api.services.DB().ConfirmForumMessageDraft(r.Context(), dbTopic, user.UserId, user.Login, formattedMessage, isRed, api.services.AppConfig().ForumMessagesInPage)
+	dbMessage, err := api.services.DB().ConfirmForumMessageDraft(r.Context(), dbTopic, user.UserId, user.Login,
+		formattedMessage, isRed, api.services.AppConfig().ForumMessagesInPage)
 
 	if err != nil {
 		return http.StatusInternalServerError, &pb.Error_Response{
@@ -110,7 +124,7 @@ func (api *API) ConfirmForumMessageDraft(r *http.Request) (int, proto.Message) {
 		}
 	}
 
-	// инвалидируем кэши подписчиков и текущего юзера (запрос не фейлим в случае ошибки)
+	// Инвалидируем кэши подписчиков и текущего юзера (запрос не фейлим в случае ошибки)
 	{
 		subscribers, _ := api.services.DB().FetchForumTopicSubscribers(r.Context(), dbTopic.TopicId)
 
@@ -121,9 +135,38 @@ func (api *API) ConfirmForumMessageDraft(r *http.Request) (int, proto.Message) {
 		_ = api.services.DeleteUserCache(r.Context(), user.UserId)
 	}
 
-	// TODO Аттачи черновика сконвертировать в аттачи сообщения
+	// Аттачи черновика переливаем из их директории в файловой системе в Minio
+	draftAttachments, _ := helpers.GetForumMessageDraftAttachments(user.UserId, dbTopic.TopicId)
+	for _, draftAttachment := range draftAttachments {
+		file, err := os.Open(fmt.Sprintf("%s/%s", helpers.GetForumMessageDraftAttachmentsDir(user.UserId, dbTopic.TopicId), draftAttachment.Name))
+		if err != nil {
+			continue
+		}
+		_ = api.services.SaveFileFromFileSystem(r.Context(), app.ForumMessageFileGroup, dbMessage.MessageId, file)
+		_ = file.Close()
+	}
+	// Удаляем директорию с аттачами черновика
+	helpers.DeleteForumMessageDraftAttachments(user.UserId, dbTopic.TopicId)
+	// Уже имевшиеся в Minio аттачи черновика превращаем в аттачи сообщения
+	_ = api.services.MoveFiles(r.Context(), app.ForumMessageDraftFileGroup, dbMessageDraft.DraftId, app.ForumMessageFileGroup, dbMessage.MessageId)
 
-	messageResponse := converters.GetForumTopicMessage(dbMessage, api.services.AppConfig())
+	var attaches []*pb.Common_Attachment
+	files, _ := api.services.GetFiles(r.Context(), app.ForumMessageFileGroup, dbMessage.MessageId)
+	for _, file := range files {
+		attaches = append(attaches, &pb.Common_Attachment{
+			Name: file.Name,
+			Size: file.Size,
+		})
+	}
+
+	// NOTE Возможен баг. Поскольку потенциальные ошибки игнорируются (а иначе необходимо откатывать обратно транзакцию
+	// БД и все операции с аттачами), вычисление прав текущего юзера может отработать слегка неадекватно. Хоть это и
+	// маловероятно на практике
+	additionalInfo, _ := api.services.DB().FetchAdditionalMessageInfo(r.Context(), dbMessage.MessageId, dbMessage.TopicId,
+		dbMessage.ForumId, user.UserId)
+
+	messageResponse := converters.GetForumTopicMessage(dbMessage, attaches, additionalInfo, api.services.AppConfig(),
+		user, userCanPerformAdminActions, userCanEditOwnForumMessages)
 
 	return http.StatusOK, messageResponse
 }

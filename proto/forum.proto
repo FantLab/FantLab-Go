@@ -20,6 +20,8 @@ message Forum {
         Common.Creation creation = 2;
         // текст
         string text = 3;
+        // аттачи
+        repeated Common.Attachment attachments = 4;
     }
 
     message LastMessage {
@@ -41,6 +43,19 @@ message Forum {
             int64 rating = 1;
         }
 
+        message Rights {
+            // на редактирование
+            bool canEdit = 1;
+            // на удаление
+            bool canDelete = 2;
+            // на выставление "минуса" сообщению
+            bool canVoteMinus = 3;
+            // на выставление "плюса" сообщению
+            bool canVotePlus = 4;
+            // на удаление рейтинга (для модераторов)
+            bool canDeleteVotes = 5;
+        }
+
         // id сообщения
         uint64 id = 1;
         // данные о создании
@@ -49,10 +64,28 @@ message Forum {
         string text = 3;
         // текст изъят модератором?
         bool is_censored = 4;
+        // сообщение не прочитано? (для залогиненных пользователей)
+        bool is_unread = 5;
         // аттачи
-        repeated Common.Attachment attachments = 5;
+        repeated Common.Attachment attachments = 6;
         // статистика
-        Stats stats = 6;
+        Stats stats = 7;
+        // права
+        Rights rights = 8;
+    }
+
+    message Poll {
+        message AnswerOption {
+            // текст
+            string text = 1;
+            // количество проголосовавших (если опрос окончен)
+            uint64 voter_count = 2;
+        }
+
+        // варианты ответов
+        repeated AnswerOption answer_options = 1;
+        // проголосовавшие пользователи (если опрос окончен)
+        repeated Common.UserLink voters = 2;
     }
 
     message Topic {
@@ -67,8 +100,10 @@ message Forum {
         message Stats {
             // количество сообщений
             uint64 message_count = 1;
+            // количество непрочитанных сообщений (для залогиненных пользователей)
+            uint64 not_read_message_count = 2;
             // количество просмотров
-            uint64 view_count = 2;
+            uint64 view_count = 3;
         }
 
         // id темы
@@ -83,18 +118,28 @@ message Forum {
         bool is_closed = 5;
         // тема закреплена?
         bool is_pinned = 6;
+        // тема не отмодерирована? (для модераторов и авторов тем)
+        bool is_not_moderated = 7;
+        // пользователь подписан на тему? (для залогиненных пользователей)
+        bool is_subscribed = 8;
         // статистика
-        Stats stats = 7;
+        Stats stats = 9;
         // последнее сообщение
-        LastMessage last_message = 8;
+        LastMessage last_message = 10;
+        // id первого непрочитанного сообщения (для залогиненных пользователей)
+        uint64 first_not_read_message_id = 11;
     }
 
     message Forum {
         message Stats {
             // количество тем
             uint64 topic_count = 1;
+            // количество неотмодерированных тем (для модераторов)
+            uint64 not_moderated_topic_count = 2;
             // количество сообщений
-            uint64 message_count = 2;
+            uint64 message_count = 3;
+            // количество непрочитанных сообщений (для залогиненных пользователей)
+            uint64 not_read_message_count = 4;
         }
 
         // id форума
@@ -126,10 +171,12 @@ message Forum {
     }
 
     message ForumTopicsResponse {
+        // модераторы
+        repeated Common.UserLink moderators = 1;
         // список тем
-        repeated Topic topics = 1;
+        repeated Topic topics = 2;
         // страницы
-        Common.Pages pages = 2;
+        Common.Pages pages = 3;
     }
 
     message ForumTopicResponse {
@@ -137,12 +184,16 @@ message Forum {
         Topic topic = 1;
         // форум, в который входит тема
         Forum forum = 2;
+        // опрос (если есть)
+        Poll poll = 3;
         // закрепленное сообщение, если есть
-        TopicMessage pinned_message = 3;
+        TopicMessage pinned_message = 4;
         // сообщения
-        repeated TopicMessage messages = 4;
+        repeated TopicMessage messages = 5;
+        // черновик, если есть (для залогиненных пользователей)
+        TopicMessageDraft message_draft = 6;
         // страницы
-        Common.Pages pages = 5;
+        Common.Pages pages = 7;
     }
 
     message ForumMessageResponse {
@@ -152,6 +203,6 @@ message Forum {
 
     message ForumMessageDraftResponse {
         // черновик сообщения
-        TopicMessageDraft messageDraft = 1;
+        TopicMessageDraft message_draft = 1;
     }
 }

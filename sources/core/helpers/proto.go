@@ -80,6 +80,8 @@ var (
 		51: pb.WorkType_WORK_TYPE_INTERVIEW,
 		52: pb.WorkType_WORK_TYPE_REVIEW,
 		53: pb.WorkType_WORK_TYPE_POPULAR_SCIENCE_BOOK,
+		54: pb.WorkType_WORK_TYPE_ARTBOOK,
+		55: pb.WorkType_WORK_TYPE_LIBRETTO,
 	}
 
 	FilmTypeMap = map[uint64]pb.FilmType{

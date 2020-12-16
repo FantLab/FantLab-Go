@@ -43,7 +43,6 @@ const (
 			users u ON u.user_id = f.user_id
 		WHERE
 			f.topic_id = ? AND f.user_id = ?
-		LIMIT 1
 	`
 
 	ForumDeleteForumMessagePreview = `

@@ -5,7 +5,7 @@ const (
 )
 
 const (
-	Forums = `
+	ForumGetForums = `
 		SELECT
 			f.forum_id,
 			f.name,
@@ -14,36 +14,37 @@ const (
 			f.message_count,
 			f.last_topic_id,
 			f.last_topic_name,
-			u.user_id,
-			u.login,
-			u.sex,
-			u.photo_number,
 			f.last_message_id,
-			m.message_text AS last_message_text,
+			u.user_id AS last_message_user_id,
+			u.login AS last_message_user_login,
+			u.sex AS last_message_user_sex,
+			u.photo_number AS last_message_user_photo_number,
+			mt.message_text AS last_message_text,
 			f.last_message_date,
 			fb.forum_block_id,
-			fb.name AS forum_block_name
+			fb.name AS forum_block_name,
+			f.not_moderated_topic_count
 		FROM
 			f_forums f
 		JOIN
 			f_forum_blocks fb ON fb.forum_block_id = f.forum_block_id
 		LEFT JOIN
 			users u ON u.user_id = f.last_user_id
-		JOIN
-			f_messages_text m ON m.message_id = f.last_message_id
+		LEFT JOIN
+			f_messages_text mt ON mt.message_id = f.last_message_id
 		WHERE
 			f.forum_id IN (?)
 		ORDER BY
 			fb.level, f.level
 	`
 
-	ForumModerators = `
+	ForumGetModerators = `
 		SELECT
+			md.forum_id,
 			u.user_id,
 			u.login,
 			u.sex,
-			u.photo_number,
-			md.forum_id
+			u.photo_number
 		FROM
 			f_moderators md
 		LEFT JOIN
@@ -52,37 +53,95 @@ const (
 			md.forum_id, u.user_class DESC, u.level DESC
 	`
 
-	ForumExists = "SELECT 1 FROM f_forums WHERE forum_id = ? AND forum_id IN (?)"
+	ForumGetNotModeratedTopicIds = `
+		SELECT
+			topic_id
+		FROM
+			f_topics
+		WHERE
+			moderated = 0
+	`
 
-	ForumGetShortForum = `
+	// SUM возвращает значение типа DECIMAL (https://dev.mysql.com/doc/refman/8.0/en/group-by-functions.html)
+	ForumGetNotReadMessageCounts = `
+		SELECT
+			f.forum_id,
+			f.message_count - CAST(SUM(utr.read_count) AS SIGNED) AS not_read_message_count
+		FROM
+			user_topic_reads utr
+		JOIN
+			f_forums f ON f.forum_id = utr.forum_id
+		WHERE
+			utr.user_id = ? AND utr.topic_id NOT IN (?)
+		GROUP BY
+			f.forum_id
+	`
+
+	ForumGetForumExists = `
+		SELECT
+			EXISTS (
+				SELECT
+					*
+				FROM
+					f_forums
+				WHERE
+					forum_id = ? AND forum_id IN (?)
+			)
+	`
+
+	ForumGetForum = `
 		SELECT
 			forum_id,
-			only_for_admins
+			name,
+			only_for_admins,
+			forum_closed
 		FROM
 			f_forums
 		WHERE
 			forum_id = ?
 	`
 
-	ForumTopics = `
+	ForumGetForumModerators = `
+		SELECT
+			u.user_id,
+			u.login,
+			u.sex,
+			u.photo_number
+		FROM
+			f_moderators md
+		LEFT JOIN
+			users u ON u.user_id = md.user_id
+		WHERE
+			md.forum_id = ?
+		ORDER BY
+			u.user_class DESC, u.level DESC
+	`
+
+	// NOTE: странное условие в запросе - попытка убить сразу двух зайцев:
+	// 1. не заниматься формированием запроса в рантайме (в отличие от Perl-бэка)
+	// 2. обработать сразу несколько кейсов, связанных с видимостью тем:
+	//   a. незалогиненный пользователь - должны быть видны все отмодерированные темы
+	//   b. обычный пользователь - должны быть видны все отмодерированные темы и те, автор которых - он сам
+	//   c. модератор этого форума - должны быть видны все темы, в том числе неотмодерированные
+	ForumGetForumTopics = `
 		SELECT
 			t.topic_id,
 			t.name,
 			t.date_of_add,
 			t.views,
 			u.user_id,
-			u.login,
-			u.sex,
-			u.photo_number,
+			u.login AS user_login,
+			u.sex AS user_sex,
+			u.photo_number AS user_photo_number,
 			t.topic_type_id,
 			t.is_closed,
 			t.is_pinned,
 			t.message_count,
 			t.last_message_id,
-			u2.user_id AS last_user_id,
-			u2.photo_number AS last_photo_number,
-			u2.login AS last_login,
-			u2.sex AS last_sex,
+			u2.user_id AS last_message_user_id,
+			u2.photo_number AS last_message_user_photo_number,
+			u2.login AS last_message_user_login,
+			u2.sex AS last_message_user_sex,
 			m.message_text AS last_message_text,
 			t.last_message_date,
 			t.moderated
@@ -92,18 +151,71 @@ const (
 			users u ON u.user_id = t.user_id
 		LEFT JOIN
 			users u2 ON u2.user_id = t.last_user_id
-		JOIN
+		LEFT JOIN
 			f_messages_text m ON m.message_id = t.last_message_id
 		WHERE
-			t.forum_id = ?
+			t.forum_id = ? AND (t.moderated IN (?) OR t.user_id = ?)
 		ORDER BY
 			t.is_pinned DESC, t.last_message_date DESC
 		LIMIT ?
 		OFFSET ?
 	`
 
+	ForumGetForumTopicCount = `
+		SELECT
+			COUNT(*)
+		FROM
+			f_topics
+		WHERE
+			forum_id = ? AND (moderated IN (?) OR user_id = ?)
+	`
+
+	ForumGetTopicsSubscriptions = `
+		SELECT
+			topic_id
+		FROM
+			f_topics_subscribers
+		WHERE
+			user_id = ? AND topic_id IN (?)
+	`
+
+	ForumGetTopicsDatesOfRead = `
+		SELECT
+			topic_id,
+			date_of_read
+		FROM
+			user_topic_reads
+		WHERE
+			user_id = ? AND topic_id IN (?)
+	`
+
+	ForumGetNotReadTopicInfo = `
+		SELECT
+			topic_id,
+			MIN(message_id) AS first_not_read_message_id,
+			COUNT(*) AS not_read_message_count
+		FROM
+			f_messages
+		WHERE
+			topic_id = ? AND date_of_add > ?
+		GROUP BY
+			topic_id
+	`
+
+	ForumGetTopicExists = `
+		SELECT
+			EXISTS (
+				SELECT
+					*
+				FROM
+					f_topics
+				WHERE
+					topic_id = ? AND forum_id IN (?)
+			)
+	`
+
 	// TODO Все данные, кроме last_sex, уже есть в таблице f_topics (на рефакторинг)
-	ForumTopic = `
+	ForumGetTopic = `
 		SELECT
 			t.topic_id,
 			t.forum_id,
@@ -134,19 +246,20 @@ const (
 			users u2 ON u2.user_id = t.last_user_id
 		JOIN
 			f_forums f ON f.forum_id = t.forum_id
-		JOIN
+		LEFT JOIN
 			f_messages_text m ON m.message_id = t.last_message_id
 		WHERE
-			t.topic_id = ? AND f.forum_id IN (?)
+			t.topic_id = ?
 	`
 
-	ForumTopicsCount = "SELECT COUNT(*) FROM f_topics WHERE forum_id = ?"
-
-	ShortForumTopic = `
+	ForumGetTopicShort = `
 		SELECT
 			t.topic_id,
 			t.name AS topic_name,
 			t.is_firstpost AS is_first_message_pinned,
+			t.topic_type_id,
+			t.is_closed,
+			t.is_edit_topicstarter,
 			f.forum_id,
 			f.name AS forum_name
 		FROM
@@ -154,50 +267,59 @@ const (
 		JOIN
 			f_forums f ON f.forum_id = t.forum_id
 		WHERE
-			t.topic_id = ? AND t.forum_id IN (?)
+			t.topic_id = ?
 	`
 
-	ForumTopicGetIsEditTopicStarter = `
+	// TODO В Perl запрос выглядит иначе и опирается на поле number. Из-за этого есть баг с количеством страниц в темах
+	//  (https://github.com/parserpro/fantlab/issues/961)
+	ForumTopicMessageCount = `
 		SELECT
-			t.is_edit_topicstarter
+			COUNT(*)
 		FROM
-			f_topics t
-		JOIN
-			f_messages m ON m.topic_id = t.topic_id
+			f_messages
 		WHERE
-			m.message_id = ?
+			topic_id = ?
 	`
-
-	ForumTopicMessagesCount = "SELECT COUNT(*) FROM f_messages WHERE topic_id = ?"
 
 	// TODO Не нужны ли какие-нибудь доп. манипуляции с полем number при чтении
 	//  (например, при переносе сообщений между темами)?
 	//  https://github.com/parserpro/fantlab/blob/HEAD@%7B2019-06-17T18:16:10Z%7D/pm/Forum.pm#L1011
-	ForumTopicMessages = `
+	ForumGetTopicMessageIds = `
+		SELECT
+			message_id
+		FROM
+			f_messages
+		WHERE
+			topic_id = ? AND number >= ? AND number <= ?
+	`
+
+	ForumGetTopicMessages = `
 		SELECT
 			f.message_id,
 			f.topic_id,
+			f.forum_id,
 			f.date_of_add,
-			f.user_id,
 			f.is_red,
+			f.is_censored,
+			f.vote_plus,
+			ABS(f.vote_minus) AS vote_minus,
+			f.number,
+			m.message_text,
+			u.user_id,
 			u.login,
 			u.sex,
 			u.photo_number,
 			u.user_class,
 			u.sign,
-			m.message_text,
-			f.is_censored,
-			f.vote_plus,
-			ABS(f.vote_minus) AS vote_minus,
-			f.number
+			u.approved
 		FROM
 			f_messages f
 		LEFT JOIN
 			users u ON u.user_id = f.user_id
-		JOIN
+		LEFT JOIN
 			f_messages_text m ON m.message_id = f.message_id
 		WHERE
-			f.topic_id = ? AND f.number >= ? AND f.number <= ?
+			f.message_id IN (?)
 		ORDER BY
 			f.date_of_add %s
 	`
@@ -213,30 +335,25 @@ const (
 			file_group = 'forum' AND message_id IN (?)
 	`
 
-	ForumTopicFirstMessage = `
+	ForumGetTopicFirstMessageId = `
 		SELECT
-			f.message_id,
-			f.topic_id,
-			f.date_of_add,
-			f.user_id,
-			u.login,
-			u.sex,
-			u.photo_number,
-			u.user_class,
-			u.sign,
-			m.message_text,
-			f.is_censored,
-			f.vote_plus,
-			ABS(f.vote_minus) AS vote_minus,
-			f.number
+			f.message_id
 		FROM
 			f_messages f
-		LEFT JOIN
-			users u ON u.user_id = f.user_id
-		JOIN
-			f_messages_text m ON m.message_id = f.message_id
 		WHERE
 			f.topic_id = ? AND f.number = 1
+	`
+
+	ForumGetMessageExists = `
+		SELECT
+			EXISTS (
+				SELECT
+					*
+				FROM
+					f_messages
+				WHERE
+					message_id = ? AND forum_id IN (?)
+			)
 	`
 
 	ForumGetShortMessage = `
@@ -254,18 +371,137 @@ const (
 		FROM
 			f_messages
 		WHERE
-			message_id = ? AND forum_id IN (?)
+			message_id = ?
 	`
 
-	UserIsForumModerator = `
+	ForumGetTopicReadDate = `
 		SELECT
-			COUNT(*)
+			date_of_read
 		FROM
-			f_topics ft 
-		INNER JOIN 
-			f_moderators fmd ON ft.forum_id = fmd.forum_id 
+			user_topic_reads
 		WHERE
-			fmd.user_id = ? AND ft.topic_id = ?
+			topic_id = ? AND user_id = ?
+	`
+
+	ForumGetVotedMessageIds = `
+		SELECT
+			message_id
+		FROM
+			f_messages_votes
+		WHERE
+			message_id IN (?) AND user_id = ?
+	`
+
+	ForumGetWarnedMessageIds = `
+		SELECT
+			msg_id
+		FROM
+			user_fine
+		WHERE
+			msg_id IN (?)
+	`
+
+	ForumGetModerCalledMessageIds = `
+		SELECT
+			msg_id
+		FROM
+			f_callmoder
+		WHERE
+			msg_id IN (?)
+	`
+
+	ForumGetTopicAnswers = `
+		SELECT
+			number,
+			name,
+			choices
+		FROM
+			f_answers
+		WHERE
+			topic_id = ?
+		ORDER BY
+			number ASC
+	`
+
+	ForumGetUserTopicAnswerExists = `
+		SELECT
+			EXISTS (
+				SELECT
+					*
+				FROM
+					f_user_topic_answer
+				WHERE
+					topic_id = ? AND user_id = ?
+			)
+	`
+
+	ForumGetTopicAnsweredUsers = `
+		SELECT
+			u.user_id,
+			u.login
+		FROM
+			f_user_topic_answer futa
+		LEFT JOIN
+			users u ON u.user_id = futa.user_id
+		WHERE
+			futa.topic_id = ?
+		ORDER BY
+			futa.date_of_add ASC
+	`
+
+	ForumGetUserIsForumModerator = `
+		SELECT
+			EXISTS (
+				SELECT
+					*
+				FROM
+					f_moderators
+				WHERE
+					user_id = ? AND forum_id = ?
+			)
+	`
+
+	ForumIncrementTopicViewCount = `
+		UPDATE
+			f_topics
+		SET
+			views = views + 1
+		WHERE
+			topic_id = ?
+	`
+
+	ForumDeleteUserForumNewMessages = `
+		DELETE
+		FROM
+			f_new_messages
+		WHERE
+			user_id = ? AND topic_id = ? AND (message_id IN (?) OR date_of_add <= ?)
+	`
+
+	ForumGetUserTopicReadCount = `
+		SELECT
+			read_count
+		FROM
+			user_topic_reads
+		WHERE
+			user_id = ? AND topic_id = ?
+	`
+
+	ForumInsertUserTopicReadDate = `
+		INSERT INTO
+			user_topic_reads (
+				user_id,
+				topic_id,
+				date_of_read,
+				read_count,
+				forum_id
+			)
+		VALUES
+			(?, ?, ?, ?, ?)
+		ON DUPLICATE KEY UPDATE
+			date_of_read = ?,
+			read_count = ?,
+			forum_id = ?
 	`
 
 	ForumInsertNewMessage = `
@@ -286,33 +522,6 @@ const (
 			f_messages
 		WHERE
 			topic_id = ?
-	`
-
-	ForumGetTopicMessage = `
-		SELECT
-			f.message_id,
-			f.topic_id,
-			f.date_of_add,
-			f.user_id,
-			u.login,
-			u.sex,
-			u.photo_number,
-			u.user_class,
-			u.sign,
-			m.message_text,
-			f.is_censored,
-			f.vote_plus,
-			ABS(f.vote_minus) AS vote_minus,
-			f.number
-		FROM
-			f_messages f
-		LEFT JOIN
-			users u ON u.user_id = f.user_id
-		LEFT JOIN
-			f_messages_text m ON m.message_id = f.message_id
-		WHERE
-			f.message_id = ?
-		LIMIT 1
 	`
 
 	ForumSetMessageText = `

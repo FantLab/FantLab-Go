@@ -20,10 +20,15 @@ type AppConfig struct {
 	MaxForumMessageLength                    uint64
 	MaxForumMessageEditTimeout               uint64
 	DefaultAccessToForums                    []uint64
+	ForumsWithEnabledRating                  []uint64
+	ForumsWithDisabledMinuses                []uint64
+	ReadOnlyForumUsers                       map[uint64][]uint64
 	BlogsInPage                              uint64
 	BlogTopicsInPage                         uint64
 	BlogArticleCommentsInPage                uint64
 	CensorshipText                           string
+	PreModerationText                        string
+	ImageReplacementLinkText                 string
 	BotUserId                                uint64
 	MaxAttachCountPerMessage                 uint64
 	BookcaseItemInPage                       uint64

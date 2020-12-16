@@ -10,8 +10,7 @@
 
 Чтобы актуализировать список методов, выполните следующий скрипт:
 ```console
-$ cd sources
-$ go run . -gendocs > ../docs/generated.md
+$ ./generate_docs.sh
 ```
 
 ## Порядок работы

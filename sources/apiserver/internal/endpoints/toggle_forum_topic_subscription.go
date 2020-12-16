@@ -1,7 +1,6 @@
 package endpoints
 
 import (
-	"fantlab/core/db"
 	"fantlab/pb"
 	"net/http"
 	"strconv"
@@ -25,18 +24,18 @@ func (api *API) ToggleForumTopicSubscription(r *http.Request) (int, proto.Messag
 
 	availableForums := api.getAvailableForums(r)
 
-	_, err := api.services.DB().FetchForumTopic(r.Context(), availableForums, params.TopicId)
+	isTopicExists, err := api.services.DB().FetchForumTopicExists(r.Context(), params.TopicId, availableForums)
 
 	if err != nil {
-		if db.IsNotFoundError(err) {
-			return http.StatusNotFound, &pb.Error_Response{
-				Status:  pb.Error_NOT_FOUND,
-				Context: strconv.FormatUint(params.TopicId, 10),
-			}
-		}
-
 		return http.StatusInternalServerError, &pb.Error_Response{
 			Status: pb.Error_SOMETHING_WENT_WRONG,
+		}
+	}
+
+	if !isTopicExists {
+		return http.StatusNotFound, &pb.Error_Response{
+			Status:  pb.Error_NOT_FOUND,
+			Context: strconv.FormatUint(params.TopicId, 10),
 		}
 	}
 

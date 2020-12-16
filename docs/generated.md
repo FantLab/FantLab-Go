@@ -158,6 +158,8 @@
 | 32 | WORK_TYPE_INTERVIEW |
 | 33 | WORK_TYPE_REVIEW |
 | 34 | WORK_TYPE_POPULAR_SCIENCE_BOOK |
+| 35 | WORK_TYPE_ARTBOOK |
+| 36 | WORK_TYPE_LIBRETTO |
 ---
 
 </p>
@@ -331,7 +333,9 @@
       }]
       stats: {                            # статистика
         topicCount: uint64                # количество тем
+        notModeratedTopicCount: uint64    # количество неотмодерированных тем (для модераторов)
         messageCount: uint64              # количество сообщений
+        notReadMessageCount: uint64       # количество непрочитанных сообщений (для залогиненных пользователей)
       }
       lastMessage: {                      # последнее сообщение
         id: uint64                        # id сообщения
@@ -365,12 +369,12 @@
 
 
 
-**GET** [/v1/forums/{id}](../sources/apiserver/internal/endpoints/show_forum_topics.go#L14)
+**GET** [/v1/forums/{id}](../sources/apiserver/internal/endpoints/show_forum.go#L13)
 
 Параметры запроса:
 
 
-* **id** (path, uint64) - айди форума
+* **id** (path, uint64) - id форума
 
 
 * **page** (query, uint64) - номер страницы (по умолчанию - 1)
@@ -385,6 +389,15 @@
 
 ```
 {
+  moderators: [{                        # модераторы
+    id: uint64                          # id пользователя
+    login: string                       # логин
+    name: string                        # имя
+    gender: enum (Common_Gender)        # пол
+    avatar: string                      # аватар
+    class: enum (Common_UserClass)      # класс
+    sign: string                        # подпись на форуме
+  }]
   topics: [{                            # список тем
     id: uint64                          # id темы
     title: string                       # название
@@ -403,8 +416,11 @@
     }
     isClosed: bool                      # тема закрыта?
     isPinned: bool                      # тема закреплена?
+    isNotModerated: bool                # тема не отмодерирована? (для модераторов и авторов тем)
+    isSubscribed: bool                  # пользователь подписан на тему? (для залогиненных пользователей)
     stats: {                            # статистика
       messageCount: uint64              # количество сообщений
+      notReadMessageCount: uint64       # количество непрочитанных сообщений (для залогиненных пользователей)
       viewCount: uint64                 # количество просмотров
     }
     lastMessage: {                      # последнее сообщение
@@ -425,6 +441,7 @@
       text: string                      # текст
       date: timestamp                   # дата и время создания
     }
+    firstNotReadMessageId: uint64       # id первого непрочитанного сообщения (для залогиненных пользователей)
   }]
   pages: {                              # страницы
     current: uint64                     # текущая
@@ -442,7 +459,7 @@
 
 
 
-**GET** [/v1/topics/{id}](../sources/apiserver/internal/endpoints/show_topic_messages.go#L15)
+**GET** [/v1/topics/{id}](../sources/apiserver/internal/endpoints/show_forum_topic.go#L15)
 
 Параметры запроса:
 
@@ -483,8 +500,11 @@
     }
     isClosed: bool                      # тема закрыта?
     isPinned: bool                      # тема закреплена?
+    isNotModerated: bool                # тема не отмодерирована? (для модераторов и авторов тем)
+    isSubscribed: bool                  # пользователь подписан на тему? (для залогиненных пользователей)
     stats: {                            # статистика
       messageCount: uint64              # количество сообщений
+      notReadMessageCount: uint64       # количество непрочитанных сообщений (для залогиненных пользователей)
       viewCount: uint64                 # количество просмотров
     }
     lastMessage: {                      # последнее сообщение
@@ -505,6 +525,7 @@
       text: string                      # текст
       date: timestamp                   # дата и время создания
     }
+    firstNotReadMessageId: uint64       # id первого непрочитанного сообщения (для залогиненных пользователей)
   }
   forum: {                              # форум, в который входит тема
     id: uint64                          # id форума
@@ -521,7 +542,9 @@
     }]
     stats: {                            # статистика
       topicCount: uint64                # количество тем
+      notModeratedTopicCount: uint64    # количество неотмодерированных тем (для модераторов)
       messageCount: uint64              # количество сообщений
+      notReadMessageCount: uint64       # количество непрочитанных сообщений (для залогиненных пользователей)
     }
     lastMessage: {                      # последнее сообщение
       id: uint64                        # id сообщения
@@ -542,6 +565,21 @@
       date: timestamp                   # дата и время создания
     }
   }
+  poll: {                               # опрос (если есть)
+    answerOptions: [{                   # варианты ответов
+      text: string                      # текст
+      voterCount: uint64                # количество проголосовавших (если опрос окончен)
+    }]
+    voters: [{                          # проголосовавшие пользователи (если опрос окончен)
+      id: uint64                        # id пользователя
+      login: string                     # логин
+      name: string                      # имя
+      gender: enum (Common_Gender)      # пол
+      avatar: string                    # аватар
+      class: enum (Common_UserClass)    # класс
+      sign: string                      # подпись на форуме
+    }]
+  }
   pinnedMessage: {                      # закрепленное сообщение, если есть
     id: uint64                          # id сообщения
     creation: {                         # данные о создании
@@ -558,12 +596,20 @@
     }
     text: string                        # текст
     isCensored: bool                    # текст изъят модератором?
+    isUnread: bool                      # сообщение не прочитано? (для залогиненных пользователей)
     attachments: [{                     # аттачи
       name: string                      # название файла
       size: uint64                      # размер (байт)
     }]
     stats: {                            # статистика
       rating: int64                     # рейтинг
+    }
+    rights: {                           # права
+      canEdit: bool                     # на редактирование
+      canDelete: bool                   # на удаление
+      canVoteMinus: bool                # на выставление "минуса" сообщению
+      canVotePlus: bool                 # на выставление "плюса" сообщению
+      canDeleteVotes: bool              # на удаление рейтинга (для модераторов)
     }
   }
   messages: [{                          # сообщения
@@ -582,6 +628,7 @@
     }
     text: string                        # текст
     isCensored: bool                    # текст изъят модератором?
+    isUnread: bool                      # сообщение не прочитано? (для залогиненных пользователей)
     attachments: [{                     # аттачи
       name: string                      # название файла
       size: uint64                      # размер (байт)
@@ -589,7 +636,34 @@
     stats: {                            # статистика
       rating: int64                     # рейтинг
     }
+    rights: {                           # права
+      canEdit: bool                     # на редактирование
+      canDelete: bool                   # на удаление
+      canVoteMinus: bool                # на выставление "минуса" сообщению
+      canVotePlus: bool                 # на выставление "плюса" сообщению
+      canDeleteVotes: bool              # на удаление рейтинга (для модераторов)
+    }
   }]
+  messageDraft: {                       # черновик, если есть (для залогиненных пользователей)
+    topicId: uint64                     # id темы
+    creation: {                         # данные о создании
+      user: {                           # пользователь
+        id: uint64                      # id пользователя
+        login: string                   # логин
+        name: string                    # имя
+        gender: enum (Common_Gender)    # пол
+        avatar: string                  # аватар
+        class: enum (Common_UserClass)  # класс
+        sign: string                    # подпись на форуме
+      }
+      date: timestamp                   # дата создания
+    }
+    text: string                        # текст
+    attachments: [{                     # аттачи
+      name: string                      # название файла
+      size: uint64                      # размер (байт)
+    }]
+  }
   pages: {                              # страницы
     current: uint64                     # текущая
     count: uint64                       # количество
@@ -1562,7 +1636,7 @@
 
 
 
-**POST** [/v1/topics/{id}/message](../sources/apiserver/internal/endpoints/add_forum_message.go#L15)
+**POST** [/v1/topics/{id}/message](../sources/apiserver/internal/endpoints/add_forum_message.go#L14)
 
 Параметры запроса:
 
@@ -1595,12 +1669,20 @@
     }
     text: string                        # текст
     isCensored: bool                    # текст изъят модератором?
+    isUnread: bool                      # сообщение не прочитано? (для залогиненных пользователей)
     attachments: [{                     # аттачи
       name: string                      # название файла
       size: uint64                      # размер (байт)
     }]
     stats: {                            # статистика
       rating: int64                     # рейтинг
+    }
+    rights: {                           # права
+      canEdit: bool                     # на редактирование
+      canDelete: bool                   # на удаление
+      canVoteMinus: bool                # на выставление "минуса" сообщению
+      canVotePlus: bool                 # на выставление "плюса" сообщению
+      canDeleteVotes: bool              # на удаление рейтинга (для модераторов)
     }
   }
 }
@@ -1648,12 +1730,20 @@
     }
     text: string                        # текст
     isCensored: bool                    # текст изъят модератором?
+    isUnread: bool                      # сообщение не прочитано? (для залогиненных пользователей)
     attachments: [{                     # аттачи
       name: string                      # название файла
       size: uint64                      # размер (байт)
     }]
     stats: {                            # статистика
       rating: int64                     # рейтинг
+    }
+    rights: {                           # права
+      canEdit: bool                     # на редактирование
+      canDelete: bool                   # на удаление
+      canVoteMinus: bool                # на выставление "минуса" сообщению
+      canVotePlus: bool                 # на выставление "плюса" сообщению
+      canDeleteVotes: bool              # на удаление рейтинга (для модераторов)
     }
   }
 }
@@ -1668,7 +1758,7 @@
 
 
 
-**DELETE** [/v1/forum_messages/{id}](../sources/apiserver/internal/endpoints/delete_forum_message.go#L15)
+**DELETE** [/v1/forum_messages/{id}](../sources/apiserver/internal/endpoints/delete_forum_message.go#L14)
 
 Параметры запроса:
 
@@ -1693,7 +1783,7 @@
 
 
 
-**GET** [/v1/forum_messages/{id}/file_upload_url](../sources/apiserver/internal/endpoints/get_forum_message_file_upload_url.go#L16)
+**GET** [/v1/forum_messages/{id}/file_upload_url](../sources/apiserver/internal/endpoints/get_forum_message_file_upload_url.go#L15)
 
 Параметры запроса:
 
@@ -1723,7 +1813,7 @@
 
 
 
-**DELETE** [/v1/forum_messages/{id}/file](../sources/apiserver/internal/endpoints/delete_forum_message_file.go#L16)
+**DELETE** [/v1/forum_messages/{id}/file](../sources/apiserver/internal/endpoints/delete_forum_message_file.go#L15)
 
 Параметры запроса:
 
@@ -1756,12 +1846,20 @@
     }
     text: string                        # текст
     isCensored: bool                    # текст изъят модератором?
+    isUnread: bool                      # сообщение не прочитано? (для залогиненных пользователей)
     attachments: [{                     # аттачи
       name: string                      # название файла
       size: uint64                      # размер (байт)
     }]
     stats: {                            # статистика
       rating: int64                     # рейтинг
+    }
+    rights: {                           # права
+      canEdit: bool                     # на редактирование
+      canDelete: bool                   # на удаление
+      canVoteMinus: bool                # на выставление "минуса" сообщению
+      canVotePlus: bool                 # на выставление "плюса" сообщению
+      canDeleteVotes: bool              # на удаление рейтинга (для модераторов)
     }
   }
 }
@@ -1776,7 +1874,7 @@
 
 
 
-**PUT** [/v1/topics/{id}/message_draft](../sources/apiserver/internal/endpoints/save_forum_message_draft.go#L14)
+**PUT** [/v1/topics/{id}/message_draft](../sources/apiserver/internal/endpoints/save_forum_message_draft.go#L15)
 
 Параметры запроса:
 
@@ -1808,6 +1906,10 @@
       date: timestamp                   # дата создания
     }
     text: string                        # текст
+    attachments: [{                     # аттачи
+      name: string                      # название файла
+      size: uint64                      # размер (байт)
+    }]
   }
 }
 ```
@@ -1821,7 +1923,7 @@
 
 
 
-**POST** [/v1/topics/{id}/message_draft](../sources/apiserver/internal/endpoints/confirm_forum_message_draft.go#L15)
+**POST** [/v1/topics/{id}/message_draft](../sources/apiserver/internal/endpoints/confirm_forum_message_draft.go#L17)
 
 Параметры запроса:
 
@@ -1851,12 +1953,20 @@
     }
     text: string                        # текст
     isCensored: bool                    # текст изъят модератором?
+    isUnread: bool                      # сообщение не прочитано? (для залогиненных пользователей)
     attachments: [{                     # аттачи
       name: string                      # название файла
       size: uint64                      # размер (байт)
     }]
     stats: {                            # статистика
       rating: int64                     # рейтинг
+    }
+    rights: {                           # права
+      canEdit: bool                     # на редактирование
+      canDelete: bool                   # на удаление
+      canVoteMinus: bool                # на выставление "минуса" сообщению
+      canVotePlus: bool                 # на выставление "плюса" сообщению
+      canDeleteVotes: bool              # на удаление рейтинга (для модераторов)
     }
   }
 }
@@ -1958,6 +2068,10 @@
       date: timestamp                   # дата создания
     }
     text: string                        # текст
+    attachments: [{                     # аттачи
+      name: string                      # название файла
+      size: uint64                      # размер (байт)
+    }]
   }
 }
 ```
@@ -1971,7 +2085,7 @@
 
 
 
-**PUT** [/v1/topics/{id}/subscription](../sources/apiserver/internal/endpoints/toggle_forum_topic_subscription.go#L12)
+**PUT** [/v1/topics/{id}/subscription](../sources/apiserver/internal/endpoints/toggle_forum_topic_subscription.go#L11)
 
 Параметры запроса:
 
@@ -2521,7 +2635,7 @@
 
 
 
-**PUT** [/v1/forum_messages/{id}/voting](../sources/apiserver/internal/endpoints/vote_forum_message.go#L12)
+**PUT** [/v1/forum_messages/{id}/voting](../sources/apiserver/internal/endpoints/vote_forum_message.go#L11)
 
 Параметры запроса:
 

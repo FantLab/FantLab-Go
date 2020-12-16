@@ -23,17 +23,21 @@ type User struct {
 }
 
 type UserInfo struct {
-	Login     string `db:"login"`
-	Gender    uint8  `db:"sex"`
-	Class     uint8  `db:"user_class"`
-	VoteCount uint64 `db:"votecount"`
+	Login                  string `db:"login"`
+	Sex                    uint8  `db:"sex"`
+	UserClass              uint8  `db:"user_class"`
+	VoteCount              uint64 `db:"votecount"`
+	AccessToAdminFunctions string `db:"access_to_admin_fuctions"`
 	// NOTE Почему флаг называется именно так - тайна, покрытая мраком. Скорее всего, отчасти потому, что личка родилась
 	// на движке форума.
 	CanEditDeleteForumMessages string `db:"can_edit_delete_f_messages"`
 	CanEditForumMessages       string `db:"can_edit_f_messages"`
-	AvailableForums            string `db:"access_to_forums"`
+	AccessToForums             string `db:"access_to_forums"`
 	CanEditResponses           string `db:"can_edit_responses"`
 	AlwaysPMByEmail            uint8  `db:"always_pm_by_email"`
+	DisableSmiles              uint8  `db:"disable_smiles"`
+	DisableImages              uint8  `db:"disable_images"`
+	ForumRatingMessageHide     uint8  `db:"forum_rating_message_hide"`
 }
 
 type UserBlockInfo struct {

@@ -1,8 +1,9 @@
 package endpoints
 
 import (
+	"fantlab/core/app"
 	"fantlab/core/converters"
-	"fantlab/core/db"
+	"fantlab/core/helpers"
 	"fantlab/pb"
 	"fmt"
 	"net/http"
@@ -27,22 +28,30 @@ func (api *API) SaveForumMessageDraft(r *http.Request) (int, proto.Message) {
 
 	availableForums := api.getAvailableForums(r)
 
-	dbTopic, err := api.services.DB().FetchForumTopic(r.Context(), availableForums, params.TopicId)
+	isTopicExists, err := api.services.DB().FetchForumTopicExists(r.Context(), params.TopicId, availableForums)
 
 	if err != nil {
-		if db.IsNotFoundError(err) {
-			return http.StatusNotFound, &pb.Error_Response{
-				Status:  pb.Error_NOT_FOUND,
-				Context: strconv.FormatUint(params.TopicId, 10),
-			}
-		}
-
 		return http.StatusInternalServerError, &pb.Error_Response{
 			Status: pb.Error_SOMETHING_WENT_WRONG,
 		}
 	}
 
-	// Здесь мы отходим от логики Perl-бэка. В нем нет этой проверки, поэтому можно создать черновик сообщения в
+	if !isTopicExists {
+		return http.StatusNotFound, &pb.Error_Response{
+			Status:  pb.Error_NOT_FOUND,
+			Context: strconv.FormatUint(params.TopicId, 10),
+		}
+	}
+
+	dbTopic, err := api.services.DB().FetchForumTopic(r.Context(), params.TopicId)
+
+	if err != nil {
+		return http.StatusInternalServerError, &pb.Error_Response{
+			Status: pb.Error_SOMETHING_WENT_WRONG,
+		}
+	}
+
+	// NOTE Здесь мы отходим от логики Perl-бэка. В нем нет этой проверки, поэтому можно создать черновик сообщения в
 	// закрытой теме, который принципиально нельзя подтвердить (facepalm)
 	if dbTopic.IsClosed == 1 {
 		return http.StatusForbidden, &pb.Error_Response{
@@ -79,7 +88,19 @@ func (api *API) SaveForumMessageDraft(r *http.Request) (int, proto.Message) {
 		}
 	}
 
-	messageDraftResponse := converters.GetForumTopicMessageDraft(dbMessageDraft, api.services.AppConfig())
+	attachments, _ := helpers.GetForumMessageDraftAttachments(user.UserId, dbTopic.TopicId)
+	files, _ := api.services.GetFiles(r.Context(), app.ForumMessageDraftFileGroup, dbMessageDraft.DraftId)
+	attachments = append(attachments, files...)
+
+	var attaches []*pb.Common_Attachment
+	for _, attachment := range attachments {
+		attaches = append(attaches, &pb.Common_Attachment{
+			Name: attachment.Name,
+			Size: attachment.Size,
+		})
+	}
+
+	messageDraftResponse := converters.GetForumTopicMessageDraft(dbMessageDraft, attaches, api.services.AppConfig())
 
 	return http.StatusOK, messageDraftResponse
 }

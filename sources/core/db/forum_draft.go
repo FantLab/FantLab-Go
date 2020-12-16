@@ -66,12 +66,12 @@ func (db *DB) ConfirmForumMessageDraft(ctx context.Context, topic *ForumTopic, u
 			func() error { // Создаем сообщение
 				message, err := db.InsertForumMessage(ctx, topic, userId, login, text, isRed, forumMessagesInPage)
 				if err == nil {
-					messageId = message.MessageID
+					messageId = message.MessageId
 				}
 				return err
 			},
 			func() error { // Получаем сообщение
-				return rw.Read(ctx, sqlapi.NewQuery(queries.ForumGetTopicMessage).WithArgs(messageId), &message)
+				return rw.Read(ctx, sqlapi.NewQuery(queries.ForumGetTopicMessages).Inject("").WithArgs(messageId), &message)
 			},
 			func() error { // Удаляем черновик
 				return rw.Write(ctx, sqlapi.NewQuery(queries.ForumDeleteForumMessagePreview).WithArgs(topic.TopicId, userId)).Error

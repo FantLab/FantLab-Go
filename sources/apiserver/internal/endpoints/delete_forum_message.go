@@ -2,7 +2,6 @@ package endpoints
 
 import (
 	"fantlab/core/app"
-	"fantlab/core/db"
 	"fantlab/core/helpers"
 	"fantlab/pb"
 	"net/http"
@@ -26,22 +25,30 @@ func (api *API) DeleteForumMessage(r *http.Request) (int, proto.Message) {
 
 	availableForums := api.getAvailableForums(r)
 
-	dbMessage, err := api.services.DB().FetchForumMessage(r.Context(), params.MessageId, availableForums)
+	isMessageExists, err := api.services.DB().FetchForumMessageExists(r.Context(), params.MessageId, availableForums)
 
 	if err != nil {
-		if db.IsNotFoundError(err) {
-			return http.StatusNotFound, &pb.Error_Response{
-				Status:  pb.Error_NOT_FOUND,
-				Context: strconv.FormatUint(params.MessageId, 10),
-			}
-		}
-
 		return http.StatusInternalServerError, &pb.Error_Response{
 			Status: pb.Error_SOMETHING_WENT_WRONG,
 		}
 	}
 
-	if dbMessage.UserID == 0 {
+	if !isMessageExists {
+		return http.StatusNotFound, &pb.Error_Response{
+			Status:  pb.Error_NOT_FOUND,
+			Context: strconv.FormatUint(params.MessageId, 10),
+		}
+	}
+
+	dbMessage, err := api.services.DB().FetchForumMessage(r.Context(), params.MessageId)
+
+	if err != nil {
+		return http.StatusInternalServerError, &pb.Error_Response{
+			Status: pb.Error_SOMETHING_WENT_WRONG,
+		}
+	}
+
+	if dbMessage.UserId == 0 {
 		// В базе есть сообщения, у которых user_id = 0. Визуально помечается как "Автор удален"
 		return http.StatusForbidden, &pb.Error_Response{
 			Status:  pb.Error_ACTION_PERMITTED,
@@ -51,7 +58,15 @@ func (api *API) DeleteForumMessage(r *http.Request) (int, proto.Message) {
 
 	userId := api.getUserId(r)
 
-	userIsForumModerator, err := api.services.DB().FetchUserIsForumModerator(r.Context(), userId, dbMessage.TopicId)
+	userIsForumModerator, err := api.services.DB().FetchUserIsForumModerator(r.Context(), userId, dbMessage.ForumId)
+
+	if err != nil {
+		return http.StatusInternalServerError, &pb.Error_Response{
+			Status: pb.Error_SOMETHING_WENT_WRONG,
+		}
+	}
+
+	messageUserIsForumModerator, err := api.services.DB().FetchUserIsForumModerator(r.Context(), dbMessage.UserId, dbMessage.ForumId)
 
 	if err != nil {
 		return http.StatusInternalServerError, &pb.Error_Response{
@@ -74,14 +89,15 @@ func (api *API) DeleteForumMessage(r *http.Request) (int, proto.Message) {
 
 	// Из логики кода получается, что, в отличие от редактирования, удалять сообщения в админских форумах могут
 	// только модераторы этих форумов.
-	if !(userId == dbMessage.UserID && canUserEditMessage && isMessageEditable) && !userIsForumModerator {
+	if (!(userId == dbMessage.UserId && canUserEditMessage && isMessageEditable) && !userIsForumModerator) ||
+		(userId != dbMessage.UserId && messageUserIsForumModerator) {
 		return http.StatusForbidden, &pb.Error_Response{
 			Status:  pb.Error_ACTION_PERMITTED,
 			Context: "Вы не можете удалить данное сообщение",
 		}
 	}
 
-	err = api.services.DB().DeleteForumMessage(r.Context(), dbMessage.MessageID, dbMessage.TopicId, dbMessage.ForumId,
+	err = api.services.DB().DeleteForumMessage(r.Context(), dbMessage.MessageId, dbMessage.TopicId, dbMessage.ForumId,
 		dbMessage.DateOfAdd, api.services.AppConfig().ForumMessagesInPage)
 
 	if err != nil {
@@ -90,9 +106,9 @@ func (api *API) DeleteForumMessage(r *http.Request) (int, proto.Message) {
 		}
 	}
 
-	helpers.DeleteForumMessageTextCache(dbMessage.MessageID)
-	helpers.DeleteForumMessageAttachments(dbMessage.MessageID)
-	api.services.DeleteFiles(r.Context(), app.ForumMessageFileGroup, dbMessage.MessageID)
+	helpers.DeleteForumMessageTextCache(dbMessage.MessageId)
+	helpers.DeleteForumMessageAttachments(dbMessage.MessageId)
+	api.services.DeleteFiles(r.Context(), app.ForumMessageFileGroup, dbMessage.MessageId)
 
 	return http.StatusOK, &pb.Common_SuccessResponse{}
 }

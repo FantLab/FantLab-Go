@@ -13,6 +13,7 @@ var (
 	moderTagsRegex            = regexp.MustCompile(`(?i)\[moder](.*)\[/moder]`)
 	quoteTagsRegex            = regexp.MustCompile(`(?i)\[q](.*)\[/q]`)
 	nonRussianCharactersRegex = regexp.MustCompile(`[^А-Яа-я]`)
+	imageTagsRegex            = regexp.MustCompile(`(?i)\[img](.*)\[/img]`)
 )
 
 // Чистит сообщение от лишних пробельных символов
@@ -53,4 +54,8 @@ func RemoveImmeasurable(message string) string {
 	result = nonRussianCharactersRegex.ReplaceAllLiteralString(result, "")
 
 	return result
+}
+
+func ReplaceImagesWithUrls(message, linkText string) string {
+	return imageTagsRegex.ReplaceAllString(message, "[URL=$1]"+linkText+"[/URL]")
 }

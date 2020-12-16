@@ -2,7 +2,6 @@ package endpoints
 
 import (
 	"fantlab/core/converters"
-	"fantlab/core/db"
 	"fantlab/core/helpers"
 	"fantlab/pb"
 	"fmt"
@@ -28,16 +27,24 @@ func (api *API) AddForumMessage(r *http.Request) (int, proto.Message) {
 
 	availableForums := api.getAvailableForums(r)
 
-	dbTopic, err := api.services.DB().FetchForumTopic(r.Context(), availableForums, params.TopicId)
+	isTopicExists, err := api.services.DB().FetchForumTopicExists(r.Context(), params.TopicId, availableForums)
 
 	if err != nil {
-		if db.IsNotFoundError(err) {
-			return http.StatusNotFound, &pb.Error_Response{
-				Status:  pb.Error_NOT_FOUND,
-				Context: strconv.FormatUint(params.TopicId, 10),
-			}
+		return http.StatusInternalServerError, &pb.Error_Response{
+			Status: pb.Error_SOMETHING_WENT_WRONG,
 		}
+	}
 
+	if !isTopicExists {
+		return http.StatusNotFound, &pb.Error_Response{
+			Status:  pb.Error_NOT_FOUND,
+			Context: strconv.FormatUint(params.TopicId, 10),
+		}
+	}
+
+	dbTopic, err := api.services.DB().FetchForumTopic(r.Context(), params.TopicId)
+
+	if err != nil {
 		return http.StatusInternalServerError, &pb.Error_Response{
 			Status: pb.Error_SOMETHING_WENT_WRONG,
 		}
@@ -52,13 +59,16 @@ func (api *API) AddForumMessage(r *http.Request) (int, proto.Message) {
 
 	user := api.getUser(r)
 
-	userIsForumModerator, err := api.services.DB().FetchUserIsForumModerator(r.Context(), user.UserId, dbTopic.TopicId)
+	userIsForumModerator, err := api.services.DB().FetchUserIsForumModerator(r.Context(), user.UserId, dbTopic.ForumId)
 
 	if err != nil {
 		return http.StatusInternalServerError, &pb.Error_Response{
 			Status: pb.Error_SOMETHING_WENT_WRONG,
 		}
 	}
+
+	userCanPerformAdminActions := api.isPermissionGranted(r, pb.Auth_Claims_PERMISSION_CAN_PERFORM_ADMIN_ACTIONS)
+	userCanEditOwnForumMessages := api.isPermissionGranted(r, pb.Auth_Claims_PERMISSION_CAN_EDIT_OWN_FORUM_MESSAGES_WITHOUT_TIME_RESTRICTION)
 
 	formattedMessage := helpers.FormatMessage(params.Message)
 
@@ -89,7 +99,8 @@ func (api *API) AddForumMessage(r *http.Request) (int, proto.Message) {
 		isRed = 1
 	}
 
-	dbMessage, err := api.services.DB().InsertForumMessage(r.Context(), dbTopic, user.UserId, user.Login, formattedMessage, isRed, api.services.AppConfig().ForumMessagesInPage)
+	dbMessage, err := api.services.DB().InsertForumMessage(r.Context(), dbTopic, user.UserId, user.Login,
+		formattedMessage, isRed, api.services.AppConfig().ForumMessagesInPage)
 
 	if err != nil {
 		return http.StatusInternalServerError, &pb.Error_Response{
@@ -108,7 +119,17 @@ func (api *API) AddForumMessage(r *http.Request) (int, proto.Message) {
 		_ = api.services.DeleteUserCache(r.Context(), user.UserId)
 	}
 
-	messageResponse := converters.GetForumTopicMessage(dbMessage, api.services.AppConfig())
+	// У свежесозданного сообщения еще нет аттачей
+	var attaches []*pb.Common_Attachment
+
+	// NOTE Возможен баг. Поскольку потенциальные ошибки игнорируются (а иначе необходимо откатывать обратно транзакцию
+	// БД и все операции с аттачами), вычисление прав текущего юзера может отработать слегка неадекватно. Хоть это и
+	// маловероятно на практике
+	additionalInfo, _ := api.services.DB().FetchAdditionalMessageInfo(r.Context(), dbMessage.MessageId, dbMessage.TopicId,
+		dbMessage.ForumId, user.UserId)
+
+	messageResponse := converters.GetForumTopicMessage(dbMessage, attaches, additionalInfo, api.services.AppConfig(),
+		user, userCanPerformAdminActions, userCanEditOwnForumMessages)
 
 	return http.StatusOK, messageResponse
 }
