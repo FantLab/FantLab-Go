@@ -73,7 +73,7 @@ func (api *API) DeleteForumMessageFile(r *http.Request) (int, proto.Message) {
 	}
 
 	if !attachmentExist {
-		files, err := api.services.GetFiles(r.Context(), app.ForumMessageFileGroup, dbMessage.MessageId)
+		files, err := api.services.GetMinioFiles(r.Context(), app.ForumMessageFileGroup, dbMessage.MessageId)
 
 		if err != nil {
 			return http.StatusInternalServerError, &pb.Error_Response{
@@ -149,9 +149,9 @@ func (api *API) DeleteForumMessageFile(r *http.Request) (int, proto.Message) {
 	}
 
 	if attachmentExist {
-		helpers.DeleteForumMessageAttachment(dbMessage.MessageId, params.FileName)
+		app.DeleteForumMessageAttachment(dbMessage.MessageId, params.FileName)
 	} else { // Minio file exist
-		api.services.DeleteFile(r.Context(), app.ForumMessageFileGroup, dbMessage.MessageId, params.FileName)
+		api.services.DeleteMinioFile(r.Context(), app.ForumMessageFileGroup, dbMessage.MessageId, params.FileName)
 	}
 
 	var attaches []*pb.Common_Attachment
@@ -159,15 +159,15 @@ func (api *API) DeleteForumMessageFile(r *http.Request) (int, proto.Message) {
 	attachments, _ = api.services.DB().FetchForumMessageAttachments(r.Context(), dbMessage.MessageId)
 	for _, attachment := range attachments {
 		attaches = append(attaches, &pb.Common_Attachment{
-			Name: attachment.FileName,
+			Url:  api.services.GetFSForumMessageAttachmentUrl(dbMessage.MessageId, attachment.FileName),
 			Size: attachment.FileSize,
 		})
 	}
 
-	files, _ := api.services.GetFiles(r.Context(), app.ForumMessageFileGroup, dbMessage.MessageId)
+	files, _ := api.services.GetMinioFiles(r.Context(), app.ForumMessageFileGroup, dbMessage.MessageId)
 	for _, file := range files {
 		attaches = append(attaches, &pb.Common_Attachment{
-			Name: file.Name,
+			Url:  api.services.GetMinioForumMessageAttachmentUrl(dbMessage.MessageId, file.Name),
 			Size: file.Size,
 		})
 	}

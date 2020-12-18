@@ -136,25 +136,25 @@ func (api *API) ConfirmForumMessageDraft(r *http.Request) (int, proto.Message) {
 	}
 
 	// Аттачи черновика переливаем из их директории в файловой системе в Minio
-	draftAttachments, _ := helpers.GetForumMessageDraftAttachments(user.UserId, dbTopic.TopicId)
+	draftAttachments, _ := app.GetForumMessageDraftAttachments(user.UserId, dbTopic.TopicId)
 	for _, draftAttachment := range draftAttachments {
-		file, err := os.Open(fmt.Sprintf("%s/%s", helpers.GetForumMessageDraftAttachmentsDir(user.UserId, dbTopic.TopicId), draftAttachment.Name))
+		file, err := os.Open(fmt.Sprintf("%s/%s", app.GetForumMessageDraftAttachmentsDir(user.UserId, dbTopic.TopicId), draftAttachment.Name))
 		if err != nil {
 			continue
 		}
-		_ = api.services.SaveFileFromFileSystem(r.Context(), app.ForumMessageFileGroup, dbMessage.MessageId, file)
+		_ = api.services.MoveFileFromFSToMinio(r.Context(), app.ForumMessageFileGroup, dbMessage.MessageId, file)
 		_ = file.Close()
 	}
 	// Удаляем директорию с аттачами черновика
-	helpers.DeleteForumMessageDraftAttachments(user.UserId, dbTopic.TopicId)
+	app.DeleteForumMessageDraftAttachments(user.UserId, dbTopic.TopicId)
 	// Уже имевшиеся в Minio аттачи черновика превращаем в аттачи сообщения
-	_ = api.services.MoveFiles(r.Context(), app.ForumMessageDraftFileGroup, dbMessageDraft.DraftId, app.ForumMessageFileGroup, dbMessage.MessageId)
+	_ = api.services.MoveFilesInsideMinio(r.Context(), app.ForumMessageDraftFileGroup, dbMessageDraft.DraftId, app.ForumMessageFileGroup, dbMessage.MessageId)
 
 	var attaches []*pb.Common_Attachment
-	files, _ := api.services.GetFiles(r.Context(), app.ForumMessageFileGroup, dbMessage.MessageId)
+	files, _ := api.services.GetMinioFiles(r.Context(), app.ForumMessageFileGroup, dbMessage.MessageId)
 	for _, file := range files {
 		attaches = append(attaches, &pb.Common_Attachment{
-			Name: file.Name,
+			Url:  api.services.GetMinioForumMessageAttachmentUrl(dbMessage.MessageId, file.Name),
 			Size: file.Size,
 		})
 	}

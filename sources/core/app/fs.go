@@ -1,6 +1,7 @@
-package helpers
+package app
 
 import (
+	"fantlab/core/helpers"
 	"fmt"
 	"io/ioutil"
 	"os"
@@ -12,8 +13,8 @@ func GetBlogArticleAttachmentsDir(articleId uint64) string {
 	return fmt.Sprintf("/blog_files/b%d", articleId)
 }
 
-func GetBlogArticleAttachments(articleId uint64) ([]File, error) {
-	var attachments []File
+func GetBlogArticleAttachments(articleId uint64) ([]helpers.File, error) {
+	var attachments []helpers.File
 
 	files, err := ioutil.ReadDir(GetBlogArticleAttachmentsDir(articleId))
 	if err != nil {
@@ -23,7 +24,7 @@ func GetBlogArticleAttachments(articleId uint64) ([]File, error) {
 	for _, file := range files {
 		fileName := file.Name()
 		if fileName != "img" { // пропускаем директорию с картинками внутри текста
-			attachments = append(attachments, File{
+			attachments = append(attachments, helpers.File{
 				Name: fileName,
 				Size: uint64(file.Size()),
 			})
@@ -36,7 +37,7 @@ func GetBlogArticleAttachments(articleId uint64) ([]File, error) {
 // Сообщения в форуме
 
 func GetForumMessageAttachmentsDir(messageId uint64) string {
-	return "/forum_attach/" + IdToRelativeFilePath(messageId, 3)
+	return "/forum_attach/" + helpers.IdToRelativeFilePath(messageId, 3)
 }
 
 // Метода GetForumMessageAttachments нет, поскольку список аттачей к сообщению форума вытаскивается из базы. Разумеется,
@@ -58,8 +59,8 @@ func GetForumMessageDraftAttachmentsDir(userId, topicId uint64) string {
 	return fmt.Sprintf("/files/preview/m_%d_%d", userId, topicId)
 }
 
-func GetForumMessageDraftAttachments(userId, topicId uint64) ([]File, error) {
-	var attachments []File
+func GetForumMessageDraftAttachments(userId, topicId uint64) ([]helpers.File, error) {
+	var attachments []helpers.File
 
 	files, err := ioutil.ReadDir(GetForumMessageDraftAttachmentsDir(userId, topicId))
 	if err != nil {
@@ -67,7 +68,7 @@ func GetForumMessageDraftAttachments(userId, topicId uint64) ([]File, error) {
 	}
 
 	for _, file := range files {
-		attachments = append(attachments, File{
+		attachments = append(attachments, helpers.File{
 			Name: file.Name(),
 			Size: uint64(file.Size()),
 		})

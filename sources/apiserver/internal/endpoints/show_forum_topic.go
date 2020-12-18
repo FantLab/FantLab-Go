@@ -116,40 +116,42 @@ func (api *API) ShowTopicMessages(r *http.Request) (int, proto.Message) {
 
 	_ = api.services.DeleteUserCache(r.Context(), userId)
 
-	attachmentsMap := map[uint64][]helpers.File{}
-	for _, attachment := range dbResponse.Attachments {
-		attachmentsMap[attachment.MessageId] = append(attachmentsMap[attachment.MessageId], helpers.File{
-			Name: attachment.FileName,
-			Size: attachment.FileSize,
-		})
-	}
-	for _, message := range dbResponse.Messages {
-		messageFiles, _ := api.services.GetFiles(r.Context(), app.ForumMessageFileGroup, message.MessageId)
-		attachmentsMap[message.MessageId] = append(attachmentsMap[message.MessageId], messageFiles...)
-	}
-
 	attaches := map[uint64][]*pb.Common_Attachment{}
-	for messageId, attachment := range attachmentsMap {
-		for _, attach := range attachment {
-			attaches[messageId] = append(attaches[messageId], &pb.Common_Attachment{
-				Name: attach.Name,
-				Size: attach.Size,
-			})
-		}
-	}
-
 	var draftAttaches []*pb.Common_Attachment
 
-	if dbResponse.MessageDraft != (db.ForumMessageDraft{}) {
-		draftAttachments, _ := helpers.GetForumMessageDraftAttachments(userId, dbTopic.TopicId)
-		draftFiles, _ := api.services.GetFiles(r.Context(), app.ForumMessageDraftFileGroup, dbResponse.MessageDraft.DraftId)
-		draftAttachments = append(draftAttachments, draftFiles...)
-
-		for _, draftAttachment := range draftAttachments {
-			draftAttaches = append(draftAttaches, &pb.Common_Attachment{
-				Name: draftAttachment.Name,
-				Size: draftAttachment.Size,
+	// Незалогиненным юзерам аттачи не показываем, значит, и грузить их стоит только для залогиненных
+	if userId != 0 {
+		for _, attachment := range dbResponse.Attachments {
+			attaches[attachment.MessageId] = append(attaches[attachment.MessageId], &pb.Common_Attachment{
+				Url:  api.services.GetFSForumMessageAttachmentUrl(attachment.MessageId, attachment.FileName),
+				Size: attachment.FileSize,
 			})
+		}
+		for _, message := range dbResponse.Messages {
+			files, _ := api.services.GetMinioFiles(r.Context(), app.ForumMessageFileGroup, message.MessageId)
+			for _, file := range files {
+				attaches[message.MessageId] = append(attaches[message.MessageId], &pb.Common_Attachment{
+					Url:  api.services.GetMinioForumMessageAttachmentUrl(message.MessageId, file.Name),
+					Size: file.Size,
+				})
+			}
+		}
+
+		if dbResponse.MessageDraft != (db.ForumMessageDraft{}) {
+			draftAttachments, _ := app.GetForumMessageDraftAttachments(userId, dbTopic.TopicId)
+			for _, draftAttachment := range draftAttachments {
+				draftAttaches = append(draftAttaches, &pb.Common_Attachment{
+					Url:  api.services.GetFSForumMessageDraftAttachmentUrl(userId, dbTopic.TopicId, draftAttachment.Name),
+					Size: draftAttachment.Size,
+				})
+			}
+			draftFiles, _ := api.services.GetMinioFiles(r.Context(), app.ForumMessageDraftFileGroup, dbResponse.MessageDraft.DraftId)
+			for _, draftFile := range draftFiles {
+				draftAttaches = append(draftAttaches, &pb.Common_Attachment{
+					Url:  api.services.GetMinioForumMessageDraftAttachmentUrl(dbResponse.MessageDraft.DraftId, draftFile.Name),
+					Size: draftFile.Size,
+				})
+			}
 		}
 	}
 

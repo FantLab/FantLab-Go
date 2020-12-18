@@ -3,7 +3,6 @@ package endpoints
 import (
 	"fantlab/core/app"
 	"fantlab/core/converters"
-	"fantlab/core/helpers"
 	"fantlab/pb"
 	"fmt"
 	"net/http"
@@ -88,15 +87,19 @@ func (api *API) SaveForumMessageDraft(r *http.Request) (int, proto.Message) {
 		}
 	}
 
-	attachments, _ := helpers.GetForumMessageDraftAttachments(user.UserId, dbTopic.TopicId)
-	files, _ := api.services.GetFiles(r.Context(), app.ForumMessageDraftFileGroup, dbMessageDraft.DraftId)
-	attachments = append(attachments, files...)
-
 	var attaches []*pb.Common_Attachment
+	attachments, _ := app.GetForumMessageDraftAttachments(user.UserId, dbTopic.TopicId)
 	for _, attachment := range attachments {
 		attaches = append(attaches, &pb.Common_Attachment{
-			Name: attachment.Name,
+			Url:  api.services.GetFSForumMessageDraftAttachmentUrl(user.UserId, dbTopic.TopicId, attachment.Name),
 			Size: attachment.Size,
+		})
+	}
+	files, _ := api.services.GetMinioFiles(r.Context(), app.ForumMessageDraftFileGroup, dbMessageDraft.DraftId)
+	for _, file := range files {
+		attaches = append(attaches, &pb.Common_Attachment{
+			Url:  api.services.GetMinioForumMessageDraftAttachmentUrl(dbMessageDraft.DraftId, file.Name),
+			Size: file.Size,
 		})
 	}
 

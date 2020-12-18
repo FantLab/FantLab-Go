@@ -79,7 +79,7 @@ func (api *API) GetForumMessageDraftFileUploadUrl(r *http.Request) (int, proto.M
 		}
 	}
 
-	attachments, err := helpers.GetForumMessageDraftAttachments(user.UserId, dbTopic.TopicId)
+	attachments, err := app.GetForumMessageDraftAttachments(user.UserId, dbTopic.TopicId)
 
 	if err != nil {
 		return http.StatusInternalServerError, &pb.Error_Response{
@@ -96,7 +96,7 @@ func (api *API) GetForumMessageDraftFileUploadUrl(r *http.Request) (int, proto.M
 		}
 	}
 
-	files, err := api.services.GetFiles(r.Context(), app.ForumMessageDraftFileGroup, dbMessageDraft.DraftId)
+	files, err := api.services.GetMinioFiles(r.Context(), app.ForumMessageDraftFileGroup, dbMessageDraft.DraftId)
 
 	if err != nil {
 		return http.StatusInternalServerError, &pb.Error_Response{
@@ -122,7 +122,7 @@ func (api *API) GetForumMessageDraftFileUploadUrl(r *http.Request) (int, proto.M
 		}
 	}
 
-	uploadUrl, err := api.services.GetFileUploadUrl(r.Context(), app.ForumMessageDraftFileGroup, dbMessageDraft.DraftId, params.FileName)
+	uploadUrl, err := api.services.GetMinioFileUploadUrl(r.Context(), app.ForumMessageDraftFileGroup, dbMessageDraft.DraftId, params.FileName)
 
 	if err != nil {
 		return http.StatusInternalServerError, &pb.Error_Response{

@@ -107,8 +107,8 @@ func (api *API) DeleteForumMessage(r *http.Request) (int, proto.Message) {
 	}
 
 	helpers.DeleteForumMessageTextCache(dbMessage.MessageId)
-	helpers.DeleteForumMessageAttachments(dbMessage.MessageId)
-	api.services.DeleteFiles(r.Context(), app.ForumMessageFileGroup, dbMessage.MessageId)
+	app.DeleteForumMessageAttachments(dbMessage.MessageId)
+	api.services.DeleteMinioFiles(r.Context(), app.ForumMessageFileGroup, dbMessage.MessageId)
 
 	return http.StatusOK, &pb.Common_SuccessResponse{}
 }

@@ -14,8 +14,8 @@ func GetCommunities(dbCommunities []db.Community, cfg *config.AppConfig) *pb.Blo
 
 	for _, dbCommunity := range dbCommunities {
 		userGender := helpers.GetGender(dbCommunity.LastUserId, dbCommunity.LastSex)
-		userAvatar := helpers.GetUserAvatarUrl(cfg.ImagesBaseURL, dbCommunity.LastUserId, dbCommunity.LastPhotoNumber)
-		communityAvatar := helpers.GetCommunityAvatarUrl(cfg.ImagesBaseURL, dbCommunity.BlogId)
+		userAvatar := helpers.GetUserAvatarUrl(cfg.BaseImageUrl, dbCommunity.LastUserId, dbCommunity.LastPhotoNumber)
+		communityAvatar := helpers.GetCommunityAvatarUrl(cfg.BaseImageUrl, dbCommunity.BlogId)
 
 		community := &pb.Blog_Community{
 			Id:                   dbCommunity.BlogId,
@@ -53,7 +53,7 @@ func GetCommunities(dbCommunities []db.Community, cfg *config.AppConfig) *pb.Blo
 }
 
 func GetCommunity(dbResponse *db.CommunityTopicsDBResponse, page, limit uint64, cfg *config.AppConfig) *pb.Blog_CommunityResponse {
-	communityAvatar := helpers.GetCommunityAvatarUrl(cfg.ImagesBaseURL, dbResponse.Community.BlogId)
+	communityAvatar := helpers.GetCommunityAvatarUrl(cfg.BaseImageUrl, dbResponse.Community.BlogId)
 
 	community := &pb.Blog_Community{
 		Id:     dbResponse.Community.BlogId,
@@ -66,7 +66,7 @@ func GetCommunity(dbResponse *db.CommunityTopicsDBResponse, page, limit uint64, 
 
 	for _, dbModerator := range dbResponse.Moderators {
 		gender := helpers.GetGender(dbModerator.UserID, dbModerator.Sex)
-		avatar := helpers.GetUserAvatarUrl(cfg.ImagesBaseURL, dbModerator.UserID, dbModerator.PhotoNumber)
+		avatar := helpers.GetUserAvatarUrl(cfg.BaseImageUrl, dbModerator.UserID, dbModerator.PhotoNumber)
 
 		moderator := &pb.Common_UserLink{
 			Id:     dbModerator.UserID,
@@ -82,7 +82,7 @@ func GetCommunity(dbResponse *db.CommunityTopicsDBResponse, page, limit uint64, 
 
 	for _, dbAuthor := range dbResponse.Authors {
 		gender := helpers.GetGender(dbAuthor.UserID, dbAuthor.Sex)
-		avatar := helpers.GetUserAvatarUrl(cfg.ImagesBaseURL, dbAuthor.UserID, dbAuthor.PhotoNumber)
+		avatar := helpers.GetUserAvatarUrl(cfg.BaseImageUrl, dbAuthor.UserID, dbAuthor.PhotoNumber)
 
 		author := &pb.Common_UserLink{
 			Id:     dbAuthor.UserID,
@@ -99,7 +99,7 @@ func GetCommunity(dbResponse *db.CommunityTopicsDBResponse, page, limit uint64, 
 
 	for _, dbTopic := range dbResponse.Topics {
 		gender := helpers.GetGender(dbTopic.UserId, dbTopic.Sex)
-		avatar := helpers.GetUserAvatarUrl(cfg.ImagesBaseURL, dbTopic.UserId, dbTopic.PhotoNumber)
+		avatar := helpers.GetUserAvatarUrl(cfg.BaseImageUrl, dbTopic.UserId, dbTopic.PhotoNumber)
 
 		article := &pb.Blog_Article{
 			Id:    dbTopic.TopicId,
@@ -145,7 +145,7 @@ func GetBlogs(dbResponse *db.BlogsDBResponse, page, limit uint64, cfg *config.Ap
 
 	for _, dbBlog := range dbResponse.Blogs {
 		gender := helpers.GetGender(dbBlog.UserId, dbBlog.Sex)
-		avatar := helpers.GetUserAvatarUrl(cfg.ImagesBaseURL, dbBlog.UserId, dbBlog.PhotoNumber)
+		avatar := helpers.GetUserAvatarUrl(cfg.BaseImageUrl, dbBlog.UserId, dbBlog.PhotoNumber)
 
 		blog := &pb.Blog_Blog{
 			Id: dbBlog.BlogId,
@@ -188,7 +188,7 @@ func GetBlog(dbResponse *db.BlogTopicsDBResponse, viewCounts []uint64, page, lim
 
 	for index, dbBlogTopic := range dbResponse.Topics {
 		gender := helpers.GetGender(dbBlogTopic.UserId, dbBlogTopic.Sex)
-		avatar := helpers.GetUserAvatarUrl(cfg.ImagesBaseURL, dbBlogTopic.UserId, dbBlogTopic.PhotoNumber)
+		avatar := helpers.GetUserAvatarUrl(cfg.BaseImageUrl, dbBlogTopic.UserId, dbBlogTopic.PhotoNumber)
 
 		article := &pb.Blog_Article{
 			Id:    dbBlogTopic.TopicId,
@@ -226,13 +226,14 @@ func GetBlog(dbResponse *db.BlogTopicsDBResponse, viewCounts []uint64, page, lim
 
 func GetArticle(dbBlogTopic *db.BlogTopic, viewCount uint64, attachments []helpers.File, cfg *config.AppConfig) *pb.Blog_BlogArticleResponse {
 	gender := helpers.GetGender(dbBlogTopic.UserId, dbBlogTopic.Sex)
-	avatar := helpers.GetUserAvatarUrl(cfg.ImagesBaseURL, dbBlogTopic.UserId, dbBlogTopic.PhotoNumber)
+	avatar := helpers.GetUserAvatarUrl(cfg.BaseImageUrl, dbBlogTopic.UserId, dbBlogTopic.PhotoNumber)
 
 	//noinspection GoPreferNilSlice
 	attaches := []*pb.Common_Attachment{}
 	for _, attachment := range attachments {
 		attaches = append(attaches, &pb.Common_Attachment{
-			Name: attachment.Name,
+			// TODO Заменить url на нормальный
+			Url:  attachment.Name,
 			Size: attachment.Size,
 		})
 	}
@@ -275,7 +276,7 @@ func GetBlogArticleComments(entries []db.BlogTopicComment, totalCount uint64, cf
 					Id:     entry.UserId,
 					Login:  entry.UserLogin,
 					Gender: helpers.GetGender(entry.UserId, entry.UserSex),
-					Avatar: helpers.GetUserAvatarUrl(cfg.ImagesBaseURL, entry.UserId, entry.UserPhotoNumber),
+					Avatar: helpers.GetUserAvatarUrl(cfg.BaseImageUrl, entry.UserId, entry.UserPhotoNumber),
 				},
 				Date: pbutils.TimestampProto(entry.DateOfAdd),
 			},
@@ -314,7 +315,7 @@ func GetBlogArticleComment(dbComment *db.BlogTopicComment, cfg *config.AppConfig
 				Id:     dbComment.UserId,
 				Login:  dbComment.UserLogin,
 				Gender: helpers.GetGender(dbComment.UserId, dbComment.UserSex),
-				Avatar: helpers.GetUserAvatarUrl(cfg.ImagesBaseURL, dbComment.UserId, dbComment.UserPhotoNumber),
+				Avatar: helpers.GetUserAvatarUrl(cfg.BaseImageUrl, dbComment.UserId, dbComment.UserPhotoNumber),
 			},
 			Date: pbutils.TimestampProto(dbComment.DateOfAdd),
 		},

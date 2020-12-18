@@ -8,10 +8,12 @@ const (
 )
 
 type AppConfig struct {
-	SiteURL                                  string
+	SiteUrl                                  string
 	SiteName                                 string
 	SiteEmail                                string
-	ImagesBaseURL                            string
+	BaseImageUrl                             string
+	BaseForumMessageAttachUrl                string
+	BaseForumMessageDraftAttachUrl           string
 	MinResponseLength                        uint64
 	MaxUserResponseCountPerWork              uint64
 	MinUserOwnResponsesRatingForMinusAbility uint64

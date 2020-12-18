@@ -79,7 +79,7 @@ func (api *API) DeleteForumMessageDraftFile(r *http.Request) (int, proto.Message
 		}
 	}
 
-	attachments, err := helpers.GetForumMessageDraftAttachments(user.UserId, dbTopic.TopicId)
+	attachments, err := app.GetForumMessageDraftAttachments(user.UserId, dbTopic.TopicId)
 
 	if err != nil {
 		return http.StatusInternalServerError, &pb.Error_Response{
@@ -97,7 +97,7 @@ func (api *API) DeleteForumMessageDraftFile(r *http.Request) (int, proto.Message
 	}
 
 	if !attachmentExist {
-		files, err := api.services.GetFiles(r.Context(), app.ForumMessageDraftFileGroup, dbMessageDraft.DraftId)
+		files, err := api.services.GetMinioFiles(r.Context(), app.ForumMessageDraftFileGroup, dbMessageDraft.DraftId)
 
 		if err != nil {
 			return http.StatusInternalServerError, &pb.Error_Response{
@@ -123,20 +123,24 @@ func (api *API) DeleteForumMessageDraftFile(r *http.Request) (int, proto.Message
 	}
 
 	if attachmentExist {
-		helpers.DeleteForumMessageDraftAttachment(user.UserId, dbTopic.TopicId, params.FileName)
+		app.DeleteForumMessageDraftAttachment(user.UserId, dbTopic.TopicId, params.FileName)
 	} else { // Minio file exist
-		api.services.DeleteFile(r.Context(), app.ForumMessageDraftFileGroup, dbMessageDraft.DraftId, params.FileName)
+		api.services.DeleteMinioFile(r.Context(), app.ForumMessageDraftFileGroup, dbMessageDraft.DraftId, params.FileName)
 	}
 
-	attachments, _ = helpers.GetForumMessageDraftAttachments(user.UserId, dbTopic.TopicId)
-	files, _ := api.services.GetFiles(r.Context(), app.ForumMessageDraftFileGroup, dbMessageDraft.DraftId)
-	attachments = append(attachments, files...)
-
 	var attaches []*pb.Common_Attachment
+	attachments, _ = app.GetForumMessageDraftAttachments(user.UserId, dbTopic.TopicId)
 	for _, attachment := range attachments {
 		attaches = append(attaches, &pb.Common_Attachment{
-			Name: attachment.Name,
+			Url:  api.services.GetFSForumMessageDraftAttachmentUrl(user.UserId, dbTopic.TopicId, attachment.Name),
 			Size: attachment.Size,
+		})
+	}
+	files, _ := api.services.GetMinioFiles(r.Context(), app.ForumMessageDraftFileGroup, dbMessageDraft.DraftId)
+	for _, file := range files {
+		attaches = append(attaches, &pb.Common_Attachment{
+			Url:  api.services.GetMinioForumMessageDraftAttachmentUrl(dbMessageDraft.DraftId, file.Name),
+			Size: file.Size,
 		})
 	}
 

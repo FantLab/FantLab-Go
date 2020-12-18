@@ -71,7 +71,7 @@ func GetEditionBookcase(dbResponse db.EditionBookcaseDbResponse, dbBookcase db.B
 	var editions = []*pb.Bookcase_Edition{}
 
 	for _, dbEdition := range dbResponse.Editions {
-		cover := helpers.GetEditionCoverUrl(cfg.ImagesBaseURL, dbEdition.EditionId)
+		cover := helpers.GetEditionCoverUrl(cfg.BaseImageUrl, dbEdition.EditionId)
 
 		var ozonOffer *pb.Bookcase_Edition_Offers_Offer
 		if dbEdition.OzonAvailable == 1 && dbEdition.OzonId > 0 && dbEdition.OzonCost > 0 {
@@ -240,7 +240,7 @@ func GetFilmBookcase(dbResponse db.FilmBookcaseDbResponse, dbBookcase db.Bookcas
 	var films = []*pb.Bookcase_Film{}
 
 	for _, dbFilm := range dbResponse.Films {
-		poster := helpers.GetFilmPosterUrl(cfg.ImagesBaseURL, dbFilm.FilmId)
+		poster := helpers.GetFilmPosterUrl(cfg.BaseImageUrl, dbFilm.FilmId)
 
 		var year uint64
 		var startYear uint64

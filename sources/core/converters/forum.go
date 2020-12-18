@@ -34,7 +34,7 @@ func GetForumBlocks(dbForumsResponse db.ForumsDBResponse, userId uint64, cfg *co
 
 				for _, dbModerator := range dbForumsResponse.Moderators[dbForum.ForumId] {
 					gender := helpers.GetGender(dbModerator.UserId, dbModerator.Sex)
-					avatar := helpers.GetUserAvatarUrl(cfg.ImagesBaseURL, dbModerator.UserId, dbModerator.PhotoNumber)
+					avatar := helpers.GetUserAvatarUrl(cfg.BaseImageUrl, dbModerator.UserId, dbModerator.PhotoNumber)
 
 					userLink := &pb.Common_UserLink{
 						Id:     dbModerator.UserId,
@@ -51,7 +51,7 @@ func GetForumBlocks(dbForumsResponse db.ForumsDBResponse, userId uint64, cfg *co
 				}
 
 				gender := helpers.GetGender(dbForum.LastMessageUserId, dbForum.LastMessageUserSex)
-				avatar := helpers.GetUserAvatarUrl(cfg.ImagesBaseURL, dbForum.LastMessageUserId, dbForum.LastMessageUserPhotoNumber)
+				avatar := helpers.GetUserAvatarUrl(cfg.BaseImageUrl, dbForum.LastMessageUserId, dbForum.LastMessageUserPhotoNumber)
 
 				forum := pb.Forum_Forum{
 					Id:               dbForum.ForumId,
@@ -106,7 +106,7 @@ func GetForumTopics(dbResponse db.ForumTopicsDBResponse, page, limit uint64, cfg
 
 	for _, dbModerator := range dbResponse.Moderators {
 		gender := helpers.GetGender(dbModerator.UserId, dbModerator.Sex)
-		avatar := helpers.GetUserAvatarUrl(cfg.ImagesBaseURL, dbModerator.UserId, dbModerator.PhotoNumber)
+		avatar := helpers.GetUserAvatarUrl(cfg.BaseImageUrl, dbModerator.UserId, dbModerator.PhotoNumber)
 
 		userLink := &pb.Common_UserLink{
 			Id:     dbModerator.UserId,
@@ -126,10 +126,10 @@ func GetForumTopics(dbResponse db.ForumTopicsDBResponse, page, limit uint64, cfg
 		}
 
 		creationUserGender := helpers.GetGender(dbTopic.UserId, dbTopic.UserSex)
-		creationUserAvatar := helpers.GetUserAvatarUrl(cfg.ImagesBaseURL, dbTopic.UserId, dbTopic.UserPhotoNumber)
+		creationUserAvatar := helpers.GetUserAvatarUrl(cfg.BaseImageUrl, dbTopic.UserId, dbTopic.UserPhotoNumber)
 
 		lastMessageUserGender := helpers.GetGender(dbTopic.LastMessageUserId, dbTopic.LastMessageUserSex)
-		lastMessageUserAvatar := helpers.GetUserAvatarUrl(cfg.ImagesBaseURL, dbTopic.LastMessageUserId, dbTopic.LastMessageUserPhotoNumber)
+		lastMessageUserAvatar := helpers.GetUserAvatarUrl(cfg.BaseImageUrl, dbTopic.LastMessageUserId, dbTopic.LastMessageUserPhotoNumber)
 
 		topicNotReadInfo := dbResponse.TopicsNotReadInfo[dbTopic.TopicId]
 
@@ -337,7 +337,7 @@ func convertMessage(dbMessage *db.ForumMessage, attaches map[uint64][]*pb.Common
 	}
 
 	gender := helpers.GetGender(dbMessage.UserId, dbMessage.UserSex)
-	avatar := helpers.GetUserAvatarUrl(cfg.ImagesBaseURL, dbMessage.UserId, dbMessage.UserPhotoNumber)
+	avatar := helpers.GetUserAvatarUrl(cfg.BaseImageUrl, dbMessage.UserId, dbMessage.UserPhotoNumber)
 
 	// Пояснения по логике можно найти в коде endpoint-ов edit_forum_message, delete_forum_message
 	isTimeUp := uint64(time.Since(dbMessage.DateOfAdd).Seconds()) > cfg.MaxForumMessageEditTimeout
@@ -447,7 +447,7 @@ func convertMessageDraft(dbMessageDraft *db.ForumMessageDraft, attaches []*pb.Co
 	cfg *config.AppConfig) *pb.Forum_TopicMessageDraft {
 
 	gender := helpers.GetGender(dbMessageDraft.UserID, dbMessageDraft.Sex)
-	avatar := helpers.GetUserAvatarUrl(cfg.ImagesBaseURL, dbMessageDraft.UserID, dbMessageDraft.PhotoNumber)
+	avatar := helpers.GetUserAvatarUrl(cfg.BaseImageUrl, dbMessageDraft.UserID, dbMessageDraft.PhotoNumber)
 
 	return &pb.Forum_TopicMessageDraft{
 		TopicId: dbMessageDraft.TopicId,
