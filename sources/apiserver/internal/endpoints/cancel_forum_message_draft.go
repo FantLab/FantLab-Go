@@ -3,7 +3,6 @@ package endpoints
 import (
 	"fantlab/core/app"
 	"fantlab/core/db"
-	"fantlab/core/helpers"
 	"fantlab/pb"
 	"net/http"
 	"strconv"
@@ -80,8 +79,8 @@ func (api *API) CancelForumMessageDraft(r *http.Request) (int, proto.Message) {
 		}
 	}
 
-	helpers.DeleteForumMessageDraftAttachments(userId, dbTopic.TopicId)
-	api.services.DeleteFiles(r.Context(), app.ForumMessageDraftFileGroup, dbMessageDraft.DraftId)
+	app.DeleteForumMessageDraftAttachments(userId, dbTopic.TopicId)
+	api.services.DeleteMinioFiles(r.Context(), app.ForumMessageDraftFileGroup, dbMessageDraft.DraftId)
 
 	return http.StatusOK, &pb.Common_SuccessResponse{}
 }

@@ -135,7 +135,7 @@ func (api *API) GetForumMessageFileUploadUrl(r *http.Request) (int, proto.Messag
 		}
 	}
 
-	files, err := api.services.GetFiles(r.Context(), app.ForumMessageFileGroup, dbMessage.MessageId)
+	files, err := api.services.GetMinioFiles(r.Context(), app.ForumMessageFileGroup, dbMessage.MessageId)
 
 	if err != nil {
 		return http.StatusInternalServerError, &pb.Error_Response{
@@ -161,7 +161,7 @@ func (api *API) GetForumMessageFileUploadUrl(r *http.Request) (int, proto.Messag
 		}
 	}
 
-	uploadUrl, err := api.services.GetFileUploadUrl(r.Context(), app.ForumMessageFileGroup, dbMessage.MessageId, params.FileName)
+	uploadUrl, err := api.services.GetMinioFileUploadUrl(r.Context(), app.ForumMessageFileGroup, dbMessage.MessageId, params.FileName)
 
 	if err != nil {
 		return http.StatusInternalServerError, &pb.Error_Response{

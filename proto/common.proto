@@ -65,8 +65,8 @@ message Common {
     }
 
     message Attachment {
-        // название файла
-        string name = 1;
+        // ссылка на файл
+        string url = 1;
         // размер (байт)
         uint64 size = 2;
     }

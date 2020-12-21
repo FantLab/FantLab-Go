@@ -598,7 +598,7 @@
     isCensored: bool                    # текст изъят модератором?
     isUnread: bool                      # сообщение не прочитано? (для залогиненных пользователей)
     attachments: [{                     # аттачи
-      name: string                      # название файла
+      url: string                       # ссылка на файл
       size: uint64                      # размер (байт)
     }]
     stats: {                            # статистика
@@ -630,7 +630,7 @@
     isCensored: bool                    # текст изъят модератором?
     isUnread: bool                      # сообщение не прочитано? (для залогиненных пользователей)
     attachments: [{                     # аттачи
-      name: string                      # название файла
+      url: string                       # ссылка на файл
       size: uint64                      # размер (байт)
     }]
     stats: {                            # статистика
@@ -660,7 +660,7 @@
     }
     text: string                        # текст
     attachments: [{                     # аттачи
-      name: string                      # название файла
+      url: string                       # ссылка на файл
       size: uint64                      # размер (байт)
     }]
   }
@@ -830,7 +830,7 @@
     text: string                        # текст
     tags: string                        # теги
     attachments: [{                     # аттачи
-      name: string                      # название файла
+      url: string                       # ссылка на файл
       size: uint64                      # размер (байт)
     }]
     stats: {                            # статистика
@@ -960,7 +960,7 @@
     text: string                        # текст
     tags: string                        # теги
     attachments: [{                     # аттачи
-      name: string                      # название файла
+      url: string                       # ссылка на файл
       size: uint64                      # размер (байт)
     }]
     stats: {                            # статистика
@@ -985,7 +985,7 @@
 
 
 
-**GET** [/v1/blog_articles/{id}](../sources/apiserver/internal/endpoints/show_article.go#L15)
+**GET** [/v1/blog_articles/{id}](../sources/apiserver/internal/endpoints/show_article.go#L14)
 
 Параметры запроса:
 
@@ -1017,7 +1017,7 @@
     text: string                        # текст
     tags: string                        # теги
     attachments: [{                     # аттачи
-      name: string                      # название файла
+      url: string                       # ссылка на файл
       size: uint64                      # размер (байт)
     }]
     stats: {                            # статистика
@@ -1671,7 +1671,7 @@
     isCensored: bool                    # текст изъят модератором?
     isUnread: bool                      # сообщение не прочитано? (для залогиненных пользователей)
     attachments: [{                     # аттачи
-      name: string                      # название файла
+      url: string                       # ссылка на файл
       size: uint64                      # размер (байт)
     }]
     stats: {                            # статистика
@@ -1732,7 +1732,7 @@
     isCensored: bool                    # текст изъят модератором?
     isUnread: bool                      # сообщение не прочитано? (для залогиненных пользователей)
     attachments: [{                     # аттачи
-      name: string                      # название файла
+      url: string                       # ссылка на файл
       size: uint64                      # размер (байт)
     }]
     stats: {                            # статистика
@@ -1848,7 +1848,7 @@
     isCensored: bool                    # текст изъят модератором?
     isUnread: bool                      # сообщение не прочитано? (для залогиненных пользователей)
     attachments: [{                     # аттачи
-      name: string                      # название файла
+      url: string                       # ссылка на файл
       size: uint64                      # размер (байт)
     }]
     stats: {                            # статистика
@@ -1874,7 +1874,7 @@
 
 
 
-**PUT** [/v1/topics/{id}/message_draft](../sources/apiserver/internal/endpoints/save_forum_message_draft.go#L15)
+**PUT** [/v1/topics/{id}/message_draft](../sources/apiserver/internal/endpoints/save_forum_message_draft.go#L14)
 
 Параметры запроса:
 
@@ -1907,7 +1907,7 @@
     }
     text: string                        # текст
     attachments: [{                     # аттачи
-      name: string                      # название файла
+      url: string                       # ссылка на файл
       size: uint64                      # размер (байт)
     }]
   }
@@ -1955,7 +1955,7 @@
     isCensored: bool                    # текст изъят модератором?
     isUnread: bool                      # сообщение не прочитано? (для залогиненных пользователей)
     attachments: [{                     # аттачи
-      name: string                      # название файла
+      url: string                       # ссылка на файл
       size: uint64                      # размер (байт)
     }]
     stats: {                            # статистика
@@ -1981,7 +1981,7 @@
 
 
 
-**DELETE** [/v1/topics/{id}/message_draft](../sources/apiserver/internal/endpoints/cancel_forum_message_draft.go#L14)
+**DELETE** [/v1/topics/{id}/message_draft](../sources/apiserver/internal/endpoints/cancel_forum_message_draft.go#L13)
 
 Параметры запроса:
 
@@ -2069,7 +2069,7 @@
     }
     text: string                        # текст
     attachments: [{                     # аттачи
-      name: string                      # название файла
+      url: string                       # ссылка на файл
       size: uint64                      # размер (байт)
     }]
   }

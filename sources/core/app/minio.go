@@ -17,7 +17,7 @@ const (
 	BlogArticleFileGroup       = "blog_article"
 )
 
-func (s *Services) GetFileUploadUrl(ctx context.Context, fileGroup string, holderId uint64, fileName string) (string, error) {
+func (s *Services) GetMinioFileUploadUrl(ctx context.Context, fileGroup string, holderId uint64, fileName string) (string, error) {
 	objectName := fmt.Sprintf("%s/%d/%s", fileGroup, holderId, fileName)
 	expiry := 10 * time.Minute
 
@@ -31,7 +31,7 @@ func (s *Services) GetFileUploadUrl(ctx context.Context, fileGroup string, holde
 	return url.String(), nil
 }
 
-func (s *Services) GetFiles(ctx context.Context, fileGroup string, holderId uint64) ([]helpers.File, error) {
+func (s *Services) GetMinioFiles(ctx context.Context, fileGroup string, holderId uint64) ([]helpers.File, error) {
 	doneCh := make(chan struct{})
 	defer close(doneCh)
 
@@ -57,7 +57,7 @@ func (s *Services) GetFiles(ctx context.Context, fileGroup string, holderId uint
 	return files, nil
 }
 
-func (s *Services) SaveFileFromFileSystem(ctx context.Context, fileGroup string, holderId uint64, file *os.File) error {
+func (s *Services) MoveFileFromFSToMinio(ctx context.Context, fileGroup string, holderId uint64, file *os.File) error {
 	fileStat, err := file.Stat()
 
 	if err != nil {
@@ -78,7 +78,7 @@ func (s *Services) SaveFileFromFileSystem(ctx context.Context, fileGroup string,
 	return nil
 }
 
-func (s *Services) DeleteFiles(ctx context.Context, fileGroup string, holderId uint64) {
+func (s *Services) DeleteMinioFiles(ctx context.Context, fileGroup string, holderId uint64) {
 	objectsCh := make(chan string)
 
 	prefix := fmt.Sprintf("%s/%d", fileGroup, holderId)
@@ -101,7 +101,7 @@ func (s *Services) DeleteFiles(ctx context.Context, fileGroup string, holderId u
 	}
 }
 
-func (s *Services) DeleteFile(ctx context.Context, fileGroup string, holderId uint64, fileName string) {
+func (s *Services) DeleteMinioFile(ctx context.Context, fileGroup string, holderId uint64, fileName string) {
 	objectName := fmt.Sprintf("%s/%d/%s", fileGroup, holderId, fileName)
 	err := s.minioClient.RemoveObject(s.minioBucket, objectName)
 
@@ -110,8 +110,8 @@ func (s *Services) DeleteFile(ctx context.Context, fileGroup string, holderId ui
 	}
 }
 
-func (s *Services) MoveFiles(ctx context.Context, oldFileGroup string, oldHolderId uint64, newFileGroup string, newHolderId uint64) error {
-	files, err := s.GetFiles(ctx, oldFileGroup, oldHolderId)
+func (s *Services) MoveFilesInsideMinio(ctx context.Context, oldFileGroup string, oldHolderId uint64, newFileGroup string, newHolderId uint64) error {
+	files, err := s.GetMinioFiles(ctx, oldFileGroup, oldHolderId)
 
 	if err != nil {
 		logs.WithAPM(ctx).Error(err.Error())
@@ -133,7 +133,7 @@ func (s *Services) MoveFiles(ctx context.Context, oldFileGroup string, oldHolder
 		}
 	}
 
-	s.DeleteFiles(ctx, oldFileGroup, oldHolderId)
+	s.DeleteMinioFiles(ctx, oldFileGroup, oldHolderId)
 
 	return nil
 }

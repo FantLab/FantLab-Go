@@ -144,15 +144,15 @@ func (api *API) EditForumMessage(r *http.Request) (int, proto.Message) {
 	attachments, _ := api.services.DB().FetchForumMessageAttachments(r.Context(), dbMessage.MessageId)
 	for _, attachment := range attachments {
 		attaches = append(attaches, &pb.Common_Attachment{
-			Name: attachment.FileName,
+			Url:  api.services.GetFSForumMessageAttachmentUrl(dbMessage.MessageId, attachment.FileName),
 			Size: attachment.FileSize,
 		})
 	}
 
-	files, _ := api.services.GetFiles(r.Context(), app.ForumMessageFileGroup, dbMessage.MessageId)
+	files, _ := api.services.GetMinioFiles(r.Context(), app.ForumMessageFileGroup, dbMessage.MessageId)
 	for _, file := range files {
 		attaches = append(attaches, &pb.Common_Attachment{
-			Name: file.Name,
+			Url:  api.services.GetMinioForumMessageAttachmentUrl(dbMessage.MessageId, file.Name),
 			Size: file.Size,
 		})
 	}

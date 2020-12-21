@@ -179,10 +179,12 @@ func MakeServices() (*Services, error, []func() error) {
 		func() error { // конфигурация бизнес-логики
 			// Все параметры заданы в config/main.cfg и config/misc.cfg Perl-бэка
 			appConfig = &config.AppConfig{
-				SiteURL:                                  "https://fantlab.ru",
+				SiteUrl:                                  "https://fantlab.ru",
 				SiteName:                                 "fantlab.ru",
 				SiteEmail:                                "support@fantlab.ru",
-				ImagesBaseURL:                            "https://data.fantlab.ru/images",
+				BaseImageUrl:                             os.Getenv("BASE_IMAGE_URL"),
+				BaseForumMessageAttachUrl:                os.Getenv("BASE_FORUM_MESSAGE_ATTACH_URL"),
+				BaseForumMessageDraftAttachUrl:           os.Getenv("BASE_FORUM_MESSAGE_DRAFT_ATTACH_URL"),
 				MinResponseLength:                        50,
 				MaxUserResponseCountPerWork:              3,
 				MinUserOwnResponsesRatingForMinusAbility: 300,

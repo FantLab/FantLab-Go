@@ -43,7 +43,7 @@ func (s *Services) SendPrivateMessageMail(ctx context.Context, fromUserId uint64
 
 	for _, toEmail := range toEmails {
 		data := privateMessageMailData{
-			SiteUrl:   s.appConfig.SiteURL,
+			SiteUrl:   s.appConfig.SiteUrl,
 			SiteName:  s.appConfig.SiteName,
 			SiteEmail: s.appConfig.SiteEmail,
 			Email:     toEmail,

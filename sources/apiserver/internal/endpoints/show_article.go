@@ -4,7 +4,6 @@ import (
 	"fantlab/core/app"
 	"fantlab/core/converters"
 	"fantlab/core/db"
-	"fantlab/core/helpers"
 	"fantlab/pb"
 	"net/http"
 	"strconv"
@@ -49,8 +48,9 @@ func (api *API) ShowArticle(r *http.Request) (int, proto.Message) {
 
 	viewCounts := api.services.BlogTopicsViewCount(r.Context(), []uint64{dbTopic.TopicId})
 
-	attachments, _ := helpers.GetBlogArticleAttachments(dbTopic.TopicId)
-	files, _ := api.services.GetFiles(r.Context(), app.BlogArticleFileGroup, dbTopic.TopicId)
+	// TODO Переделать
+	attachments, _ := app.GetBlogArticleAttachments(dbTopic.TopicId)
+	files, _ := api.services.GetMinioFiles(r.Context(), app.BlogArticleFileGroup, dbTopic.TopicId)
 	attachments = append(attachments, files...)
 
 	article := converters.GetArticle(dbTopic, viewCounts[0], attachments, api.services.AppConfig())

@@ -12,7 +12,7 @@ func GetPrivateMessage(dbMessage db.PrivateMessage, cfg *config.AppConfig) *pb.P
 	text := dbMessage.MessageText
 
 	gender := helpers.GetGender(dbMessage.FromUserId, dbMessage.Sex)
-	avatar := helpers.GetUserAvatarUrl(cfg.ImagesBaseURL, dbMessage.FromUserId, dbMessage.PhotoNumber)
+	avatar := helpers.GetUserAvatarUrl(cfg.BaseImageUrl, dbMessage.FromUserId, dbMessage.PhotoNumber)
 
 	message := &pb.Private_Message{
 		Id: dbMessage.PrivateMessageId,
