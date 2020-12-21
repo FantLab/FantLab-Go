@@ -12,18 +12,14 @@ func (api *API) VoteForumMessage(r *http.Request) (int, proto.Message) {
 	var params struct {
 		// id сообщения
 		MessageId uint64 `http:"id,path"`
-		// плюс посту - plus, минус посту - minus, удалить голос - none (для модераторов)
-		Vote string `http:"vote,form"`
+		// голос (true - плюс, false - минус)
+		VotePlus bool `http:"vote_plus,form"`
 	}
 
 	api.bindParams(&params, r)
 
 	if params.MessageId == 0 {
 		return api.badParam("id")
-	}
-
-	if params.Vote != "plus" && params.Vote != "minus" && params.Vote != "none" {
-		return api.badParam("vote")
 	}
 
 	availableForums := api.getAvailableForums(r)
@@ -51,45 +47,65 @@ func (api *API) VoteForumMessage(r *http.Request) (int, proto.Message) {
 		}
 	}
 
-	userId := api.getUserId(r)
-
-	if dbMessage.UserId == userId && params.Vote != "none" {
+	// TODO В Perl-бэке этой проверки нет
+	if dbMessage.IsCensored == 1 {
 		return http.StatusForbidden, &pb.Error_Response{
 			Status:  pb.Error_ACTION_PERMITTED,
-			Context: "Нельзя оценить собственное сообщение",
+			Context: "Нельзя оценить зацензурированное сообщение",
 		}
 	}
 
 	if dbMessage.IsRed == 1 {
 		return http.StatusForbidden, &pb.Error_Response{
 			Status:  pb.Error_ACTION_PERMITTED,
-			Context: "Нельзя оценить сообщение модератора",
+			Context: "Нельзя оценить данное сообщение",
 		}
 	}
 
-	userIsForumModerator, err := api.services.DB().FetchUserIsForumModerator(r.Context(), userId, dbMessage.ForumId)
+	// TODO В Perl-бэке этой проверки нет
+	if !params.VotePlus {
+		var isForumWithDisabledMinuses bool
+		for _, forumId := range api.services.AppConfig().ForumsWithDisabledMinuses {
+			if dbMessage.ForumId == forumId {
+				isForumWithDisabledMinuses = true
+				break
+			}
+		}
 
-	if err != nil {
-		return http.StatusInternalServerError, &pb.Error_Response{
-			Status: pb.Error_SOMETHING_WENT_WRONG,
+		if isForumWithDisabledMinuses {
+			return http.StatusForbidden, &pb.Error_Response{
+				Status:  pb.Error_ACTION_PERMITTED,
+				Context: "В этом форуме запрещены минусы",
+			}
 		}
 	}
 
-	if userIsForumModerator && params.Vote != "none" {
+	userId := api.getUserId(r)
+
+	// TODO В Perl-бэке этой проверки нет
+	var isReadOnlyUser bool
+	for _, readOnlyUserId := range api.services.AppConfig().ReadOnlyForumUsers[dbMessage.ForumId] {
+		if userId == readOnlyUserId {
+			isReadOnlyUser = true
+			break
+		}
+	}
+
+	if isReadOnlyUser {
 		return http.StatusForbidden, &pb.Error_Response{
 			Status:  pb.Error_ACTION_PERMITTED,
-			Context: "Модератор не может оценивать сообщения посетителей",
+			Context: "Вы не можете оценивать сообщения в данном форуме",
 		}
 	}
 
-	if !userIsForumModerator && params.Vote == "none" {
+	if dbMessage.UserId == userId {
 		return http.StatusForbidden, &pb.Error_Response{
 			Status:  pb.Error_ACTION_PERMITTED,
-			Context: "Нельзя удалить оценку сообщения",
+			Context: "Нельзя оценить собственное сообщение",
 		}
 	}
 
-	isMessageUserVoteExists, err := api.services.DB().FetchForumMessageUserVoteExists(r.Context(), userId, params.MessageId)
+	isMessageUserVoteExists, err := api.services.DB().FetchForumMessageUserVoteExists(r.Context(), userId, dbMessage.MessageId)
 
 	if err != nil {
 		return http.StatusInternalServerError, &pb.Error_Response{
@@ -104,14 +120,7 @@ func (api *API) VoteForumMessage(r *http.Request) (int, proto.Message) {
 		}
 	}
 
-	switch params.Vote {
-	case "plus":
-		err = api.services.DB().UpdateForumMessageVotedPlus(r.Context(), params.MessageId, userId)
-	case "minus":
-		err = api.services.DB().UpdateForumMessageVotedMinus(r.Context(), params.MessageId, userId)
-	case "none":
-		err = api.services.DB().UpdateForumMessageVoteDeleted(r.Context(), params.MessageId)
-	}
+	err = api.services.DB().UpdateForumMessageVotes(r.Context(), dbMessage.MessageId, userId, params.VotePlus)
 
 	if err != nil {
 		return http.StatusInternalServerError, &pb.Error_Response{

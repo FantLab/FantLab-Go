@@ -8,13 +8,6 @@ import (
 	"github.com/FantLab/go-kit/database/sqlapi"
 )
 
-var (
-	ResponseVoteMap = map[string]int8{
-		"plus":  1,
-		"minus": -1,
-	}
-)
-
 type Response struct {
 	ResponseId uint64 `db:"response_id"`
 	UserId     uint64 `db:"user_id"`
@@ -125,17 +118,20 @@ func (db *DB) UpdateResponse(ctx context.Context, responseId uint64, response st
 	})
 }
 
-func (db *DB) UpdateResponseVotes(ctx context.Context, responseId, userId uint64, userVote string) (Response, error) {
+func (db *DB) UpdateResponseVotes(ctx context.Context, responseId, userId uint64, votePlus bool) (Response, error) {
 	var response Response
 
-	vote := ResponseVoteMap[userVote]
 	err := db.engine.InTransaction(func(rw sqlapi.ReaderWriter) error {
 		return codeflow.Try(
 			func() error {
+				vote := 1
+				if !votePlus {
+					vote = -1
+				}
 				return rw.Write(ctx, sqlapi.NewQuery(queries.ResponseInsertResponseVote).WithArgs(userId, responseId, vote)).Error
 			},
 			func() error {
-				if vote == 1 {
+				if votePlus {
 					return rw.Write(ctx, sqlapi.NewQuery(queries.ResponseUpdateResponseVotePlus).WithArgs(responseId)).Error
 				} else {
 					return rw.Write(ctx, sqlapi.NewQuery(queries.ResponseUpdateResponseVoteMinus).WithArgs(responseId)).Error

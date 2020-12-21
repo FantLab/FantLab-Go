@@ -1589,7 +1589,7 @@
 * **id** (path, uint64) - id отзыва
 
 
-* **vote** (form, string) - голос (плюс - plus, минус - minus)
+* **vote_plus** (form, bool) - голос (true - плюс, false - минус)
 
 
 
@@ -1863,6 +1863,31 @@
     }
   }
 }
+```
+---
+
+</p>
+</details>
+
+<details><summary>Удаление оценок у сообщения в форуме (для модераторов)</summary>
+<p>
+
+
+
+**DELETE** [/v1/forum_messages/{id}/voting](../sources/apiserver/internal/endpoints/delete_forum_message_votes.go#L11)
+
+Параметры запроса:
+
+
+* **id** (path, uint64) - id сообщения
+
+
+
+
+Схема ответа:
+
+```
+{}
 ```
 ---
 
@@ -2599,6 +2624,38 @@
 </details>
 
 
+## Для авторитетов
+
+
+<details><summary>Плюс/минус посту в форуме</summary>
+<p>
+
+
+
+**PUT** [/v1/forum_messages/{id}/voting](../sources/apiserver/internal/endpoints/vote_forum_message.go#L11)
+
+Параметры запроса:
+
+
+* **id** (path, uint64) - id сообщения
+
+
+* **vote_plus** (form, bool) - голос (true - плюс, false - минус)
+
+
+
+
+Схема ответа:
+
+```
+{}
+```
+---
+
+</p>
+</details>
+
+
 ## Для философов
 
 
@@ -2616,34 +2673,6 @@
 
 
 * **genres** (form, string) - айди жанров, разделённые запятыми
-
-
-
-
-Схема ответа:
-
-```
-{}
-```
----
-
-</p>
-</details>
-
-<details><summary>Плюс/минус посту в форуме</summary>
-<p>
-
-
-
-**PUT** [/v1/forum_messages/{id}/voting](../sources/apiserver/internal/endpoints/vote_forum_message.go#L11)
-
-Параметры запроса:
-
-
-* **id** (path, uint64) - id сообщения
-
-
-* **vote** (form, string) - плюс посту - plus, минус посту - minus, удалить голос - none (для модераторов)
 
 
 

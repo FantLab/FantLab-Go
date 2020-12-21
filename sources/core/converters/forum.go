@@ -394,7 +394,7 @@ func convertMessage(dbMessage *db.ForumMessage, attaches map[uint64][]*pb.Common
 			}
 
 			canVote := !isCensored && !isRed && !info.IsVotedByUser && !isReadOnlyUser &&
-				!(userLoggedIn && (dbMessage.UserId == user.UserId || user.Class < pb.Common_USERCLASS_ACTIVIST))
+				!(dbMessage.UserId == user.UserId || user.Class < pb.Common_USERCLASS_AUTHORITY)
 
 			canVoteMinus = canVote && !isForumWithDisabledMinuses
 			canVotePlus = canVote

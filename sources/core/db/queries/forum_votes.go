@@ -17,7 +17,10 @@ const (
 		INSERT 
 			f_messages_votes 
 		SET 
-			user_id = ?, message_id = ?, voteone = ?, date_of_vote = NOW()
+			user_id = ?,
+			message_id = ?,
+			voteone = ?,
+			date_of_vote = NOW()
 	`
 
 	ForumMessageVotePlusUpdate = `
@@ -38,7 +41,7 @@ const (
 			message_id = ?
 	`
 
-	ForumMessageVoteDelete = `
+	ForumMessageVotesDelete = `
 		DELETE FROM 
 			f_messages_votes 
 		WHERE 
@@ -52,7 +55,10 @@ const (
 		UPDATE 
 			f_messages 
 		SET 
-			is_red = 1, vote_plus = 0, vote_minus = 0 
+			is_red = 1,
+			vote_plus = 0,
+			vote_minus = 0 
 		WHERE 
-			message_id = ?`
+			message_id = ?
+	`
 )
