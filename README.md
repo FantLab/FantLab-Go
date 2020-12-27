@@ -9,8 +9,8 @@
 [Список методов](docs/generated.md)
 
 Чтобы актуализировать список методов, выполните следующий скрипт:
-```console
-$ ./generate_docs.sh
+``` console
+./generate_docs.sh
 ```
 
 ## Порядок работы
@@ -32,31 +32,31 @@ $ ./generate_docs.sh
 
 Для перегенерации моделей выполните следующий скрипт (в *vscode* уже настроен экшн для расширения **saveAndRun**):
 
-```console
-$ ./make_protos.sh
+``` console
+./make_protos.sh
 ```
 
 ### Docker
 
 Для запуска проекта через docker-compose выполните следующие команды:
 
-```console
-$ docker-compose -f docker-compose/deps.yml -f docker-compose/app.yml build
-$ docker-compose -f docker-compose/deps.yml -f docker-compose/app.yml up
+``` console
+docker-compose -f docker-compose/deps.yml -f docker-compose/app.yml build
+docker-compose -f docker-compose/deps.yml -f docker-compose/app.yml up
 ```
 
 Если нужно запустить только сторонние сервисы (mysql, memcached, redis, etc.):
 
-```console
-$ docker-compose -f docker-compose/deps.yml up
+``` console
+docker-compose -f docker-compose/deps.yml up
 ```
 
 ### Memcached
 
 Для дебага мемкеша удобно использовать **telnet**:
 
-```console
-$ telnet localhost 11211
+``` console
+telnet localhost 11211
 ```
 
 [Список команд](https://github.com/memcached/memcached/wiki/Commands)
@@ -79,6 +79,6 @@ password -> $2a$08$5.4GFX2fkP7XWYrpDWQFqup6.NC6MejFMEOmgX30gRCu4AsMd/A0G
 
 Из под рутовой папки запускаем команду:
 
-```console
-$ export $(xargs < debug.env) && cd sources && go run .
+``` console
+export $(xargs < debug.env) && cd sources && go run .
 ```
