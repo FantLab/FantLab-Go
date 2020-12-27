@@ -13,7 +13,6 @@ import (
 	"time"
 
 	"golang.org/x/crypto/bcrypt"
-	"google.golang.org/protobuf/encoding/protojson"
 	"google.golang.org/protobuf/proto"
 )
 
@@ -150,7 +149,7 @@ func (api *API) makeAuthResponse(r *http.Request, issuedAt time.Time, userId uin
 		},
 	}
 
-	claimsBytes, err := protojson.Marshal(claims)
+	claimsBytes, err := proto.Marshal(claims)
 
 	if err != nil {
 		return nil, err
