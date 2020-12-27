@@ -58,7 +58,3 @@ export $(xargs < debug.env) && cd sources && go run .
 [ELK + Docker](https://github.com/deviantony/docker-elk)
 
 [ELK Integration](https://www.elastic.co/blog/how-to-instrument-your-go-app-with-the-elastic-apm-go-agent)
-
-### Тестовый пароль/хэш
-
-password -> $2a$08$5.4GFX2fkP7XWYrpDWQFqup6.NC6MejFMEOmgX30gRCu4AsMd/A0G

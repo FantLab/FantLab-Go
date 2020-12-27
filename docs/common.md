@@ -11,3 +11,7 @@
 ## SQL
 
 База обновляется через основной Perl-репозиторий
+
+## Тестовый пароль/хэш
+
+password -> $2a$08$5.4GFX2fkP7XWYrpDWQFqup6.NC6MejFMEOmgX30gRCu4AsMd/A0G
