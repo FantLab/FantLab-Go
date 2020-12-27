@@ -3,7 +3,7 @@
 unless (table('auth_tokens')) {
     schema()->do('DROP TABLE IF EXISTS `auth_tokens`;');
     say "table auth_tokens dropped";
-    schema()->do('DROP TRIGGER IF EXISTS `drop_user_auth_tokens`;')
+    schema()->do('DROP TRIGGER IF EXISTS `drop_user_auth_tokens`;');
     say "trigger drop_user_auth_tokens dropped";
     schema()->do(qq{
         CREATE TABLE `auth_tokens` (
@@ -36,11 +36,10 @@ else {
 
 # Create constraints. Don't DROP it because:
 # 1. Action has complex syntax of check for existence
-# 2. Adding will throw non-fatal 'Duplicate key name X' error if already exist
+# 2. Script will run only once
 if (1) {
     $dbh->do('DELETE b1 FROM `b_subscribers` b1, `b_subscribers` b2 WHERE b1.`subscriber_id` > b2.`subscriber_id` AND b1.`user_id` = b2.`user_id` AND b1.`blog_id` = b2.`blog_id`;');
     say "duplicates in table b_subscribers cleared";
-    # TODO Incorrect datetime value: '0000-00-00 00:00:00' for column 'date_of_add'
     table('b_subscribers')->alter(qq{ADD CONSTRAINT `user_blog_pair_unique` UNIQUE (`user_id`, `blog_id`);});
     say "constraint b_subscribers.user_blog_pair_unique created";
 
