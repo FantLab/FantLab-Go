@@ -14,9 +14,9 @@ func (s *Services) GetFSForumMessageDraftAttachmentUrl(userId, topicId uint64, f
 }
 
 func (s *Services) GetMinioForumMessageAttachmentUrl(messageId uint64, fileName string) string {
-	return fmt.Sprintf("%s/%s/%s/%d/%s", s.appConfig.SiteUrl, s.minioBucket, ForumMessageFileGroup, messageId, fileName)
+	return fmt.Sprintf("%s/%s/%d/%s", s.appConfig.BaseMinioFileUrl, ForumMessageFileGroup, messageId, fileName)
 }
 
 func (s *Services) GetMinioForumMessageDraftAttachmentUrl(messageDraftId uint64, fileName string) string {
-	return fmt.Sprintf("%s/%s/%s/%d/%s", s.appConfig.SiteUrl, s.minioBucket, ForumMessageDraftFileGroup, messageDraftId, fileName)
+	return fmt.Sprintf("%s/%s/%d/%s", s.appConfig.BaseMinioFileUrl, ForumMessageDraftFileGroup, messageDraftId, fileName)
 }
