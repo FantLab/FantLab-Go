@@ -12,6 +12,7 @@ type AppConfig struct {
 	SiteName                                 string
 	SiteEmail                                string
 	BaseImageUrl                             string
+	BaseMinioFileUrl                         string
 	BaseForumMessageAttachUrl                string
 	BaseForumMessageDraftAttachUrl           string
 	MinResponseLength                        uint64

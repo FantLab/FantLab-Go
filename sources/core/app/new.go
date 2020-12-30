@@ -184,6 +184,7 @@ func MakeServices() (*Services, error, []func() error) {
 				SiteName:                                 "fantlab.ru",
 				SiteEmail:                                "support@fantlab.ru",
 				BaseImageUrl:                             stdutils.Elvis(os.Getenv("BASE_IMAGE_URL"), "https://data.fantlab.ru/images"),
+				BaseMinioFileUrl:                         stdutils.Elvis(os.Getenv("BASE_MINIO_FILE_URL"), "https://fantlab.ru/files"),
 				BaseForumMessageAttachUrl:                stdutils.Elvis(os.Getenv("BASE_FORUM_MESSAGE_ATTACH_URL"), "https://fantlab.ru/messages"),
 				BaseForumMessageDraftAttachUrl:           stdutils.Elvis(os.Getenv("BASE_FORUM_MESSAGE_DRAFT_ATTACH_URL"), "https://fantlab.ru/files/preview"),
 				MinResponseLength:                        50,
