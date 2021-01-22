@@ -179,10 +179,10 @@ func (db *DB) FetchForums(ctx context.Context, userId uint64, availableForums []
 			return db.engine.Read(ctx, sqlapi.NewQuery(queries.ForumGetNotModeratedTopicIds), &notModeratedTopicIds)
 		},
 		func() error {
-			if len(notModeratedTopicIds) != 0 {
-				return db.engine.Read(ctx, sqlapi.NewQuery(queries.ForumGetNotReadMessageCounts).WithArgs(userId, notModeratedTopicIds).FlatArgs(), &notReadMessageCountMap)
+			if len(notModeratedTopicIds) == 0 {
+				notModeratedTopicIds = append(notModeratedTopicIds, 0)
 			}
-			return nil
+			return db.engine.Read(ctx, sqlapi.NewQuery(queries.ForumGetNotReadMessageCounts).WithArgs(userId, notModeratedTopicIds).FlatArgs(), &notReadMessageCountMap)
 		},
 	)
 
