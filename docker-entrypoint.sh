@@ -7,12 +7,4 @@ if [ $? -ne 0 ]; then
     echo -e "$HOST_IP\t$HOST_DOMAIN" >> /etc/hosts
 fi
 
-./wait-for.sh $DB_ADDRESS
-if [ ! -z "$MC_ADDRESS" ]; then
-    ./wait-for.sh $MC_ADDRESS
-fi
-if [ ! -z "$RDS_ADDRESS" ]; then
-    ./wait-for.sh $RDS_ADDRESS
-fi
-
 exec "$@"
