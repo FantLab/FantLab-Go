@@ -1,0 +1,29 @@
+name: Prod deploy
+
+on:
+  workflow_dispatch:
+    inputs:
+      pass:
+        description: 'fantlab user password'
+        required: true
+      docker_image_number:
+        description: 'go api docker image number'
+        required: true
+
+jobs:
+  build_and_push:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Hide password
+        run: |
+          pass=$(jq -r '.inputs.pass' $GITHUB_EVENT_PATH)
+          echo "::add-mask::$pass"
+          echo "user_pass=$pass" >> $GITHUB_ENV
+      - name: Connect and execute command
+        uses: appleboy/ssh-action@master
+        with:
+          host: www.fantlab.ru
+          username: fantlab
+          password: ${{ env.user_pass }}
+          # port: ${{ secrets.PORT }}
+          script: TAG=fantlab/go:v${{ github.event.inputs.docker_image_number }} docker stack deploy --prune --compose-file goapi.yml go-api

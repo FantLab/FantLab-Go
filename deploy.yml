@@ -17,8 +17,8 @@ services:
     environment:
       JWT_PUBLIC_KEY_FILE: /run/secrets/flgo_jwt_public_key
       JWT_PRIVATE_KEY_FILE: /run/secrets/flgo_jwt_private_key
-      MINIO_ACCESS_KEY_FILE: /run/secrets/access_key
-      MINIO_SECRET_KEY_FILE: /run/secrets/secret_key
+      MINIO_ACCESS_KEY: ${MINIO_ACCESS_KEY}
+      MINIO_SECRET_KEY: ${MINIO_SECRET_KEY}
       MINIO_BUCKET: ${MINIO_BUCKET}
       MINIO_SERVER: ${MINIO_SERVER}
       PORT: ${PORT}
@@ -31,13 +31,12 @@ services:
       ELASTIC_APM_SERVER_URL: ${ELASTIC_APM_SERVER_URL}
       ELASTIC_APM_SERVICE_NAME: ${ELASTIC_APM_SERVICE_NAME}
       BASE_IMAGE_URL: ${BASE_IMAGE_URL}
+      BASE_MINIO_FILE_URL: ${BASE_MINIO_FILE_URL}
       BASE_FORUM_MESSAGE_ATTACH_URL: ${BASE_FORUM_MESSAGE_ATTACH_URL}
       BASE_FORUM_MESSAGE_DRAFT_ATTACH_URL: ${BASE_FORUM_MESSAGE_DRAFT_ATTACH_URL}
     secrets:
       - flgo_jwt_public_key
       - flgo_jwt_private_key
-      - access_key
-      - secret_key
     healthcheck:
       test: ['CMD', 'curl', '-sS', 'localhost:${PORT}/ping']
       interval: 10s
@@ -63,8 +62,4 @@ secrets:
   flgo_jwt_public_key:
     external: true
   flgo_jwt_private_key:
-    external: true
-  access_key:
-    external: true
-  secret_key:
     external: true

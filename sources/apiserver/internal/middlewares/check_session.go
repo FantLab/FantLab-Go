@@ -8,7 +8,7 @@ import (
 	"strconv"
 
 	"go.elastic.co/apm"
-	"google.golang.org/protobuf/encoding/protojson"
+	"google.golang.org/protobuf/proto"
 )
 
 func unpackClaims(services *app.Services, sid string) (*pb.Auth_Claims, error) {
@@ -17,7 +17,7 @@ func unpackClaims(services *app.Services, sid string) (*pb.Auth_Claims, error) {
 		return nil, err
 	}
 	claims := new(pb.Auth_Claims)
-	err = protojson.Unmarshal(raw, claims)
+	err = proto.Unmarshal(raw, claims)
 	if err != nil {
 		return nil, err
 	}

@@ -7,6 +7,7 @@ import (
 	"fantlab/base/clients/memcacheclient"
 	"fantlab/base/clients/redisclient"
 	"fantlab/base/clients/smtpclient"
+	"fantlab/base/stdutils"
 	"fantlab/base/ttlcache"
 	"fantlab/core/config"
 	"fantlab/core/db"
@@ -182,9 +183,10 @@ func MakeServices() (*Services, error, []func() error) {
 				SiteUrl:                                  "https://fantlab.ru",
 				SiteName:                                 "fantlab.ru",
 				SiteEmail:                                "support@fantlab.ru",
-				BaseImageUrl:                             os.Getenv("BASE_IMAGE_URL"),
-				BaseForumMessageAttachUrl:                os.Getenv("BASE_FORUM_MESSAGE_ATTACH_URL"),
-				BaseForumMessageDraftAttachUrl:           os.Getenv("BASE_FORUM_MESSAGE_DRAFT_ATTACH_URL"),
+				BaseImageUrl:                             stdutils.Elvis(os.Getenv("BASE_IMAGE_URL"), "https://data.fantlab.ru/images"),
+				BaseMinioFileUrl:                         stdutils.Elvis(os.Getenv("BASE_MINIO_FILE_URL"), "https://fantlab.ru/files"),
+				BaseForumMessageAttachUrl:                stdutils.Elvis(os.Getenv("BASE_FORUM_MESSAGE_ATTACH_URL"), "https://fantlab.ru/messages"),
+				BaseForumMessageDraftAttachUrl:           stdutils.Elvis(os.Getenv("BASE_FORUM_MESSAGE_DRAFT_ATTACH_URL"), "https://fantlab.ru/files/preview"),
 				MinResponseLength:                        50,
 				MaxUserResponseCountPerWork:              3,
 				MinUserOwnResponsesRatingForMinusAbility: 300,

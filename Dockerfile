@@ -1,6 +1,5 @@
 #build stage
-FROM golang:1.14 AS builder
-ENV GO111MODULE=on
+FROM golang:latest AS builder
 WORKDIR /app
 COPY sources .
 RUN go mod download
