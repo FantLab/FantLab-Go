@@ -229,6 +229,7 @@ func MakeServices() (*Services, error, []func() error) {
 	)
 
 	if err != nil {
+		fmt.Println(err) // for debug
 		return nil, err, disposeBag
 	}
 
