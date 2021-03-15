@@ -72,15 +72,15 @@ func (api *API) EditBlogArticleComment(r *http.Request) (int, proto.Message) {
 
 	if blog.IsClose == 1 {
 		return http.StatusForbidden, &pb.Error_Response{
-			Status:  pb.Error_ACTION_PERMITTED,
+			Status:  pb.Error_ACTION_FORBIDDEN,
 			Context: "Блог закрыт",
 		}
 	}
 
 	userId := api.getUserId(r)
 
-	// TODO: Пропущен весь хардкод касательно id отдельных юзеров, обработка is_referee и can_link_blogarticle_to_work
-	//  (заданы через main.cfg, но зачем так сделано - неясно). Все они считаются модераторами любых блогов.
+	// NOTE Пропущен весь хардкод касательно id отдельных юзеров, обработка is_referee (заданы в Auth.pm) и
+	// can_link_blogarticle_to_work (из main.cfg). Все они считаются модераторами любых блогов.
 
 	userIsCommunityModerator, err := api.services.DB().FetchUserIsCommunityModerator(r.Context(), userId, blog.BlogId, article.TopicId)
 
@@ -93,7 +93,7 @@ func (api *API) EditBlogArticleComment(r *http.Request) (int, proto.Message) {
 	// В отличие от форума, нет ограничения на время редактирования сообщения
 	if !(comment.UserId == userId || blog.UserId == userId || userIsCommunityModerator) {
 		return http.StatusForbidden, &pb.Error_Response{
-			Status:  pb.Error_ACTION_PERMITTED,
+			Status:  pb.Error_ACTION_FORBIDDEN,
 			Context: "Вы не можете отредактировать данный комментарий",
 		}
 	}
@@ -105,7 +105,7 @@ func (api *API) EditBlogArticleComment(r *http.Request) (int, proto.Message) {
 
 	if commentLength == 0 {
 		return http.StatusForbidden, &pb.Error_Response{
-			Status:  pb.Error_ACTION_PERMITTED,
+			Status:  pb.Error_ACTION_FORBIDDEN,
 			Context: "Текст комментария пустой",
 		}
 	}

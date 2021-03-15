@@ -796,8 +796,10 @@ func (db *DB) InsertForumMessage(ctx context.Context, topic *ForumTopic, userId 
 	err := db.engine.InTransaction(func(rw sqlapi.ReaderWriter) error {
 		return codeflow.Try(
 			func() error { // Создаем новое сообщение
-				// TODO Поле проставляется для подсчета баллов, однако в методе расчета абсолютно не учитывается нерусский текст
-				//  (например, если писать в "English forum", рейтинг никак не поменяется). Выглядит как очередной баг.
+				// NOTE Поле message_length проставляется для подсчета баллов, однако в методе расчета абсолютно не
+				// учитывается нерусский текст (например, если писать в "English forum", рейтинг никак не поменяется).
+				// По большому счету, это баг Perl-бэка, однако исправить его сложнее, чем кажется: перед вычислением
+				// длины надо вырезать все теги и смайлы.
 				messageLength := len(helpers.RemoveImmeasurable(text))
 				result := rw.Write(ctx, sqlapi.NewQuery(queries.ForumInsertNewMessage).WithArgs(messageLength, topic.TopicId, userId, topic.ForumId, isRed, topic.TopicId))
 				messageId = uint64(result.LastInsertId)
@@ -924,8 +926,6 @@ func (db *DB) UpdateForumMessage(ctx context.Context, messageId, topicId uint64,
 	err := db.engine.InTransaction(func(rw sqlapi.ReaderWriter) error {
 		return codeflow.Try(
 			func() error { // Обновляем сообщение
-				// TODO Скорее всего, поле message_length проставляется здесь просто для отчетности. Реального
-				//  пересчета баллов, ради которого оно и вводилось, не происходит.
 				messageLength := len(helpers.RemoveImmeasurable(text))
 				return rw.Write(ctx, sqlapi.NewQuery(queries.ForumUpdateMessage).WithArgs(messageLength, isRed, messageId)).Error
 			},

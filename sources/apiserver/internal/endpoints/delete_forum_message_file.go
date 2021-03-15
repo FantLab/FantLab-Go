@@ -92,7 +92,7 @@ func (api *API) DeleteForumMessageFile(r *http.Request) (int, proto.Message) {
 
 		if !fileExist {
 			return http.StatusForbidden, &pb.Error_Response{
-				Status:  pb.Error_ACTION_PERMITTED,
+				Status:  pb.Error_ACTION_FORBIDDEN,
 				Context: "Не удалось найти аттач с таким именем",
 			}
 		}
@@ -103,7 +103,7 @@ func (api *API) DeleteForumMessageFile(r *http.Request) (int, proto.Message) {
 	if dbMessage.UserId == 0 {
 		// В базе есть сообщения, у которых user_id = 0. Визуально помечается как "Автор удален"
 		return http.StatusForbidden, &pb.Error_Response{
-			Status:  pb.Error_ACTION_PERMITTED,
+			Status:  pb.Error_ACTION_FORBIDDEN,
 			Context: "Запрещено удалять аттачи сообщений удаленных пользователей",
 		}
 	}
@@ -126,11 +126,9 @@ func (api *API) DeleteForumMessageFile(r *http.Request) (int, proto.Message) {
 	userCanPerformAdminActions := api.isPermissionGranted(r, pb.Auth_Claims_PERMISSION_CAN_PERFORM_ADMIN_ACTIONS)
 	userCanEditOwnForumMessages := api.isPermissionGranted(r, pb.Auth_Claims_PERMISSION_CAN_EDIT_OWN_FORUM_MESSAGES_WITHOUT_TIME_RESTRICTION)
 
-	// TODO:
-	//  1. В коде метода Forum.pm#EditMessageOk есть логика, касающаяся переноса сообщений между темами. Есть смысл
-	//     вынести этот функционал отдельным endpoint-ом.
-	//  2. Пропущена обработка Profile->workgroup_referee, поскольку оно реализовано хардкодом в Auth.pm
-	//  3. Пропущен хардкод про права rusty_cat править FAQ
+	// NOTE
+	// 1. Пропущена обработка Profile->workgroup_referee, поскольку оно реализовано хардкодом в Auth.pm
+	// 2. Пропущен хардкод прав на редактирование FAQ (это тоже тема в форуме)
 
 	isTimeUp := uint64(time.Since(dbMessage.DateOfAdd).Seconds()) > api.services.AppConfig().MaxForumMessageEditTimeout
 
@@ -143,7 +141,7 @@ func (api *API) DeleteForumMessageFile(r *http.Request) (int, proto.Message) {
 
 	if !(user.UserId == dbMessage.UserId && canUserEditMessage && isMessageEditable) && !userIsForumModerator && !onlyForAdminsForum {
 		return http.StatusForbidden, &pb.Error_Response{
-			Status:  pb.Error_ACTION_PERMITTED,
+			Status:  pb.Error_ACTION_FORBIDDEN,
 			Context: "Вы не можете удалить аттач данного сообщения",
 		}
 	}

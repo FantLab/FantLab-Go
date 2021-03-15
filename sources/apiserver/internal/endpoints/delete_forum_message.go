@@ -51,7 +51,7 @@ func (api *API) DeleteForumMessage(r *http.Request) (int, proto.Message) {
 	if dbMessage.UserId == 0 {
 		// В базе есть сообщения, у которых user_id = 0. Визуально помечается как "Автор удален"
 		return http.StatusForbidden, &pb.Error_Response{
-			Status:  pb.Error_ACTION_PERMITTED,
+			Status:  pb.Error_ACTION_FORBIDDEN,
 			Context: "Запрещено удалять сообщения удаленных пользователей",
 		}
 	}
@@ -74,9 +74,9 @@ func (api *API) DeleteForumMessage(r *http.Request) (int, proto.Message) {
 		}
 	}
 
-	// TODO:
-	//  1. Пропущена обработка Profile->workgroup_referee, поскольку оно реализовано хардкодом в Auth.pm
-	//  2. Пропущен хардкод про то, что creator и vad - модераторы
+	// NOTE
+	// 1. Пропущена обработка Profile->workgroup_referee, поскольку оно реализовано хардкодом в Auth.pm
+	// 2. Пропущен хардкод модераторских прав отдельных админов
 
 	isTimeUp := uint64(time.Since(dbMessage.DateOfAdd).Seconds()) > api.services.AppConfig().MaxForumMessageEditTimeout
 	userCanEditOwnForumMessages := api.isPermissionGranted(r, pb.Auth_Claims_PERMISSION_CAN_EDIT_OWN_FORUM_MESSAGES_WITHOUT_TIME_RESTRICTION)
@@ -92,7 +92,7 @@ func (api *API) DeleteForumMessage(r *http.Request) (int, proto.Message) {
 	if (!(userId == dbMessage.UserId && canUserEditMessage && isMessageEditable) && !userIsForumModerator) ||
 		(userId != dbMessage.UserId && messageUserIsForumModerator) {
 		return http.StatusForbidden, &pb.Error_Response{
-			Status:  pb.Error_ACTION_PERMITTED,
+			Status:  pb.Error_ACTION_FORBIDDEN,
 			Context: "Вы не можете удалить данное сообщение",
 		}
 	}

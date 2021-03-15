@@ -16,7 +16,7 @@ message Error {
         // не найдено
         NOT_FOUND = 1;
         // действие запрещено
-        ACTION_PERMITTED = 2;
+        ACTION_FORBIDDEN = 2;
         // невалидный параметр
         INVALID_PARAMETER = 3;
         // ошибка валидации

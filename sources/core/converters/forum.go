@@ -319,7 +319,7 @@ func convertMessage(dbMessage *db.ForumMessage, attaches map[uint64][]*pb.Common
 	} else {
 		if userLoggedIn {
 			if user.SmilesDisabled {
-				// TODO На самом деле, если смайлы отключены, их надо не вырезать, а заменять на алиасы (см. main.cfg#all_smiles_txt)
+				// TODO Если смайлы отключены, их надо не вырезать, а заменять на алиасы (см. main.cfg#all_smiles_txt)
 				text = cfg.Smiles.RemoveFromString(text)
 			}
 			if user.ImagesDisabled {
@@ -349,11 +349,9 @@ func convertMessage(dbMessage *db.ForumMessage, attaches map[uint64][]*pb.Common
 		((user.UserId == dbMessage.UserId && (canUserEditMessage || canUserEditFirstTopicMessage) && isMessageEditable) ||
 			userIsForumModerator || info.OnlyForAdminsForum)
 
-	// TODO В Perl-бэке есть баг: хотя у сообщения другого модератора нет кнопки "удалить", это можно сделать вручную.
-	//  Проблема заключается в отсутствии в коде метода удаления проверки, что автор удаляемого сообщения - тоже модератор
 	canDelete := userLoggedIn &&
-		((user.UserId == dbMessage.UserId && canUserEditMessage && isMessageEditable) || userIsForumModerator) &&
-		!(user.UserId != dbMessage.UserId && info.ForumModerators[dbMessage.UserId])
+		((user.UserId == dbMessage.UserId && canUserEditMessage && isMessageEditable) ||
+			(userIsForumModerator && !info.ForumModerators[dbMessage.UserId]))
 
 	var rating int64
 	var canVoteMinus bool

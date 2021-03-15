@@ -111,8 +111,8 @@ func (api *API) ShowTopicMessages(r *http.Request) (int, proto.Message) {
 		}
 	}
 
-	// TODO Скорее всего, на сайте будет неверно отображаться количество новых сообщений в форуме. Это значение опирается
-	//  на Profile->new_forum_answers, а Profile нам из Go совершенно недоступен, ни для чтения, ни для изменения
+	// NOTE Скорее всего, на сайте будет неверно отображаться количество новых сообщений в форуме. Это значение опирается
+	// на Profile->new_forum_answers, а Profile нам из Go совершенно недоступен, ни для чтения, ни для изменения
 
 	_ = api.services.DeleteUserCache(r.Context(), userId)
 
@@ -165,7 +165,7 @@ func (api *API) ShowTopicMessages(r *http.Request) (int, proto.Message) {
 	// 7. возможность утверждения находящихся на премодерации пользователей (пока нет endpoint-а)
 	// 8. возможность вызова модератора (пока нет endpoint-а)
 	// 9. открытие/правка/закрытие темы (пока нет endpoint-ов)
-	// 10. если у юзера в настройках отключены смайлы, они просто вырезаются (должны заменяться на алиасы)
+	// 10. сейчас, если у юзера в настройках отключены смайлы, они просто вырезаются (должны заменяться на алиасы)
 
 	topicMessages := converters.GetTopic(dbResponse, attaches, draftAttaches, params.Page, params.Limit,
 		api.services.AppConfig(), user, userCanPerformAdminActions, userCanEditOwnForumMessages)

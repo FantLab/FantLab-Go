@@ -59,8 +59,6 @@ func Tree(services *app.Services, pathParamGetter endpoints.PathParamGetter) *ro
 				g.Endpoint(http.MethodDelete, "/forum_messages/:id", api.DeleteForumMessage, "Удаление сообщения в форуме")
 				g.Endpoint(http.MethodGet, "/forum_messages/:id/file_upload_url", api.GetForumMessageFileUploadUrl, "Получение URL для загрузки аттача к сообщению в форуме")
 				g.Endpoint(http.MethodDelete, "/forum_messages/:id/file", api.DeleteForumMessageFile, "Удаление аттача сообщения в форуме")
-				// TODO В теории, в Perl-е баг: если класс развития модератора ниже философа, он не сможет удалять оценки у сообщений в форуме.
-				//  На практике, на данный момент таких модераторов нет
 				g.Endpoint(http.MethodDelete, "/forum_messages/:id/voting", api.DeleteForumMessageVotes, "Удаление оценок у сообщения в форуме (для модераторов)")
 				g.Endpoint(http.MethodPut, "/topics/:id/message_draft", api.SaveForumMessageDraft, "Сохранение черновика сообщения в форуме")
 				g.Endpoint(http.MethodPost, "/topics/:id/message_draft", api.ConfirmForumMessageDraft, "Подтверждение черновика сообщения в форуме")
@@ -87,7 +85,6 @@ func Tree(services *app.Services, pathParamGetter endpoints.PathParamGetter) *ro
 				g.Subgroup("Для авторитетов", func(g *routing.Group) {
 					g.Middleware(middlewares.CheckMinLevel(pb.Common_USERCLASS_AUTHORITY))
 
-					// TODO В Perl-бэке в комментарии к методу неверно указано, что голосование работает только для философов и выше
 					g.Endpoint(http.MethodPut, "/forum_messages/:id/voting", api.VoteForumMessage, "Плюс/минус посту в форуме")
 				})
 

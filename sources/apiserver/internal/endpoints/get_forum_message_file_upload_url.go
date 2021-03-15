@@ -60,7 +60,7 @@ func (api *API) GetForumMessageFileUploadUrl(r *http.Request) (int, proto.Messag
 	if dbMessage.UserId == 0 {
 		// В базе есть сообщения, у которых user_id = 0. Визуально помечается как "Автор удален"
 		return http.StatusForbidden, &pb.Error_Response{
-			Status:  pb.Error_ACTION_PERMITTED,
+			Status:  pb.Error_ACTION_FORBIDDEN,
 			Context: "Запрещено добавлять аттачи к сообщениям удаленных пользователей",
 		}
 	}
@@ -75,11 +75,9 @@ func (api *API) GetForumMessageFileUploadUrl(r *http.Request) (int, proto.Messag
 		}
 	}
 
-	// TODO:
-	//  1. В коде метода Forum.pm#EditMessageOk есть логика, касающаяся переноса сообщений между темами. Есть смысл
-	//     вынести этот функционал отдельным endpoint-ом.
-	//  2. Пропущена обработка Profile->workgroup_referee, поскольку оно реализовано хардкодом в Auth.pm
-	//  3. Пропущен хардкод про права rusty_cat править FAQ
+	// NOTE
+	// 1. Пропущена обработка Profile->workgroup_referee, поскольку оно реализовано хардкодом в Auth.pm
+	// 2. Пропущен хардкод прав на редактирование FAQ (это тоже тема в форуме)
 
 	forum, err := api.services.DB().FetchForum(r.Context(), dbMessage.ForumId)
 
@@ -113,7 +111,7 @@ func (api *API) GetForumMessageFileUploadUrl(r *http.Request) (int, proto.Messag
 
 	if !(user.UserId == dbMessage.UserId && canUserEditMessage && isMessageEditable) && !userIsForumModerator && !onlyForAdminsForum {
 		return http.StatusForbidden, &pb.Error_Response{
-			Status:  pb.Error_ACTION_PERMITTED,
+			Status:  pb.Error_ACTION_FORBIDDEN,
 			Context: "Вы не можете добавить аттач к данному сообщению",
 		}
 	}
@@ -129,7 +127,7 @@ func (api *API) GetForumMessageFileUploadUrl(r *http.Request) (int, proto.Messag
 	for _, attachment := range attachments {
 		if attachment.FileName == params.FileName {
 			return http.StatusInternalServerError, &pb.Error_Response{
-				Status:  pb.Error_ACTION_PERMITTED,
+				Status:  pb.Error_ACTION_FORBIDDEN,
 				Context: "К сообщению уже приаттачен файл с таким именем",
 			}
 		}
@@ -146,7 +144,7 @@ func (api *API) GetForumMessageFileUploadUrl(r *http.Request) (int, proto.Messag
 	for _, file := range files {
 		if file.Name == params.FileName {
 			return http.StatusInternalServerError, &pb.Error_Response{
-				Status:  pb.Error_ACTION_PERMITTED,
+				Status:  pb.Error_ACTION_FORBIDDEN,
 				Context: "К сообщению уже приаттачен файл с таким именем",
 			}
 		}
@@ -156,7 +154,7 @@ func (api *API) GetForumMessageFileUploadUrl(r *http.Request) (int, proto.Messag
 
 	if fileCount >= api.services.AppConfig().MaxAttachCountPerMessage {
 		return http.StatusInternalServerError, &pb.Error_Response{
-			Status:  pb.Error_ACTION_PERMITTED,
+			Status:  pb.Error_ACTION_FORBIDDEN,
 			Context: fmt.Sprintf("К сообщению уже приаттачено %d файлов, это максимум", api.services.AppConfig().MaxAttachCountPerMessage),
 		}
 	}

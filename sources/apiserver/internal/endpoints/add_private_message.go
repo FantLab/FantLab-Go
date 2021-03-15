@@ -47,7 +47,7 @@ func (api *API) AddPrivateMessage(r *http.Request) (int, proto.Message) {
 
 	if user.UserId == dbUser.UserId {
 		return http.StatusForbidden, &pb.Error_Response{
-			Status:  pb.Error_ACTION_PERMITTED,
+			Status:  pb.Error_ACTION_FORBIDDEN,
 			Context: "Нельзя отправить сообщение самому себе",
 		}
 	}
@@ -66,17 +66,15 @@ func (api *API) AddPrivateMessage(r *http.Request) (int, proto.Message) {
 
 	if formattedMessageLength == 0 {
 		return http.StatusForbidden, &pb.Error_Response{
-			Status:  pb.Error_ACTION_PERMITTED,
+			Status:  pb.Error_ACTION_FORBIDDEN,
 			Context: "Текст сообщения пустой (после форматирования)",
 		}
 	}
 
-	// NOTE По логике Perl-бэка, в отличие от форума, в личке у ботов нет преимуществ в отношении максимального
-	// размера сообщения
-	if formattedMessageLength > api.services.AppConfig().MaxForumMessageLength {
+	if formattedMessageLength > api.services.AppConfig().MaxMessageLength && user.UserId != api.services.AppConfig().BotUserId {
 		return http.StatusForbidden, &pb.Error_Response{
-			Status:  pb.Error_ACTION_PERMITTED,
-			Context: fmt.Sprintf("Текст сообщения слишком длинный (больше %d символов после форматирования)", api.services.AppConfig().MaxForumMessageLength),
+			Status:  pb.Error_ACTION_FORBIDDEN,
+			Context: fmt.Sprintf("Текст сообщения слишком длинный (больше %d символов после форматирования)", api.services.AppConfig().MaxMessageLength),
 		}
 	}
 
@@ -98,7 +96,7 @@ func (api *API) AddPrivateMessage(r *http.Request) (int, proto.Message) {
 		}
 	}
 
-	// TODO Пропущена вся логика с аттачами, пока вроде не нужна
+	// NOTE Пропущена вся логика с аттачами
 
 	messageResponse := converters.GetPrivateMessage(dbMessage, api.services.AppConfig())
 

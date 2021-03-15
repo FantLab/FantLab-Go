@@ -21,7 +21,7 @@ func CheckMinLevel(minUserClass pb.Common_UserClass) func(http.Handler) http.Han
 			} else {
 				protobuf.Handle(func(r *http.Request) (int, proto.Message) {
 					return http.StatusForbidden, &pb.Error_Response{
-						Status:  pb.Error_ACTION_PERMITTED,
+						Status:  pb.Error_ACTION_FORBIDDEN,
 						Context: fmt.Sprintf("Вы ещё не достигли класса «%s»", helpers.UserClassDescriptionMap[minUserClass]),
 					}
 				}).ServeHTTP(w, r)

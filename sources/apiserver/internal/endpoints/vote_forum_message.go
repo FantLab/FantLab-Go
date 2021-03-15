@@ -47,22 +47,21 @@ func (api *API) VoteForumMessage(r *http.Request) (int, proto.Message) {
 		}
 	}
 
-	// TODO В Perl-бэке этой проверки нет
-	if dbMessage.IsCensored == 1 {
-		return http.StatusForbidden, &pb.Error_Response{
-			Status:  pb.Error_ACTION_PERMITTED,
-			Context: "Нельзя оценить зацензурированное сообщение",
+	var isForumWithEnabledRating bool
+	for _, forumId := range api.services.AppConfig().ForumsWithEnabledRating {
+		if dbMessage.ForumId == forumId {
+			isForumWithEnabledRating = true
+			break
 		}
 	}
 
-	if dbMessage.IsRed == 1 {
+	if isForumWithEnabledRating {
 		return http.StatusForbidden, &pb.Error_Response{
-			Status:  pb.Error_ACTION_PERMITTED,
-			Context: "Нельзя оценить данное сообщение",
+			Status:  pb.Error_ACTION_FORBIDDEN,
+			Context: "В данном форуме у сообщений нет оценок",
 		}
 	}
 
-	// TODO В Perl-бэке этой проверки нет
 	if !params.VotePlus {
 		var isForumWithDisabledMinuses bool
 		for _, forumId := range api.services.AppConfig().ForumsWithDisabledMinuses {
@@ -74,15 +73,28 @@ func (api *API) VoteForumMessage(r *http.Request) (int, proto.Message) {
 
 		if isForumWithDisabledMinuses {
 			return http.StatusForbidden, &pb.Error_Response{
-				Status:  pb.Error_ACTION_PERMITTED,
+				Status:  pb.Error_ACTION_FORBIDDEN,
 				Context: "В этом форуме запрещены минусы",
 			}
 		}
 	}
 
+	if dbMessage.IsCensored == 1 {
+		return http.StatusForbidden, &pb.Error_Response{
+			Status:  pb.Error_ACTION_FORBIDDEN,
+			Context: "Нельзя оценить зацензурированное сообщение",
+		}
+	}
+
+	if dbMessage.IsRed == 1 {
+		return http.StatusForbidden, &pb.Error_Response{
+			Status:  pb.Error_ACTION_FORBIDDEN,
+			Context: "Нельзя оценить данное сообщение",
+		}
+	}
+
 	userId := api.getUserId(r)
 
-	// TODO В Perl-бэке этой проверки нет
 	var isReadOnlyUser bool
 	for _, readOnlyUserId := range api.services.AppConfig().ReadOnlyForumUsers[dbMessage.ForumId] {
 		if userId == readOnlyUserId {
@@ -93,14 +105,14 @@ func (api *API) VoteForumMessage(r *http.Request) (int, proto.Message) {
 
 	if isReadOnlyUser {
 		return http.StatusForbidden, &pb.Error_Response{
-			Status:  pb.Error_ACTION_PERMITTED,
+			Status:  pb.Error_ACTION_FORBIDDEN,
 			Context: "Вы не можете оценивать сообщения в данном форуме",
 		}
 	}
 
 	if dbMessage.UserId == userId {
 		return http.StatusForbidden, &pb.Error_Response{
-			Status:  pb.Error_ACTION_PERMITTED,
+			Status:  pb.Error_ACTION_FORBIDDEN,
 			Context: "Нельзя оценить собственное сообщение",
 		}
 	}
@@ -115,7 +127,7 @@ func (api *API) VoteForumMessage(r *http.Request) (int, proto.Message) {
 
 	if isMessageUserVoteExists {
 		return http.StatusForbidden, &pb.Error_Response{
-			Status:  pb.Error_ACTION_PERMITTED,
+			Status:  pb.Error_ACTION_FORBIDDEN,
 			Context: "Вы уже оценивали данное сообщение",
 		}
 	}

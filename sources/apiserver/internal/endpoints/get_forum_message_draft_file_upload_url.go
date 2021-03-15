@@ -57,7 +57,7 @@ func (api *API) GetForumMessageDraftFileUploadUrl(r *http.Request) (int, proto.M
 
 	if dbTopic.IsClosed == 1 {
 		return http.StatusForbidden, &pb.Error_Response{
-			Status:  pb.Error_ACTION_PERMITTED,
+			Status:  pb.Error_ACTION_FORBIDDEN,
 			Context: "Тема закрыта",
 		}
 	}
@@ -90,7 +90,7 @@ func (api *API) GetForumMessageDraftFileUploadUrl(r *http.Request) (int, proto.M
 	for _, attachment := range attachments {
 		if attachment.Name == params.FileName {
 			return http.StatusInternalServerError, &pb.Error_Response{
-				Status:  pb.Error_ACTION_PERMITTED,
+				Status:  pb.Error_ACTION_FORBIDDEN,
 				Context: "К сообщению уже приаттачен файл с таким именем",
 			}
 		}
@@ -107,7 +107,7 @@ func (api *API) GetForumMessageDraftFileUploadUrl(r *http.Request) (int, proto.M
 	for _, file := range files {
 		if file.Name == params.FileName {
 			return http.StatusInternalServerError, &pb.Error_Response{
-				Status:  pb.Error_ACTION_PERMITTED,
+				Status:  pb.Error_ACTION_FORBIDDEN,
 				Context: "К сообщению уже приаттачен файл с таким именем",
 			}
 		}
@@ -117,7 +117,7 @@ func (api *API) GetForumMessageDraftFileUploadUrl(r *http.Request) (int, proto.M
 
 	if fileCount >= api.services.AppConfig().MaxAttachCountPerMessage {
 		return http.StatusInternalServerError, &pb.Error_Response{
-			Status:  pb.Error_ACTION_PERMITTED,
+			Status:  pb.Error_ACTION_FORBIDDEN,
 			Context: fmt.Sprintf("К сообщению уже приаттачено %d файлов, это максимум", api.services.AppConfig().MaxAttachCountPerMessage),
 		}
 	}

@@ -58,7 +58,7 @@ func (api *API) AddBlogArticleComment(r *http.Request) (int, proto.Message) {
 
 	if blog.IsClose == 1 {
 		return http.StatusForbidden, &pb.Error_Response{
-			Status:  pb.Error_ACTION_PERMITTED,
+			Status:  pb.Error_ACTION_FORBIDDEN,
 			Context: "Блог закрыт",
 		}
 	}
@@ -70,7 +70,7 @@ func (api *API) AddBlogArticleComment(r *http.Request) (int, proto.Message) {
 
 	if commentLength == 0 {
 		return http.StatusForbidden, &pb.Error_Response{
-			Status:  pb.Error_ACTION_PERMITTED,
+			Status:  pb.Error_ACTION_FORBIDDEN,
 			Context: "Текст комментария пустой",
 		}
 	}
@@ -87,7 +87,7 @@ func (api *API) AddBlogArticleComment(r *http.Request) (int, proto.Message) {
 
 	if isUserReadOnly {
 		return http.StatusInternalServerError, &pb.Error_Response{
-			Status:  pb.Error_ACTION_PERMITTED,
+			Status:  pb.Error_ACTION_FORBIDDEN,
 			Context: "Вам запрещено писать комментарии в этот блог/рубрику",
 		}
 	}
@@ -116,7 +116,7 @@ func (api *API) AddBlogArticleComment(r *http.Request) (int, proto.Message) {
 		// комментарий. https://github.com/parserpro/fantlab/issues/977
 		if parentComment.UserId == userId {
 			return http.StatusInternalServerError, &pb.Error_Response{
-				Status:  pb.Error_ACTION_PERMITTED,
+				Status:  pb.Error_ACTION_FORBIDDEN,
 				Context: "Нельзя написать ответ на собственный комментарий",
 			}
 		}

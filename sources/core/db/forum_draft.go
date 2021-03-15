@@ -23,7 +23,6 @@ type ForumMessageDraft struct {
 	Sign        string    `db:"sign"`
 }
 
-// TODO Переделать всю работу с черновиками, чтобы опираться на draftId вместо topicId+userId
 func (db *DB) InsertForumMessageDraft(ctx context.Context, message string, topicId, userId uint64) (*ForumMessageDraft, error) {
 	var messageDraft ForumMessageDraft
 

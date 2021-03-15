@@ -87,18 +87,22 @@ func (api *API) ShowEditionBookcase(r *http.Request) (int, proto.Message) {
 		}
 	}
 
-	// TODO В Perl издания повторно сортируются и в случае других вариантов сортировки, но это бессмысленно, поскольку
-	//  фактический порядок не меняется
-	if params.SortBy == "author" {
-		err = postprocessing.SortBookcaseEditionsByAuthor(dbResponse.Editions, func(authorIds []uint64) ([]db.Autor, error) {
-			return api.services.DB().FetchAutors(r.Context(), authorIds)
-		})
-
-		if err != nil {
-			return http.StatusInternalServerError, &pb.Error_Response{
-				Status: pb.Error_SOMETHING_WENT_WRONG,
+	switch params.SortBy {
+	case "author":
+		{
+			err = postprocessing.SortBookcaseEditionsByAuthor(dbResponse.Editions, func(authorIds []uint64) ([]db.Autor, error) {
+				return api.services.DB().FetchAutors(r.Context(), authorIds)
+			})
+			if err != nil {
+				return http.StatusInternalServerError, &pb.Error_Response{
+					Status: pb.Error_SOMETHING_WENT_WRONG,
+				}
 			}
 		}
+	case "title":
+		postprocessing.SortBookcaseEditionsByTitle(dbResponse.Editions)
+	case "year":
+		postprocessing.SortBookcaseEditionsByYear(dbResponse.Editions)
 	}
 
 	offset := params.Limit * (params.Page - 1)

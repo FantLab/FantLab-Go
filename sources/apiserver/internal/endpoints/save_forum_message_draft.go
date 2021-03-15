@@ -50,11 +50,9 @@ func (api *API) SaveForumMessageDraft(r *http.Request) (int, proto.Message) {
 		}
 	}
 
-	// NOTE Здесь мы отходим от логики Perl-бэка. В нем нет этой проверки, поэтому можно создать черновик сообщения в
-	// закрытой теме, который принципиально нельзя подтвердить (facepalm)
 	if dbTopic.IsClosed == 1 {
 		return http.StatusForbidden, &pb.Error_Response{
-			Status:  pb.Error_ACTION_PERMITTED,
+			Status:  pb.Error_ACTION_FORBIDDEN,
 			Context: "Тема закрыта",
 		}
 	}
@@ -65,17 +63,15 @@ func (api *API) SaveForumMessageDraft(r *http.Request) (int, proto.Message) {
 
 	if messageLength == 0 {
 		return http.StatusForbidden, &pb.Error_Response{
-			Status:  pb.Error_ACTION_PERMITTED,
+			Status:  pb.Error_ACTION_FORBIDDEN,
 			Context: "Текст сообщения пустой",
 		}
 	}
 
-	// В Perl-бэке стоит ограничение в 100_000 символов. Это приводит к странному эффекту: можно сохранить в черновик
-	// сообщение длиннее 20_000 символов, но подтвердить его нельзя, не урезав
-	if messageLength > api.services.AppConfig().MaxForumMessageLength {
+	if messageLength > api.services.AppConfig().MaxMessageLength {
 		return http.StatusForbidden, &pb.Error_Response{
-			Status:  pb.Error_ACTION_PERMITTED,
-			Context: fmt.Sprintf("Текст сообщения слишком длинный (больше %d символов)", api.services.AppConfig().MaxForumMessageLength),
+			Status:  pb.Error_ACTION_FORBIDDEN,
+			Context: fmt.Sprintf("Текст сообщения слишком длинный (больше %d символов)", api.services.AppConfig().MaxMessageLength),
 		}
 	}
 
@@ -102,6 +98,10 @@ func (api *API) SaveForumMessageDraft(r *http.Request) (int, proto.Message) {
 			Size: file.Size,
 		})
 	}
+
+	// NOTE Пропущено достаточно много логики в сравнении с самими сообщениями. Например, нет проверок, что
+	// пользователь находится в readonly в данном форуме. То есть он сможет создать черновик, но не сможет
+	// подтвердить его
 
 	messageDraftResponse := converters.GetForumTopicMessageDraft(dbMessageDraft, attaches, api.services.AppConfig())
 

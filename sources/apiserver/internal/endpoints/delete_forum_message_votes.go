@@ -45,7 +45,6 @@ func (api *API) DeleteForumMessageVotes(r *http.Request) (int, proto.Message) {
 		}
 	}
 
-	// TODO В Perl-бэке этой проверки нет
 	var isForumWithEnabledRating bool
 	for _, forumId := range api.services.AppConfig().ForumsWithEnabledRating {
 		if dbMessage.ForumId == forumId {
@@ -56,14 +55,14 @@ func (api *API) DeleteForumMessageVotes(r *http.Request) (int, proto.Message) {
 
 	if isForumWithEnabledRating {
 		return http.StatusForbidden, &pb.Error_Response{
-			Status:  pb.Error_ACTION_PERMITTED,
+			Status:  pb.Error_ACTION_FORBIDDEN,
 			Context: "В данном форуме у сообщений нет оценок",
 		}
 	}
 
 	if dbMessage.IsRed == 1 {
 		return http.StatusForbidden, &pb.Error_Response{
-			Status:  pb.Error_ACTION_PERMITTED,
+			Status:  pb.Error_ACTION_FORBIDDEN,
 			Context: "Нельзя удалить оценки у данного сообщения",
 		}
 	}
@@ -80,7 +79,7 @@ func (api *API) DeleteForumMessageVotes(r *http.Request) (int, proto.Message) {
 
 	if !userIsForumModerator {
 		return http.StatusForbidden, &pb.Error_Response{
-			Status:  pb.Error_ACTION_PERMITTED,
+			Status:  pb.Error_ACTION_FORBIDDEN,
 			Context: "Удалять оценки у сообщений могут только модераторы данного форума",
 		}
 	}

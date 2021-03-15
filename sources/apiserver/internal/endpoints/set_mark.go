@@ -44,7 +44,7 @@ func (api *API) SetMark(r *http.Request) (int, proto.Message) {
 
 	if dbWork.Published == 0 {
 		return http.StatusForbidden, &pb.Error_Response{
-			Status:  pb.Error_ACTION_PERMITTED,
+			Status:  pb.Error_ACTION_FORBIDDEN,
 			Context: "Нельзя поставить оценку неопубликованному произведению",
 		}
 	}
@@ -96,7 +96,7 @@ func (api *API) SetMark(r *http.Request) (int, proto.Message) {
 
 	if isFlContestWork {
 		// NOTE Непонятно, в чем суть, поскольку, во-первых, flcontest_is_going в конфиге толком не меняется, во-вторых,
-		// на странице автора эти рейтинг/количество оценок все равно отображаются
+		// на странице автора эти рейтинг/количество оценок все равно отображаются. Похоже на баг в Perl-бэке
 		averageMark = -1
 		markCount = -1
 	} else {

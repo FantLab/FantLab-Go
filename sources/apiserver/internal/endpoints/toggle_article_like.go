@@ -42,7 +42,7 @@ func (api *API) ToggleArticleLike(r *http.Request) (int, proto.Message) {
 
 	if dbTopic.UserId == userId {
 		return http.StatusUnauthorized, &pb.Error_Response{
-			Status:  pb.Error_ACTION_PERMITTED,
+			Status:  pb.Error_ACTION_FORBIDDEN,
 			Context: "Нельзя лайкнуть собственную статью",
 		}
 	}

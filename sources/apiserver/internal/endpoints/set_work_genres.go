@@ -59,7 +59,7 @@ func (api *API) SetWorkGenres(r *http.Request) (int, proto.Message) {
 		}
 		if mark == 0 {
 			return http.StatusForbidden, &pb.Error_Response{
-				Status:  pb.Error_ACTION_PERMITTED,
+				Status:  pb.Error_ACTION_FORBIDDEN,
 				Context: "Вы еще не оценили это произведение",
 			}
 		}
