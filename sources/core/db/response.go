@@ -163,9 +163,6 @@ func (db *DB) DeleteResponse(ctx context.Context, responseId, workId, userId uin
 			},
 			func() error { // Уменьшаем счетчик количества новых отзывов у авторов, зарегистрированных на сайте
 				if len(registeredWorkAutorIds) > 0 && registeredWorkAutorIds[0] != 0 /* издержки сканирования в слайс */ {
-					// NOTE Нет никакой уверенности, что удаленный отзыв не был прочитан автором произведения, поэтому
-					// декремент счетчика может увести его в область отрицательных значений. Это кривая логика Perl-бэка,
-					// в базе такие записи действительно есть.
 					return rw.Write(ctx, sqlapi.NewQuery(queries.AutorDecrementAutorsNewResponseCount).WithArgs(registeredWorkAutorIds).FlatArgs()).Error
 				} else {
 					return nil

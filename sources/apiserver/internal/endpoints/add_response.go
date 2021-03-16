@@ -25,9 +25,6 @@ func (api *API) AddResponse(r *http.Request) (int, proto.Message) {
 		return api.badParam("id")
 	}
 
-	// TODO: В Perl-бэке баг. Удаление черновика отзыва происходит до любых проверок
-
-	// TODO: В Perl-бэке этой проверки нет. Так что можно добавить отзыв несуществующему произведению
 	dbWork, err := api.services.DB().FetchWork(r.Context(), params.WorkId)
 
 	if err != nil {
@@ -43,14 +40,11 @@ func (api *API) AddResponse(r *http.Request) (int, proto.Message) {
 		}
 	}
 
-	// TODO: В Perl-бэке два бага. Во-первых, не обрезаются пробельные символы по краям текста (в отличие от
-	//  редактирования). Во-вторых, длина текста проверяется до вырезания смайлов. Это значит, что, к примеру, отзыв,
-	//  состоящий из одних смайлов, будет успешно добавлен как пустой
 	formattedResponse := api.services.AppConfig().Smiles.RemoveFromString(strings.TrimSpace(params.Response))
 
 	if uint64(len(formattedResponse)) < api.services.AppConfig().MinResponseLength {
 		return http.StatusForbidden, &pb.Error_Response{
-			Status:  pb.Error_ACTION_PERMITTED,
+			Status:  pb.Error_ACTION_FORBIDDEN,
 			Context: fmt.Sprintf("Текст сообщения слишком короткий (меньше %d символов после удаления смайлов)", api.services.AppConfig().MinResponseLength),
 		}
 	}
@@ -67,7 +61,7 @@ func (api *API) AddResponse(r *http.Request) (int, proto.Message) {
 
 	if userResponseCountForWork >= api.services.AppConfig().MaxUserResponseCountPerWork {
 		return http.StatusForbidden, &pb.Error_Response{
-			Status:  pb.Error_ACTION_PERMITTED,
+			Status:  pb.Error_ACTION_FORBIDDEN,
 			Context: fmt.Sprintf("На одно произведение можно написать не больше %d отзывов", api.services.AppConfig().MaxUserResponseCountPerWork),
 		}
 	}
@@ -82,7 +76,7 @@ func (api *API) AddResponse(r *http.Request) (int, proto.Message) {
 
 	if suchUserResponseCountForWork > 0 {
 		return http.StatusForbidden, &pb.Error_Response{
-			Status:  pb.Error_ACTION_PERMITTED,
+			Status:  pb.Error_ACTION_FORBIDDEN,
 			Context: "У вас уже есть такой отзыв на данное произведение",
 		}
 	}

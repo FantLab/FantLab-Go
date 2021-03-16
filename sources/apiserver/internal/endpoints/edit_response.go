@@ -40,15 +40,11 @@ func (api *API) EditResponse(r *http.Request) (int, proto.Message) {
 		}
 	}
 
-	// TODO: В Perl-бэке два бага, связанных с отличиями от добавления отзыва. Во-первых, длина проверяется только на
-	//  пустоту, а должна на то, что длина не меньше минимальной. Во-вторых, не вырезаются смайлы. Это дает возможность
-	//  все-таки добавить смайлы в текст, что, в сочетании с багом рендеринга отзывов в ленте на главной, позволяет их
-	//  отрисовать в тексте
 	formattedResponse := api.services.AppConfig().Smiles.RemoveFromString(strings.TrimSpace(params.Response))
 
 	if uint64(len(formattedResponse)) < api.services.AppConfig().MinResponseLength {
 		return http.StatusForbidden, &pb.Error_Response{
-			Status:  pb.Error_ACTION_PERMITTED,
+			Status:  pb.Error_ACTION_FORBIDDEN,
 			Context: fmt.Sprintf("Текст сообщения слишком короткий (меньше %d символов после удаления смайлов)", api.services.AppConfig().MinResponseLength),
 		}
 	}
@@ -59,7 +55,7 @@ func (api *API) EditResponse(r *http.Request) (int, proto.Message) {
 
 	if !(userId == dbResponse.UserId || userCanEditAnyResponses) {
 		return http.StatusForbidden, &pb.Error_Response{
-			Status:  pb.Error_ACTION_PERMITTED,
+			Status:  pb.Error_ACTION_FORBIDDEN,
 			Context: "Вы не можете отредактировать данный отзыв",
 		}
 	}

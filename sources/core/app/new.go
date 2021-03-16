@@ -192,10 +192,8 @@ func MakeServices() (*Services, error, []func() error) {
 				MinUserOwnResponsesRatingForMinusAbility: 300,
 				ForumTopicsInPage:                        20,
 				ForumMessagesInPage:                      20,
-				MaxForumMessageLength:                    20000,
-				// В Perl-бэке указаны разные значения: при редактировании - 2_000с., там же в комментарии - 3_600с.,
-				// при удалении - 1_800c. Остановимся на часе.
-				MaxForumMessageEditTimeout: 3600,
+				MaxMessageLength:                         20000,
+				MaxForumMessageEditTimeout:               3600, /* секунд */
 				// Первоапрельские форумы, в отличие от Perl-бэка, недоступны для любых действий (поскольку доступ к ним
 				// реализован хардкодом в Auth.pm)
 				DefaultAccessToForums:   []uint64{1, 2, 3, 5, 6, 7, 8, 10, 12, 13, 14, 15, 16, 17, 22},

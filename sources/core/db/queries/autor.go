@@ -26,7 +26,7 @@ const (
 		SET
 			new_responses_count = new_responses_count - 1
 		WHERE
-			autor_id IN (?)
+			autor_id IN (?) AND new_responses_count > 0
 	`
 
 	AutorMarkAutorsNeedRecalcStats = `

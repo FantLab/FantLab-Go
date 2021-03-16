@@ -41,18 +41,18 @@ func (api *API) VoteResponse(r *http.Request) (int, proto.Message) {
 
 	user := api.getUser(r)
 
-	// TODO Пропущен весь кусок логики относительно Profile->no_vote_minus, поскольку этот запрет на выставление минусов
-	//  задан хардкодом в Auth.pm
+	// NOTE Пропущен весь кусок логики относительно Profile->no_vote_minus, поскольку этот запрет на выставление минусов
+	// задан хардкодом в Auth.pm
 	if !params.VotePlus && !(user.OwnResponsesRating >= api.services.AppConfig().MinUserOwnResponsesRatingForMinusAbility) {
 		return http.StatusForbidden, &pb.Error_Response{
-			Status:  pb.Error_ACTION_PERMITTED,
+			Status:  pb.Error_ACTION_FORBIDDEN,
 			Context: "Вы не можете ставить минусы отзывам",
 		}
 	}
 
 	if user.UserId == dbResponse.UserId {
 		return http.StatusForbidden, &pb.Error_Response{
-			Status:  pb.Error_ACTION_PERMITTED,
+			Status:  pb.Error_ACTION_FORBIDDEN,
 			Context: "Нельзя оценить собственный отзыв",
 		}
 	}
@@ -67,7 +67,7 @@ func (api *API) VoteResponse(r *http.Request) (int, proto.Message) {
 
 	if responseUserVoteCount > 0 {
 		return http.StatusForbidden, &pb.Error_Response{
-			Status:  pb.Error_ACTION_PERMITTED,
+			Status:  pb.Error_ACTION_FORBIDDEN,
 			Context: "Вы уже оценивали данный отзыв",
 		}
 	}

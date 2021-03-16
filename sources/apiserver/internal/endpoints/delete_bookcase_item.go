@@ -56,7 +56,7 @@ func (api *API) DeleteBookcaseItem(r *http.Request) (int, proto.Message) {
 	if userId != dbBookcase.UserId {
 		if dbBookcase.BookcaseShared == 1 {
 			return http.StatusForbidden, &pb.Error_Response{
-				Status:  pb.Error_ACTION_PERMITTED,
+				Status:  pb.Error_ACTION_FORBIDDEN,
 				Context: "Невозможно отредактировать чужую книжную полку",
 			}
 		} else {

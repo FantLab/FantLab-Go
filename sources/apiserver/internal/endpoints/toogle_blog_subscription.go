@@ -42,7 +42,7 @@ func (api *API) ToggleBlogSubscription(r *http.Request) (int, proto.Message) {
 
 	if dbBlog.UserId == userId {
 		return http.StatusForbidden, &pb.Error_Response{
-			Status:  pb.Error_ACTION_PERMITTED,
+			Status:  pb.Error_ACTION_FORBIDDEN,
 			Context: "your own blog",
 		}
 	}

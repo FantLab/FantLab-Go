@@ -20,7 +20,7 @@ type AppConfig struct {
 	MinUserOwnResponsesRatingForMinusAbility uint64
 	ForumTopicsInPage                        uint64
 	ForumMessagesInPage                      uint64
-	MaxForumMessageLength                    uint64
+	MaxMessageLength                         uint64
 	MaxForumMessageEditTimeout               uint64
 	DefaultAccessToForums                    []uint64
 	ForumsWithEnabledRating                  []uint64

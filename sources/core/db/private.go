@@ -42,7 +42,7 @@ func (db *DB) InsertPrivateMessage(ctx context.Context, fromUserId, toUserId uin
 			func() error { // Получаем сообщение
 				return rw.Read(ctx, sqlapi.NewQuery(queries.PrivateGetMessage).WithArgs(messageId), &message)
 			},
-			// TODO Здесь пропущен кусок логики про то, что надо поменять ссылки на аттачи, если сообщение создается
+			// NOTE Здесь пропущен кусок логики про то, что надо поменять ссылки на аттачи, если сообщение создается
 			//  путем подтверждения черновика (https://github.com/parserpro/fantlab/blob/8e7f35553b030b798b069bd355be2de0de8fc1c6/pm/Forum.pm#L4055-L4058)
 			func() error { // Удаляем, если есть, черновик сообщения
 				return rw.Write(ctx, sqlapi.NewQuery(queries.PrivateCancelMessagePreview).WithArgs(fromUserId, toUserId)).Error

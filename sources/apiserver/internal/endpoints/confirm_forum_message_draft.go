@@ -53,7 +53,7 @@ func (api *API) ConfirmForumMessageDraft(r *http.Request) (int, proto.Message) {
 
 	if dbTopic.IsClosed == 1 {
 		return http.StatusForbidden, &pb.Error_Response{
-			Status:  pb.Error_ACTION_PERMITTED,
+			Status:  pb.Error_ACTION_FORBIDDEN,
 			Context: "Тема закрыта",
 		}
 	}
@@ -98,15 +98,15 @@ func (api *API) ConfirmForumMessageDraft(r *http.Request) (int, proto.Message) {
 
 	if formattedMessageLength == 0 {
 		return http.StatusForbidden, &pb.Error_Response{
-			Status:  pb.Error_ACTION_PERMITTED,
+			Status:  pb.Error_ACTION_FORBIDDEN,
 			Context: "Текст сообщения пустой (после форматирования)",
 		}
 	}
 
-	if formattedMessageLength > api.services.AppConfig().MaxForumMessageLength && user.UserId != api.services.AppConfig().BotUserId {
+	if formattedMessageLength > api.services.AppConfig().MaxMessageLength && user.UserId != api.services.AppConfig().BotUserId {
 		return http.StatusForbidden, &pb.Error_Response{
-			Status:  pb.Error_ACTION_PERMITTED,
-			Context: fmt.Sprintf("Текст сообщения слишком длинный (больше %d символов после форматирования)", api.services.AppConfig().MaxForumMessageLength),
+			Status:  pb.Error_ACTION_FORBIDDEN,
+			Context: fmt.Sprintf("Текст сообщения слишком длинный (больше %d символов после форматирования)", api.services.AppConfig().MaxMessageLength),
 		}
 	}
 

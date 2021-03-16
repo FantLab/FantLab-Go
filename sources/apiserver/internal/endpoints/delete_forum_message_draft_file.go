@@ -57,7 +57,7 @@ func (api *API) DeleteForumMessageDraftFile(r *http.Request) (int, proto.Message
 
 	if dbTopic.IsClosed == 1 {
 		return http.StatusForbidden, &pb.Error_Response{
-			Status:  pb.Error_ACTION_PERMITTED,
+			Status:  pb.Error_ACTION_FORBIDDEN,
 			Context: "Тема закрыта",
 		}
 	}
@@ -116,7 +116,7 @@ func (api *API) DeleteForumMessageDraftFile(r *http.Request) (int, proto.Message
 
 		if !fileExist {
 			return http.StatusForbidden, &pb.Error_Response{
-				Status:  pb.Error_ACTION_PERMITTED,
+				Status:  pb.Error_ACTION_FORBIDDEN,
 				Context: "Не удалось найти аттач с таким именем",
 			}
 		}

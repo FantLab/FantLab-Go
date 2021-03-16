@@ -43,7 +43,7 @@ func (api *API) DeleteResponse(r *http.Request) (int, proto.Message) {
 
 	if !(userId == dbResponse.UserId || userCanEditAnyResponses) {
 		return http.StatusForbidden, &pb.Error_Response{
-			Status:  pb.Error_ACTION_PERMITTED,
+			Status:  pb.Error_ACTION_FORBIDDEN,
 			Context: "Вы не можете удалить данный отзыв",
 		}
 	}

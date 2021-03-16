@@ -21,7 +21,7 @@ func (api *API) CreateDefaultBookcases(r *http.Request) (int, proto.Message) {
 
 	if len(dbBookcases) > 0 {
 		return http.StatusForbidden, &pb.Error_Response{
-			Status:  pb.Error_ACTION_PERMITTED,
+			Status:  pb.Error_ACTION_FORBIDDEN,
 			Context: "Создать первичные книжные полки можно только в том случае, если не создано еще ни одной",
 		}
 	}

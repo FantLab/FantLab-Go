@@ -55,7 +55,7 @@ func (api *API) EditForumMessage(r *http.Request) (int, proto.Message) {
 	if dbMessage.UserId == 0 {
 		// В базе есть сообщения, у которых user_id = 0. Визуально помечается как "Автор удален"
 		return http.StatusForbidden, &pb.Error_Response{
-			Status:  pb.Error_ACTION_PERMITTED,
+			Status:  pb.Error_ACTION_FORBIDDEN,
 			Context: "Запрещено редактировать сообщения удаленных пользователей",
 		}
 	}
@@ -78,11 +78,9 @@ func (api *API) EditForumMessage(r *http.Request) (int, proto.Message) {
 	userCanPerformAdminActions := api.isPermissionGranted(r, pb.Auth_Claims_PERMISSION_CAN_PERFORM_ADMIN_ACTIONS)
 	userCanEditOwnForumMessages := api.isPermissionGranted(r, pb.Auth_Claims_PERMISSION_CAN_EDIT_OWN_FORUM_MESSAGES_WITHOUT_TIME_RESTRICTION)
 
-	// TODO:
-	//  1. В коде метода Forum.pm#EditMessageOk есть логика, касающаяся переноса сообщений между темами. Есть смысл
-	//     вынести этот функционал отдельным endpoint-ом.
-	//  2. Пропущена обработка Profile->workgroup_referee, поскольку оно реализовано хардкодом в Auth.pm
-	//  3. Пропущен хардкод про права rusty_cat править FAQ
+	// NOTE
+	// 1. Пропущена обработка Profile->workgroup_referee, поскольку оно реализовано хардкодом в Auth.pm
+	// 2. Пропущен хардкод прав на редактирование FAQ (это тоже тема в форуме)
 
 	isTimeUp := uint64(time.Since(dbMessage.DateOfAdd).Seconds()) > api.services.AppConfig().MaxForumMessageEditTimeout
 
@@ -95,7 +93,7 @@ func (api *API) EditForumMessage(r *http.Request) (int, proto.Message) {
 
 	if !(user.UserId == dbMessage.UserId && canUserEditMessage && isMessageEditable) && !userIsForumModerator && !onlyForAdminsForum {
 		return http.StatusForbidden, &pb.Error_Response{
-			Status:  pb.Error_ACTION_PERMITTED,
+			Status:  pb.Error_ACTION_FORBIDDEN,
 			Context: "Вы не можете отредактировать данное сообщение",
 		}
 	}
@@ -112,15 +110,15 @@ func (api *API) EditForumMessage(r *http.Request) (int, proto.Message) {
 
 	if formattedMessageLength == 0 {
 		return http.StatusForbidden, &pb.Error_Response{
-			Status:  pb.Error_ACTION_PERMITTED,
+			Status:  pb.Error_ACTION_FORBIDDEN,
 			Context: "Текст сообщения пустой (после форматирования)",
 		}
 	}
 
-	if formattedMessageLength > api.services.AppConfig().MaxForumMessageLength && user.UserId != api.services.AppConfig().BotUserId {
+	if formattedMessageLength > api.services.AppConfig().MaxMessageLength && user.UserId != api.services.AppConfig().BotUserId {
 		return http.StatusForbidden, &pb.Error_Response{
-			Status:  pb.Error_ACTION_PERMITTED,
-			Context: fmt.Sprintf("Текст сообщения слишком длинный (больше %d символов после форматирования)", api.services.AppConfig().MaxForumMessageLength),
+			Status:  pb.Error_ACTION_FORBIDDEN,
+			Context: fmt.Sprintf("Текст сообщения слишком длинный (больше %d символов после форматирования)", api.services.AppConfig().MaxMessageLength),
 		}
 	}
 

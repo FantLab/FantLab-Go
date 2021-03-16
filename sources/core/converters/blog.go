@@ -232,7 +232,7 @@ func GetArticle(dbBlogTopic *db.BlogTopic, viewCount uint64, attachments []helpe
 	attaches := []*pb.Common_Attachment{}
 	for _, attachment := range attachments {
 		attaches = append(attaches, &pb.Common_Attachment{
-			// TODO Заменить url на нормальный
+			// TODO Заменить на действительный url аттача
 			Url:  attachment.Name,
 			Size: attachment.Size,
 		})

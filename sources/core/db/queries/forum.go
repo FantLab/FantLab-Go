@@ -214,7 +214,6 @@ const (
 			)
 	`
 
-	// TODO Все данные, кроме last_sex, уже есть в таблице f_topics (на рефакторинг)
 	ForumGetTopic = `
 		SELECT
 			t.topic_id,
@@ -270,8 +269,6 @@ const (
 			t.topic_id = ?
 	`
 
-	// TODO В Perl запрос выглядит иначе и опирается на поле number. Из-за этого есть баг с количеством страниц в темах
-	//  (https://github.com/parserpro/fantlab/issues/961)
 	ForumTopicMessageCount = `
 		SELECT
 			COUNT(*)
@@ -281,9 +278,10 @@ const (
 			topic_id = ?
 	`
 
-	// TODO Не нужны ли какие-нибудь доп. манипуляции с полем number при чтении
-	//  (например, при переносе сообщений между темами)?
-	//  https://github.com/parserpro/fantlab/blob/HEAD@%7B2019-06-17T18:16:10Z%7D/pm/Forum.pm#L1011
+	// NOTE Этот запрос не всегда отдает корректные результаты. Дело в том, что мы опираемся на поле number, а оно может
+	// быть непоследовательным - например, после удаления сообщений или переноса их между темами это число для соседних
+	// по времени сообщений может отличаться в разы. В Perl-бэке исправлением number занимает Cron-скрипт
+	// update_forum_and_pm_numbers.pm. Пока он не отработает, корректость результатов не гарантирована.
 	ForumGetTopicMessageIds = `
 		SELECT
 			message_id
